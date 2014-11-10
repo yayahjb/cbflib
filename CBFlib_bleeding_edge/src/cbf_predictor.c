@@ -278,7 +278,7 @@ int cbf_compress_predictor (void         *source,
                             size_t        dimmid,
                             size_t        dimslow,
                             size_t        padding)
-{
+    {
         CBF_UNUSED( source );
         CBF_UNUSED( elsize );
         CBF_UNUSED( elsign );
@@ -294,13 +294,13 @@ int cbf_compress_predictor (void         *source,
         CBF_UNUSED( dimslow );
         CBF_UNUSED( padding );
         
-  fprintf (stderr,
-      "\n*** Predictor-Huffman Algorithm Not Implemented Yet -- Abort ***\n");
-
-  exit (1);
-
-  return 1;
-}
+        fprintf (stderr,
+                 "\n*** Predictor-Huffman Algorithm Not Implemented Yet -- Abort ***\n");
+        
+        exit (1);
+        
+        return 1;
+    }
 
 
   /* Decompress an array with the Predictor-Huffman algorithm */
@@ -322,7 +322,7 @@ int cbf_decompress_predictor (void         *destination,
                               size_t        dimmid,
                               size_t        dimslow,
                               size_t        padding)
-{
+    {
         
         CBF_UNUSED( destination );
         CBF_UNUSED( elsize );
@@ -342,13 +342,13 @@ int cbf_decompress_predictor (void         *destination,
         CBF_UNUSED( dimslow );
         CBF_UNUSED( padding );
         
-  fprintf (stderr,
-      "\n*** Predictor-Huffman Algorithm Not Implemented Yet -- Abort ***\n");
-
-  exit (1);
-
-  return 1;
-}
+        fprintf (stderr,
+                 "\n*** Predictor-Huffman Algorithm Not Implemented Yet -- Abort ***\n");
+        
+        exit (1);
+        
+        return 1;
+    }
 
 
 #ifdef __cplusplus

@@ -1,19 +1,19 @@
 /* A Bison parser, made by GNU Bison 2.7.12-4996.  */
 
 /* Bison implementation for Yacc-like parsers in C
-
+   
       Copyright (C) 1984, 1989-1990, 2000-2013 Free Software Foundation, Inc.
-
+   
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
-
+   
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
-
+   
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
@@ -26,7 +26,7 @@
    special exception, which will cause the skeleton and the resulting
    Bison output files to be licensed under the GNU General Public
    License without this special exception.
-
+   
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
@@ -404,7 +404,7 @@ static int cbf_syntax_error (cbf_handle handle, const char *message)
 #   define YY_NULL nullptr
 #  else
 #   define YY_NULL 0
-#endif
+#  endif
 # endif
 
 /* Enabling verbose error messages.  */
@@ -662,7 +662,7 @@ union yyalloc
 {
   yytype_int16 yyss_alloc;
   YYSTYPE yyvs_alloc;
-  };
+};
 
 /* The size of the maximum gap between one aligned stack and the next.  */
 # define YYSTACK_GAP_MAXIMUM (sizeof (union yyalloc) - 1)
@@ -1006,18 +1006,18 @@ static const yytype_uint8 yystos[] =
 
 #define YYRECOVERING()  (!!yyerrstatus)
 
-#define YYBACKUP(Token, Value)					\
-do								\
+#define YYBACKUP(Token, Value)                                  \
+do                                                              \
   if (yychar == YYEMPTY)                                        \
-    {								\
-      yychar = (Token);						\
-      yylval = (Value);						\
+    {                                                           \
+      yychar = (Token);                                         \
+      yylval = (Value);                                         \
       YYPOPSTACK (yylen);                                       \
       yystate = *yyssp;                                         \
-      goto yybackup;						\
-    }								\
-  else								\
-    {								\
+      goto yybackup;                                            \
+    }                                                           \
+  else                                                          \
+    {                                                           \
       yyerror (context, YY_("syntax error: cannot back up")); \
       YYERROR;							\
     }								\
@@ -1030,8 +1030,8 @@ while (YYID (0))
 
 /* This macro is provided for backward compatibility. */
 #ifndef YY_LOCATION_PRINT
-#  define YY_LOCATION_PRINT(File, Loc) ((void) 0)
-# endif
+# define YY_LOCATION_PRINT(File, Loc) ((void) 0)
+#endif
 
 
 /* YYLEX -- calling `yylex' with the right arguments.  */
@@ -1097,7 +1097,7 @@ yy_symbol_value_print (yyoutput, yytype, yyvaluep, context)
   YYUSE (yyoutput);
 # endif
   YYUSE (yytype);
-    }
+}
 
 
 /*--------------------------------.
@@ -1223,7 +1223,7 @@ int yydebug;
 # define YYMAXDEPTH 10000
 #endif
 
-
+
 #if YYERROR_VERBOSE
 
 # ifndef yystrlen
@@ -1336,14 +1336,14 @@ yytnamerr (char *yyres, const char *yystr)
 static int
 yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
                 yytype_int16 *yyssp, int yytoken)
-    {
+{
   YYSIZE_T yysize0 = yytnamerr (YY_NULL, yytname[yytoken]);
-      YYSIZE_T yysize = yysize0;
-      enum { YYERROR_VERBOSE_ARGS_MAXIMUM = 5 };
+  YYSIZE_T yysize = yysize0;
+  enum { YYERROR_VERBOSE_ARGS_MAXIMUM = 5 };
   /* Internationalized format string. */
   const char *yyformat = YY_NULL;
   /* Arguments of yyformat. */
-      char const *yyarg[YYERROR_VERBOSE_ARGS_MAXIMUM];
+  char const *yyarg[YYERROR_VERBOSE_ARGS_MAXIMUM];
   /* Number of reported tokens (one for the "unexpected", one per
      "expected"). */
   int yycount = 0;
@@ -1381,33 +1381,33 @@ yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
       yyarg[yycount++] = yytname[yytoken];
       if (!yypact_value_is_default (yyn))
         {
-      /* Start YYX at -YYN if negative to avoid negative indexes in
+          /* Start YYX at -YYN if negative to avoid negative indexes in
              YYCHECK.  In other words, skip the first -YYN actions for
              this state because they are default actions.  */
-      int yyxbegin = yyn < 0 ? -yyn : 0;
-      /* Stay within bounds of both yycheck and yytname.  */
-      int yychecklim = YYLAST - yyn + 1;
-      int yyxend = yychecklim < YYNTOKENS ? yychecklim : YYNTOKENS;
+          int yyxbegin = yyn < 0 ? -yyn : 0;
+          /* Stay within bounds of both yycheck and yytname.  */
+          int yychecklim = YYLAST - yyn + 1;
+          int yyxend = yychecklim < YYNTOKENS ? yychecklim : YYNTOKENS;
           int yyx;
 
-      for (yyx = yyxbegin; yyx < yyxend; ++yyx)
+          for (yyx = yyxbegin; yyx < yyxend; ++yyx)
             if (yycheck[yyx + yyn] == yyx && yyx != YYTERROR
                 && !yytable_value_is_error (yytable[yyx + yyn]))
-	  {
-	    if (yycount == YYERROR_VERBOSE_ARGS_MAXIMUM)
-	      {
-		yycount = 1;
-		yysize = yysize0;
-		break;
-	      }
-	    yyarg[yycount++] = yytname[yyx];
+              {
+                if (yycount == YYERROR_VERBOSE_ARGS_MAXIMUM)
+                  {
+                    yycount = 1;
+                    yysize = yysize0;
+                    break;
+                  }
+                yyarg[yycount++] = yytname[yyx];
                 {
                   YYSIZE_T yysize1 = yysize + yytnamerr (YY_NULL, yytname[yyx]);
                   if (! (yysize <= yysize1
                          && yysize1 <= YYSTACK_ALLOC_MAXIMUM))
                     return 2;
-	    yysize = yysize1;
-	  }
+                  yysize = yysize1;
+                }
               }
         }
     }
@@ -1431,7 +1431,7 @@ yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
     YYSIZE_T yysize1 = yysize + yystrlen (yyformat);
     if (! (yysize <= yysize1 && yysize1 <= YYSTACK_ALLOC_MAXIMUM))
       return 2;
-      yysize = yysize1;
+    yysize = yysize1;
   }
 
   if (*yymsg_alloc < yysize)
@@ -1443,28 +1443,28 @@ yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
       return 1;
     }
 
-	  /* Avoid sprintf, as that infringes on the user's name space.
-	     Don't have undefined behavior even if the translation
-	     produced a string with the wrong number of "%s"s.  */
+  /* Avoid sprintf, as that infringes on the user's name space.
+     Don't have undefined behavior even if the translation
+     produced a string with the wrong number of "%s"s.  */
   {
     char *yyp = *yymsg;
-	  int yyi = 0;
+    int yyi = 0;
     while ((*yyp = *yyformat) != '\0')
       if (*yyp == '%' && yyformat[1] == 's' && yyi < yycount)
-	    {
-		  yyp += yytnamerr (yyp, yyarg[yyi++]);
+        {
+          yyp += yytnamerr (yyp, yyarg[yyi++]);
           yyformat += 2;
-		}
-	      else
-		{
-		  yyp++;
+        }
+      else
+        {
+          yyp++;
           yyformat++;
-		}
-	    }
+        }
+  }
   return 0;
-	}
+}
 #endif /* YYERROR_VERBOSE */
-
+
 /*-----------------------------------------------.
 | Release the memory associated to this symbol.  |
 `-----------------------------------------------*/
@@ -1491,8 +1491,8 @@ yydestruct (yymsg, yytype, yyvaluep, context)
   YY_SYMBOL_PRINT (yymsg, yytype, yyvaluep, yylocationp);
 
   YYUSE (yytype);
-    }
-
+}
+
 
 
 
@@ -1551,29 +1551,29 @@ static YYSTYPE yyval_default;
 /* The semantic value of the lookahead symbol.  */
 YYSTYPE yylval YY_INITIAL_VALUE(yyval_default);
 
-/* Number of syntax errors so far.  */
-int yynerrs;
+    /* Number of syntax errors so far.  */
+    int yynerrs;
 
-  int yystate;
-  /* Number of tokens to shift before error messages enabled.  */
-  int yyerrstatus;
+    int yystate;
+    /* Number of tokens to shift before error messages enabled.  */
+    int yyerrstatus;
 
     /* The stacks and their tools:
        `yyss': related to states.
        `yyvs': related to semantic values.
 
        Refer to the stacks through separate pointers, to allow yyoverflow
-     to reallocate them elsewhere.  */
+       to reallocate them elsewhere.  */
 
-  /* The state stack.  */
-  yytype_int16 yyssa[YYINITDEPTH];
+    /* The state stack.  */
+    yytype_int16 yyssa[YYINITDEPTH];
     yytype_int16 *yyss;
-  yytype_int16 *yyssp;
+    yytype_int16 *yyssp;
 
-  /* The semantic value stack.  */
-  YYSTYPE yyvsa[YYINITDEPTH];
+    /* The semantic value stack.  */
+    YYSTYPE yyvsa[YYINITDEPTH];
     YYSTYPE *yyvs;
-  YYSTYPE *yyvsp;
+    YYSTYPE *yyvsp;
 
     YYSIZE_T yystacksize;
 
@@ -1607,7 +1607,7 @@ int yynerrs;
   yystate = 0;
   yyerrstatus = 0;
   yynerrs = 0;
-  yychar = YYEMPTY;		/* Cause a token to be read.  */
+  yychar = YYEMPTY; /* Cause a token to be read.  */
   goto yysetstate;
 
 /*------------------------------------------------------------.
@@ -1731,7 +1731,7 @@ yybackup:
   if (yyn <= 0)
     {
       if (yytable_value_is_error (yyn))
-	goto yyerrlab;
+        goto yyerrlab;
       yyn = -yyn;
       goto yyreduce;
     }
@@ -1745,7 +1745,7 @@ yybackup:
   YY_SYMBOL_PRINT ("Shifting", yytoken, &yylval, &yylloc);
 
   /* Discard the shifted token.  */
-    yychar = YYEMPTY;
+  yychar = YYEMPTY;
 
   yystate = yyn;
   YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
@@ -1947,9 +1947,9 @@ yyreduce:
 
   case 12:
 
-    {
+    {					
 						  cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) (yyvsp[(1) - (1)].node), CBF_FUNCTION,
-                                                                                                                  NULL))
+                                                                                                                   NULL))
                                                   (yyval.node) = (yyvsp[(1) - (1)].node); cbf_failnez (cbf_undo_links (&((yyval.node))))
 
                                                   cbf_failnez (cbf_find_parent (&((yyval.node)), (yyval.node), CBF_DATABLOCK))
@@ -2876,26 +2876,26 @@ yyerrlab:
         if (yysyntax_error_status == 0)
           yymsgp = yymsg;
         else if (yysyntax_error_status == 1)
-	  {
-	    if (yymsg != yymsgbuf)
-	      YYSTACK_FREE (yymsg);
+          {
+            if (yymsg != yymsgbuf)
+              YYSTACK_FREE (yymsg);
             yymsg = (char *) YYSTACK_ALLOC (yymsg_alloc);
             if (!yymsg)
-	      {
-		yymsg = yymsgbuf;
-		yymsg_alloc = sizeof yymsgbuf;
+              {
+                yymsg = yymsgbuf;
+                yymsg_alloc = sizeof yymsgbuf;
                 yysyntax_error_status = 2;
-	      }
+              }
             else
-	  {
+              {
                 yysyntax_error_status = YYSYNTAX_ERROR;
                 yymsgp = yymsg;
-	  }
+              }
           }
         yyerror (context, yymsgp);
         if (yysyntax_error_status == 2)
-	      goto yyexhaustedlab;
-	  }
+          goto yyexhaustedlab;
+      }
 # undef YYSYNTAX_ERROR
 #endif
     }
@@ -3020,7 +3020,7 @@ yyreturn:
       /* Make sure we have latest lookahead translation.  See comments at
          user semantic actions for why this is necessary.  */
       yytoken = YYTRANSLATE (yychar);
-     yydestruct ("Cleanup: discarding lookahead",
+      yydestruct ("Cleanup: discarding lookahead",
                   yytoken, &yylval, context);
     }
   /* Do not reclaim the symbols of the rule which action triggered

@@ -591,8 +591,8 @@ extern "C" {
 
         return 0;
     }
-
-
+    
+    
     /* convert an array_id or element_id and optional 
        array_section_id to an element_number = ordinal 
        from 0 of the
@@ -726,14 +726,14 @@ extern "C" {
                             const char **element_id)
     {
         const char *diffrn_id, *id;
-
+        
         unsigned int elements, elno;
 
         /* count the elements */
         
         cbf_failnez (cbf_count_elements (handle, &elements));
         elno = element_number%elements;
-
+        
         /* fprintf(stderr,"element number %d elno %d section %d\n",element_number,elno,element_number/elements); */
 
 
@@ -794,7 +794,7 @@ extern "C" {
         return 0;
     }
 
-
+    
     /* Get the array section id for a given detector element 
        Returns the array id if no section id is found or
        is "." */
@@ -839,7 +839,7 @@ extern "C" {
                 
                 do {
                 
-                cbf_failnez(cbf_find_nextrow(handle,array_id));
+                    cbf_failnez(cbf_find_nextrow(handle,array_id));
                 
                     cbf_failnez(cbf_find_column(handle,"index"));
                 
@@ -859,7 +859,7 @@ extern "C" {
         return (cbf_get_array_id(handle,element_number,array_section_id));
         
     }
-
+    
     int cbf_get_array_section_type (cbf_handle handle,
                                     const char *array_id,
                                     int * bits, int * sign, int * real) {
@@ -1040,7 +1040,7 @@ extern "C" {
         const char * xarray_id;
         
         if (rank < 1 || rank > 100 || !dims)
-                    
+            
             return CBF_ARGUMENT;
         
         for (ii=0; ii < (ssize_t)rank; ii++) dims[ii] = 1;
@@ -1059,13 +1059,13 @@ extern "C" {
             unsigned int compression;
             
             if (rank > 3) {
-            
+                
                 cbf_free((void **) &kdim,NULL);
-            
+                
                 cbf_free((void **) &done,NULL);
-            
+                
                 return CBF_ARGUMENT;
-            
+                
             }
             
             cbf_onfailnez (cbf_find_category (handle, "array_data"),
@@ -1078,7 +1078,7 @@ extern "C" {
                            {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);});
             
             cbf_onfailnez (cbf_get_arrayparameters_wdims(handle,
-                                                       &compression,NULL,NULL,NULL,NULL,&nelem,NULL,NULL,NULL,NULL,
+                                                         &compression,NULL,NULL,NULL,NULL,&nelem,NULL,NULL,NULL,NULL,
                                                          dims,kdim+1,kdim+2,NULL),
                            {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);});
             
@@ -1099,9 +1099,9 @@ extern "C" {
             }
             
             if (dims[0] == 0) dims[0] = 1;
-
+            
             cbf_free((void **) &kdim,NULL);
-                        
+            
             cbf_free((void **) &done,NULL);
             
             return CBF_SUCCESS;
@@ -1132,16 +1132,16 @@ extern "C" {
                  ", index= %d\n",array_id,xarray_id,index); */
                 
                 cbf_onfailnez(cbf_get_array_section_section(handle,
-                                                          array_id,
-                                                          index,&kstart,
-                                                          &kend,
+                                                            array_id,
+                                                            index,&kstart,
+                                                            &kend,
                                                             &kstride),
                               {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);});
                 
                 tdim = kend - kstart;
                 
                 if (tdim < 0) tdim = -tdim;
-                
+                    
                 dims[index-1] = tdim;
                 
                 if (kstride < 0) kstride = -kstride;
@@ -1169,7 +1169,7 @@ extern "C" {
             done[ii] = 0;
             
         };
-                
+        
         cbf_onfailnez (cbf_find_category (handle, "array_structure_list"),
                        {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);});
         cbf_onfailnez (cbf_find_column   (handle, "array_id"),
@@ -1217,7 +1217,7 @@ extern "C" {
             cbf_free((void **) &done,NULL);
             
             return CBF_NOTFOUND;
-        
+            
         }
         
         CBF_END_ARRAY(kdim);
@@ -1261,7 +1261,7 @@ extern "C" {
             if (origins) origins[ii] = 1;
             
         }
-            
+        
         CBF_START_ARRAY(int,done,rank);
         
         CBF_START_ARRAY(size_t,kdim,rank);
@@ -1276,13 +1276,13 @@ extern "C" {
             unsigned int compression;
             
             if (rank > 3) {
-            
+                
                 cbf_free((void **) &kdim,NULL);
-            
+                
                 cbf_free((void **) &done,NULL);
-            
+                
                 return CBF_ARGUMENT;
-            
+                
             }
             
             cbf_onfailnez (cbf_find_category (handle, "array_data"),
@@ -1295,7 +1295,7 @@ extern "C" {
                            {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);});
             
             cbf_onfailnez (cbf_get_arrayparameters_wdims(handle,
-                                                       &compression,NULL,NULL,NULL,NULL,&nelem,NULL,NULL,NULL,NULL,
+                                                         &compression,NULL,NULL,NULL,NULL,&nelem,NULL,NULL,NULL,NULL,
                                                          kdim,kdim+1,kdim+2,NULL),
                            {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);});
             if (dims) {
@@ -1321,7 +1321,7 @@ extern "C" {
                 if (dims[2] == 0) dims[2] = 1;
                 
             }
-                        
+            
             cbf_free((void **) &kdim,NULL);
             
             cbf_free((void **) &done,NULL);
@@ -1352,9 +1352,9 @@ extern "C" {
                  ", index= %d\n",array_id,xarray_id,index); */
                 
                 cbf_onfailnez(cbf_get_array_section_section(handle,
-                                                          array_id,
-                                                          index,&kstart,
-                                                          &kend,
+                                                            array_id,
+                                                            index,&kstart,
+                                                            &kend,
                                                             &kstride),
                               {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);});
                 
@@ -1371,8 +1371,8 @@ extern "C" {
                     origins[index-1] = kend;
                     
                 }
-
-
+                
+                
                 if (dims) {
                     
                     ssize_t tdim;
@@ -1393,7 +1393,7 @@ extern "C" {
                     
                 }
                 
-                 
+                
             }
             
             cbf_free((void **) &kdim,NULL);
@@ -1459,7 +1459,7 @@ extern "C" {
             cbf_free((void **) &done,NULL);
             
             return CBF_NOTFOUND;
-        
+            
         }
         
         CBF_END_ARRAY(kdim);
@@ -1472,13 +1472,13 @@ extern "C" {
     /* Get the pixel sizes for the given array section
        Undetermined pixel sizes are set to zero
      */
-
+    
     int cbf_get_array_section_pixel_sizes (cbf_handle    handle,
                                      const char   *array_id,
                                      size_t       rank,
                                      double       *psizes)
     {
-    
+        
         long index, precedence;
         
         unsigned int ii;
@@ -1633,8 +1633,8 @@ extern "C" {
 
 
     
-    /* Determine a rank for an array_section_id 
-     as the maximum of the indices in 
+    /* Determine a rank for an array_section_id
+     as the maximum of the indices in
      ARRAY_STRUCTURE_LIST_SECTION or by counting the
      comma-separated components of the name
      
@@ -1642,7 +1642,7 @@ extern "C" {
      the rank is computed from ARRAY_STRUCTURE_LIST
      
      */
-    
+
     
     int cbf_get_array_section_rank(cbf_handle handle,
                                    const char * array_section_id,
@@ -1655,7 +1655,7 @@ extern "C" {
         size_t len;
         
         int index;
-        
+
         int error = 0;
         
         long precedence, maxprecedence;
@@ -1684,7 +1684,7 @@ extern "C" {
                     cbf_failnez(cbf_get_longvalue(handle,&precedence));
                     
                     if (precedence > maxprecedence){
-        
+                        
                         maxprecedence = precedence;
                         
                     }
@@ -1763,7 +1763,7 @@ extern "C" {
             if (*ptr == ')') return CBF_SUCCESS;
             
             if (*ptr == ',') (*rank)++;
-               
+            
             ptr++;
                
         }
@@ -2124,13 +2124,13 @@ extern "C" {
             &&(!cbf_find_row(handle,xarray_id))
             &&(!cbf_get_value(handle,array_id))
             && (*array_id)) {
-        
+            
             cbf_free((void **) &xarray_id, NULL);
-        
+            
             return CBF_SUCCESS;
         
         }
-        
+    
         if ((!cbf_find_category(handle,"array_structure_list"))
             &&(!cbf_find_column(handle,"array_id"))
             &&(!cbf_rewind_row(handle))
@@ -2138,8 +2138,8 @@ extern "C" {
             &&(!cbf_get_value(handle,array_id))
             && (*array_id)) {
             
-        cbf_free((void **) &xarray_id, NULL);
-        
+            cbf_free((void **) &xarray_id, NULL);
+            
             return CBF_SUCCESS;
             
         }
@@ -2169,13 +2169,13 @@ extern "C" {
         if (!handle || !array_id) return CBF_ARGUMENT;
 
         *array_id = NULL;
-
+        
         if (!cbf_get_element_id (handle, element_number, &element_id)&&
             (!cbf_find_category  (handle, "diffrn_data_frame") ||
              !cbf_find_category  (handle, "diffrn_frame_data")))
         {
             cbf_failnez (cbf_find_column    (handle, "detector_element_id"));
-
+            
             cbf_failnez (cbf_find_row       (handle, element_id));
             
             if (cbf_find_column    (handle, "array_id")
@@ -2197,22 +2197,22 @@ extern "C" {
                         
                         cbf_failnez (cbf_get_value (handle, array_id));
                         
-        } else {
-
+                    } else {
+                        
                         cbf_failnez(cbf_get_array_section_array_id(handle,array_section_id,array_id));
                         
                     }
                     
                 } else {
                     
-            return CBF_NOTFOUND;
+                    return CBF_NOTFOUND;
                 }
-
+                
             } else {
-
+                
                 return CBF_SUCCESS;
                 
-        }
+            }
 
         } else {
 
@@ -2240,7 +2240,7 @@ extern "C" {
 
         cbf_failnez (cbf_find_category (handle, "array_structure_list"))
         if (cbf_find_column(handle,"array_section_id")) {
-        cbf_failnez (cbf_find_column   (handle, "array_id"))
+          cbf_failnez (cbf_find_column   (handle, "array_id"))
         }
 
         precedence = max_precedence = axis_index = 0;
@@ -2259,8 +2259,8 @@ extern "C" {
                 if (axis_index < 1) return CBF_FORMAT;
             }
             if (cbf_find_column(handle,"array_section_id")) {
-            cbf_failnez (cbf_find_column (handle, "array_id"))
-        }
+                cbf_failnez (cbf_find_column   (handle, "array_id"))
+            }
         }
 
         if (axis_index == 0 && axis_number < 0 ) {
@@ -2276,9 +2276,9 @@ extern "C" {
                     break;
                 }
                 if (cbf_find_column(handle,"array_section_id")) {
-                cbf_failnez (cbf_find_column (handle, "array_id"))
+                    cbf_failnez (cbf_find_column   (handle, "array_id"))
+                }
             }
-        }
         }
 
         if (axis_index == 0 ) return CBF_NOTFOUND;
@@ -2340,7 +2340,7 @@ extern "C" {
             }
             if (cbf_find_column(handle,"array_section_id")) {
                 cbf_failnez (cbf_find_column   (handle, "array_id"));
-        }
+            }
         }
 
         if (axis_index == 0 && axis_number < 0 ) {
@@ -2357,8 +2357,8 @@ extern "C" {
                 }
                 if (cbf_find_column(handle,"array_section_id")) {
                     cbf_failnez (cbf_find_column   (handle, "array_id"));
-            }
-        }
+                }
+           }
         }
 
         if (axis_index == 0 ) return CBF_NOTFOUND;
@@ -2953,17 +2953,17 @@ extern "C" {
         int binary_id;
 
         int errorcode;
-
+        
         size_t ndim0;
-
+        
         CBF_UNUSED( reserved );
 
         binary_id = 0;
-
+        
         ndim0 = 1;
 
         errorcode = cbf_get_array_section_id (handle, element_number, &array_section_id);
-
+        
         if (errorcode) array_section_id = NULL;
 
         cbf_failnez (cbf_get_3d_array (handle, 0, array_section_id,
@@ -3027,12 +3027,12 @@ extern "C" {
                                size_t       *ndimfast)
     {
         const char *array_section_id;
-
+        
         cbf_failnez (cbf_get_array_section_id (handle, element_number, &array_section_id));
-
+        
         cbf_failnez (cbf_get_3d_array_size (handle, reserved, array_section_id,
                                             ndimslow, ndimmid, ndimfast));
-
+            
         return CBF_SUCCESS;
     }
 
@@ -3119,7 +3119,7 @@ extern "C" {
                        size_t        ndimfast)
     {
         const char *array_section_id;
-
+        
         int binary_id=1;
 
         cbf_failnez (cbf_get_array_section_id (handle, element_number, &array_section_id));
@@ -3460,9 +3460,9 @@ extern "C" {
                                   size_t       *ndimfast)
     {
         const char *array_id;
-
+        
         CBF_UNUSED( binary_id );
-
+        
         cbf_failnez (cbf_get_map_array_id (handle, reserved, segment_id, &array_id,
                                            0, 0, *ndimslow, *ndimmid,  *ndimfast) )
 
@@ -3690,9 +3690,9 @@ extern "C" {
         return 0;
     }
 
-
+    
     /* Get the array parameters */
-
+    
     int cbf_get_array_arrayparameters (cbf_handle    handle,
                                      const char   *array_id,
                                      int          binary_id,
@@ -3788,7 +3788,7 @@ extern "C" {
     {
 
         int done [4], precedence, dimension [4], kdim[4];
-
+        
         const char * xarray_id;
 
         if (reserved != 0)
@@ -3823,7 +3823,7 @@ extern "C" {
             return CBF_SUCCESS;
 
         }
-
+        
         /* See if this is an array section is or an array id */
         
         cbf_failnez(cbf_get_array_section_array_id(handle,array_id,&xarray_id));
@@ -3973,7 +3973,7 @@ extern "C" {
                           size_t        ndimfast)
     {
         const char *direction_string;
-
+        
         const char *xarray_id;
 
         int code, done [4], precedence, direction [4], local_binary_id,
@@ -4015,9 +4015,9 @@ extern "C" {
         if (dimmid != ndimmid || dimfast != ndimfast)
 
             return CBF_ARGUMENT;
-
+        
         /* See if the array_id is actually an array_section_id */
-
+        
         cbf_failnez(cbf_get_array_section_array_id(handle,array_id,&xarray_id));
         
         if (cbf_cistrcmp(array_id,xarray_id)) {
@@ -4370,7 +4370,7 @@ extern "C" {
     {
 
         char enctype[30];
-
+        
         const char * xarray_id;
 
         int local_binary_id, done [4], precedence, dimension [4];
@@ -4421,7 +4421,7 @@ extern "C" {
         done [1] = dimension [1] == 1;
         done [2] = dimension [2] == 1;
         done [3] = dimension [3] == 1;
-
+        
         /* See if the array_id is actually an array_section_id */
         
         cbf_failnez(cbf_get_array_section_array_id(handle,array_id,&xarray_id));
@@ -4749,7 +4749,7 @@ extern "C" {
             }
             
             if ( !cbf_cistrcmp(depends_on,".")
-                || !cbf_cistrcmp(depends_on,"?")){
+                 || !cbf_cistrcmp(depends_on,"?") ){
                 
                 cbf_debug_print3("non-null dependency '%s' for axis '%s'\n",
                                  depends_on,
@@ -4798,7 +4798,7 @@ extern "C" {
         cbf_failnez (cbf_get_value     (handle, &cur_axis));
 
         while (curlevel >= 0) {
-
+            
             if (curlevel==0
                 || cbf_find_column   (handle, "depends_on")
                 || cbf_get_value     (handle, &depends_on)
@@ -4823,14 +4823,14 @@ extern "C" {
                 if (curlevel > 0) return CBF_NOTFOUND;
                 *ancestor = cur_axis;
                 return CBF_SUCCESS;
-
+                
             }
-
+            
             cur_axis = depends_on;
             curlevel--;
             cbf_failnez (cbf_find_column(handle, "id"));
             cbf_failnez (cbf_find_row   (handle, cur_axis));
-
+            
         }
         return CBF_NOTFOUND;
 
@@ -4843,16 +4843,16 @@ extern "C" {
     int cbf_get_axis_depends_on (cbf_handle handle, const char *axis_id,
                                  const char * *depends_on)
     {
-
+        
         const char * deptype;
         
         /* Check for valid arguments */
-
+        
         if (!handle || !depends_on) return CBF_ARGUMENT;
-
+        
         
         /* Get the axis dependency */
-
+        
         cbf_failnez (cbf_find_category (handle, "axis"))
         cbf_failnez (cbf_find_column   (handle, "id"))
         cbf_failnez (cbf_find_row      (handle, axis_id))
@@ -4891,7 +4891,7 @@ extern "C" {
         }
         
         return CBF_SUCCESS;
-
+        
     }
 
 
@@ -4903,7 +4903,7 @@ extern "C" {
     {
 
         /* Get the axis equipment */
-
+        
         cbf_failnez (cbf_find_category (handle, "axis"))
         cbf_failnez (cbf_find_column   (handle, "id"))
         cbf_failnez (cbf_find_row      (handle, axis_id))
@@ -4927,7 +4927,7 @@ extern "C" {
     {
 
         /* Get the axis equipment component */
-
+        
         cbf_failnez (cbf_find_category (handle, "axis"))
         cbf_failnez (cbf_find_column   (handle, "id"))
         cbf_failnez (cbf_find_row      (handle, axis_id))
@@ -5632,7 +5632,7 @@ extern "C" {
         const char *rot_id;
 
         cbf_axis_type axis_type;
-
+        
         const char *deptype;
 
         double vector1, vector2, vector3, offset1, offset2, offset3;
@@ -6361,11 +6361,11 @@ extern "C" {
             target_axis = (*goniometer)->axis[axis_index].depends_on;
 
             rotation_axis = (*goniometer)->axis[axis_index].rotation_axis;
-
+            
             if (target_axis
                 && (!cbf_cistrcmp (target_axis,".")
                     ||!cbf_cistrcmp (target_axis,"?"))) {
-
+                    
                     cbf_debug_print3("non-null dependency '%s' for axis '%s'\n",
                                      target_axis,
                                      (*goniometer)->axis[axis_index].name);
@@ -6694,7 +6694,7 @@ extern "C" {
         unsigned int row, axis;
 
         const char *diffrn_id, *id, *this_id, *axis_id, *array_id;
-
+        
         const char *array_section_id;
 
         const char * target_axis;
@@ -6704,13 +6704,13 @@ extern "C" {
         size_t axis_index;
 
         const char *surface_axis [2];  /* fast, slow */
-
+        
         const char *array_colname;
 
         double displacement [2], increment [2];
 
         cbf_positioner positioner;
-
+        
         /* fprintf(stderr,"cbf_construct_detector elno %d\n",element_number); */
 
         if (!detector)
@@ -6878,7 +6878,7 @@ extern "C" {
             size_t index;
 
             int found;
-
+            
             /* fprintf(stderr,"connecting %s\n",positioner->axis[axis_index].name); */
 
             target_axis = positioner->axis[axis_index].depends_on;
@@ -7040,7 +7040,7 @@ extern "C" {
         unsigned int row, axis;
 
         const char *diffrn_id, *id, *this_id, *axis_id, *array_id;
-
+        
         const char *array_section_id;
 
         const char * target_axis;
@@ -7102,7 +7102,7 @@ extern "C" {
             cbf_failnez (cbf_get_value   (handle, &surface_axis [precedence - 1]))
             if (cbf_find_column(handle,"array_section_id")) {
                 cbf_failnez (cbf_find_column   (handle, "array_id"));
-        }
+            }
         }
 
         if (!surface_axis[0]) {
@@ -7407,7 +7407,7 @@ extern "C" {
         unsigned int row, axis;
 
         const char *diffrn_id, *id, *this_id, *axis_id, *array_id;
-
+        
         const char * array_section_id;
 
         const char * target_axis;
@@ -7466,7 +7466,7 @@ extern "C" {
             cbf_failnez (cbf_get_value   (handle, &surface_axis [precedence - 1]))
             if (cbf_find_column(handle,"array_section_id")) {
                 cbf_failnez (cbf_find_column   (handle, "array_id"));
-        }
+            }
         }
 
         if (!surface_axis [0])
@@ -7744,7 +7744,7 @@ extern "C" {
         unsigned int row, axis;
 
         const char *diffrn_id, *id, *this_id, *axis_id, *array_id;
-
+        
         const char *array_section_id;
 
         const char *surface_axis [2];
@@ -7778,7 +7778,7 @@ extern "C" {
         cbf_failnez (cbf_get_array_section_id  (handle, element_number, &array_section_id))
         cbf_failnez (cbf_require_category (handle, "array_structure_list"))
         if (cbf_find_column(handle,"array_section_id")) {
-        cbf_failnez (cbf_require_column   (handle, "array_id"))
+            cbf_failnez (cbf_require_column   (handle, "array_id"))
         }
 
         surface_axis [0] = surface_axis [1] = NULL;
@@ -7801,7 +7801,7 @@ extern "C" {
             cbf_failnez (cbf_get_value   (handle, &surface_axis [precedence - 1]))
             if (cbf_find_column(handle,"array_section_id")) {
                 cbf_failnez (cbf_require_column   (handle, "array_id"))
-        }
+            }
         }
 
         if (!surface_axis[0]) {
@@ -9716,7 +9716,7 @@ extern "C" {
         const char *rot_id;
 
         cbf_axis_type axis_type;
-
+        
         const char *deptype;
 
         double vector1, vector2, vector3, offset1, offset2, offset3;
@@ -10039,7 +10039,7 @@ extern "C" {
         unsigned int row, axis;
 
         const char *diffrn_id, *id, *this_id, *axis_id, *array_id;
-
+        
         const char *array_section_id;
 
         const char * target_axis;
@@ -10098,7 +10098,7 @@ extern "C" {
             cbf_failnez (cbf_get_value   (handle, &surface_axis [precedence - 1]))
             if (cbf_find_column(handle,"array_section_id")) {
                 cbf_failnez (cbf_find_column   (handle, "array_id"));
-        }
+            }
         }
 
         if (!surface_axis [0])
@@ -10481,7 +10481,7 @@ extern "C" {
 
         return errorcode;
     }
-
+    
     /*  For a given axis, return the first element_id
         associated with it for the given equipment
         and equipment_id */
@@ -10596,7 +10596,7 @@ extern "C" {
     
     /* get the id of the particular equipment associated with
        the specified axis_id for the specified equipment type */
-
+    
 
     int cbf_get_axis_equipment_id(cbf_handle handle,
                                     const char ** equipment_id,
@@ -10630,7 +10630,7 @@ extern "C" {
             errorcode |= cbf_get_value(handle,equipment_id);
 
             if (errorcode) *equipment_id = NULL;
-
+            
             if (!*equipment_id || !cbf_cistrcmp(*equipment_id,".")) {
                 
                 const char * axis_set_id;
@@ -10741,12 +10741,12 @@ extern "C" {
     /* get the dimension and units of the available scan points for an axis
      If the axis is an array axis or array section axis, the number
      of scan points in the number of pixels for that axis */
-
+    
     int cbf_get_axis_parameters(cbf_handle handle,
-                                  size_t * scanpoints,
-                                  const char ** units,
-                                  const char * equipment,
-                                  const char * axis_id) {
+                                size_t * scanpoints,
+                                const char ** units,
+                                const char * equipment,
+                                const char * axis_id) {
         
         const char * axis_set_id = NULL;
         
@@ -10765,60 +10765,60 @@ extern "C" {
         isscanaxis = 0;
         
         /* check the arguments */
-
+        
         if (!handle || !scanpoints || !units || !equipment || !axis_id)
-
+            
             return CBF_ARGUMENT;
-
+        
         *units = NULL;
-
+        
         *scanpoints = 0;
-
+        
         if (cbf_find_category(handle, "axis")
             || cbf_find_column(handle,"id")
             || cbf_rewind_row(handle)) return CBF_SUCCESS;
-
-
+        
+        
         while (!cbf_find_nextrow(handle,axis_id)) {
-
+            
             if (cbf_find_column(handle,"equipment")) return CBF_SUCCESS;
-
+            
             if (cbf_get_value(handle,&equipmentid)) return CBF_SUCCESS;
-
+            
             if (cbf_find_column(handle,"id")) return CBF_SUCCESS;
-
+            
             if (equipmentid
                 && (!cbf_cistrcmp(equipmentid,"detector")
                     || !cbf_cistrcmp(equipmentid,"goniometer")
                     )) {
                     
-            if (!equipmentid || cbf_cistrcmp(equipmentid,equipment)) continue;
-
+                    if (!equipmentid || cbf_cistrcmp(equipmentid,equipment)) continue;
+                    
                 }
             
             if (cbf_find_column(handle,"type")) return CBF_SUCCESS;
-
+            
             if (cbf_get_value(handle,&axistype)) return CBF_SUCCESS;
-
+            
             if (!axistype 
                 ||!cbf_cistrcmp(axistype,"general")) return CBF_SUCCESS;
-
+            
             if (!cbf_cistrcmp(axistype,"rotation")) {
-
+                
                 *units = "degrees";
-
+                
             } else if (!cbf_cistrcmp(axistype,"translation")) {
-
+                
                 *units = "mm";
-
+                
             }
-
+            
             break;
-
+            
         }
-
+        
         if (!units) return CBF_SUCCESS;
-
+        
         if (!cbf_find_category(handle, "diffrn_scan_axis")
             &&!cbf_find_column(handle,"axis_id")
             &&!cbf_rewind_row(handle)
@@ -10871,20 +10871,20 @@ extern "C" {
                 
             }
             
-        if (!cbf_find_category(handle,"diffrn_scan")) {
-
-            const char * framesstr;
-
+            if (!cbf_find_category(handle,"diffrn_scan")) {
+                
+                const char * framesstr;
+                
                 if (!cbf_find_column(handle,"frames")
-
+                    
                     && !cbf_rewind_row(handle)
-
+                    
                     && !cbf_get_value(handle,&framesstr)
-
+                    
                     && framesstr) {
                     
                     long tscp;
-
+                    
                     sscanf(framesstr,"%ld",&tscp);
                     
                     *scanpoints = tscp;
@@ -10904,14 +10904,14 @@ extern "C" {
                     
                 }
                 
+                return CBF_SUCCESS;
+                
+            }
+            
             return CBF_SUCCESS;
-
+            
         }
-
-        return CBF_SUCCESS;
-
-    }
-
+        
         return CBF_SUCCESS;
         
     }
@@ -10930,7 +10930,7 @@ extern "C" {
                                 size_t *scanpointsfound,
                                 const char * units,
                                 const char * axis_id) {
-
+        
         const char * axis_set_id;
         
         const char * detector_element_id;
@@ -10956,7 +10956,7 @@ extern "C" {
             return CBF_ARGUMENT;
 
         *scanpointsfound = 0;
-
+        
         axis_set_id = detector_element_id = NULL;
         
         displacement = displacement_increment = angle = angle_increment = 0.;
@@ -11020,7 +11020,7 @@ extern "C" {
             || cbf_rewind_row(handle)
             || cbf_find_nextrow(handle,axis_id)
             || cbf_rewind_row(handle))  {
-
+            
             if (isarrayaxis) {
                 
                 if (!direction || !cbf_cistrcmp(direction,"increasing" )) {
@@ -11058,13 +11058,13 @@ extern "C" {
         }
 
         while (!cbf_find_nextrow(handle,axis_id)&& *scanpointsfound < scanpoints) {
-
+            
             double newstart, newincrement;
 
             if (!cbf_cistrcmp(units,"deg")) {
 
                 cbf_failnez(cbf_find_column(handle,"angle"));
-
+                
                 cbf_failnez(cbf_get_doublevalue(handle, &newstart));
                 
                 if (isarrayaxis) {
@@ -11079,7 +11079,7 @@ extern "C" {
             } else {
 
                 cbf_failnez(cbf_find_column(handle,"displacement"));
-
+                
                 cbf_failnez(cbf_get_doublevalue(handle, &newstart));
                 
                 if (isarrayaxis) {
@@ -11088,7 +11088,7 @@ extern "C" {
                     
                     newincrement = displacement_increment;
                     
-            }
+                }
 
             }
 
@@ -11099,7 +11099,7 @@ extern "C" {
             scanarray[*scanpointsfound] = newstart;
             
             (*scanpointsfound)++;
-
+                
             } else {
                 
                 int ii, ifrom, ito, istep;

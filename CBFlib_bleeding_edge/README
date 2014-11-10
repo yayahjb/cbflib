@@ -22,6 +22,10 @@
     ALTERNATIVELY YOU MAY REDISTRIBUTE THE CBFLIB API UNDER THE TERMS OF THE
                                      LGPL.
 
+    All functions in the src, include and examples directories are included 
+    in the term "API" unless explicitly placed under a diferent license in 
+              the header comments of that particular source code.
+
      ----------------------------------------------------------------------
 
                   Before using this software, please read the

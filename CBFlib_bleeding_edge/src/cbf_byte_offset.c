@@ -1065,23 +1065,23 @@ static int cbf_decompress_byte_offset_slow (void         *destination,
                                 size_t        dimmid,
                                 size_t        dimslow,
                                 size_t        padding)
-{
-  unsigned int element[4], prevelement[4], sign, unsign, limit;
-
-  unsigned int data_unsign;
-
-  unsigned char *unsigned_char_data;
-
-  int errorcode, overflow, numints, iint, carry;
-  
-  int delta[4];
-
-  char * border;
-
-  char * rformat;
-  
-  size_t numread;
-
+    {
+        unsigned int element[4], prevelement[4], sign, unsign, limit;
+        
+        unsigned int data_unsign;
+        
+        unsigned char *unsigned_char_data;
+        
+        int errorcode, overflow, numints, iint, carry;
+        
+        int delta[4];
+        
+        char * border;
+        
+        char * rformat;
+        
+        size_t numread;
+        
         CBF_UNUSED(compressedsize);
         
         CBF_UNUSED(compression);
@@ -1098,291 +1098,291 @@ static int cbf_decompress_byte_offset_slow (void         *destination,
         
         CBF_UNUSED(padding);
         
-    /* prepare the errorcode */
-
-  errorcode = 0;
-
-    /* Is the element size valid? */
-
-  if (elsize != sizeof (int) &&
-      elsize != 2* sizeof (int) &&
-      elsize != 4* sizeof (int) &&
-      elsize != sizeof (short) &&
-      elsize != sizeof (char))
-
-    return CBF_ARGUMENT;
-
-    /* check for compatible real format */
-
-  if ( realarray ) {
-
-    cbf_failnez (cbf_get_local_real_format(&rformat) )
-
-    if ( strncmp(rformat,"ieee",4) ) return CBF_ARGUMENT;
-
-  }
-
-    /* Check the stored element size */
-
-  if (data_bits < 1 || data_bits > 64)
-
-    return CBF_ARGUMENT;
-
-  numints = (data_bits + CHAR_BIT*sizeof (int) -1)/(CHAR_BIT*sizeof (int));
-
-
-    /* Initialise the pointer */
-
-  unsigned_char_data = (unsigned char *) destination;
-
-
-    /* Maximum limits */
-
-  sign = 1 << ((elsize-(numints-1)*sizeof(int))* CHAR_BIT - 1);
-
-  if (elsize == sizeof (int) || elsize == numints*sizeof(int))
-
-    limit = ~0;
-
-  else
-
-    if (numints == 1 ) {
-
-      limit = ~(-(1 << (elsize * CHAR_BIT)));
-
-    } else {
-
-      limit = ~(-(1 << ((elsize-(numints-1)*sizeof(int)) * CHAR_BIT)));
-
-    }
-
-
-    /* Offsets to make the value unsigned */
-
-  if (data_sign)
-
-    data_unsign = sign;
-
-  else
-
-    data_unsign = 0;
-
-  if (elsign)
-
-    unsign = sign;
-
-  else
-
-    unsign = 0;
-
-    /* Get the local byte order */
-
-  if (realarray) {
-
-    cbf_get_local_real_byte_order(&border);
-
-  } else {
-
-    cbf_get_local_integer_byte_order(&border);
-
-  }
-
-
-    /* Set up the previous element for increments */
-    
-  prevelement[0] = prevelement[1] = prevelement[2] = prevelement[3] = 0;
-  
-  prevelement[numints-1] = data_unsign;
-  
-
-    /* Read the elements */
-
-  overflow = 0;
-  
-  numread = 0;
-
-  while (numread < nelem)
-  {
-  
-    for (iint=0; iint < numints; iint++){
-    
-      element[iint] = prevelement[iint];
-      
-      delta[iint] = 0;
-    	
-    }
-    
-    carry = 0;
-    
-    cbf_failnez(cbf_get_bits(file,delta,8))
+        /* prepare the errorcode */
         
-    if ((delta[0]&0xFF) == 0x80) {
-    
-    
-      cbf_failnez(cbf_get_bits(file,delta,16))
+        errorcode = 0;
+        
+        /* Is the element size valid? */
+        
+        if (elsize != sizeof (int) &&
+            elsize != 2* sizeof (int) &&
+            elsize != 4* sizeof (int) &&
+            elsize != sizeof (short) &&
+            elsize != sizeof (char))
             
-
-        if ( (delta[0]& 0xFFFF) == 0x8000)  {
-      	    
-            cbf_failnez(cbf_get_bits(file,delta,32))
+            return CBF_ARGUMENT;
+        
+        /* check for compatible real format */
+        
+        if ( realarray ) {
             
-            if ( (sizeof(int)==2 && delta[0] == 0 && delta[1] == 0x8000)
-                || (sizeof(int)> 3 && (delta[0]&0xFFFFFFFF)==0x80000000) )  {
+            cbf_failnez (cbf_get_local_real_format(&rformat) )
+            
+            if ( strncmp(rformat,"ieee",4) ) return CBF_ARGUMENT;
+            
+        }
+        
+        /* Check the stored element size */
+        
+        if (data_bits < 1 || data_bits > 64)
+            
+            return CBF_ARGUMENT;
+        
+        numints = (data_bits + CHAR_BIT*sizeof (int) -1)/(CHAR_BIT*sizeof (int));
+        
+        
+        /* Initialise the pointer */
+        
+        unsigned_char_data = (unsigned char *) destination;
+        
+        
+        /* Maximum limits */
+        
+        sign = 1 << ((elsize-(numints-1)*sizeof(int))* CHAR_BIT - 1);
+        
+        if (elsize == sizeof (int) || elsize == numints*sizeof(int))
+            
+            limit = ~0;
+        
+        else
+            
+            if (numints == 1 ) {
                 
-                cbf_failnez(cbf_get_bits(file,delta,64))
+                limit = ~(-(1 << (elsize * CHAR_BIT)));
                 
             } else {
                 
-                if (sizeof(int) == 2) {
+                limit = ~(-(1 << ((elsize-(numints-1)*sizeof(int)) * CHAR_BIT)));
+                
+            }
+        
+        
+        /* Offsets to make the value unsigned */
+        
+        if (data_sign)
+            
+            data_unsign = sign;
+        
+        else
+            
+            data_unsign = 0;
+        
+        if (elsign)
+            
+            unsign = sign;
+        
+        else
+            
+            unsign = 0;
+        
+        /* Get the local byte order */
+        
+        if (realarray) {
+            
+            cbf_get_local_real_byte_order(&border);
+            
+        } else {
+            
+            cbf_get_local_integer_byte_order(&border);
+            
+        }
+        
+        
+        /* Set up the previous element for increments */
+        
+        prevelement[0] = prevelement[1] = prevelement[2] = prevelement[3] = 0;
+        
+        prevelement[numints-1] = data_unsign;
+        
+        
+        /* Read the elements */
+        
+        overflow = 0;
+        
+        numread = 0;
+        
+        while (numread < nelem)
+        {
+            
+            for (iint=0; iint < numints; iint++){
+                
+                element[iint] = prevelement[iint];
+                
+                delta[iint] = 0;
+                
+            }
+            
+            carry = 0;
+            
+            cbf_failnez(cbf_get_bits(file,delta,8))
+            
+            if ((delta[0]&0xFF) == 0x80) {
+                
+                
+                cbf_failnez(cbf_get_bits(file,delta,16))
+                
+                
+                if ( (delta[0]& 0xFFFF) == 0x8000)  {
                     
-                    if (delta[1] & 0x8000)  {
+                    cbf_failnez(cbf_get_bits(file,delta,32))
+                    
+                    if ( (sizeof(int)==2 && delta[0] == 0 && delta[1] == 0x8000)
+                        || (sizeof(int)> 3 && (delta[0]&0xFFFFFFFF)==0x80000000) )  {
                         
-                        for (iint = 2; iint < numints; iint++) delta[iint] = ~0;
+                        cbf_failnez(cbf_get_bits(file,delta,64))
+                        
+                    } else {
+                        
+                        if (sizeof(int) == 2) {
+                            
+                            if (delta[1] & 0x8000)  {
+                                
+                                for (iint = 2; iint < numints; iint++) delta[iint] = ~0;
+                                
+                            }
+                            
+                        } else  {
+                            
+                            if (delta[0] & 0x80000000) {
+                                
+                                delta[0] |= ~0xFFFFFFFF;
+                                
+                                for (iint = 1; iint < numints; iint++) {
+                                    
+                                    delta[iint] = ~0;
+                                    
+                                }
+                                
+                            }
+                            
+                        }
                         
                     }
                     
-                } else  {
                     
-                    if (delta[0] & 0x80000000) {
+                }  else  {
+                    
+                    if (delta[0] & 0x8000) {
                         
-                        delta[0] |= ~0xFFFFFFFF;
+                        delta[0] |= ~0xFFFF;
                         
                         for (iint = 1; iint < numints; iint++) {
                             
                             delta[iint] = ~0;
                             
-                        }              
-                        
+                        }
                     }
                     
+                }
+                
+                
+            } else {
+                
+                if (delta[0]&0x80)
+                {
+                    delta[0] |= ~0xFF;
+                    
+                    for (iint = 1; iint < numints; iint++) {
+                        
+                        delta[iint] = ~0;
+                        
+                    }
                 }
                 
             }
             
             
-        }  else  {
-      
-        if (delta[0] & 0x8000) {
-        
-          delta[0] |= ~0xFFFF;
-        	
-      	  for (iint = 1; iint < numints; iint++) {
-      	
-      	    delta[iint] = ~0;
-      		
-      	  }
-        }
-      	
-      }
-      
-    	
-    } else {
-    
-      if (delta[0]&0x80) 
-      {
-      	delta[0] |= ~0xFF;
-      	
-      	for (iint = 1; iint < numints; iint++) {
-      	
-      	  delta[iint] = ~0;
-      		
-      	}
-      }
-    	
-    }
-    
-    
-    if (numints > 1) {
-    
-      for (iint = 0; iint < numints; iint++) element[iint] = prevelement[iint];
-      
-      cbf_failnez(cbf_mpint_add_acc(element,numints, (unsigned int *)delta,numints))
-    	
-    } else {
-    
-      element[0] = prevelement[0] + delta[0];
-      
-      element[0] &= limit;
-    	
-    }
-
-    for (iint = 0; iint < numints; iint++)   {
-        	
-      prevelement[iint] = element[iint];
-
-    }
-    
-
-      /* Make the element signed? */
-
-    element[numints-1] -= unsign;
-
+            if (numints > 1) {
+                
+                for (iint = 0; iint < numints; iint++) element[iint] = prevelement[iint];
+                
+                cbf_failnez(cbf_mpint_add_acc(element,numints, (unsigned int *)delta,numints))
+                
+            } else {
+                
+                element[0] = prevelement[0] + delta[0];
+                
+                element[0] &= limit;
+                
+            }
+            
+            for (iint = 0; iint < numints; iint++)   {
+                
+                prevelement[iint] = element[iint];
+                
+            }
+            
+            
+            /* Make the element signed? */
+            
+            element[numints-1] -= unsign;
+            
 #if DEBUGPRINT == 1
-    fprintf(stderr, "i: %d, 1", numread);
-    fprintf(stderr, " = %d", element[0]);
-    for (iint = 1; iint < numints; iint++)
-      fprintf(stderr, ", %d", element[iint]);
-    fprintf(stderr, "\n");
+            fprintf(stderr, "i: %d, 1", numread);
+            fprintf(stderr, " = %d", element[0]);
+            for (iint = 1; iint < numints; iint++)
+                fprintf(stderr, ", %d", element[iint]);
+            fprintf(stderr, "\n");
 #endif
-
-      /* Save the element */
-
-    if (numints > 1) {
-
-      if (border[0] == 'b') {
-
-        for (iint = numints; iint; iint--) {
-
-            *((unsigned int *) unsigned_char_data) = element[iint-1];
-
-            unsigned_char_data += sizeof (int);
-
+            
+            /* Save the element */
+            
+            if (numints > 1) {
+                
+                if (border[0] == 'b') {
+                    
+                    for (iint = numints; iint; iint--) {
+                        
+                        *((unsigned int *) unsigned_char_data) = element[iint-1];
+                        
+                        unsigned_char_data += sizeof (int);
+                        
+                    }
+                    
+                } else {
+                    
+                    for (iint = 0; iint < numints; iint++) {
+                        
+                        *((unsigned int *) unsigned_char_data) = element[iint];
+                        
+                        unsigned_char_data += sizeof (int);
+                    }
+                }
+                
+            } else {
+                
+                if (elsize == sizeof (int))
+                    
+                    *((unsigned int *) unsigned_char_data) = element[0];
+                
+                else
+                    
+                    if (elsize == sizeof (short))
+                        
+                        *((unsigned short *) unsigned_char_data) = element[0];
+                
+                    else
+                        
+                        *unsigned_char_data = element[0];
+                
+                unsigned_char_data += elsize;
+                
+            }
+            
+            numread++;
         }
-
-      } else {
-
-        for (iint = 0; iint < numints; iint++) {
-
-            *((unsigned int *) unsigned_char_data) = element[iint];
-
-            unsigned_char_data += sizeof (int);
-        }
-      }
-
-    } else {
-
-      if (elsize == sizeof (int))
-
-        *((unsigned int *) unsigned_char_data) = element[0];
-
-      else
-
-        if (elsize == sizeof (short))
-
-          *((unsigned short *) unsigned_char_data) = element[0];
-
-        else
-
-          *unsigned_char_data = element[0];
-
-      unsigned_char_data += elsize;
-
+        
+        /* Number read */
+        
+        if (nelem_read)
+            
+            *nelem_read = numread;
+        
+        
+        /* Success */
+        
+        return overflow;
     }
-    
-    numread++;
-  }
-
-    /* Number read */
-
-  if (nelem_read)
-
-    *nelem_read = numread;
-
-
-    /* Success */
-
-  return overflow;
-}
 
 
 /*

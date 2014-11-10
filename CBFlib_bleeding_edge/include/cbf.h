@@ -751,7 +751,7 @@ if (CBF_SUCCESS != err) \
 
 #define cbf_failnez(f) { int err; err = (f); if (err) return err; }
 
-#define cbf_onfailnez(f,c) { int err; err = (f); if (err) {{ c; } return err; }}
+#define cbf_onfailnez(f,c) { int err; err = (f); if (err) {{ c; } return err;}}
 
 #define cbf_reportnez(x,cerr) {int err; if (!(cerr)) {err = (x); (cerr)|=err;}}
 
@@ -770,9 +770,9 @@ void f
 }
 */
 #define CBF_UNUSED(x) ((void)((x)))
-
+    
 /* macros to define arrays with variable dimensions */
-
+    
 #define CBF_START_ARRAY(type,name,dimension) \
     { type * name; \
       if (!cbf_alloc((void **) &(name),NULL,sizeof(type),dimension)) {
@@ -814,7 +814,7 @@ cbf_handle_struct;
 
 typedef cbf_handle_struct *cbf_handle;
 
-
+    
     /* 3D array 1-based indexing macro */
     
 #define cbf_offset_1_3(i,j,k,dimfast,dimmid) ((i-1)+(dimfast)*(j-1)+(dimfast)*(dimmid)*(k-1))
@@ -825,7 +825,7 @@ typedef cbf_handle_struct *cbf_handle;
 
 
   /* Prototypes */
-
+    
   /* Set a logfile in a handle */
     
 int cbf_set_cbf_logfile (cbf_handle handle, FILE * logfile);
@@ -1210,7 +1210,7 @@ int cbf_set_typeofvalue (cbf_handle handle, const char *typeofvalue);
   
 int cbf_get_integervalue (cbf_handle handle, int *number);
 
-
+    
   /* Get the (long) numeric value of the current (row, column) entry */
   
 int cbf_get_longvalue (cbf_handle handle, long *number);
@@ -1611,7 +1611,7 @@ int cbf_find_tag_category (cbf_handle handle, const char* tagname,
 int cbf_set_tag_category (cbf_handle handle, const char* tagname,
                                             const char* categoryname);
   /* check a category for all required tags and for parent tags */
-
+    
 int cbf_check_category_tags(cbf_handle handle, cbf_node* category, cbf_node* parent);
 
   /* Validate portion of CBF */

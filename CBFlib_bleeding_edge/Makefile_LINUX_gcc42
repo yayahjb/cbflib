@@ -546,7 +546,8 @@ SOURCE   =  $(SRC)/cbf.c               \
 	$(SRC)/cbf_write.c         \
 	$(SRC)/cbf_write_binary.c  \
 	$(SRC)/cbf_ws.c            \
-	$(SRC)/md5c.c
+	$(SRC)/md5c.c              \
+    $(SRC)/img.c
 
 
 F90SOURCE = $(SRC)/fcb_atol_wcnt.f90     \
@@ -598,7 +599,8 @@ HEADERS   =  $(INCLUDE)/cbf.h               \
 	$(INCLUDE)/cbf_ws.h            \
 	$(INCLUDE)/global.h            \
 	$(INCLUDE)/cbff.h              \
-	$(INCLUDE)/md5.h
+	$(INCLUDE)/md5.h               \
+    $(INCLUDE)/img.h
 
 #
 # m4 macro files
@@ -1041,8 +1043,8 @@ $(SOLIB)/libcbf.so: $(SOURCE) $(HEADERS) $(COMMONDEP) $(SOLIB) $(HDF5)
 #
 # IMG library
 #
-$(LIB)/libimg.a: $(EXAMPLES)/img.c $(HEADERS) $(COMMONDEP) $(LIB)
-	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) -c $(EXAMPLES)/img.c
+$(LIB)/libimg.a: $(SRC)/img.c $(HEADERS) $(COMMONDEP) $(LIB)
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) -c $(SRC)/img.c
 	$(AR) cr $@ img.o
 ifneq ($(RANLIB),)
 	$(RANLIB) $@
@@ -1050,7 +1052,7 @@ endif
 	rm img.o
 	
 $(SOLIB)/libimg.so: $(SOURCE) $(HEADERS) $(COMMONDEP) $(SOLIB)
-	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(EXAMPLES)/img.c
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(SRC)/img.c
 	$(CC) -o $@ img.o $(SOLDFLAGS)
 	rm img.o
 
@@ -1162,10 +1164,10 @@ $(EXAMPLES)/test_xds_binary.f90: $(M4)/test_xds_binary.m4 $(M4)/fcblib_defines.m
 #
 # convert_image example program
 #
-$(BIN)/convert_image: $(LIB)/libcbf.a $(EXAMPLES)/convert_image.c $(EXAMPLES)/img.c \
+$(BIN)/convert_image: $(LIB)/libcbf.a $(EXAMPLES)/convert_image.c $(SRC)/img.c \
 	$(GOPTLIB)	$(GOPTINC)
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
-	$(EXAMPLES)/convert_image.c $(EXAMPLES)/img.c $(GOPTLIB) -L$(LIB) \
+	$(EXAMPLES)/convert_image.c $(SRC)/img.c $(GOPTLIB) -L$(LIB) \
 	-lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
 #
 # convert_minicbf example program

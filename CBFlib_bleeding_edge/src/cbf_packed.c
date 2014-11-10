@@ -726,7 +726,7 @@ static int cbf_pack_chunk (cbf_packed_data *data, int size, int chunk,
 
 static unsigned int cbf_maximum_size (cbf_packed_data *data,
                                       unsigned int start,
-                                                      unsigned int chunk)
+                                      unsigned int chunk)
 {
   unsigned int maxsize, index, count;
 
@@ -913,192 +913,192 @@ static int cbf_pack_nextchunk (cbf_packed_data *data, cbf_file *file,
                                        size_t   dimfast,
                                        size_t   dimmid,
                                        size_t   dimslow,
-                               size_t   elsize, 
-                         unsigned int  *average,
-                         unsigned int   compression) {
-                               
-    int i, j, k;
-    
-    int log2[4] = {1,2,0,3};
-    
-    size_t numints;
-    
-    int mask, signbit;
-    
+                                       size_t   elsize,
+                                       unsigned int  *average,
+                                       unsigned int   compression) {
+        
+        int i, j, k;
+        
+        int log2[4] = {1,2,0,3};
+        
+        size_t numints;
+        
+        int mask, signbit;
+        
         CBF_UNUSED( dimslow );
         
-    average[0] = 0;
-    
-    numints = (elsize + sizeof(unsigned int) -1)/sizeof(unsigned int);
-    
-    k = (elsize - (numints-1)*sizeof(unsigned int));
-
-    if (k == sizeof(unsigned int)) {
-
-      mask = ~0;
-
-    } else {
- 
-      mask = ~(-(1<<(k*CHAR_BIT)));
-
-    }    
-
-    signbit = 1<<(CHAR_BIT*(elsize - (numints-1)*sizeof(unsigned int))-1);
-    
-        for (i = 1; i < (int)numints; i++) average[i] = 0;
-                               
-    (*ndimfast)++;
-    
-    if (*ndimfast == dimfast) {
-    
-      *ndimfast = 0;
-      
-      (*ndimmid)++;
-      
-      if (*ndimmid == dimmid) {
-      
-        *ndimmid = 0;
+        average[0] = 0;
         
-        (*ndimslow)++;
-      	
-      }
-    	
-    }
-    
-    for (i = 1 ; i < 8; i++ ) trail_char_data[i] = NULL;
- 
-    if (*ndimmid > 0)  {  /* Not in the first row */
-    
-      trail_char_data[1] = trail_char_data[0]-elsize*(dimfast-2);   /* down 1 right 2 */
-      
-      trail_char_data[2] = trail_char_data[0]-elsize*(dimfast-1); /* down 1 right 1 */
-
-      if (*ndimfast > 0 )  {  /* Not in the first column */
-          
-        trail_char_data[3] = trail_char_data[0]-elsize*(dimfast);   /* down 1 */
+        numints = (elsize + sizeof(unsigned int) -1)/sizeof(unsigned int);
         
-        if (*ndimfast == dimfast-1)  { /* Last column */
+        k = (elsize - (numints-1)*sizeof(unsigned int));
         
-          trail_char_data[1] = NULL;
-        	
-          trail_char_data[3] = NULL;
-
-        }
-      
-      } else { /* First column */
-      
-        trail_char_data[0] = NULL;       
-
-        /* trail_char_data[3] = NULL; -- already done */
-      	
-      }
-
-      if ( *ndimslow > 0  && (compression&CBF_UNCORRELATED_SECTIONS)== 0) {
-      
-        if (trail_char_data[0]) 
-
-          trail_char_data[4] = 
-
-            trail_char_data[0] - elsize*dimfast*dimmid + elsize;
-      
-        for (i = 1; i < 4; i++ ) {
-        
-          if (trail_char_data[i]) 
-
-            trail_char_data[i+4] = 
-
-              trail_char_data[i] - elsize*dimfast*dimmid;
-        	
-        }
-
-      }
-
-    } else { /* First row of a section */
-    
-      if ( *ndimfast == 0 ) { /* First element of first row of a section */
-      
-        trail_char_data[4] = 
-
-              trail_char_data[0] - elsize*(dimfast*dimmid-1);
-              
-        trail_char_data[0] = NULL;   
-         
-      }
-    	
-    }
-    
-    
-      
-    j = 0;
-      
-      
-    if (numints == 1) {
-    	
-        for (i = 0; i < 8; i++) {
+        if (k == sizeof(unsigned int)) {
             
-            if (trail_char_data[i]) {
+            mask = ~0;
+            
+        } else {
+            
+            mask = ~(-(1<<(k*CHAR_BIT)));
+            
+        }
+        
+        signbit = 1<<(CHAR_BIT*(elsize - (numints-1)*sizeof(unsigned int))-1);
+        
+        for (i = 1; i < (int)numints; i++) average[i] = 0;
+        
+        (*ndimfast)++;
+        
+        if (*ndimfast == dimfast) {
+            
+            *ndimfast = 0;
+            
+            (*ndimmid)++;
+            
+            if (*ndimmid == dimmid) {
                 
-                j++;
+                *ndimmid = 0;
                 
-                if (elsize == sizeof (int))
+                (*ndimslow)++;
+                
+            }
+            
+        }
+        
+        for (i = 1 ; i < 8; i++ ) trail_char_data[i] = NULL;
+        
+        if (*ndimmid > 0)  {  /* Not in the first row */
+            
+            trail_char_data[1] = trail_char_data[0]-elsize*(dimfast-2);   /* down 1 right 2 */
+            
+            trail_char_data[2] = trail_char_data[0]-elsize*(dimfast-1); /* down 1 right 1 */
+            
+            if (*ndimfast > 0 )  {  /* Not in the first column */
+                
+                trail_char_data[3] = trail_char_data[0]-elsize*(dimfast);   /* down 1 */
+                
+                if (*ndimfast == dimfast-1)  { /* Last column */
                     
-                    average[0] += *((unsigned int *) (trail_char_data[i]) );
-                
-                else
+                    trail_char_data[1] = NULL;
                     
-                    if (elsize == sizeof (short))
+                    trail_char_data[3] = NULL;
+                    
+                }
+                
+            } else { /* First column */
+                
+                trail_char_data[0] = NULL;
+                
+                /* trail_char_data[3] = NULL; -- already done */
+                
+            }
+            
+            if ( *ndimslow > 0  && (compression&CBF_UNCORRELATED_SECTIONS)== 0) {
+                
+                if (trail_char_data[0])
+                    
+                    trail_char_data[4] =
+                    
+                    trail_char_data[0] - elsize*dimfast*dimmid + elsize;
+                
+                for (i = 1; i < 4; i++ ) {
+                    
+                    if (trail_char_data[i])
                         
-                        average[0] += *((unsigned short *) (trail_char_data[i]));
+                        trail_char_data[i+4] =
+                        
+                        trail_char_data[i] - elsize*dimfast*dimmid;
+                    
+                }
                 
+            }
+            
+        } else { /* First row of a section */
+            
+            if ( *ndimfast == 0 ) { /* First element of first row of a section */
+                
+                trail_char_data[4] =
+                
+                trail_char_data[0] - elsize*(dimfast*dimmid-1);
+                
+                trail_char_data[0] = NULL;
+                
+            }
+            
+        }
+        
+        
+        
+        j = 0;
+        
+        
+        if (numints == 1) {
+            
+            for (i = 0; i < 8; i++) {
+                
+                if (trail_char_data[i]) {
+                    
+                    j++;
+                    
+                    if (elsize == sizeof (int))
+                        
+                        average[0] += *((unsigned int *) (trail_char_data[i]) );
+                    
                     else
                         
-                        average[0] += *(trail_char_data[i]);
-                
-            }
-        }
-        
-        k = j>> 1;
-        
-        if (average[0] & signbit) average[0] |= ~mask;
-        
-        else average[0] &= mask;
-        
-        if (k > 0) average[0] = (unsigned int) (((int)average[0] + k) >> log2[k-1]);
-        
-    } else {
-        
-        for (i = 0; i < 8; i++) {
-            
-            if (trail_char_data[i]) {
-                
-                j++;
-                
-                cbf_failnez(cbf_mpint_add_acc(average, numints, (unsigned int *)(trail_char_data[i]), numints))
-                
+                        if (elsize == sizeof (short))
+                            
+                            average[0] += *((unsigned short *) (trail_char_data[i]));
+                    
+                        else
+                            
+                            average[0] += *(trail_char_data[i]);
+                    
+                }
             }
             
-        }
-        
-        k = j >> 1;
-        
-        if (average[numints-1] & signbit) average[numints-1] |= ~mask;
-        
-        else average[numints-1] &= mask;
+            k = j>> 1;
+            
+            if (average[0] & signbit) average[0] |= ~mask;
+            
+            else average[0] &= mask;
+            
+            if (k > 0) average[0] = (unsigned int) (((int)average[0] + k) >> log2[k-1]);
+            
+        } else {
+            
+            for (i = 0; i < 8; i++) {
                 
-        if (k > 0) {
+                if (trail_char_data[i]) {
+                    
+                    j++;
+                    
+                    cbf_failnez(cbf_mpint_add_acc(average, numints, (unsigned int *)(trail_char_data[i]), numints))
+                    
+                }
+                
+            }
             
-            cbf_failnez(cbf_mpint_add_acc(average,numints, (unsigned int *)&k , 1))
+            k = j >> 1;
             
+            if (average[numints-1] & signbit) average[numints-1] |= ~mask;
             
-            cbf_failnez(cbf_mpint_rightshift_acc(average,numints,log2[k-1]))
+            else average[numints-1] &= mask;
+            
+            if (k > 0) {
+                
+                cbf_failnez(cbf_mpint_add_acc(average,numints, (unsigned int *)&k , 1))
+                
+                
+                cbf_failnez(cbf_mpint_rightshift_acc(average,numints,log2[k-1]))
+                
+            }
             
         }
+        
+        return 0;
         
     }
-    
-    return 0;
-	
-}
 
 
   /* Compress an array with ccp4 compression as per J. P Abrahams.  
@@ -1119,329 +1119,329 @@ int cbf_compress_packed (void         *source,
                          size_t        dimmid,
                          size_t        dimslow,
                          size_t        padding)
-{
-  unsigned int minelement, maxelement;
-
-  unsigned int count, element[4], lastelement[4], unsign, sign, limit, bits;
-
-  unsigned char *unsigned_char_data;
-  
-  unsigned char *trail_char_data[8];
-
-  unsigned long bitcount, chunkbits;
-  
-  unsigned int average[4];
-  
-  size_t ndimfast, ndimmid, ndimslow;
-
-  cbf_packed_data *data;
-  
-  void * memblock;
-  
-  int v2flag, avgflag, clipbits;
-  
-  int numints;
-  
-  int i, iint;
-
-  char * border;
-
-  char * rformat;
-
+    {
+        unsigned int minelement, maxelement;
+        
+        unsigned int count, element[4], lastelement[4], unsign, sign, limit, bits;
+        
+        unsigned char *unsigned_char_data;
+        
+        unsigned char *trail_char_data[8];
+        
+        unsigned long bitcount, chunkbits;
+        
+        unsigned int average[4];
+        
+        size_t ndimfast, ndimmid, ndimslow;
+        
+        cbf_packed_data *data;
+        
+        void * memblock;
+        
+        int v2flag, avgflag, clipbits;
+        
+        int numints;
+        
+        int i, iint;
+        
+        char * border;
+        
+        char * rformat;
+        
         CBF_UNUSED( byteorder );
 
         CBF_UNUSED( padding );
 
-    /* Is the element size valid? */
-
-  if (elsize != sizeof (int) &&
-      elsize != 2* sizeof (int) &&
-      elsize != 4* sizeof (int) &&
-      elsize != sizeof (short) &&
-      elsize != sizeof (char))
-
-    return CBF_ARGUMENT;
-
-    /* check for compatible real format */
-
-  if ( realarray ) {
-
-    cbf_failnez (cbf_get_local_real_format(&rformat) )
-
-    if ( strncmp(rformat,"ieee",4) ) return CBF_ARGUMENT;
-
-  }
-
-
-  bits = elsize * CHAR_BIT;
-
-  if (bits < 1 || bits > 64)
-
-    return CBF_ARGUMENT;
-
-  numints = (bits + CHAR_BIT*sizeof (int) -1)/(CHAR_BIT*sizeof (int));
-
-
-    /* Allocate memory */
-
-  cbf_failnez (cbf_alloc (&memblock, NULL, sizeof (cbf_packed_data), 1))
-  
-  data = (cbf_packed_data *) memblock;
-
-  data->start = 0;
-
-  data->offsets = 0;
-
-
-    /* Count the expected number of bits */
-
-  minelement = 0;
-
-  maxelement = 0;
-  
-   /* Set flags */
-   
-  v2flag = 0;
-  
-  if ((compression&CBF_COMPRESSION_MASK) == CBF_PACKED_V2) v2flag = 1;
-  
-  avgflag = 0;
-    
-  if (dimfast != 0 || dimmid != 0 || dimslow != 0) avgflag = 1;
-  
-  if (compression&CBF_FLAT_IMAGE) avgflag = 0;
-  
-  clipbits = 0;
-  
-  if (avgflag) clipbits = bits;
-  
-  if (dimslow == 0) dimslow = 1;
-  
-  if (dimmid == 0) dimmid = 1;
-  
-  if (dimfast == 0) dimfast = nelem/(dimmid*dimslow);
-  
-  if (dimfast * dimmid * dimslow != nelem) return CBF_ARGUMENT;
-
-
-    /* Write the number of elements (64 bits) */
-
-  cbf_onfailnez (cbf_put_integer (file, nelem, 0, 64),
-                 cbf_free ((void **) data, NULL))
-
-
-    /* Write the minimum element (64 bits) */
-
-  cbf_onfailnez (cbf_put_integer (file, minelement, elsign, 64),
-                 cbf_free ((void **) data, NULL))
-
-
-    /* Write the maximum element (64 bits) */
-
-  cbf_onfailnez (cbf_put_integer (file, maxelement, elsign, 64),
-                 cbf_free ((void **) data, NULL))
-
-
-    /* Write the reserved word  (64 bits) */
-
-  cbf_onfailnez (cbf_put_integer (file, 0, 0, 64),
-                 cbf_free ((void **) data, NULL))
-
-  bitcount = 4 * 64;
-
-
-    /* Initialise the pointers */
-
-  unsigned_char_data = (unsigned char *) source;
-  
-  for (i = 0; i < 8; i++) trail_char_data[i] = NULL;
-
-    /* Maximum limits */
-
-  sign = 1 << ((elsize-(numints-1)*sizeof(int))* CHAR_BIT - 1);
-
-  if (elsize == sizeof (int) || elsize == numints*sizeof(int) )
-
-    limit = ~0;
-
-  else
-
-    if (numints == 1) {
-
-      limit = ~-(1 << (elsize * CHAR_BIT));
-
-    } else {
-
-      limit = ~-(1 << ((elsize-(numints-1)*sizeof(int)) * CHAR_BIT));
-
-    }
-
-
-  if (storedbits)
-
-    *storedbits = bits;
-
-
-    /* Offset to make the value unsigned */
-
-  if (elsign)
-
-    unsign = sign;
-
-  else
-
-    unsign = 0;
-
-    /* Get the local byte order */
-
-
-  if (realarray) {
-
-    cbf_get_local_real_byte_order(&border);
-
-  } else {
-
-    cbf_get_local_integer_byte_order(&border);
-
-  }
-
-
-
-    /* Start from 0 */
-
-  for (i = 0; i < numints-1; i++ ) lastelement[i] = 0;
-  
-  lastelement[numints-1] = unsign;
-  
-  ndimfast = ndimmid = ndimslow = 0;
-
-  for (count = 0; count < nelem; count++)
-  {
-      /* Get the next element */
-      
-    trail_char_data[0] = unsigned_char_data;
-
-    if (numints > 1 ) {
-    
-      if (border[0] == 'b') {
-
-        for (iint = numints; iint; iint--) {
-
-          element[iint-1] = *((unsigned int *) unsigned_char_data);
-
-          unsigned_char_data += sizeof (int);
-
+        /* Is the element size valid? */
+        
+        if (elsize != sizeof (int) &&
+            elsize != 2* sizeof (int) &&
+            elsize != 4* sizeof (int) &&
+            elsize != sizeof (short) &&
+            elsize != sizeof (char))
+            
+            return CBF_ARGUMENT;
+        
+        /* check for compatible real format */
+        
+        if ( realarray ) {
+            
+            cbf_failnez (cbf_get_local_real_format(&rformat) )
+            
+            if ( strncmp(rformat,"ieee",4) ) return CBF_ARGUMENT;
+            
         }
-
-      } else {
-
-        for (iint = 0; iint < numints; iint++) {
-
-          element[iint] = *((unsigned int *) unsigned_char_data);
-
-          unsigned_char_data += sizeof (int);
-        }
-      }
-    	
-    } else {
-    	
-
-      if (elsize == sizeof (int))
-
-        element[0] = *((unsigned int *) unsigned_char_data);
-
-      else
-
-        if (elsize == sizeof (short))
-
-          element[0] = *((unsigned short *) unsigned_char_data);
-
+        
+        
+        bits = elsize * CHAR_BIT;
+        
+        if (bits < 1 || bits > 64)
+            
+            return CBF_ARGUMENT;
+        
+        numints = (bits + CHAR_BIT*sizeof (int) -1)/(CHAR_BIT*sizeof (int));
+        
+        
+        /* Allocate memory */
+        
+        cbf_failnez (cbf_alloc (&memblock, NULL, sizeof (cbf_packed_data), 1))
+        
+        data = (cbf_packed_data *) memblock;
+        
+        data->start = 0;
+        
+        data->offsets = 0;
+        
+        
+        /* Count the expected number of bits */
+        
+        minelement = 0;
+        
+        maxelement = 0;
+        
+        /* Set flags */
+        
+        v2flag = 0;
+        
+        if ((compression&CBF_COMPRESSION_MASK) == CBF_PACKED_V2) v2flag = 1;
+        
+        avgflag = 0;
+        
+        if (dimfast != 0 || dimmid != 0 || dimslow != 0) avgflag = 1;
+        
+        if (compression&CBF_FLAT_IMAGE) avgflag = 0;
+        
+        clipbits = 0;
+        
+        if (avgflag) clipbits = bits;
+        
+        if (dimslow == 0) dimslow = 1;
+        
+        if (dimmid == 0) dimmid = 1;
+        
+        if (dimfast == 0) dimfast = nelem/(dimmid*dimslow);
+        
+        if (dimfast * dimmid * dimslow != nelem) return CBF_ARGUMENT;
+        
+        
+        /* Write the number of elements (64 bits) */
+        
+        cbf_onfailnez (cbf_put_integer (file, nelem, 0, 64),
+                       cbf_free ((void **) data, NULL))
+        
+        
+        /* Write the minimum element (64 bits) */
+        
+        cbf_onfailnez (cbf_put_integer (file, minelement, elsign, 64),
+                       cbf_free ((void **) data, NULL))
+        
+        
+        /* Write the maximum element (64 bits) */
+        
+        cbf_onfailnez (cbf_put_integer (file, maxelement, elsign, 64),
+                       cbf_free ((void **) data, NULL))
+        
+        
+        /* Write the reserved word  (64 bits) */
+        
+        cbf_onfailnez (cbf_put_integer (file, 0, 0, 64),
+                       cbf_free ((void **) data, NULL))
+        
+        bitcount = 4 * 64;
+        
+        
+        /* Initialise the pointers */
+        
+        unsigned_char_data = (unsigned char *) source;
+        
+        for (i = 0; i < 8; i++) trail_char_data[i] = NULL;
+        
+        /* Maximum limits */
+        
+        sign = 1 << ((elsize-(numints-1)*sizeof(int))* CHAR_BIT - 1);
+        
+        if (elsize == sizeof (int) || elsize == numints*sizeof(int) )
+            
+            limit = ~0;
+        
         else
-
-          element[0] = *unsigned_char_data;
-
-      unsigned_char_data += elsize;
-
-    }
+            
+            if (numints == 1) {
+                
+                limit = ~-(1 << (elsize * CHAR_BIT));
+                
+            } else {
+                
+                limit = ~-(1 << ((elsize-(numints-1)*sizeof(int)) * CHAR_BIT));
+                
+            }
         
-
-      /* Make the element unsigned */
-
-    element[numints-1] += unsign;
-    
-    element[numints-1] &= limit;
-    
-    if (element[numints-1] & sign) element[numints-1] |= (~limit);
-
-
-
-      /* Add the offset to the buffer */
-      
-    if (v2flag) cbf_add_offsetv2 (data, element, lastelement, numints);
-    
-    else  cbf_add_offset (data, element, lastelement, numints);
-
-
-      /* Is the buffer full? */
-
-    if (data->offsets == 128)
-    {
-        /* Write the next block as economically as possible */
-
-      cbf_onfailnez (cbf_pack_nextchunk (data, file, &chunkbits, v2flag, clipbits),
-                     cbf_free ((void **) data, NULL))
-
-      bitcount += chunkbits;
-    }
-
-
-      /* Update the previous element */
-
-    for (i = 0; i < numints; i++) lastelement[i] = element[i];
-    
-    if (avgflag) {
-    
-      cbf_update_jpa_pointers(trail_char_data, 
-                       &ndimfast,  &ndimmid, &ndimslow,
-                         dimfast,   dimmid,   dimslow,
-                          elsize, average, compression);
-                              	        
-      for (i = 0; i < numints; i++) lastelement[i] = average[i];
         
-      lastelement[numints-1] +=unsign;
-      
-      lastelement[numints-1] &=limit;
-      
-      if (lastelement[numints-1] & sign) lastelement[numints-1] |= (~limit);
-
-    	
+        if (storedbits)
+            
+            *storedbits = bits;
+        
+        
+        /* Offset to make the value unsigned */
+        
+        if (elsign)
+            
+            unsign = sign;
+        
+        else
+            
+            unsign = 0;
+        
+        /* Get the local byte order */
+        
+        
+        if (realarray) {
+            
+            cbf_get_local_real_byte_order(&border);
+            
+        } else {
+            
+            cbf_get_local_integer_byte_order(&border);
+            
+        }
+        
+        
+        
+        /* Start from 0 */
+        
+        for (i = 0; i < numints-1; i++ ) lastelement[i] = 0;
+        
+        lastelement[numints-1] = unsign;
+        
+        ndimfast = ndimmid = ndimslow = 0;
+        
+        for (count = 0; count < nelem; count++)
+        {
+            /* Get the next element */
+            
+            trail_char_data[0] = unsigned_char_data;
+            
+            if (numints > 1 ) {
+                
+                if (border[0] == 'b') {
+                    
+                    for (iint = numints; iint; iint--) {
+                        
+                        element[iint-1] = *((unsigned int *) unsigned_char_data);
+                        
+                        unsigned_char_data += sizeof (int);
+                        
+                    }
+                    
+                } else {
+                    
+                    for (iint = 0; iint < numints; iint++) {
+                        
+                        element[iint] = *((unsigned int *) unsigned_char_data);
+                        
+                        unsigned_char_data += sizeof (int);
+                    }
+                }
+                
+            } else {
+                
+                
+                if (elsize == sizeof (int))
+                    
+                    element[0] = *((unsigned int *) unsigned_char_data);
+                
+                else
+                    
+                    if (elsize == sizeof (short))
+                        
+                        element[0] = *((unsigned short *) unsigned_char_data);
+                
+                    else
+                        
+                        element[0] = *unsigned_char_data;
+                
+                unsigned_char_data += elsize;
+                
+            }
+            
+            
+            /* Make the element unsigned */
+            
+            element[numints-1] += unsign;
+            
+            element[numints-1] &= limit;
+            
+            if (element[numints-1] & sign) element[numints-1] |= (~limit);
+            
+            
+            
+            /* Add the offset to the buffer */
+            
+            if (v2flag) cbf_add_offsetv2 (data, element, lastelement, numints);
+            
+            else  cbf_add_offset (data, element, lastelement, numints);
+            
+            
+            /* Is the buffer full? */
+            
+            if (data->offsets == 128)
+            {
+                /* Write the next block as economically as possible */
+                
+                cbf_onfailnez (cbf_pack_nextchunk (data, file, &chunkbits, v2flag, clipbits),
+                               cbf_free ((void **) data, NULL))
+                
+                bitcount += chunkbits;
+            }
+            
+            
+            /* Update the previous element */
+            
+            for (i = 0; i < numints; i++) lastelement[i] = element[i];
+            
+            if (avgflag) {
+                
+                cbf_update_jpa_pointers(trail_char_data, 
+                                        &ndimfast,  &ndimmid, &ndimslow,
+                                        dimfast,   dimmid,   dimslow,
+                                        elsize, average, compression);
+                
+                for (i = 0; i < numints; i++) lastelement[i] = average[i];
+                
+                lastelement[numints-1] +=unsign;
+                
+                lastelement[numints-1] &=limit;
+                
+                if (lastelement[numints-1] & sign) lastelement[numints-1] |= (~limit);
+                
+                
+            }
+            
+        }
+        
+        
+        /* Flush the buffers */
+        
+        while (data->offsets > 0)
+        {
+            cbf_onfailnez (cbf_pack_nextchunk (data, file, &chunkbits, v2flag, clipbits),
+                           cbf_free ((void **) data, NULL))
+            
+            bitcount += chunkbits;
+        }
+        
+        
+        /* Return the number of characters written */
+        
+        if (compressedsize)
+            
+            *compressedsize = (bitcount + 7) / 8;
+        
+        
+        /* Free memory */
+        
+        return cbf_free (&memblock, NULL);
     }
-    
-  }
-
-
-    /* Flush the buffers */
-
-  while (data->offsets > 0)
-  {
-    cbf_onfailnez (cbf_pack_nextchunk (data, file, &chunkbits, v2flag, clipbits),
-                   cbf_free ((void **) data, NULL))
-
-    bitcount += chunkbits;
-  }
-
-
-    /* Return the number of characters written */
-
-  if (compressedsize)
-
-    *compressedsize = (bitcount + 7) / 8;
-
-
-    /* Free memory */
-
-  return cbf_free (&memblock, NULL);
-}
 
 
   /* Decompress an array */
@@ -1463,33 +1463,33 @@ int cbf_decompress_packed (void         *destination,
                            size_t        dimmid,
                            size_t        dimslow,
                            size_t        padding)
-{
-  unsigned int next, pixel=0, pixelcount;
-
-  unsigned int bits, iint, element[4], sign, unsign, limit, count;
-
-  unsigned char *unsigned_char_data;
-
-  unsigned char *trail_char_data[8];
-
-  unsigned int offset [4], last_element [4];
-  
-  size_t numints;
-  
-  size_t ndimfast, ndimmid, ndimslow;
-
-  int errorcode;
-  
-  int v2flag, avgflag, clipbits;
-
-  int i;
-
-  char * border;
-
-  char * rformat;
-
+    {
+        unsigned int next, pixel=0, pixelcount;
+        
+        unsigned int bits, iint, element[4], sign, unsign, limit, count;
+        
+        unsigned char *unsigned_char_data;
+        
+        unsigned char *trail_char_data[8];
+        
+        unsigned int offset [4], last_element [4];
+        
+        size_t numints;
+        
+        size_t ndimfast, ndimmid, ndimslow;
+        
+        int errorcode;
+        
+        int v2flag, avgflag, clipbits;
+        
+        int i;
+        
+        char * border;
+        
+        char * rformat;
+        
         CBF_UNUSED( compressedsize );
-
+        
         CBF_UNUSED( data_bits );
         
         CBF_UNUSED( data_sign );
@@ -1500,292 +1500,292 @@ int cbf_decompress_packed (void         *destination,
         
         CBF_UNUSED( padding );
         
-    /* Is the element size valid? */
-
-  if (elsize != sizeof (int) &&
-      elsize != sizeof (short) &&
-      elsize != sizeof (char) &&
-      elsize != 2*sizeof(unsigned int) &&
-      elsize != 4*sizeof(unsigned int))
-
-    return CBF_ARGUMENT;
-
-    /* check for compatible real format */
-
-  if ( realarray ) {
-
-    cbf_failnez (cbf_get_local_real_format(&rformat) )
-
-    if ( strncmp(rformat,"ieee",4) ) return CBF_ARGUMENT;
-
-  }
-   bits = elsize * CHAR_BIT;
-
-   if (bits < 1 || bits > 64)
-
-     return CBF_ARGUMENT;
-
-   numints = (bits + CHAR_BIT*sizeof (int) -1)/(CHAR_BIT*sizeof (int));
-
-
-    /* Initialise the pointers */
-
-  unsigned_char_data = (unsigned char *) destination;
-
-  
-  for (i = 0; i < 8; i++) trail_char_data[i] = NULL;
-  
-
-    /* Maximum limits */
-
-  sign = 1 << ((elsize-(numints-1)*sizeof(int))* CHAR_BIT - 1);
-
-  if (elsize == numints*sizeof(int) )
-
-    limit = ~0;
-
-  else
-
-    if (numints == 1) {
-
-      limit = ~-(1 << (elsize * CHAR_BIT));
-
-    } else {
-
-      limit = ~-(1 << ((elsize-(numints-1)*sizeof(int)) * CHAR_BIT));
-
-    }
-
-
-    /* Offset to make the value unsigned */
-
-  if (elsign)
-
-    unsign = sign;
-
-  else
-
-    unsign = 0;
-
-    /* Get the local byte order */
-
-  if (realarray) {
-
-    cbf_get_local_real_byte_order(&border);
-
-  } else {
-
-    cbf_get_local_integer_byte_order(&border);
-
-  }
-
-
-
-    /* Initialise the first element */
-
-  for (count = 0; count < numints-1; count++)
-
-    last_element [count] = 0;
-    
-  last_element [numints-1] = unsign;
-
-
-    /* Discard the reserved entry (64 bits) */
-
-  cbf_failnez (cbf_get_integer (file, NULL, 0, 64))
-
-
-    /* Pick up the flags */
-
-  v2flag = 0;
-  
-  if ((compression&CBF_COMPRESSION_MASK) == CBF_PACKED_V2) v2flag = 1;
-  
-  avgflag = 1;
-
-  if (dimfast == 0  && dimmid == 0 && dimslow == 0) avgflag = 0;
-  
-  if (compression&CBF_FLAT_IMAGE) avgflag = 0;
-  
-  clipbits = 0;
-  
-  if (avgflag) clipbits = bits;
-
-  if (dimslow == 0) dimslow = 1;
-  
-  if (dimmid == 0) dimmid = 1;
-  
-  if (dimfast == 0) dimfast = nelem/(dimmid*dimslow);
-  
-  if (dimfast * dimmid * dimslow != nelem) return CBF_ARGUMENT;
-
-    /* Read the elements */
-
-  count = 0;
-  
-  ndimfast = ndimmid = ndimslow = 0;
-
-  while (count < nelem)
-  {
-      /* Get the next 6 bits of data */
-
-    errorcode = cbf_get_integer (file, (int *) &next, 0, 6+v2flag);
-
-    if (errorcode)
-    {
-      if (nelem_read)
-
-        *nelem_read = count + pixel;
-
-      return errorcode;
-    }
-
-      /* Decode bits 0-5 (v2flag == 0) or 0-6 (v2flag == 1) */
-
-    pixelcount = 1 << (next & 7);
-
-    if (v2flag) bits = cbf_packedv2_bits [(next >> 3) & 15];
-    else bits = cbf_packed_bits [(next >> 3) & 7];
-    
-    if (avgflag && bits == 65) bits = clipbits;
-      
-      /* Read the offsets */
-
-    if (pixelcount + count > nelem)
-
-      pixelcount = nelem - count;
-      
-    for (pixel = 0; pixel < pixelcount; pixel++)
-    {
-
-                for (i = 0; i < (int)numints; i++) element[i] = last_element[i];
-
-        /* Read an offset */
-
-                for (i = 0; i < (int)numints; i++) offset[i] = 0;
-      
-      if (bits) {
-          
-          errorcode = cbf_get_bits (file, (int *) offset, bits);
-          
-          if (errorcode) {
-              
-              if (nelem_read)
-                  
-                  *nelem_read = count + pixel;
-              
-              return errorcode;
-          }
-          
-      }
-
-      if (numints > 1) {
-          
-        iint = (bits+sizeof(unsigned int)*CHAR_BIT-1)/(sizeof(unsigned int)*CHAR_BIT);
-      
-        cbf_failnez(cbf_mpint_add_acc(element,numints,offset,iint))
-      	
-      } else   {
-      	
-        element[0] += (int)(offset[0]);
+        /* Is the element size valid? */
         
-        element[0] &= limit;
- 
-      }
-      
-        /* Make the element signed? */
-
-      element[numints-1] -= unsign;
-      
-        /* Save the location of to which this element will be
-           stored */
-      
-      trail_char_data[0] = unsigned_char_data;
-      
-
-        /* Save the element */
+        if (elsize != sizeof (int) &&
+            elsize != sizeof (short) &&
+            elsize != sizeof (char) &&
+            elsize != 2*sizeof(unsigned int) &&
+            elsize != 4*sizeof(unsigned int))
+            
+            return CBF_ARGUMENT;
         
-      if (numints > 1) {
-      
-        if (border[0] == 'b') {
-
-          for (iint = numints; iint; iint--) {
-
-            *((unsigned int *) unsigned_char_data) = element[iint-1];
-
-            unsigned_char_data += sizeof (int);
-
-          }
-
-        } else {
-
-          for (iint = 0; iint < numints; iint++) {
-
-            *((unsigned int *) unsigned_char_data) = element[iint];
-
-            unsigned_char_data += sizeof (int);
-          }
- 
+        /* check for compatible real format */
+        
+        if ( realarray ) {
+            
+            cbf_failnez (cbf_get_local_real_format(&rformat) )
+            
+            if ( strncmp(rformat,"ieee",4) ) return CBF_ARGUMENT;
+            
         }
-      	
-
-      } else {
-      	
-        if (elsize == sizeof (int))
-
-          *((unsigned int *) unsigned_char_data) = element[0];
-
+        bits = elsize * CHAR_BIT;
+        
+        if (bits < 1 || bits > 64)
+            
+            return CBF_ARGUMENT;
+        
+        numints = (bits + CHAR_BIT*sizeof (int) -1)/(CHAR_BIT*sizeof (int));
+        
+        
+        /* Initialise the pointers */
+        
+        unsigned_char_data = (unsigned char *) destination;
+        
+        
+        for (i = 0; i < 8; i++) trail_char_data[i] = NULL;
+        
+        
+        /* Maximum limits */
+        
+        sign = 1 << ((elsize-(numints-1)*sizeof(int))* CHAR_BIT - 1);
+        
+        if (elsize == numints*sizeof(int) )
+            
+            limit = ~0;
+        
         else
-
-          if (elsize == sizeof (short))
-
-            *((unsigned short *) unsigned_char_data) = element[0];
-
-          else
-
-            *unsigned_char_data = element[0];
-
-        unsigned_char_data += elsize;
-          
-      } 
-
-      if (avgflag) {
-      	
-        cbf_failnez(cbf_update_jpa_pointers(trail_char_data, 
-                       &ndimfast,  &ndimmid, &ndimslow,
-                         dimfast,   dimmid,   dimslow,
-                          elsize, last_element, compression))
+            
+            if (numints == 1) {
+                
+                limit = ~-(1 << (elsize * CHAR_BIT));
+                
+            } else {
+                
+                limit = ~-(1 << ((elsize-(numints-1)*sizeof(int)) * CHAR_BIT));
+                
+            }
         
-        last_element[numints-1] += unsign; 
         
-        last_element[numints-1] &= limit; 
+        /* Offset to make the value unsigned */
         
-      } else {
-      	
+        if (elsign)
+            
+            unsign = sign;
+        
+        else
+            
+            unsign = 0;
+        
+        /* Get the local byte order */
+        
+        if (realarray) {
+            
+            cbf_get_local_real_byte_order(&border);
+            
+        } else {
+            
+            cbf_get_local_integer_byte_order(&border);
+            
+        }
+        
+        
+        
+        /* Initialise the first element */
+        
+        for (count = 0; count < numints-1; count++)
+            
+            last_element [count] = 0;
+        
+        last_element [numints-1] = unsign;
+        
+        
+        /* Discard the reserved entry (64 bits) */
+        
+        cbf_failnez (cbf_get_integer (file, NULL, 0, 64))
+        
+        
+        /* Pick up the flags */
+        
+        v2flag = 0;
+        
+        if ((compression&CBF_COMPRESSION_MASK) == CBF_PACKED_V2) v2flag = 1;
+        
+        avgflag = 1;
+        
+        if (dimfast == 0  && dimmid == 0 && dimslow == 0) avgflag = 0;
+        
+        if (compression&CBF_FLAT_IMAGE) avgflag = 0;
+        
+        clipbits = 0;
+        
+        if (avgflag) clipbits = bits;
+        
+        if (dimslow == 0) dimslow = 1;
+        
+        if (dimmid == 0) dimmid = 1;
+        
+        if (dimfast == 0) dimfast = nelem/(dimmid*dimslow);
+        
+        if (dimfast * dimmid * dimslow != nelem) return CBF_ARGUMENT;
+        
+        /* Read the elements */
+        
+        count = 0;
+        
+        ndimfast = ndimmid = ndimslow = 0;
+        
+        while (count < nelem)
+        {
+            /* Get the next 6 bits of data */
+            
+            errorcode = cbf_get_integer (file, (int *) &next, 0, 6+v2flag);
+            
+            if (errorcode)
+            {
+                if (nelem_read)
+                    
+                    *nelem_read = count + pixel;
+                
+                return errorcode;
+            }
+            
+            /* Decode bits 0-5 (v2flag == 0) or 0-6 (v2flag == 1) */
+            
+            pixelcount = 1 << (next & 7);
+            
+            if (v2flag) bits = cbf_packedv2_bits [(next >> 3) & 15];
+            else bits = cbf_packed_bits [(next >> 3) & 7];
+            
+            if (avgflag && bits == 65) bits = clipbits;
+            
+            /* Read the offsets */
+            
+            if (pixelcount + count > nelem)
+                
+                pixelcount = nelem - count;
+            
+            for (pixel = 0; pixel < pixelcount; pixel++)
+            {
+                
+                for (i = 0; i < (int)numints; i++) element[i] = last_element[i];
+                
+                /* Read an offset */
+                
+                for (i = 0; i < (int)numints; i++) offset[i] = 0;
+                
+                if (bits) {
+                    
+                    errorcode = cbf_get_bits (file, (int *) offset, bits);
+                    
+                    if (errorcode) {
+                        
+                        if (nelem_read)
+                            
+                            *nelem_read = count + pixel;
+                        
+                        return errorcode;
+                    }
+                    
+                }
+                
+                if (numints > 1) {
+                    
+                    iint = (bits+sizeof(unsigned int)*CHAR_BIT-1)/(sizeof(unsigned int)*CHAR_BIT);
+                    
+                    cbf_failnez(cbf_mpint_add_acc(element,numints,offset,iint))
+                    
+                } else   {
+                    
+                    element[0] += (int)(offset[0]);
+                    
+                    element[0] &= limit;
+                    
+                }
+                
+                /* Make the element signed? */
+                
+                element[numints-1] -= unsign;
+                
+                /* Save the location of to which this element will be
+                 stored */
+                
+                trail_char_data[0] = unsigned_char_data;
+                
+                
+                /* Save the element */
+                
+                if (numints > 1) {
+                    
+                    if (border[0] == 'b') {
+                        
+                        for (iint = numints; iint; iint--) {
+                            
+                            *((unsigned int *) unsigned_char_data) = element[iint-1];
+                            
+                            unsigned_char_data += sizeof (int);
+                            
+                        }
+                        
+                    } else {
+                        
+                        for (iint = 0; iint < numints; iint++) {
+                            
+                            *((unsigned int *) unsigned_char_data) = element[iint];
+                            
+                            unsigned_char_data += sizeof (int);
+                        }
+                        
+                    }
+                    
+                    
+                } else {
+                    
+                    if (elsize == sizeof (int))
+                        
+                        *((unsigned int *) unsigned_char_data) = element[0];
+                    
+                    else
+                        
+                        if (elsize == sizeof (short))
+                            
+                            *((unsigned short *) unsigned_char_data) = element[0];
+                    
+                        else
+                            
+                            *unsigned_char_data = element[0];
+                    
+                    unsigned_char_data += elsize;
+                    
+                } 
+                
+                if (avgflag) {
+                    
+                    cbf_failnez(cbf_update_jpa_pointers(trail_char_data, 
+                                                        &ndimfast,  &ndimmid, &ndimslow,
+                                                        dimfast,   dimmid,   dimslow,
+                                                        elsize, last_element, compression))
+                    
+                    last_element[numints-1] += unsign; 
+                    
+                    last_element[numints-1] &= limit; 
+                    
+                } else {
+                    
                     for (i = 0; i < (int)(numints-1); i++ )last_element[i] = element[i];
-      
-       last_element[numints-1] = element[numints-1]+unsign;
-       
-      }
-   
+                    
+                    last_element[numints-1] = element[numints-1]+unsign;
+                    
+                }
+                
+            }
+            
+            count += pixelcount;
+            
+            
+        }
+        
+        /* Number read */
+        
+        if (nelem_read)
+            
+            *nelem_read = count;
+        
+        
+        /* Success */
+        
+        return 0;
     }
-    
-    count += pixelcount;
-
-
-  }
-
-    /* Number read */
-
-  if (nelem_read)
-
-    *nelem_read = count;
-
-
-    /* Success */
-
-  return 0;
-}
 
 
 #ifdef __cplusplus
