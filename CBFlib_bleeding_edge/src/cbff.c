@@ -1,5 +1,5 @@
 /**********************************************************************
- * cbff -- cbflib C rouitnes for fortran access                       *
+ * cbff -- cbflib C routines for fortran access                       *
  *                                                                    *
  * Version 0.8.1 1 March 2009                                         *
  *                                                                    *

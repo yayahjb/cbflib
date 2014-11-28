@@ -270,7 +270,8 @@ TIFFPREFIX = $(PWD)
 #
 #HDF5 = hdf5-1.8.10
 #HDF5 = hdf5-1.8.11-pre2
-HDF5 = hdf5-1.8.11
+#HDF5 = hdf5-1.8.11
+HDF5 = hdf5-1.8.13
 HDF5PREFIX = $(PWD)
 HDF5LIBS = ./lib/libhdf5.a -lz -ldl
 HDF5SOLIBS = -L./lib -lhdf5 -lz
@@ -369,7 +370,7 @@ JAR = jar
 # Java SDK root directory
 #
 ifeq ($(JDKDIR),)
-  JDKDIR 	=	/usr/lib/java
+	JDKDIR 	=	/usr/lib/java
 endif
 
 ifneq ($(CBF_DONT_USE_LONG_LONG),)
@@ -543,6 +544,7 @@ SOURCE   =  $(SRC)/cbf.c               \
 	$(SRC)/cbf_write.c         \
 	$(SRC)/cbf_write_binary.c  \
 	$(SRC)/cbf_ws.c            \
+    $(SRC)/cbff.c              \
 	$(SRC)/md5c.c              \
     $(SRC)/img.c
 
@@ -1367,7 +1369,7 @@ $(BIN)/ctestcbf: $(EXAMPLES)/testcbf.c $(LIB)/libcbf.a
 #
 $(BIN)/testcbf.class: $(EXAMPLES)/testcbf.java $(JCBF)/cbflib-$(VERSION).jar $(SOLIB)/libcbf_wrap.so
 	$(JAVAC) -cp $(JCBF)/cbflib-$(VERSION).jar -d $(BIN) $(EXAMPLES)/testcbf.java
- 
+	
 ifneq ($(CBF_USE_ULP),)
 #
 # testulp test program
@@ -1390,7 +1392,7 @@ $(BIN)/testhdf5: $(LIB)/libcbf.a $(EXAMPLES)/testhdf5.c $(EXAMPLES)/unittest.h
 $(BIN)/testalloc: $(LIB)/libcbf.a $(EXAMPLES)/testalloc.c $(EXAMPLES)/unittest.h
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) $(EXAMPLES)/testalloc.c -L$(LIB) $(LIB)/libcbf.a $(EXTRALIBS) -o $@.tmp
 	mv $@.tmp $@
- 
+	
 
 
 #

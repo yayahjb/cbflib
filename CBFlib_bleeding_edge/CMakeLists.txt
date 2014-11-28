@@ -265,6 +265,7 @@
 #        hdf5-1.8.11                                                 #
 #        tiff-3.9.4-rev-6Feb11                                       #
 #        regex-20090805                                              #
+#        zlib-1.2.8                                                  #
 #      data_files             Directory for test files               #
 #      bin                    Directory for executable programs      #
 #      include                Directory with build-created headers   #
@@ -273,7 +274,6 @@
 ######################################################################
 
 
-cmake_minimum_required (VERSION 2.8.7)
 
 set(CBF_USE_FORTRAN_ENV $ENV{CBF_USE_FORTRAN})
 set(CBF_F90FLAGS_ENV $ENV{F90FLAGS})
@@ -500,6 +500,13 @@ endif (CBF_HDF5REGISTER_MANUAL_ENV STREQUAL "YES")
 set(HDF5_EXTERNALLY_CONFIGURED  1)
 set(HDF5_INSTALL_DIR "${CMAKE_BINARY_DIR}/${CBF_HDF5}")
 set(HDF5_BINARY_DIR "${CBF_HDF5}/bin")
+
+#
+# Definitions to get a version of zlib
+#
+set(CBF_ZLIB         "zlib-1.2.8")
+set(CBF_ZLIBURL      "http://downloads.sf.net/cbflib/${CBF_ZLIB}.tar.gz)
+
 
 if(CBF_DONT_USE_LONG_LONG)
   set(CBF_NOLLFLAG "-DCBF_DONT_USE_LONG_LONG")
