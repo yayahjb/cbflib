@@ -505,7 +505,7 @@ set(HDF5_BINARY_DIR "${CBF_HDF5}/bin")
 # Definitions to get a version of zlib
 #
 set(CBF_ZLIB         "zlib-1.2.8")
-set(CBF_ZLIBURL      "http://downloads.sf.net/cbflib/${CBF_ZLIB}.tar.gz)
+set(CBF_ZLIBURL      "http://downloads.sf.net/cbflib/${CBF_ZLIB}.tar.gz")
 
 
 if(CBF_DONT_USE_LONG_LONG)
