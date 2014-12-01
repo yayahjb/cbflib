@@ -273,6 +273,11 @@
 #                                                                    #
 ######################################################################
 
+cmake_minimum_required(VERSION 2.8)
+
+if(COMMAND cmake_policy)
+  cmake_policy(SET CMP0003 NEW)
+endif(COMMAND cmake_policy)
 
 
 set(CBF_USE_FORTRAN_ENV $ENV{CBF_USE_FORTRAN})
@@ -489,7 +494,7 @@ set(TIFF_INSTALL_DIR "${CMAKE_BINARY_DIR}/${CBF_TIFF}")
 #
 # Definitions to get a version of HDF5
 #
-set(CBF_HDF5        "hdf5-1.8.11_rev_20Sep13")
+set(CBF_HDF5        "hdf5-1.8.14")
 set(CBF_HDF5URL  "http://downloads.sf.net/cbflib/${CBF_HDF5}.tar.gz")
 set(CBF_HDF5REGISTER_ARG "--register")
 if (CBF_HDF5REGISTER_MANUAL_ENV STREQUAL "YES")
