@@ -1,5 +1,5 @@
 m4_define(`cbf_version',`0.9.5')m4_dnl
-m4_define(`cbf_date',`03 Jul 2014')m4_dnl
+m4_define(`cbf_date',`29 Jan 2015')m4_dnl
 m4_ifelse(cbf_system,`',`m4_define(`cbf_system',`LINUX')')
 `######################################################################
 #  Makefile - command file for make to create CBFlib                 #
@@ -9,7 +9,7 @@ m4_ifelse(cbf_system,`',`m4_define(`cbf_system',`LINUX')')
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
 #                                                                    #
-# (C) Copyright 2006 - 2014 Herbert J. Bernstein                     #
+# (C) Copyright 2006 - 2015 Herbert J. Bernstein                     #
 #                                                                    #
 ######################################################################
 
@@ -256,19 +256,20 @@ VERSION = 'cbf_version`
 
 
 #
-# Comment out the next line if scratch test files sould be retained
+# Comment out the next line if scratch test files should be retained
 #
 CLEANTESTS = yes
 
-'m4_ifelse(cbf_use_pycifrw,`yes',`
+CBFLIB_DONT_USE_PYCIFRW ?= no
+ifneq ($(CBFLIB_DONT_USE_PYCIFRW),yes)
 #
 # Definitions to get versions of PyCifRW and PLY
 #
-PYCIFRW = PyCifRW-3.3_6Dec09
+PYCIFRW = PyCifRW-4.1
 PLY = ply-3.2
 PYCIFRWFLAG = -DCBF_USE_PYCIFRW
-')m4_dnl
-`
+endif
+
 #
 # Definition to get a version of tifflib to support tiff2cbf
 #
@@ -286,6 +287,13 @@ HDF5PREFIX = $(PWD)
 HDF5LIBS = ./lib/libhdf5.a -lz -ldl
 HDF5SOLIBS = -L./lib -lhdf5 -lz
 HDF5REGISTER ?= --register plugin
+
+#
+# Definitions to get a version of HDF5Plugin for LZ4
+#
+LZ4 = HDF5Plugin_24Jun14
+LZ4src = $(LZ4)/src
+LZ4include = $(LZ4)/include
 
 #
 # Definitions to get a stable version of regex
@@ -701,13 +709,15 @@ DATAURLS	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Output_Sigs_Only.tar.gz
 #
 # URLs from which to retrieve needed external package snapshots
 #
-'m4_ifelse(cbf_use_pycifrw,`yes',`
+ifneq ($(CBFLIB_DONT_USE_PYCIFRW),yes)
 PYCIFRWURL	= http://downloads.sf.net/cbflib/$(PYCIFRW).tar.gz
 PLYURL		= http://www.dabeaz.com/ply/$(PLY).tar.gz
-')m4_dnl
-`REGEXURL	= http://downloads.sf.net/cbflib/$(REGEX).tar.gz
+endif
+REGEXURL	= http://downloads.sf.net/cbflib/$(REGEX).tar.gz
 TIFFURL		= http://downloads.sf.net/cbflib/$(TIFF).tar.gz
 HDF5URL		= http://downloads.sf.net/cbflib/$(HDF5).tar.gz
+LZ4URL      = http://downloads.sf.net/cbflib/$(LZ4).tar.gz
+
 
 #
 # Include directories
@@ -793,13 +803,13 @@ SOURCE   =  $(SRC)/cbf.c               \
 	$(SRC)/md5c.c              \
     $(SRC)/img.c
 
-'m4_ifelse(cbf_use_pycifrw,`yes',`			
+ifneq ($(CBFLIB_DONT_USE_PYCIFRW),yes)
 PYSOURCE  = $(SRC)/drel_lex.py		   \
 	$(SRC)/drel_yacc.py		   \
 	$(SRC)/drelc.py \
 	$(SRC)/drel_prep.py
-')m4_dnl
-`
+endif
+
 F90SOURCE = $(SRC)/fcb_atol_wcnt.f90     \
 	$(SRC)/fcb_ci_strncmparr.f90 \
 	$(SRC)/fcb_exit_binary.f90   \
@@ -969,11 +979,13 @@ default:
 #
 # Compile the library and examples
 #
-all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) $(HDF5)\
-'m4_ifelse(cbf_use_pycifrw,`yes',`
-	$(PYCIFRW) $(PLY) \
-')m4_dnl
-`		symlinksdone          \
+ifneq ($(CBFLIB_DONT_USE_PYCIFRW),yes)
+PYCIFRWDEPS = $(PYCIFRW) $(PLY)
+else
+PYCIFRWDEPS =
+endif
+all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) $(HDF5) $(LZ4) $(PYCIFRWDEPS) \
+	symlinksdone          \
 	$(REGEXDEP)           \
 	$(LIB)/libcbf.a       \
 	$(LIB)/libfcb.a       \
@@ -1009,11 +1021,12 @@ shared:	$(SOLIB)/libcbf.so $(SOLIB)/libfcb.so $(SOLIB)/libimg.so
 
 javawrapper: shared $(JCBF) $(JCBF)/cbflib-$(VERSION).jar $(SOLIB)/libcbf_wrap.so
 
-ifneq ($(CBFLIB_USE_PYCIFRW),)
+ifneq ($(CBFLIB_DONT_USE_PYCIFRW),yes)
 PYCIFRWDEF = -Dcbf_use_pycifrw=yes
 else
 PYCIFRWDEF =
 endif
+
 
 Makefiles: Makefile			 \
 	Makefile_LINUX		   \
@@ -1081,7 +1094,7 @@ Makefile_MINGW: $(M4)/Makefile.m4
 
 Makefile_IRIX_gcc: $(M4)/Makefile.m4
 	-cp Makefile_IRIX_gcc Makefile_IRIX_gcc_old
-	m4 -P $(PYCIFREDEF) -Dcbf_system=IRIX_gcc $(M4)/Makefile.m4 > Makefile_IRIX_gcc.tmp
+	m4 -P $(PYCIFRWDEF) -Dcbf_system=IRIX_gcc $(M4)/Makefile.m4 > Makefile_IRIX_gcc.tmp
 	mv Makefile_IRIX_gcc.tmp Makefile_IRIX_gcc
 	
 Makefile: $(M4)/Makefile.m4
@@ -1161,13 +1174,13 @@ ifneq ($(CBF_USE_ULP),)
 	-cp $(INSTALLDIR)/bin/batch_convert_minicbf.sh $(INSTALLDIR)/bin/batch_convert_minicbf_old.sh
 	cp $(EXAMPLES)/batch_convert_minicbf.sh $(INSTALLDIR)/bin/batch_convert_minicbf.sh
 endif
-'m4_ifelse(cbf_use_pycifrw,`yes',`
+ifneq ($(CBFLIB_DONT_USE_PYCIFRW),yes)
 	cp $(SRC)/drel_lex.py $(INSTALLDIR)/bin/drel_lex.py
 	cp $(SRC)/drel_yacc.py $(INSTALLDIR)/bin/drel_yacc.py
 	cp $(SRC)/drelc.py $(INSTALLDIR)/bin/drelc.py
 	cp $(SRC)/drel_prep.py $(INSTALLDIR)/bin/drel_prep.py
-')m4_dnl
-`		chmod -R 755 $(INSTALLDIR)/include/cbflib
+endif
+	chmod -R 755 $(INSTALLDIR)/include/cbflib
 	-rm -rf $(INSTALLDIR)/include/cbflib_old
 	-cp -r $(INSTALLDIR)/include/cbflib $(INSTALLDIR)/include/cbflib_old
 	-rm -rf $(INSTALLDIR)/include/cbflib
@@ -1201,26 +1214,34 @@ endif
 	chmod 755 $(INSTALLDIR)/bin/batch_convert_minicbf.sh
 	chmod 644 $(INSTALLDIR)/include/cbflib/*.h
 	
-'m4_ifelse(cbf_use_pycifrw,`yes',`
+ifneq ($(CBFLIB_DONT_USE_PYCIFRW),yes)
 #
 # PyCifRW
 #
-$(PYCIFRW):
+build_pycifrw:	$(M4)/Makefile.m4
+	touch build_pycifrw
+$(PYCIFRW):	build_pycifrw
+	-rm -rf $(PYCIFRW)
+	-rm -rf $(PYCIFRW).tar.gz
 	$(DOWNLOAD) $(PYCIFRWURL)
 	tar -xvf $(PYCIFRW).tar.gz
 	-rm $(PYCIFRW).tar.gz
-	(cd $(PYCIFRW); python setup.py install )
+	(cd $(PYCIFRW); python setup.py install --user )
 
 #
 # PLY
 #
-$(PLY):
+build_ply:	$(M4)/Makefile.m4
+	touch build_ply
+$(PLY):	build_ply
+	-rm -rf $(PLY)
+	-rm -rf $(PLY).tar.gz
 	$(DOWNLOAD) $(PLYURL)
 	tar -xvf $(PLY).tar.gz
 	-rm $(PLY).tar.gz
-	(cd $(PLY); python setup.py install )
-')m4_dnl
-`
+	(cd $(PLY); python setup.py install --user ) 
+endif
+
 #
 # REGEX
 #
@@ -1241,7 +1262,11 @@ endif
 #
 # TIFF
 #
-$(TIFF):	$(M4)/Makefile.m4
+build_tiff:	$(M4)/Makefile.m4
+	touch build_tiff
+$(TIFF):	build_tiff
+	-rm -rf $(TIFF)
+	-rm -rf $(TIFF).tar.gz
 	$(DOWNLOAD) $(TIFFURL)
 	tar -xvf $(TIFF).tar.gz
 	touch $(TIFF)
@@ -1251,13 +1276,33 @@ $(TIFF):	$(M4)/Makefile.m4
 #
 # HDF5
 #
-$(HDF5):
+build_hdf5:	$(M4)/Makefile.m4
+	touch build_hdf5
+$(HDF5):	build_hdf5
+	-rm -rf $(HDF5)
+	-rm -rf $(HDF5).tar.gz
 	$(DOWNLOAD) $(HDF5URL)
 	tar -xvf $(HDF5).tar.gz
 	touch $(HDF5)
 	-rm $(HDF5).tar.gz
 	(cd $(HDF5); ./configure --enable-using-memchecker  --prefix=$(HDF5PREFIX)  ; make install)
 	
+#
+# LZ4
+#
+build_lz4:	$(M4)/Makefile.m4
+	touch build_lz4
+$(LZ4): $(HDF5)	build_lz4
+	-rm -rf $(LZ4)
+	-rm -rf $(LZ4).tar.gz
+	$(DOWNLOAD) $(LZ4URL)
+	tar -xvf $(LZ4).tar.gz
+	touch $(LZ4)
+	-rm $(LZ4).tar.gz
+	(cp $(LZ4include)/lz4.h $(INCLUDE); \
+	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(LZ4src)/lz4.c -o lz4.o; \
+	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(LZ4src)/h5zlz4.c -o h5zlz4.o; \
+	$(CC) -shared lz4.o h5zlz4.o -o $(SOLIB)/libh5zlz4.so)
 
 #
 # Directories
@@ -1864,7 +1909,7 @@ $(TESTOUTPUTSIGS):	$(DATADIRS) $(DATADIRS_OUTPUT_SIGNATURES)
 #
 # Tests
 #
-tests:				$(LIB) $(BIN) symlinksdone basic extra dectristests pycbftests
+tests:			all $(LIB) $(BIN) symlinksdone basic extra dectristests pycbftests
 tests_sigs_only:	$(LIB) $(BIN) symlinksdone basic extra_sigs_only
 restore_output:		$(NEWTESTOUTPUT) $(DATADIRO)
 	$(SIGNATURE) < adscconverted_flat.cbf > $(DATADIRO)/adscconverted_flat_orig.cbf$(SEXT)
