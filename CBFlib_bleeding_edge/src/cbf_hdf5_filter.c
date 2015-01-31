@@ -536,7 +536,7 @@ extern "C" {
                     (long) (tempfile->characters-tempfile->characters_base),
                     textcompression);
 #endif
-            
+            nelem_read = 0;
             cbf_reportnez(cbf_decompress (destination,
                                           elsize, textsign, nelem, &nelem_read,
                                           textsize,

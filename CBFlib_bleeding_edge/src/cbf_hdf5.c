@@ -5551,21 +5551,21 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         unsigned int row;
         
-        int bits, sign, real;
+        int bits=0, sign=0, real=0;
         
-        size_t rank;
+        size_t rank = 0;
         
         hid_t dset = CBF_H5FAIL;
         
-        unsigned int elsize;
+        unsigned int elsize=0;
 
         hid_t h5type = CBF_H5FAIL;
         
-        const char *byteorder;
+        const char *byteorder=NULL;
         
-        const char * datasetname;
+        const char * datasetname=NULL;
         
-        const char * datasetname_parts[4];
+        const char * datasetname_parts[4]={NULL,NULL,NULL,NULL};
         
         hsize_t h5offset[3];
         const int sig[] = {1};
@@ -5596,17 +5596,17 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             cbf_debug_print("Invalid hdf5 handle given\n");
             error |= CBF_ARGUMENT;
         } else if (datasetname){
-            int found = CBF_SUCCESS, id;
-            cbf_file *file;
-            long start;
-            size_t size, nelem, padding;
-            unsigned int compression;
+            int found = CBF_SUCCESS, id = 0;
+            cbf_file *file=NULL;
+            long start=0;
+            size_t size=0, nelem=0, padding=0;
+            unsigned int compression=0;
              
             CBF_CALL(cbf_get_array_section_rank(handle,arrayid,&rank));
             
             if (!cbf_is_binary(node,row)) {
                 
-                const char * binval;
+                const char * binval = NULL;
                 
                 CBF_START_ARRAY(hsize_t,buf,(rank+1));
                 CBF_START_ARRAY(hsize_t,h5dim,(rank+1));
@@ -5755,7 +5755,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 if (CBF_SUCCESS == error) {
                     void * value;
                     const unsigned int elsize = (bits+7)/8;
-                    size_t nelem_read;
+                    size_t nelem_read = 0;
                     value = malloc(nelem*elsize);
                     CBF_CALL(cbf_set_fileposition(file, start, SEEK_SET));
                     CBF_CALL(cbf_decompress_parameters(NULL, NULL, NULL, NULL, NULL, NULL, NULL, compression, file));
@@ -6018,27 +6018,27 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                               const char * binary_id,
                               hid_t nxdata, hid_t nxdetector) {
         
-        const char * axis_set_id;
+        const char * axis_set_id = NULL;
         
-        const char * axis_id;
+        const char * axis_id = NULL;
         
-        const char * xarray_id;
+        const char * xarray_id = NULL;
         
-        const char * xarray_section_id;
+        const char * xarray_section_id = NULL;
         
-        const char * axis_indices;
+        const char * axis_indices = NULL;
         
-        const char * axis_path;
+        const char * axis_path = NULL;
         
-        const char * axis_indices_parts[3];
+        const char * axis_indices_parts[3] = {NULL, NULL, NULL};
         
         hid_t dsetid;
         
         hid_t nxdetector_module;
         
-        const char * datasetname;
+        const char * datasetname = NULL;
         
-        const char * datasetname_parts[4];
+        const char * datasetname_parts[4] = {NULL, NULL, NULL, NULL};
         
         htri_t alexists;
         
@@ -6046,7 +6046,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         unsigned int row, rows, ii;
         
-        size_t rank;
+        size_t rank = 0;
         
         int array_id_found, array_section_id_found;
         
@@ -7046,6 +7046,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         cbf_failnez(cbf_find_category(handle,"array_data"));
         
+        rows = 0;
+        
         cbf_failnez(cbf_count_rows(handle,&rows));
         
         for (row = 0; row < rows; row ++) {
@@ -7558,7 +7560,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         hid_t detectorid;
         hid_t group_namesid;
         htri_t dsexists;
-        unsigned int row, rows, curdet, numdet;
+        unsigned int row, rows, curdet, numdet = 0;
         
         if (!handle || !h5handle) return CBF_ARGUMENT;
         
@@ -7683,7 +7685,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                         
                         hid_t datasetspace;
                         
-                        int ndims;
+                        int ndims = 0;
                         
                         hsize_t dsdims[1];
                         
@@ -8834,8 +8836,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
         double matrix[3][3];
 
-        hsize_t naught=0;
-
         double zero[1];
 
         const char* datablock;
@@ -8867,13 +8867,15 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
         cbf_reportnez(cbf_find_column(handle,"id"),errorcode);
 
+        rows = 0;
+
         cbf_reportnez(cbf_count_rows(handle,&rows),errorcode);
 
         cbf_reportnez(cbf_datablock_name(handle,&datablock),errorcode);
 
         for(row=0; row < rows; row++) {
 
-            char * cbfloc;
+            char * cbfloc = NULL;
 
             char nxequipment[2048];
 
@@ -8885,31 +8887,31 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
 			hid_t dtype = CBF_H5FAIL, dspace = CBF_H5FAIL, dprop = CBF_H5FAIL;
 
-            const char * equipment;
+            const char * equipment = NULL;
 
-            const char * equipmentclass;
+            const char * equipmentclass = NULL;
 
-            const char * equipmentname;
+            const char * equipmentname = NULL;
             
-            const char * equipmentcomponent;
+            const char * equipmentcomponent = NULL;
 
-            const char * axis_id;
+            const char * axis_id = NULL;
 
-            const char * depends_on;
+            const char * depends_on = NULL;
 
-            const char * rotation_axis;
+            const char * rotation_axis = NULL;
 
-            const char * type;
+            const char * type = NULL;
 
-            const char * system;
+            const char * system = NULL;
             
-            const char * axisequipment;
+            const char * axisequipment = NULL;
             
-            const char * axispath;
+            const char * axispath = NULL;
  
-            hsize_t scanpoints;
+            hsize_t scanpoints = 0;
 
-            size_t sscanpoints;
+            size_t sscanpoints = 0;
             
             const char * path_axis_general[8];
 
@@ -8917,11 +8919,11 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
             const char * path_axis_goniometer[8];
 
-            const char * units;
+            const char * units = NULL;
 
-            double vector[3], offset[3];
+            double vector[3] = {0.,0.,0.}, offset[3] = {0.,0.,0.};
 
-            double rotation;
+            double rotation = 0.;
             
             cbf_reportnez(cbf_find_datablock(handle, datablock),errorcode);
 
@@ -8968,6 +8970,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             cbf_reportnez(cbf_select_row(handle,row),errorcode);
 
             cbf_reportnez(cbf_find_column(handle,"id"),errorcode);
+
+            axis_id = NULL;
 
             cbf_reportnez(cbf_get_value(handle,&axis_id),errorcode);
             
@@ -9245,7 +9249,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 
                 if (scanpoints > 0) {
                     
-                    hsize_t scanpointsfound;
+                    hsize_t scanpointsfound = 0;
                     
 					hid_t mtype = CBF_H5FAIL;
                     
@@ -9253,9 +9257,9 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     
                     hsize_t maxsize[] = {H5S_UNLIMITED};
                     
-                    size_t sscanpointsfound;
+                    size_t sscanpointsfound = 0;
                     
-                    double * scanarray;
+                    double * scanarray = NULL;
                     
                     cbf_reportnez(cbf_alloc(((void **) &scanarray),NULL,
                                             sizeof(double),scanpoints),errorcode);
@@ -9387,9 +9391,9 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     
                     const char * dopath = NULL;
                     
-                    const char * doequip;
+                    const char * doequip = NULL;
                     
-                    const char * doequipname;
+                    const char * doequipname = NULL;
                     
                     if (cbf_get_NX_axis_path(h5handle,depends_on,&dopath)){
                         
@@ -9803,15 +9807,15 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         int iparts;
         
-        hobj_ref_t dsref;
+        hobj_ref_t dsref = -1;
         
-        htri_t aexists;
+        htri_t aexists = -1;
         
-        htri_t dsexists;
+        htri_t dsexists = -1;;
         
-        htri_t dsaexists;
+        htri_t dsaexists = -1;
         
-        size_t length, ii;
+        size_t length = 0, ii;
         
         if (!cbf_H5Ivalid(datasetid)
             || !cbf_H5Ivalid(groupid)
@@ -10253,7 +10257,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         int errorcode = 0;
         
-        int ndims;
+        int ndims = 0;
         
         if (!cbf_H5Ivalid(hid) || !datasetname || !rank ) return CBF_ARGUMENT;
         
@@ -10303,7 +10307,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         int errorcode=0;
         
-        int ndims;
+        int ndims = 0;
         
         if (!cbf_H5Ivalid(hid) || !datasetname || rank == 0  ) return CBF_ARGUMENT;
         
@@ -10394,7 +10398,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
         hid_t nmemtype;
 
-        int ndims;
+        int ndims = 0;
 
         hsize_t offset[1] = {0};
 
@@ -10772,7 +10776,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
         hid_t nmemtype;
 
-        int ndims;
+        int ndims = 0;
 
         hsize_t offset[1] = {0};
 
@@ -11039,7 +11043,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
         hid_t nmemtype;
 
-        int ndims;
+        int ndims = 0;
 
         hsize_t offset[1] = {0};
 
@@ -11306,7 +11310,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         hid_t nmemtype;
         
-        int ndims;
+        int ndims = 0;
         
         hsize_t offset[1] = {0};
         
@@ -11613,7 +11617,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         for (ii = search_index; ii < numlinks; ii++) {
             
-            namelen = H5Lget_name_by_idx(parent, group,  H5_INDEX_NAME, H5_INDEX_NAME, ii, NULL, 0, H5P_DEFAULT );
+            namelen = H5Lget_name_by_idx(parent, group,  H5_INDEX_NAME, H5_ITER_INC, ii, NULL, 0, H5P_DEFAULT );
             
             if (namelen < 0 ) break;
             
@@ -11639,7 +11643,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 
             }
             
-            namelen = H5Lget_name_by_idx(parent, group,  H5_INDEX_NAME, H5_INDEX_NAME, ii, namebuf, namebuflen, H5P_DEFAULT );
+            namelen = H5Lget_name_by_idx(parent, group,  H5_INDEX_NAME, H5_ITER_INC, ii, namebuf, namebuflen, H5P_DEFAULT );
             
             namebuf[namelen] = '\0';
             
@@ -11716,7 +11720,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         for (ii = search_index; ii < numattribs; ii++) {
             
-            namelen = H5Aget_name_by_idx(parent, object_name,  H5_INDEX_NAME, H5_INDEX_NAME, ii, NULL, 0, H5P_DEFAULT );
+            namelen = H5Aget_name_by_idx(parent, object_name,  H5_INDEX_NAME, H5_ITER_INC, ii, NULL, 0, H5P_DEFAULT );
             
             if (namelen < 0 ) break;
             
@@ -11742,7 +11746,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 
             }
             
-            namelen = H5Aget_name_by_idx(parent, object_name,  H5_INDEX_NAME, H5_INDEX_NAME, ii, namebuf, namebuflen, H5P_DEFAULT );
+            namelen = H5Aget_name_by_idx(parent, object_name,  H5_INDEX_NAME, H5_ITER_INC, ii, namebuf, namebuflen, H5P_DEFAULT );
             
             namebuf[namelen] = '\0';
             
@@ -14691,7 +14695,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         if (!path || !hashcode) return CBF_ARGUMENT;
         
-        len = strlen(hashcode);
+        len = strlen(path);
         
         if (len == 0) {
             
@@ -14749,8 +14753,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 hid_t depends_on = CBF_H5FAIL;
                 hid_t rotation_axis = CBF_H5FAIL;
                 hid_t long_name = CBF_H5FAIL;
-                unsigned int name_hash;
-                unsigned int path_hash;
+                unsigned int name_hash = 0;
+                unsigned int path_hash = 0;
 				cbf_axisData_t * * const axisData = realloc(key->axisData,sizeof(cbf_axisData_t*)*(1+key->nAxes));
 				if (!axisData) {
 					error |= CBF_ALLOC;
@@ -17907,7 +17911,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         size_t len, ii;
         
-        int retval;
+        int retval = 0;
         
         len = strlen(name);
         
@@ -18798,7 +18802,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                         if (!cbf_H5Ivalid(attr=H5Aopen(axisData->axis,"vector",H5P_DEFAULT))) {
                             cbf_debug_print("couldn't open attribute");
                             error |= CBF_H5ERROR;
-                        } else if (CBF_SUCCESS!=(error|=cbf_H5Aread(attr,H5T_NATIVE_DOUBLE,pgavec))) {
+                        } else if (CBF_SUCCESS!=((error|=cbf_H5Aread(attr,H5T_NATIVE_DOUBLE,pgavec)))) {
                             cbf_debug_print(cbf_strerror(error));
                         } else {
                             havepga = 1;
@@ -18993,7 +18997,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 							if (!cbf_H5Ivalid(attr=H5Aopen(axisData->axis,"transformation_type",H5P_DEFAULT))) {
 								cbf_debug_print("couldn't open attribute");
 								error |= CBF_H5ERROR;
-							} else if (CBF_SUCCESS!=(error|=cbf_H5Aread_string(attr,&type))) {
+							} else if (CBF_SUCCESS!=((error|=cbf_H5Aread_string(attr,&type)))) {
 								cbf_debug_print(cbf_strerror(error));
 							} else {
 								CBF_CALL(cbf_require_column(cbf,"type"));
@@ -19059,7 +19063,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 							if (!cbf_H5Ivalid(attr=H5Aopen(axisData->axis,"vector",H5P_DEFAULT))) {
 								cbf_debug_print("couldn't open attribute");
 								error |= CBF_H5ERROR;
-							} else if (CBF_SUCCESS!=(error|=cbf_H5Aread(attr,H5T_NATIVE_DOUBLE,vec))) {
+							} else if (CBF_SUCCESS!=((error|=cbf_H5Aread(attr,H5T_NATIVE_DOUBLE,vec)))) {
 								cbf_debug_print(cbf_strerror(error));
 							} else {
                                 double vector[3];
@@ -19088,7 +19092,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                 if (!cbf_H5Ivalid(Aoffset=H5Aopen(axisData->axis,"offset",H5P_DEFAULT))) {
 									cbf_debug_print("couldn't open offset attribute");
 									error |= CBF_H5ERROR;
-                                } else if (error|=cbf_H5Aread(Aoffset,H5T_NATIVE_DOUBLE,off)) {
+                                } else if ((error|=cbf_H5Aread(Aoffset,H5T_NATIVE_DOUBLE,off))) {
 									cbf_debug_print("couldn't read attribute");
 								} else {
 									int found = CBF_SUCCESS;
@@ -19409,7 +19413,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 			if (CBF_SUCCESS == error) {
 				void * value;
 				const unsigned int elsize = (bits+7)/8;
-				size_t nelem_read;
+				size_t nelem_read = 0;
 				const int rank = 3;
 				hsize_t buf[] = {0, 0, 0};
 				hsize_t h5dim[3];
@@ -22548,19 +22552,20 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
         
         CBF_CALL(cbf_find_category(handle, "axis"));
         CBF_CALL(cbf_find_column(handle,"id"));
+        rows = 0;
         CBF_CALL(cbf_count_rows(handle,&rows));
         
         for(row=0; row < rows+7 && !error; row++) {
-            const char * axis_id;
-            const char * equipment;
-            const char * equipment_component;
-            const char * depends_on;
-            const char * rotation_axis;
-            const char * type;
-            const char * system;
-            double rotation;
-            double vector[3], offset[3];
-            double cbfvector[3], cbfoffset[3];
+            const char * axis_id = NULL;
+            const char * equipment = NULL;
+            const char * equipment_component = NULL;
+            const char * depends_on = NULL;
+            const char * rotation_axis = NULL;
+            const char * type = NULL;
+            const char * system = NULL;
+            double rotation = 0.;
+            double vector[3] = {0.,0.,0.}, offset[3] = {0.,0.,0.};
+            double cbfvector[3] = {0.,0.,0.}, cbfoffset[3] = {0.,0.,0.};
             
             if (row < rows) {
                 
@@ -24659,7 +24664,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 
         int errorcode;
 
-        unsigned char* data;
+        unsigned char* data = NULL;
 
         char h5t_type_class[14], h5t_base_type_class[14];
 
@@ -24669,7 +24674,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 
         int atomic;
 
-        int ndims, kdims, ii;
+        int ndims = 0, kdims = 0, ii;
 
         unsigned int rows;
 
@@ -24694,6 +24699,8 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
         /*  Give the name of this dataset as its own id */
 
         cbf_reportnez(cbf_require_column(handle,"id"),errorcode);
+
+        rows = 0;
 
         cbf_reportnez(cbf_count_rows(handle,&rows),errorcode);
 
@@ -24844,7 +24851,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                     /* Read of a single integer or an integer array of
                      up to 3 dimensions */
 
-                    char * ivalue;
+                    char * ivalue = NULL;
 
                     long xdata = 0;
 
@@ -25047,7 +25054,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                     /* Read of a single float or double or a float or
                      double array of up to 3 dimensions */
 
-                    char * ivalue;
+                    char * ivalue = NULL;
 
                     double dxdata;
 
@@ -25228,7 +25235,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 
                 } else if (type_class != H5T_OPAQUE) {
 
-                    unsigned char * hexvalue;
+                    unsigned char * hexvalue = NULL;
 
                     unsigned char hexdigs[16] = {'0','1','2','3','4','5','6','7','8','9',
                         'a','b','c','d','e','f'};
@@ -25284,7 +25291,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                     /* Read of a single integer or an integer array of
                      up to 3 dimensions */
 
-                    char * ivalue;
+                    char * ivalue = NULL;
 
                     long xdata = 0;
 
@@ -25489,7 +25496,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                     /* Read of a single float or double or a float or
                      double array of up to 3 dimensions */
 
-                    char * ivalue;
+                    char * ivalue = NULL;
 
                     double dxdata;
 
@@ -25670,7 +25677,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 
                 } else if (type_class!= H5T_OPAQUE){
 
-                    char * hexvalue;
+                    char * hexvalue = NULL;
 
                     char hexdigs[16] = {'0','1','2','3','4','5','6','7','8','9',
                         'a','b','c','d','e','f'};
@@ -25974,7 +25981,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 
                 for (i=0; (ssize_t)i < attrib_num; i++) {
 
-                    char * attrib_name;
+                    char * attrib_name = NULL;
                     attrib_id=H5Aopen_by_idx(group_id,".",
                                              H5_INDEX_NAME,
                                              H5_ITER_INC,
@@ -25982,6 +25989,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                     attrib_ds = H5Aget_space(attrib_id);
                     attrib_type = H5Aget_type(attrib_id);
                     attrib_name_size = H5Aget_name(attrib_id,0,NULL);
+                    attrib_name = NULL;
                     cbf_reportnez(cbf_alloc(((void **) &attrib_name),NULL,
                                             1,attrib_name_size+1),errorcode);
 
@@ -26095,6 +26103,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                     }
 
 
+                    attrib_name = NULL;
                     cbf_reportnez(cbf_free((void **)&attrib_name,NULL),errorcode);
                     if (value) {
                         cbf_reportnez(cbf_free((void **)&value, NULL),errorcode);
@@ -26237,7 +26246,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 
                 for (i=0; (ssize_t)i < attrib_num; i++) {
 
-                    char * attrib_name;
+                    char * attrib_name = NULL;
                     attrib_id=H5Aopen_by_idx(dataset_id,".",
                                              H5_INDEX_NAME,
                                              H5_ITER_INC,
@@ -26245,6 +26254,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                     attrib_ds = H5Aget_space(attrib_id);
                     attrib_type = H5Aget_type(attrib_id);
                     attrib_name_size = H5Aget_name(attrib_id,0,NULL);
+                    attrib_name = NULL;
                     cbf_reportnez(cbf_alloc(((void **) &attrib_name),NULL,
                                             1,attrib_name_size+1),errorcode);
 
@@ -26319,6 +26329,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                         }
                     }
 
+                    attrib_name = NULL;
                     cbf_reportnez(cbf_free((void **)&attrib_name,NULL),errorcode);
                     if (value) cbf_reportnez(cbf_free((void **)&value, NULL),errorcode);
                     H5Tclose(attrib_type);
@@ -26350,13 +26361,13 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 
                 if (incbfcol&&binsize&&value) {
 
-                    size_t elsize, nelem;
+                    size_t elsize=0, nelem=0;
 
-                    cbf_node * column;
+                    cbf_node * column = NULL;
 
-                    cbf_file *tempfile;
+                    cbf_file *tempfile = NULL;
 
-                    long start;
+                    long start = 0;
 
                     unsigned int localrow, ii;
 
@@ -26373,6 +26384,8 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                         if (incbfcol) {
 
                             unsigned int rows;
+
+                            rows = 0;
 
                             cbf_reportnez(cbf_count_rows(handle,&rows),errorcode);
 
@@ -26496,6 +26509,8 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                     if (incbfcol && value) {
 
                         unsigned int rows;
+
+                        rows = 0;
 
                         cbf_reportnez(cbf_count_rows(handle,&rows),errorcode);
 
@@ -26727,6 +26742,8 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                     cbf_failnez(cbf_find_column(handle,bookmark.column));
 
                     if (bookmark.haverow) {
+
+                        rows = 0;
 
                         cbf_failnez(cbf_count_rows(handle,&rows));
 
