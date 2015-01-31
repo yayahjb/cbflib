@@ -1062,7 +1062,7 @@ $(HDF5):	build_hdf5
 #
 # LZ4
 #
-build_lz4:	$(M4)/Makefile.m4
+build_lz4:	$(M4)/Makefile.m4 $(SOLIB)
 	touch build_lz4
 $(LZ4): $(HDF5)	build_lz4
 	-rm -rf $(LZ4)
