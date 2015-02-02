@@ -267,7 +267,9 @@ extern "C" {
     
 #if (H5_VERS_MAJOR>1)||((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR>8))||((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR==8)&&(H5_VERS_RELEASE>=11 ))
 #include <H5PLextern.h>
+#ifndef CBF_H5Z_USE_LZ4
 #define CBF_H5_SETUP_FILTER_PLUGIN
+#endif
 #endif
 
 /* HDF5 CBF Filter number */
@@ -296,8 +298,32 @@ extern "C" {
     
 #ifndef CBF_HDF5_FILTER_C
     extern const H5Z_class2_t CBF_H5Z_CBF[1];
+    #ifdef CBF_H5Z_USE_LZ4
+        extern const H5Z_class2_t H5Z_LZ4[1];
+#endif
 #endif
 
+#ifdef CBF_H5Z_USE_LZ4
+
+/* HDF5 LZ4 Filter number */
+    
+#ifndef CBF_H5Z_FILTER_LZ4
+#ifndef H5Z_FILTER_LZ4
+#define CBF_H5Z_FILTER_LZ4    32004
+#else
+#define CBF_H5Z_FILTER_LZ4 H5Z_FILTER_LZ4
+#endif
+#endif
+
+#define CBF_H5Z_FILTER_LZ4_NELMTS      2
+#define CBF_H5Z_FILTER_LZ4_BLOCKSIZE   0
+#define CBF_H5Z_FILTER_LZ4_THREADS     1
+
+#ifndef H5Z_LZ4_C
+    extern const H5Z_class2_t H5Z_LZ4[1];
+#endif
+
+#endif
 
     
 #ifdef __cplusplus

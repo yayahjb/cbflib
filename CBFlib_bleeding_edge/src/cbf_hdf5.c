@@ -5689,6 +5689,28 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                         }
                     }
                     
+#ifdef CBF_H5Z_USE_LZ4
+                    
+                    else if (h5handle->flags & CBF_H5COMPRESSION_LZ4 ||
+                             h5handle->flags & CBF_H5COMPRESSION_LZ4_2) {
+                        unsigned int cd_values[CBF_H5Z_FILTER_LZ4_NELMTS];
+                        cd_values[CBF_H5Z_FILTER_LZ4_BLOCKSIZE] = 1<<30;
+                        cd_values[CBF_H5Z_FILTER_LZ4_THREADS] = 1;
+                        
+                        if (h5handle->flags & CBF_H5_REGISTER_COMPRESSIONS) {
+                            if (!H5Zfilter_avail(CBF_H5Z_FILTER_LZ4)) {
+                                CBF_H5CALL(H5Zregister(H5Z_LZ4));
+                            }
+                        }
+                        
+                        CBF_H5CALL(H5Pset_filter(dcpl, CBF_H5Z_FILTER_LZ4, H5Z_FLAG_OPTIONAL, CBF_H5Z_FILTER_LZ4_NELMTS, cd_values));
+                        if (h5handle->flags & CBF_H5COMPRESSION_LZ4_2) {
+                            CBF_H5CALL(H5Pset_filter(dcpl, CBF_H5Z_FILTER_LZ4, H5Z_FLAG_OPTIONAL, CBF_H5Z_FILTER_LZ4_NELMTS, cd_values));
+                        }
+                        
+                    }
+#endif
+
                     /* create the dataset */
                     if (CBF_SUCCESS == error)
                         dset = H5Dcreate2(parent,datasetname,h5type,dataSpace,H5P_DEFAULT,dcpl,H5P_DEFAULT);
@@ -5825,6 +5847,28 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                             }
                         }
                         
+#ifdef CBF_H5Z_USE_LZ4
+                        
+                        else if (h5handle->flags & CBF_H5COMPRESSION_LZ4 ||
+                                 h5handle->flags & CBF_H5COMPRESSION_LZ4_2) {
+                            unsigned int cd_values[CBF_H5Z_FILTER_LZ4_NELMTS];
+                            cd_values[CBF_H5Z_FILTER_LZ4_BLOCKSIZE] = 1<<30;
+                            cd_values[CBF_H5Z_FILTER_LZ4_THREADS] = 1;
+                            
+                            if (h5handle->flags & CBF_H5_REGISTER_COMPRESSIONS) {
+                                if (!H5Zfilter_avail(CBF_H5Z_FILTER_LZ4)) {
+                                    CBF_H5CALL(H5Zregister(H5Z_LZ4));
+                                }
+                            }
+                            
+                            CBF_H5CALL(H5Pset_filter(dcpl, CBF_H5Z_FILTER_LZ4, H5Z_FLAG_OPTIONAL, CBF_H5Z_FILTER_LZ4_NELMTS, cd_values));
+                            if (h5handle->flags & CBF_H5COMPRESSION_LZ4_2) {
+                                CBF_H5CALL(H5Pset_filter(dcpl, CBF_H5Z_FILTER_LZ4, H5Z_FLAG_OPTIONAL, CBF_H5Z_FILTER_LZ4_NELMTS, cd_values));
+                            }
+                            
+                        }
+#endif
+
                         /* create the dataset */
                         if (CBF_SUCCESS == error)
                             dset = H5Dcreate2(parent,datasetname,h5type,dataSpace,H5P_DEFAULT,dcpl,H5P_DEFAULT);
@@ -11840,8 +11884,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
         size_t nelems_read;
 
-        unsigned int cd_values[CBF_H5Z_FILTER_CBF_NELMTS];
-
         /* Check the arguments */
 
         if (!handle || !h5handle || !h5handle->hfile)
@@ -12204,11 +12246,18 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
 
             cbf_h5reportneg(valprop = H5Pcreate(H5P_DATASET_CREATE),
-                            CBF_ALLOC,errorcode);
+                            CBF_H5ERROR,errorcode);
 
             cbf_h5reportneg(H5Pset_chunk(valprop,3,chunk),
-                            CBF_ALLOC,errorcode);
+                            CBF_H5ERROR,errorcode);
 
+
+            /* allow compression */
+            if (CBF_SUCCESS==errorcode) {
+                if (h5handle->flags & CBF_H5COMPRESSION_ZLIB) {
+                    H5Pset_deflate(valprop, 1);
+                } else if (h5handle->flags & CBF_H5COMPRESSION_CBF) {
+                    unsigned int cd_values[CBF_H5Z_FILTER_CBF_NELMTS];
             cd_values[CBF_H5Z_FILTER_CBF_COMPRESSION] = compression;
             cd_values[CBF_H5Z_FILTER_CBF_RESERVED]    = 0;
             cd_values[CBF_H5Z_FILTER_CBF_BINARY_ID]   = id;
@@ -12221,21 +12270,47 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             cd_values[CBF_H5Z_FILTER_CBF_DIMSLOW]     = dimslow;
 
             if (h5handle->flags & CBF_H5_REGISTER_COMPRESSIONS) {
-
                 if (!H5Zfilter_avail(CBF_H5Z_FILTER_CBF)) {
+                            cbf_h5reportneg(H5Zregister(CBF_H5Z_CBF),CBF_H5ERROR ,errorcode);
+                        }
+                    }
 
-                    cbf_h5reportneg(H5Zregister(CBF_H5Z_CBF),CBF_ALLOC,errorcode);
+                    cbf_h5reportneg(H5Pset_filter(valprop, CBF_H5Z_FILTER_CBF, H5Z_FLAG_OPTIONAL, CBF_H5Z_FILTER_CBF_NELMTS, cd_values),CBF_ALLOC,errorcode);
 
+                    if (errorcode) {
+                        cbf_debug_print2("errorcode on setting filter CBF_H5Z_FILTER_CBF %d\n",errorcode);
                 }
             }
+            }
 
-            cbf_h5reportneg(H5Pset_filter(valprop,CBF_H5Z_FILTER_CBF,
-                                          H5Z_FLAG_OPTIONAL,
-                                          CBF_H5Z_FILTER_CBF_NELMTS,
-                                          cd_values),CBF_ALLOC,errorcode);
+#ifdef CBF_H5Z_USE_LZ4
 
-            /* cbf_debug_pring2("errorcode on setting filter CBF_H5Z_FILTER_CBF %d\n",errorcode); */
+            else if (h5handle->flags & CBF_H5COMPRESSION_LZ4 ||
+                     h5handle->flags & CBF_H5COMPRESSION_LZ4_2) {
+                unsigned int cd_values[CBF_H5Z_FILTER_LZ4_NELMTS];
+                cd_values[CBF_H5Z_FILTER_LZ4_BLOCKSIZE] = 1<<30;
+                cd_values[CBF_H5Z_FILTER_LZ4_THREADS] = 1;
 
+                if (h5handle->flags & CBF_H5_REGISTER_COMPRESSIONS) {
+                    if (!H5Zfilter_avail(CBF_H5Z_FILTER_LZ4)) {
+                        cbf_h5reportneg(H5Zregister(H5Z_LZ4),CBF_H5ERROR ,errorcode);
+                    }
+                }
+                
+                cbf_h5reportneg(H5Pset_filter(valprop, CBF_H5Z_FILTER_LZ4, H5Z_FLAG_OPTIONAL, CBF_H5Z_FILTER_LZ4_NELMTS, cd_values),CBF_H5ERROR,errorcode);
+                if (errorcode) {
+                    cbf_debug_print2("errorcode on setting filter CBF_H5Z_FILTER_CBF %d\n",errorcode);
+                }
+                if (h5handle->flags & CBF_H5COMPRESSION_LZ4_2) {
+                    cbf_h5reportneg(H5Pset_filter(valprop, CBF_H5Z_FILTER_LZ4, H5Z_FLAG_OPTIONAL, CBF_H5Z_FILTER_LZ4_NELMTS, cd_values),CBF_H5ERROR,errorcode);
+                    if (errorcode) {
+                        cbf_debug_print2("errorcode on setting filter CBF_H5Z_FILTER_CBF %d\n",errorcode);
+                    }
+                }
+                
+            }
+#endif
+            
             valid = H5Dcreatex(h5handle->colid,rownum,
                                valtype,valspace,
                                valprop);
@@ -19492,6 +19567,28 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 							CBF_H5CALL(H5Pset_filter(dcpl, CBF_H5Z_FILTER_CBF, H5Z_FLAG_OPTIONAL, CBF_H5Z_FILTER_CBF_NELMTS, cd_values));
                             
                         }
+                        
+#ifdef CBF_H5Z_USE_LZ4
+                        
+                        else if (h5handle->flags & CBF_H5COMPRESSION_LZ4 ||
+                                 h5handle->flags & CBF_H5COMPRESSION_LZ4_2) {
+                            unsigned int cd_values[CBF_H5Z_FILTER_LZ4_NELMTS];
+                            cd_values[CBF_H5Z_FILTER_LZ4_BLOCKSIZE] = 1<<30;
+                            cd_values[CBF_H5Z_FILTER_LZ4_THREADS] = 1;
+                            
+                            if (h5handle->flags & CBF_H5_REGISTER_COMPRESSIONS) {
+                                if (!H5Zfilter_avail(CBF_H5Z_FILTER_LZ4)) {
+                                    CBF_H5CALL(H5Zregister(H5Z_LZ4));
+                    }
+                            }
+                    
+                            CBF_H5CALL(H5Pset_filter(dcpl, CBF_H5Z_FILTER_LZ4, H5Z_FLAG_OPTIONAL, CBF_H5Z_FILTER_LZ4_NELMTS, cd_values));
+                            if (h5handle->flags & CBF_H5COMPRESSION_LZ4_2) {
+                                CBF_H5CALL(H5Pset_filter(dcpl, CBF_H5Z_FILTER_LZ4, H5Z_FLAG_OPTIONAL, CBF_H5Z_FILTER_LZ4_NELMTS, cd_values));
+                            }
+                            
+                        }
+#endif
                     }
                     
 					/* create the dataset */

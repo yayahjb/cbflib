@@ -285,11 +285,11 @@ extern "C" {
         (H5Z_func_t)cbf_h5z_filter,         /* The actual filter function   */
     }};
     
-#ifdef CBF_H5_SETUP_FILTER_PLUGIN
+    
+#ifndef CBF_FILTER_STATIC
     H5PL_type_t   H5PLget_plugin_type(void) {return H5PL_TYPE_FILTER;}
     const void *H5PLget_plugin_info(void) {return CBF_H5Z_CBF;}
 #endif
-    
     
     static size_t cbf_h5z_filter(unsigned int flags,
                                  size_t cd_nelmts,

@@ -1,5 +1,5 @@
 m4_define(`cbf_version',`0.9.5')m4_dnl
-m4_define(`cbf_date',`29 Jan 2015')m4_dnl
+m4_define(`cbf_date',`31 Jan 2015')m4_dnl
 m4_ifelse(cbf_system,`',`m4_define(`cbf_system',`LINUX')')
 `######################################################################
 #  Makefile - command file for make to create CBFlib                 #
@@ -288,12 +288,18 @@ HDF5LIBS = ./lib/libhdf5.a -lz -ldl
 HDF5SOLIBS = -L./lib -lhdf5 -lz
 HDF5REGISTER ?= --register plugin
 
+CBFLIB_DONT_USE_LZ4 ?= no
+ifneq ($(CBFLIB_DONT_USE_LZ4),yes)
 #
 # Definitions to get a version of HDF5Plugin for LZ4
 #
 LZ4 = HDF5Plugin_24Jun14
 LZ4src = $(LZ4)/src
 LZ4include = $(LZ4)/include
+LZ4SOLIBS = -L./solib -lh5zlz4
+else
+LZ4SOLIBS =
+endif
 
 #
 # Definitions to get a stable version of regex
@@ -407,6 +413,12 @@ ifneq ($(CBF_USE_ULP),)
 ULPFLAG = -DCBF_USE_ULP
 else
 ULPFLAG =
+endif
+
+ifneq ($(CBFLIB_DONT_USE_LZ4),yes)
+LZ4FLAG = -DCBF_H5Z_USE_LZ4
+else
+LZ4FLAG =
 endif
 
 MISCFLAG = $(NOLLFLAG) $(ULPFLAG)
@@ -984,7 +996,14 @@ PYCIFRWDEPS = $(PYCIFRW) $(PLY)
 else
 PYCIFRWDEPS =
 endif
-all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) $(HDF5) $(LZ4) $(PYCIFRWDEPS) \
+
+ifneq ($(CBFLIB_DONT_USE_LZ4),yes)
+LZ4DEPS = $(LZ4)
+else
+LZ4DEPS =
+endif
+
+all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) $(HDF5) $(LZ4DEPS) $(PYCIFRWDEPS) \
 	symlinksdone          \
 	$(REGEXDEP)           \
 	$(LIB)/libcbf.a       \
@@ -1287,6 +1306,7 @@ $(HDF5):	build_hdf5
 	-rm $(HDF5).tar.gz
 	(cd $(HDF5); ./configure --enable-using-memchecker  --prefix=$(HDF5PREFIX)  ; make install)
 	
+ifneq ($(CBFLIB_DONT_USE_LZ4),yes)
 #
 # LZ4
 #
@@ -1303,6 +1323,7 @@ $(LZ4): $(HDF5)	build_lz4
 	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(LZ4src)/lz4.c -o lz4.o; \
 	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(LZ4src)/h5zlz4.c -o h5zlz4.o; \
 	$(CC) -shared lz4.o h5zlz4.o -o $(SOLIB)/libh5zlz4.so)
+endif
 
 #
 # Directories
@@ -1351,16 +1372,20 @@ $(SRC)/cbf_stx.c: $(SRC)/cbf.stx.y
 # CBF library
 #
 $(LIB)/libcbf.a: $(SOURCE) $(HEADERS) $(COMMONDEP) $(LIB) $(HDF5)
-	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(PYCIFRWFLAG) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) \
+    -DCBF_FILTER_STATIC $(LZ4FLAG)  $(PYCIFRWFLAG) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
+ifneq ($(CBFLIB_DONT_USE_LZ4),yes)
+	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) -DCBF_FILTER_STATIC -c $(LZ4src)/lz4.c -o lz4.o
+	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) -DCBF_FILTER_STATIC -c $(LZ4src)/h5zlz4.c -o h5zlz4.o
+endif
 	$(AR) cr $@ *.o
-	mv *.o $(LIB)
 ifneq ($(RANLIB),)
 	$(RANLIB) $@
 endif
 
 $(SOLIB)/libcbf.so: $(SOURCE) $(HEADERS) $(COMMONDEP) $(SOLIB) $(HDF5)
-	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(PYCIFRWFLAG) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
-	$(CC) -o $@ *.o $(SOLDFLAGS) $(EXTRALIBS) $(HDF5SOLIBS)
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(LZ4FLAG) $(PYCIFRWFLAG) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
+	$(CC) -o $@ *.o $(SOLDFLAGS) $(EXTRALIBS) $(HDF5SOLIBS) $(LZ4SOLIBS)
 	rm *.o
 
 #

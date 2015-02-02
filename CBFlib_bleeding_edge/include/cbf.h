@@ -391,6 +391,17 @@ _CBF_STR(CBF_VERS_RELEASE) CBF_VERS_SUBRELEASE
 #endif
 #endif
 
+  /* HDF5 LZ4 Filter number */
+
+#ifndef CBF_H5Z_FILTER_LZ4
+#ifndef H5Z_FILTER_LZ4
+#define CBF_H5Z_FILTER_LZ4    32004
+#else
+#define CBF_H5Z_FILTER_LZ4 H5Z_FILTER_LZ4
+#endif
+#endif
+
+
 
   /* Token Type Strings */
   
@@ -453,16 +464,21 @@ _CBF_STR(CBF_VERS_RELEASE) CBF_VERS_SUBRELEASE
 #define CBF_NO_EXPAND   0x0400  /* Flag to try not to expand          */
     
 	/* TODO: add more HDF5 compression options using custom CBFlib filters */
-#define	CBF_H5COMPRESSION_ZLIB 0x1 /* Flag to turn on zlib compression for the main dataset within a HDF5 file */
-#define	CBF_H5COMPRESSION_CBF  0x2 /* Flag to turn on CBF compression for the main dataset within a HDF5 file */
+#define	CBF_H5COMPRESSION_ZLIB   0x1
+    /* Flag to turn on zlib compression for the main dataset within a HDF5 file */
+#define	CBF_H5COMPRESSION_CBF    0x2
+    /* Flag to turn on CBF compression for the main dataset within a HDF5 file */
+#define	CBF_H5COMPRESSION_LZ4    0x3
+    /* Flag to turn on LZ4 compression for the main dataset within a HDF5 file */
+#define	CBF_H5COMPRESSION_LZ4_2  0x4
+    /* Flag to turn on LZ4**2 compression for the main dataset within a HDF5 file */
 
+    
     
   /* Flags for HDF5/NeXus management */
     
 #define CBF_H5_OPAQUE   0x0800  /* Flag to write compressed images
                                      as opaque objects                */
-#define CBF_H5_ZLIB     0x1000  /* Flag to write compressed images
-                                     with zlib                        */
 #define CBF_H5_NOH5     0x2000  /* Flag to suppress the H5 group      */
 #define CBF_H5_REGISTER_COMPRESSIONS \
                         0x4000  /* Flag to try to register
