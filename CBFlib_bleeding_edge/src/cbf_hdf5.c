@@ -26668,6 +26668,8 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 
         cbf_h5Ovisit_struct h5Ovisit;
 
+        int errorcode = 0;
+
         if (!handle || !h5handle || !h5handle->hfile ) return CBF_ARGUMENT;
 
         /* Move the flags into the h5handle */
@@ -26692,9 +26694,34 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 
             if (!H5Zfilter_avail(CBF_H5Z_FILTER_CBF)) {
 
-                cbf_h5failneg(H5Zregister(CBF_H5Z_CBF),CBF_ALLOC);
+                cbf_h5reportneg(H5Zregister(CBF_H5Z_CBF),CBF_H5ERROR ,errorcode);
 
+                if (errorcode) {
+                    
+                    CBF_PRINT_WARNING("Failed to load CBF_H5Z_FILTER_CBF (32006) compression filter "
+                                      "Check value of HDF5_PLUGIN_PATH environment variable");
+                    
             }
+
+        }
+#ifdef CBF_H5Z_USE_LZ4
+            if (!H5Zfilter_avail(CBF_H5Z_FILTER_LZ4)) {
+
+                errorcode = 0;
+                
+                cbf_h5reportneg(H5Zregister(H5Z_LZ4),CBF_H5ERROR ,errorcode);
+                
+                if (errorcode) {
+                    
+                    CBF_PRINT_WARNING("Failed to load H5Z_LZ4 (32004) compression filter "
+                                      "Check value of HDF5_PLUGIN_PATH environment variable");
+                    
+                }
+
+                
+            }
+#endif
+            
         }
 
         h5Ovisit.handle = handle;
