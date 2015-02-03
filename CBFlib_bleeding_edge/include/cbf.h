@@ -462,8 +462,8 @@ _CBF_STR(CBF_VERS_RELEASE) CBF_VERS_SUBRELEASE
                         0x0100  /* Flag for uncorrelated sections     */
 #define CBF_FLAT_IMAGE  0x0200  /* Flag for flat (linear) images      */
 #define CBF_NO_EXPAND   0x0400  /* Flag to try not to expand          */
-    
-	/* TODO: add more HDF5 compression options using custom CBFlib filters */
+#define CBF_H5COMPRESSION \
+                        0x0800  /* Flag to turn on HDF compression in CBF write*/
 #define	CBF_H5COMPRESSION_ZLIB   0x1
     /* Flag to turn on zlib compression for the main dataset within a HDF5 file */
 #define	CBF_H5COMPRESSION_CBF    0x2
@@ -477,7 +477,7 @@ _CBF_STR(CBF_VERS_RELEASE) CBF_VERS_SUBRELEASE
     
   /* Flags for HDF5/NeXus management */
     
-#define CBF_H5_OPAQUE   0x0800  /* Flag to write compressed images
+#define CBF_H5_OPAQUE   0x1000  /* Flag to write compressed images
                                      as opaque objects                */
 #define CBF_H5_NOH5     0x2000  /* Flag to suppress the H5 group      */
 #define CBF_H5_REGISTER_COMPRESSIONS \
@@ -604,8 +604,10 @@ Define some unconditional error printing macros, to ensure that the same format 
 NOTE: This _must_ be unconditional, because it will be used for hints to the user about how to fix
 a problem; not for debug output, which is handled via a separate code path.
 */
-#define CBF_PRINT_ERROR(MSG) fprintf(stderr,"%s:%d: error: %s\n",__FILE__,__LINE__,MSG)
-#define CBF_PRINT_WARNING(MSG) fprintf(stderr,"%s:%d: warning: %s\n",__FILE__,__LINE__,MSG)
+#define CBF_PRINT_ERROR(MSG) fprintf(stderr,"%s:%d: CBFlib error: %s\n",__FILE__,__LINE__,MSG)
+#define CBF_PRINT_WARNING(MSG) fprintf(stderr,"%s:%d: CBFlib warning: %s\n",__FILE__,__LINE__,MSG)
+#define CBF_PRINT_ERROR2(MSG1,MSG2) fprintf(stderr,"%s:%d: CBFlib error: %s%s\n",__FILE__,__LINE__,MSG1,MSG2)
+#define CBF_PRINT_WARNING2(MSG1,MSG2) fprintf(stderr,"%s:%d: CBFlib warning: %s%s\n",__FILE__,__LINE__,MSG1,MSG2)
 
 /*
 Define some conditional debug printing macros, in safe and unsafe forms.

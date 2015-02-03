@@ -45,7 +45,8 @@
  *    [-b {f[orward]|b[ackwards]}] \                                  *
  *    [-B {read|liberal|noread}] [-B {write|nowrite}] \               *
  *    [-c {p[acked]|c[annonical]|{b[yte_offset]}|\                    *
- *        {v[2packed]}|{f[latpacked]}|{I|nIbble_offset}|n[n[one]}] \  *
+ *        {v[2packed]}|{f[latpacked]}|{I|nIbble_offset}|{L|LZ4}|      *
+ *        {2|LZ4**2}|n[n[one]}] \                                     *
  *    [-C highclipvalue ] \                                           *
  *    [-D ] \                                                         *
  *    [-d {d[igest]|n[odigest]|w[warndigest]} \                       *
@@ -100,7 +101,7 @@
  *    write to enable writing of DDLm style brackets                  *
  *                                                                    *
  *  -c compression_scheme (Packed, Canonical, Byte_offset,            *
- *    V2packed, Flatpacked, nIbble or None,                           *
+ *    V2packed, Flatpacked, nIbble, zlib, LZ4, or LZ4**2 or None,     *
  *    default packed)                                                 *
  *                                                                    *
  *  -C highclipvalue                                                  *
@@ -483,6 +484,8 @@ int outerror(int err)
         fprintf(stderr, " cif2cbf: The requested number is not defined (e.g. 0/0).\n");
     if ((err&CBF_NOTIMPLEMENTED)==CBF_NOTIMPLEMENTED)
         fprintf(stderr, " cif2cbf: The requested functionality is not yet implemented.\n");
+    if ((err&CBF_H5ERROR)==CBF_H5ERROR)
+        fprintf(stderr, " cif2cbf: HDF5 API error.\n");
     return 0;
 
 }
@@ -571,7 +574,7 @@ int main (int argc, char *argv [])
     unsigned int rows;
     double cliphigh, cliplow;
 
-    int mime, digest, encoding, compression, bytedir, cbforcif, term;
+    int mime, digest, encoding, compression, h5compression, bytedir, cbforcif, term;
     int qrflags, qwflags;
 
     const char * optarg;
@@ -585,7 +588,8 @@ int main (int argc, char *argv [])
      *    [-b {b[ackwards]|f[orwards]}] \                                 *
      *    [-B {read|liberal|noread}] [-B {write|nowrite}] \               *
      *    [-c {p[acked]|c[annonical]|{b[yte_offset]}|\                    *
-     *        {v[2packed]}|{f[latpacked]}|{I|nIbble_offset}|n[n[one]}] \  *
+     *        {v[2packed]}|{f[latpacked]}|{I|nIbble_offset}| \            *
+     *        {z[lib]}|{L[Z4]}|{2|[LZ4**2}|{|n[n[one]}] \                 *
      *    [-C highclipvalue] \                                            *
      *    [-d {d[igest]|n[odigest]|w[arndigest]} \                        *
      *    [-D ] \                                                         *
@@ -612,6 +616,7 @@ int main (int argc, char *argv [])
     digest = 0;
     encoding = 0;
     compression = 0;
+    h5compression = 0;
     bytedir = 0;
     ndict = 0;
     padflag = 0;
@@ -721,31 +726,46 @@ int main (int argc, char *argv [])
                 case 'c':
                     if (compression) errflg++;
                     if (optarg[0] == 'p' || optarg[0] == 'P') {
-                        compression = CBF_PACKED;
+                        h5compression = compression = CBF_PACKED;
                     } else {
                         if (optarg[0] == 'c' || optarg[0] == 'C') {
-                            compression = CBF_CANONICAL;
+                            h5compression = compression = CBF_CANONICAL;
                         } else {
                             if (optarg[0] == 'b' || optarg[0] == 'B') {
-                                compression = CBF_BYTE_OFFSET;
+                                h5compression = compression = CBF_BYTE_OFFSET;
                             } else {
                                 if (optarg[0] == 'n' || optarg[0] == 'N') {
-                                    compression = CBF_NONE;
+                                    h5compression = compression = CBF_NONE;
                                 } else {
                                     if (optarg[0] == 'v' || optarg[0] == 'V') {
-                                        compression = CBF_PACKED_V2;
+                                        h5compression = compression = CBF_PACKED_V2;
                                     } else {
                                         if (optarg[0] == 'f' || optarg[0] == 'F') {
-                                            compression = CBF_PACKED|CBF_FLAT_IMAGE;
+                                            h5compression = compression = CBF_PACKED|CBF_FLAT_IMAGE;
                                         } else {
                                             if (optarg[0] == 'i' || optarg[0] == 'I' || !cbf_cistrcmp(optarg,"nibble_offset")) {
-                                                compression = CBF_NIBBLE_OFFSET;
+                                                h5compression = compression = CBF_NIBBLE_OFFSET;
                                             } else {
+                                                if (optarg[0] == 'z' || optarg[0] == 'Z') {
+                                                    h5compression = CBF_H5COMPRESSION_ZLIB|CBF_H5COMPRESSION;
+                                                    compression = CBF_NONE;
+                                                } else {
+                                                    if (optarg[0] == 'l' || optarg[0] == 'L'){
+                                                        h5compression = CBF_H5COMPRESSION_LZ4|CBF_H5COMPRESSION;
+                                                        compression = CBF_NONE;
+                                                    } else {
+                                                        if (optarg[0] == '2' || !cbf_cistrcmp(optarg,"LZ4**2")){
+                                                            h5compression = CBF_H5COMPRESSION_LZ4_2|CBF_H5COMPRESSION;
+                                                            compression = CBF_NONE;
+                                                        } else {
                                                 errflg++;
                                             }
                                         }
                                     }
                                 }
+                            }
+                        }
+                    }
                             }
                         }
                     }
@@ -1007,7 +1027,9 @@ int main (int argc, char *argv [])
         fprintf(stderr,
                 "    [-c {p[acked]|c[annonical]|{b[yte_offset]}|\\\n");
         fprintf(stderr,
-                "        {v[2packed]}|{f[latpacked]}|{I|nIbble_offset}|n[n[one]}] \\\n");
+                "        {v[2packed]}|{f[latpacked]}|{I|nIbble_offset}|{L|LZ4}| \\\n");
+        fprintf(stderr,
+                "        {2|LZ4**2}|n[n[one]}] \\\n");
         fprintf(stderr,
                 "    [-C highclipvalue] \\\n");
         fprintf(stderr,
@@ -1095,6 +1117,8 @@ int main (int argc, char *argv [])
 
     if (!compression)
         compression = CBF_PACKED;
+    if (!h5compression)
+        h5compression = CBF_NIBBLE_OFFSET;
 
 
     /* Read the cif */
@@ -1876,7 +1900,7 @@ int main (int argc, char *argv [])
     if ( ! devnull ){
         if (hdf5mode&HDF5_WRITE_MODE) {
 
-            cbf_failnez(cbf_write_h5file (cbf, h5out, hdf5register|(
+            cbf_failnez(cbf_write_h5file (cbf, h5out, hdf5register|h5compression|(
                                           opaquemode?CBF_H5_OPAQUE:0)))
 
         } else {

@@ -319,13 +319,9 @@ extern "C" {
 #define CBF_H5Z_FILTER_LZ4_BLOCKSIZE   0
 #define CBF_H5Z_FILTER_LZ4_THREADS     1
 
-#ifndef H5Z_LZ4_C
-    extern const H5Z_class2_t H5Z_LZ4[1];
 #endif
 
-#endif
 
-    
 #ifdef __cplusplus
     
 }

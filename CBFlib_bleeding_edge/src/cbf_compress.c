@@ -292,7 +292,9 @@ int cbf_compress (void         *source,
 
   size_t size;
 
+        const char * compression_name;
 
+        
     /* Discard any bits in the buffers */
 
   cbf_failnez (cbf_reset_bits (file))
@@ -313,6 +315,8 @@ int cbf_compress (void         *source,
 
   size = 0;
 
+        compression_name = NULL;
+        
   switch (compression&CBF_COMPRESSION_MASK)
   {
     case CBF_CANONICAL:
@@ -356,6 +360,14 @@ int cbf_compress (void         *source,
                                           byteorder, dimfast, dimmid, dimslow, padding);
       break;
 
+            case CBF_H5COMPRESSION_ZLIB:  if (!compression_name) compression_name = "HDF5 zlib";
+
+            case CBF_H5COMPRESSION_LZ4:   if (!compression_name) compression_name = "HDF5 LZ4";
+
+            case CBF_H5COMPRESSION_LZ4_2: if (!compression_name) compression_name = "HDF5 LZ4**2";
+                
+                CBF_PRINT_WARNING2(compression_name," not implemented in CBF files yet, treated as 'none'");
+                
     case CBF_NONE:
 
       errorcode = cbf_compress_none (source, elsize, elsign, nelem,

@@ -2,7 +2,7 @@
 ######################################################################
 #  Makefile - command file for make to create CBFlib                 #
 #                                                                    #
-# Version 0.9.5 31 Jan 2015                                          #
+# Version 0.9.5 2 Feb 2015                                          #
 #                                                                    #
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
@@ -291,7 +291,7 @@ ifneq ($(CBFLIB_DONT_USE_LZ4),yes)
 #
 # Definitions to get a version of HDF5Plugin for LZ4
 #
-LZ4 = HDF5Plugin_24Jun14
+LZ4 = HDF5Plugin_2Feb15
 LZ4src = $(LZ4)/src
 LZ4include = $(LZ4)/include
 LZ4SOLIBS = -L./solib -lh5zlz4
@@ -1094,7 +1094,8 @@ $(LZ4): $(HDF5)	build_lz4
 	(cp $(LZ4include)/lz4.h $(INCLUDE); \
 	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(LZ4src)/lz4.c -o lz4.o; \
 	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(LZ4src)/h5zlz4.c -o h5zlz4.o; \
-	$(CC) -shared lz4.o h5zlz4.o -o $(SOLIB)/libh5zlz4.so)
+	$(CC) -shared lz4.o h5zlz4.o -o $(SOLIB)/libh5zlz4.so; \
+	rm lz4.o h5zlz4.o) 
 endif
 
 #
@@ -1154,10 +1155,16 @@ endif
 ifneq ($(RANLIB),)
 	$(RANLIB) $@
 endif
+	-rm -f *.o
 
 $(SOLIB)/libcbf.so: $(SOURCE) $(HEADERS) $(COMMONDEP) $(SOLIB) $(HDF5)
+	-rm -f $@
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(LZ4FLAG) $(PYCIFRWFLAG) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
-	$(CC) -o $@ *.o $(SOLDFLAGS) $(EXTRALIBS) $(HDF5SOLIBS) $(LZ4SOLIBS)
+ifneq ($(CBFLIB_DONT_USE_LZ4),yes)
+	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) -DCBF_FILTER_STATIC -c $(LZ4src)/lz4.c -o lz4.o
+	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) -DCBF_FILTER_STATIC -c $(LZ4src)/h5zlz4.c -o h5zlz4.o
+endif
+	$(CC) -o $@ *.o $(SOLDFLAGS) $(EXTRALIBS) $(HDF5SOLIBS)
 	rm *.o
 
 #
@@ -1172,6 +1179,7 @@ endif
 	rm img.o
 	
 $(SOLIB)/libimg.so: $(SOURCE) $(HEADERS) $(COMMONDEP) $(SOLIB)
+	-rm -f $@
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(SRC)/img.c
 	$(CC) -o $@ img.o $(SOLDFLAGS)
 	rm img.o
@@ -1199,6 +1207,7 @@ endif
 
 $(SOLIB)/libfcb.so: $(F90SOURCE) $(HEADERS) $(COMMONDEP) $(SOLIB)
 ifneq ($(F90C),)
+	-rm -f $@
 	$(F90C) $(F90FLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(F90SOURCE)
 	$(F90C) $(F90FLAGS) -o $@ *.o $(SOLDFLAGS)
 	rm *.o
