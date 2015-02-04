@@ -727,45 +727,51 @@ int main (int argc, char *argv [])
                     if (compression) errflg++;
                     if (optarg[0] == 'p' || optarg[0] == 'P') {
                         h5compression = compression = CBF_PACKED;
+                        h5compression |= CBF_H5COMPRESSION_CBF;
                     } else {
                         if (optarg[0] == 'c' || optarg[0] == 'C') {
                             h5compression = compression = CBF_CANONICAL;
+                            h5compression |= CBF_H5COMPRESSION_CBF;
                         } else {
                             if (optarg[0] == 'b' || optarg[0] == 'B') {
                                 h5compression = compression = CBF_BYTE_OFFSET;
+                                h5compression |= CBF_H5COMPRESSION_CBF;
                             } else {
                                 if (optarg[0] == 'n' || optarg[0] == 'N') {
                                     h5compression = compression = CBF_NONE;
                                 } else {
                                     if (optarg[0] == 'v' || optarg[0] == 'V') {
                                         h5compression = compression = CBF_PACKED_V2;
+                                        h5compression |= CBF_H5COMPRESSION_CBF;
                                     } else {
                                         if (optarg[0] == 'f' || optarg[0] == 'F') {
                                             h5compression = compression = CBF_PACKED|CBF_FLAT_IMAGE;
+                                            h5compression |= CBF_H5COMPRESSION_CBF;
                                         } else {
                                             if (optarg[0] == 'i' || optarg[0] == 'I' || !cbf_cistrcmp(optarg,"nibble_offset")) {
                                                 h5compression = compression = CBF_NIBBLE_OFFSET;
+                                                h5compression |= CBF_H5COMPRESSION_CBF;
                                             } else {
                                                 if (optarg[0] == 'z' || optarg[0] == 'Z') {
-                                                    h5compression = CBF_H5COMPRESSION_ZLIB|CBF_H5COMPRESSION;
-                                                    compression = CBF_NONE;
+                                                    h5compression = CBF_H5COMPRESSION_ZLIB;
+                                                    compression = CBF_NIBBLE_OFFSET;
                                                 } else {
                                                     if (optarg[0] == 'l' || optarg[0] == 'L'){
-                                                        h5compression = CBF_H5COMPRESSION_LZ4|CBF_H5COMPRESSION;
-                                                        compression = CBF_NONE;
+                                                        h5compression = CBF_H5COMPRESSION_LZ4;
+                                                        compression = CBF_NIBBLE_OFFSET;
                                                     } else {
                                                         if (optarg[0] == '2' || !cbf_cistrcmp(optarg,"LZ4**2")){
-                                                            h5compression = CBF_H5COMPRESSION_LZ4_2|CBF_H5COMPRESSION;
-                                                            compression = CBF_NONE;
+                                                            h5compression = CBF_H5COMPRESSION_LZ4_2;
+                                                            compression = CBF_NIBBLE_OFFSET;
                                                         } else {
-                                                errflg++;
+                                                            errflg++;
+                                                        }
+                                                    }
+                                                }
                                             }
                                         }
                                     }
                                 }
-                            }
-                        }
-                    }
                             }
                         }
                     }
@@ -1118,7 +1124,7 @@ int main (int argc, char *argv [])
     if (!compression)
         compression = CBF_PACKED;
     if (!h5compression)
-        h5compression = CBF_NIBBLE_OFFSET;
+        h5compression = CBF_NIBBLE_OFFSET|CBF_H5COMPRESSION_CBF;
 
 
     /* Read the cif */

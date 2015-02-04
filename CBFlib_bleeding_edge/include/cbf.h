@@ -464,13 +464,16 @@ _CBF_STR(CBF_VERS_RELEASE) CBF_VERS_SUBRELEASE
 #define CBF_NO_EXPAND   0x0400  /* Flag to try not to expand          */
 #define CBF_H5COMPRESSION \
                         0x0800  /* Flag to turn on HDF compression in CBF write*/
-#define	CBF_H5COMPRESSION_ZLIB   0x1
+#define	CBF_H5COMPRESSION_CBF  \
+                        0x0800  /* Flag to turn on CBF compression for the 
+                                   a binary dataset within a HDF5 file 
+                                   Note this overloads the CBF_H5COMPRESSION
+                                   flag */
+#define	CBF_H5COMPRESSION_ZLIB   0x00B0
     /* Flag to turn on zlib compression for the main dataset within a HDF5 file */
-#define	CBF_H5COMPRESSION_CBF    0x2
-    /* Flag to turn on CBF compression for the main dataset within a HDF5 file */
-#define	CBF_H5COMPRESSION_LZ4    0x3
+#define	CBF_H5COMPRESSION_LZ4    0x00C0
     /* Flag to turn on LZ4 compression for the main dataset within a HDF5 file */
-#define	CBF_H5COMPRESSION_LZ4_2  0x4
+#define	CBF_H5COMPRESSION_LZ4_2  0x00D0
     /* Flag to turn on LZ4**2 compression for the main dataset within a HDF5 file */
 
     
