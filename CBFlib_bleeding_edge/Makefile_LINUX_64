@@ -1866,6 +1866,12 @@ endif
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
 	$(TIME) $(BIN)/cif2cbf -5 w $(HDF5REGISTER) -en -cc -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconverted_encc.cbf.h5)
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
+	$(TIME) $(BIN)/cif2cbf -5 w $(HDF5REGISTER) -en -cz -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconverted_encz.cbf.h5)
+	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
+	$(TIME) $(BIN)/cif2cbf -5 w $(HDF5REGISTER) -en -cl -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconverted_encl.cbf.h5)
+	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
+	$(TIME) $(BIN)/cif2cbf -5 w $(HDF5REGISTER) -en -c2 -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconverted_enc2.cbf.h5)
+	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
 	$(BIN)/h5dump insulin_pilatus6mconverted_orig_rev3Jul14.cbf.h5 | $(ALLBUTONE) > insulin_pilatus6mconverted_orig_rev3Jul14.cbf.h5.dump)
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
 	$(BIN)/h5dump insulin_pilatus6mconverted.cbf.h5 | $(ALLBUTONE)  > insulin_pilatus6mconverted.cbf.h5.dump)
@@ -1887,6 +1893,15 @@ endif
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
 	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_encc.cbf.h5 -o insulin_pilatus6mconverted_encc.cbf.h5.cbf)
 	-cmp insulin_pilatus6mconverted_encc.cbf.h5.cbf insulin_pilatus6mconverted_orig.cbf.h5.cbf
+	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
+	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_encz.cbf.h5 -o insulin_pilatus6mconverted_encz.cbf.h5.cbf)
+	-cmp insulin_pilatus6mconverted_encz.cbf.h5.cbf insulin_pilatus6mconverted_orig.cbf.h5.cbf
+	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
+	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_encl.cbf.h5 -o insulin_pilatus6mconverted_encl.cbf.h5.cbf)
+	-cmp insulin_pilatus6mconverted_encl.cbf.h5.cbf insulin_pilatus6mconverted_orig.cbf.h5.cbf
+	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
+	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_enc2.cbf.h5 -o insulin_pilatus6mconverted_enc2.cbf.h5.cbf)
+	-cmp insulin_pilatus6mconverted_enc2.cbf.h5.cbf insulin_pilatus6mconverted_orig.cbf.h5.cbf
 	$(TIME) $(BIN)/testalloc
 	$(TIME) $(BIN)/testhdf5; rm -f testfile.h5
 ifneq ($(CBF_USE_ULP),)

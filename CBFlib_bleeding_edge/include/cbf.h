@@ -701,7 +701,7 @@ CBF_PRINT_DEBUG(3,cbf_strerror(error));
 
 /* debug print macros, enabled if CBFDEBUG defined */
 
-#if CBFDEBUG
+#ifdef CBFDEBUG
 #define cbf_debug_print(ARG) \
   {fprintf(stderr,__FILE__":%d: CBFlib debug: %s\n", __LINE__, ARG);}
 #define cbf_debug_print2(FMT,ARG) \
