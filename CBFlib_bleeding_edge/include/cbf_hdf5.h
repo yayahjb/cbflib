@@ -407,7 +407,7 @@ field of the source */
 	*/
 
     
-	/**
+    /**
      Concatenate several null-terminated strings into a single string, with each component
      separated by one 'sep' character. A leading or trailing empty string will cause a
      leading or trailing 'sep' character to be written, the character may be repeated by
@@ -987,6 +987,7 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
 		const char * nxgoniometer_name;
 		const char * nxmonochromator_name;
 		const char * nxsource_name;
+		const char * nxdata_name;
         const char * nxfilename;
         cbf_handle scratch_tables;
         FILE * logfile;
@@ -1038,7 +1039,16 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
 	int cbf_h5handle_set_file
 			(const cbf_h5handle nx,
 			 const hid_t file);
-    
+
+        /**
+        \brief Get the current id and name of the data group within the given handle.
+        \ingroup section_H5Handle
+         */
+        int cbf_h5handle_get_data
+                        (const cbf_h5handle nx,
+                         hid_t * const group,
+                         const char * * const name);
+
 	/**
 	\brief Get the current id and name of the entry group within the given handle.
 	\ingroup section_H5Handle
@@ -1370,8 +1380,8 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
     
     
     /* Write the HDF5 version of the NeXus axis definitions, if
-     the original CBF had axis definitions */
-    
+         the original CBF had axis definitions */
+
     
     int cbf_write_h5nxaxes(cbf_handle handle, cbf_h5handle h5handle);
     
@@ -1411,7 +1421,7 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
                                    const char* attribname,
                                    const char* attribtext,
                                    int errorcode);
-
+    
     /* apply a text attribute slab to a dataset
      
      Actually works with a text data set and makes
@@ -1827,7 +1837,7 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
                         const char * const subGroup, const char * const subGroupNXclass,
                         const size_t attrc, const cbf_name_value_pair * const attrv,
                         cbf_h5handle h5handle);
-
+    
     int cbf_cimatch(const char * name, const char * pattern);
     
     

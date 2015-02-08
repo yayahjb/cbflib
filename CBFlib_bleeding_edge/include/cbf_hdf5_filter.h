@@ -300,7 +300,7 @@ extern "C" {
     extern const H5Z_class2_t CBF_H5Z_CBF[1];
     #ifdef CBF_H5Z_USE_LZ4
         extern const H5Z_class2_t H5Z_LZ4[1];
-#endif
+    #endif
 #endif
 
 #ifdef CBF_H5Z_USE_LZ4

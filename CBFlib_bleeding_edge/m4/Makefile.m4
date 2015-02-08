@@ -293,7 +293,7 @@ ifneq ($(CBFLIB_DONT_USE_LZ4),yes)
 #
 # Definitions to get a version of HDF5Plugin for LZ4
 #
-LZ4 = HDF5Plugin_2Feb15
+LZ4 = HDF5Plugin_6Feb15
 LZ4src = $(LZ4)/src
 LZ4include = $(LZ4)/include
 LZ4SOLIBS = -L./solib -lh5zlz4
