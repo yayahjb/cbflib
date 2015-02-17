@@ -277,6 +277,7 @@ int main (int argc, char *argv [])
 	int h5_write_flags = 0;
 	int list = 0;
     int noCBFnames = 0;
+    int update = 0;
 	const char ** const cifin = memset(malloc(argc*sizeof(char*)),0,argc*sizeof(char*));
 	const char * scan_id = NULL;
 	const char * sample_id = NULL;
@@ -288,7 +289,7 @@ int main (int argc, char *argv [])
 	/* Attempt to read the arguments */
 	if (CBF_SUCCESS != (error |= cbf_make_getopt_handle(&opts))) {
 		fprintf(stderr,"Could not create a 'cbf_getopt' handle.\n");
-	} else if (CBF_SUCCESS != (error |= cbf_getopt_parse(opts, argc, argv, "c(compression):g(group):o(output):Z(register):\x03(experiment_id):\x04(sample_id):\x05(datablock):\x06(scan):\x01(list)\x02(no-list)\x07(CBFnames)\0x08(noCBFnames)" ))) {
+	} else if (CBF_SUCCESS != (error |= cbf_getopt_parse(opts, argc, argv, "c(compression):g(group):o(output):u(update):Z(register):\x03(experiment_id):\x04(sample_id):\x05(datablock):\x06(scan):\x01(list)\x02(no-list)\x07(CBFnames)\0x08(noCBFnames)" ))) {
 		fprintf(stderr,"Could not parse arguments.\n");
 	} else {
     	int errflg = 0;
@@ -325,6 +326,9 @@ int main (int argc, char *argv [])
 					else group = optarg;
 					break;
 				}
+                case 'u': { /*update mode output*/
+                    update = 1;
+                }
 				case 'o': { /* output file */
 						if (hdf5out) ++errflg;
                     else hdf5out = optarg;
@@ -404,7 +408,8 @@ int main (int argc, char *argv [])
 		++errflg;
 	}
 	if (errflg) {
-			fprintf(stderr, "Usage:\n\t%s [options] -o|--output output_nexus input_cbf_files...\n"
+			fprintf(stderr, "Usage:\n\t%s [options] "
+                    "[-o|--output]|[-u|--update] output_nexus input_cbf_files...\n"
 				"Options:\n"
 						"\t-c|--compression cbf|none|zlib (default: none)\n"
 						"\t-g|--group output_group (default: 'entry')\n"
@@ -430,7 +435,11 @@ int main (int argc, char *argv [])
 		size_t f = 0;
         
 		/* prepare the output file */
-		if(CBF_SUCCESS != (error |= cbf_create_h5handle2(&h5out,hdf5out))) {
+        if( (update &&
+             CBF_SUCCESS != (error |= cbf_create_h5handle2u(&h5out,hdf5out)))
+           ||((!update) &&
+              CBF_SUCCESS != (error |= cbf_create_h5handle2(&h5out,hdf5out)))
+           ) {
 			fprintf(stderr,"Couldn't open the HDF5 file '%s'.\n", hdf5out);
 		} else if (CBF_SUCCESS != (error |= cbf_h5handle_require_entry_definition(h5out,0,group,"NXmx","1.2",0))) {
 			fprintf(stderr,"Couldn't create an NXentry group in the HDF5 file '%s'.\n", hdf5out);
