@@ -2149,19 +2149,21 @@ static int FUNC \
             }
             if (CBF_SUCCESS==error) {
                 /* check the datatype is correct */
-                const htri_t eq = H5Tequal(currType,attrType);
+		if (H5Tget_class(currType) != H5Tget_class(attrType))
+                     error |= CBF_H5DIFFERENT;
+                /* const htri_t eq = H5Tequal(currType,attrType);
                 if (eq<0) error |= CBF_H5ERROR;
-                else if (!eq) error |= CBF_H5DIFFERENT;
+                else if (!eq) error |= CBF_H5DIFFERENT; */
                 /* else success */;
             }
             /* check that the data is correct */
             if (CBF_SUCCESS==error) {
                 const size_t N = H5Sget_simple_extent_npoints(currSpace);
                 const htri_t vlStr = H5Tis_variable_str(currType);
-                H5Aread(attr,attrType,buf);
-                        if (cmp(value,buf,N)) {
-                            cbf_debug_print("Incorrect attribute value\n");
-                    error |= CBF_H5DIFFERENT;
+                H5Aread(attr,currType,buf);
+                if (cmp(value,buf,N)) {
+                      cbf_debug_print("Incorrect attribute value\n");
+                      error |= CBF_H5DIFFERENT;
                 }
                 if (vlStr < 0) error |= CBF_H5ERROR;
                 if (vlStr > 0) H5Dvlen_reclaim(currType, currSpace, H5P_DEFAULT, buf);
@@ -2171,12 +2173,12 @@ static int FUNC \
             if (cbf_H5Ivalid(currType))  H5Tclose(currType);
                     if (cbf_H5Ivalid(attr)) H5Aclose(attr);
         } else {
-                    hid_t attr = CBF_H5FAIL;
-                    CBF_H5CALL(attr = H5Acreate2(ID,name,attrType,attrSpace,H5P_DEFAULT,H5P_DEFAULT));
-                    CBF_H5CALL(H5Awrite(attr,attrType,value));
+            hid_t attr = CBF_H5FAIL;
+            CBF_H5CALL(attr = H5Acreate2(ID,name,attrType,attrSpace,H5P_DEFAULT,H5P_DEFAULT));
+            CBF_H5CALL(H5Awrite(attr,attrType,value));
         }
                 H5Sclose(attrSpace);
-            }
+        }
         }
         return error;
     }
@@ -2249,16 +2251,18 @@ static int FUNC \
             }
             if (CBF_SUCCESS==error) {
                 /* check the datatype is correct */
-                    const htri_t eq = H5Tequal(currType,fileType);
+		if (H5Tget_class(currType) != H5Tget_class(fileType))
+		    error |= CBF_H5DIFFERENT;
+                /*    const htri_t eq = H5Tequal(currType,fileType);
                 if (eq<0) error |= CBF_H5ERROR;
-                else if (!eq) error |= CBF_H5DIFFERENT;
+                else if (!eq) error |= CBF_H5DIFFERENT*/;
                 /* else success */;
             }
             /* check that the data is correct */
             if (CBF_SUCCESS==error) {
                 const size_t N = H5Sget_simple_extent_npoints(currSpace);
                 const htri_t vlStr = H5Tis_variable_str(currType);
-                    void * const _buf = buf ? 0 : malloc(H5Sget_simple_extent_npoints(currSpace)*H5Tget_size(currType));
+                    void * const _buf = buf ? 0 : malloc(H5Sget_simple_extent_npoints(currSpace)*H5Tget_size(memType));
                     void * const membuf = buf ? buf : _buf;
                     H5Aread(attr,memType,membuf);
                     if (cmp(value,membuf,N)) {
@@ -2267,7 +2271,7 @@ static int FUNC \
                 }
                 if (vlStr < 0) error |= CBF_H5ERROR;
                     if (vlStr > 0) H5Dvlen_reclaim(currType, currSpace, H5P_DEFAULT, membuf);
-                    free(_buf);
+                    if (_buf) free(_buf);
             }
             /* check local variables are properly closed */
                 cbf_H5Sfree(currSpace);
@@ -2353,16 +2357,18 @@ static int FUNC \
                     }
                     if (CBF_SUCCESS==error) {
                         /* check the datatype is correct */
-                        const htri_t eq = H5Tequal(currType,fileType);
+			if (H5Tget_class(currType) != H5Tget_class(fileType))
+			    error |= CBF_H5DIFFERENT;
+                        /* const htri_t eq = H5Tequal(currType,fileType);
                         if (eq<0) error |= CBF_H5ERROR;
-                        else if (!eq) error |= CBF_H5DIFFERENT;
+                        else if (!eq) error |= CBF_H5DIFFERENT;*/
                         /* else success */;
                     }
                     /* check that the data is correct */
                     if (CBF_SUCCESS==error) {
                         const size_t N = H5Sget_simple_extent_npoints(currSpace);
                         const htri_t vlStr = H5Tis_variable_str(currType);
-                        void * const _buf = buf ? 0 : malloc(H5Sget_simple_extent_npoints(currSpace)*H5Tget_size(currType));
+                        void * const _buf = buf ? 0 : malloc(H5Sget_simple_extent_npoints(currSpace)*H5Tget_size(memType));
                         void * const membuf = buf ? buf : _buf;
                         H5Aread(attr,memType,membuf);
                         if (cmp(value,membuf,N,cmp_params)) {
@@ -2657,10 +2663,12 @@ static int cmp_string
                     }
                     /* TODO: Check chunk? */
                     if (CBF_SUCCESS==error) {
-                         /* check the datatype is correct */
-                        const htri_t eq = H5Tequal(currType,type);
+                        /* check the datatype is correct */
+		        if (H5Tget_class(currType) != H5Tget_class(type))
+		            error |= CBF_H5DIFFERENT;
+                        /* const htri_t eq = H5Tequal(currType,type);
                         if (eq<0) error |= CBF_H5ERROR;
-                        else if (!eq) error |= CBF_H5DIFFERENT;
+                        else if (!eq) error |= CBF_H5DIFFERENT */;
                         /* else success */;
                     }
                     if (cbf_H5Ivalid(currType))H5Tclose(currType);
@@ -2788,9 +2796,11 @@ if (CBF_SUCCESS==found) {
                                     cbf_debug_print2("Could not get rank of '%s'\n",name);
                                     error |= CBF_H5ERROR;
                                 } else if (currRank != rank) {
+				    if (currRank > rank) {
                                     cbf_debug_print3("error: Current rank of '%d' differs from expected rank of '%d'\n",currRank, rank);
                                     error |= CBF_H5DIFFERENT;
-                                } else if (CBF_SUCCESS==error && max && rank>0) {
+				    }
+                                } else if (CBF_SUCCESS==error && currRank > 0 && max && rank > 0) {
                                     int i;
                                     /* Check dataspace if it makes sense to do so */
                                     hsize_t * const _buf = buf ? 0 : malloc(rank*sizeof(hsize_t));
@@ -2815,11 +2825,13 @@ if (CBF_SUCCESS==found) {
                                     cbf_debug_print("error: couldn't get data space");
                                     error |= CBF_H5ERROR;
                                 } else {
-                                    const htri_t eq = H5Tequal(currType,type);
+				    if (H5Tget_class(currType) != H5Tget_class(type) )
+			                error |= CBF_H5DIFFERENT;
+                                    /* const htri_t eq = H5Tequal(currType,type);
                                     if (eq<0) {
                                         cbf_debug_print2("error: couldn't test type of '%s'\n",name);
                                         error |= CBF_H5ERROR;
-                                    } else if (!eq) error |= CBF_H5DIFFERENT;
+                                    } else if (!eq) error |= CBF_H5DIFFERENT;*/
                                 }
                                 cbf_H5Tfree(currType);
                             }
