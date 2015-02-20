@@ -7818,6 +7818,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         int processed_nxdetectors=0;
         hid_t instrumentid;
         hid_t detectorid;
+        hid_t detector_groupid;
         hid_t group_namesid;
         htri_t dsexists;
         unsigned int row, rows, curdet, numdet = 0;
@@ -7887,7 +7888,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     && !cbf_select_row(handle,row)
                     &&!cbf_get_value(handle,&detname) && detname) {
                     
-                    cbf_reportnez(_cbf_NXGrequire(instrumentid,&detectorid,
+                    cbf_reportnez(_cbf_NXGrequire(instrumentid,&detector_groupid,
                                                   detname,
                                                   "NXdetector_group"),error);
                                         
@@ -7895,49 +7896,49 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                      create it, as well as group_index, group_parent
                      and group_type */
                     
-                    dsexists = H5Lexists(detectorid,"group_names", H5P_DEFAULT);
+                    dsexists = H5Lexists(detector_groupid,"group_names", H5P_DEFAULT);
                     
                     if (dsexists < 0 || !dsexists ) {
                         
-                        cbf_reportnez(cbf_add_h5text_dataset_slab(detectorid,
+                        cbf_reportnez(cbf_add_h5text_dataset_slab(detector_groupid,
                                                                   "group_names",
                                                                   detname,
                                                                   (hsize_t) 0L,
                                                                   error),error);
-                        cbf_reportnez(cbf_add_h5text_dataset_slab(detectorid,
+                        cbf_reportnez(cbf_add_h5text_dataset_slab(detector_groupid,
                                                                   "group_names",
                                                                   detmodname,
                                                                   (hsize_t) 1L,
                                                                   error),error);
                         
-                        cbf_reportnez(cbf_add_h5long_dataset_slab(detectorid,
+                        cbf_reportnez(cbf_add_h5long_dataset_slab(detector_groupid,
                                                                   "group_index",
                                                                   1L,
                                                                   (hsize_t) 0L,
                                                                   error),error);
-                        cbf_reportnez(cbf_add_h5long_dataset_slab(detectorid,
+                        cbf_reportnez(cbf_add_h5long_dataset_slab(detector_groupid,
                                                                   "group_index",
                                                                   2L,
                                                                   (hsize_t) 1L,
                                                                   error),error);
                         
-                        cbf_reportnez(cbf_add_h5long_dataset_slab(detectorid,
+                        cbf_reportnez(cbf_add_h5long_dataset_slab(detector_groupid,
                                                                   "group_parent",
                                                                   -1L,
                                                                   (hsize_t) 0L,
                                                                   error),error);
-                        cbf_reportnez(cbf_add_h5long_dataset_slab(detectorid,
+                        cbf_reportnez(cbf_add_h5long_dataset_slab(detector_groupid,
                                                                   "group_parent",
                                                                   1L,
                                                                   (hsize_t) 1L,
                                                                   error),error);
                         
-                        cbf_reportnez(cbf_add_h5long_dataset_slab(detectorid,
+                        cbf_reportnez(cbf_add_h5long_dataset_slab(detector_groupid,
                                                                   "group_type",
                                                                   1L,
                                                                   (hsize_t) 0L,
                                                                   error),error);
-                        cbf_reportnez(cbf_add_h5long_dataset_slab(detectorid,
+                        cbf_reportnez(cbf_add_h5long_dataset_slab(detector_groupid,
                                                                   "group_type",
                                                                   2L,
                                                                   (hsize_t) 1L,
@@ -7953,11 +7954,11 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                         
                         hsize_t dsmaxdims[1];
                         
-                        group_namesid=H5Dopen2(detectorid,"group_names", H5P_DEFAULT);
+                        group_namesid=H5Dopen2(detector_groupid,"group_names", H5P_DEFAULT);
                         
                         if (group_namesid<0) {
                             
-                            if (cbf_H5Ivalid(detectorid)) H5Gclose(detectorid);
+                            if (cbf_H5Ivalid(detector_groupid)) H5Gclose(detector_groupid);
                             
                             return CBF_H5ERROR;
                             
@@ -7969,7 +7970,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                             
                             if (cbf_H5Ivalid(group_namesid)) H5Dclose(group_namesid);
                             
-                            if (cbf_H5Ivalid(detectorid)) H5Gclose(detectorid);
+                            if (cbf_H5Ivalid(detector_groupid)) H5Gclose(detector_groupid);
                             
                             return CBF_H5ERROR;
                             
@@ -8001,32 +8002,32 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                         
 
                         
-                        cbf_reportnez(cbf_add_h5text_dataset_slab(detectorid,
+                        cbf_reportnez(cbf_add_h5text_dataset_slab(detector_groupid,
                                                                   "group_names",
                                                                   detmodname,
                                                                   dsdims[0],
                                                                   error),error);
                         
-                        cbf_reportnez(cbf_add_h5long_dataset_slab(detectorid,
+                        cbf_reportnez(cbf_add_h5long_dataset_slab(detector_groupid,
                                                                   "group_index",
                                                                   (long)dsdims[0],
                                                                   dsdims[0],
                                                                   error),error);
                         
-                        cbf_reportnez(cbf_add_h5long_dataset_slab(detectorid,
+                        cbf_reportnez(cbf_add_h5long_dataset_slab(detector_groupid,
                                                                   "group_parent",
                                                                   1L,
                                                                   dsdims[0],
                                                                   error),error);
                         
-                        cbf_reportnez(cbf_add_h5long_dataset_slab(detectorid,
+                        cbf_reportnez(cbf_add_h5long_dataset_slab(detector_groupid,
                                                                   "group_type",
                                                                   2L,
                                                                   dsdims[0],
                                                                   error),error);
                     }
                     
-                    if (cbf_H5Ivalid(detectorid)) H5Gclose(detectorid);
+                    if (cbf_H5Ivalid(detector_groupid)) H5Gclose(detector_groupid);
                     
                     
                 }
@@ -9106,6 +9107,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         const char * diffrn_measurement_id;
 
+        const char * first_element_id;
+
+        unsigned int elements;
+
 
         errorcode = 0;
 
@@ -9147,6 +9152,30 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
         cbf_reportnez(cbf_datablock_name(handle,&datablock),errorcode);
 
+        cbf_reportnez(cbf_count_elements(handle,&elements),errorcode);
+        
+        first_element_id = NULL;
+                      
+        if (elements == 1) {
+            
+            cbf_reportnez(cbf_get_element_id(handle,0,&first_element_id),errorcode);
+            
+            if (!first_element_id
+                || !cbf_cistrcmp(first_element_id,".")
+                || !cbf_cistrcmp(first_element_id,"?"))
+            
+            first_element_id = "detector";
+            
+        } else if (elements == 0) {
+            
+            first_element_id = "detector";
+            
+        } else {
+            
+            first_element_id = NULL;
+            
+        }
+
         for(row=0; row < rows; row++) {
 
             char * cbfloc = NULL;
@@ -9180,6 +9209,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             const char * system = NULL;
             
             const char * axisequipment = NULL;
+            
+            const char * axiselementid = NULL;
             
             const char * axispath = NULL;
  
@@ -9346,9 +9377,16 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
              If the equipment type is detector, we need to map the axis_id
              to the appropriate detector so we can put this axis in
              /instrument:NXinstrument
+               /ELEMENTNAME:NXdetector
+                 /transformations:NXtransformations
+                   /AXISID=[]
+             or
+             /instrument:NXinstrument
                /DETECTORNAME:NXdetector_group
                  /transformations:NXtransformations
                    /AXISID=[]
+             with the former used for all axes when there is only one detector
+             element or if the axis is specific to a particular element
 
              If the equipment type is goniometer, we need to map the axis_id
              to the appropriate goniometer, so we can put this axis in
@@ -9371,6 +9409,31 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
                 nxequipment[0]='\0';
 
+                axiselementid = NULL;
+                
+                if (elements < 2 ||
+                    (!cbf_get_axis_element_id(handle,&axiselementid,
+                                              equipmentname,equipment,axis_id)
+                     && axiselementid && cbf_cistrcmp(axiselementid,".")
+                     && cbf_cistrcmp(axiselementid,"?"))) {
+                        
+                        if (axiselementid
+                            && cbf_cistrcmp(axiselementid,".")
+                            && cbf_cistrcmp(axiselementid,"?")) {
+                            
+                            strncat(nxequipment,axiselementid,2020);
+                            
+                        } else {
+                            
+                            strcpy(nxequipment,first_element_id);
+                            
+                        }
+                        
+                        equipmentclass = "NXdetector_group";
+                        
+                        
+                    } else {
+                        
                 if (equipmentname) {
 
                     strncat(nxequipment,equipmentname,2020);
@@ -9381,6 +9444,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 }
 
                 equipmentclass = "NXdetector_group";
+                
+                    }
+                
+                
                 
                 path_axis_detector[3] = nxequipment;
                 
@@ -21940,7 +22007,9 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
                 hsize_t buf[] = {0};
                 off[0] = nx->slice;
                 CBF_CALL(cbf_H5Drequire(obj,&dset,conv->name,1,max,cnk,buf,H5T_IEEE_F64LE));
-                CBF_CALL(cbf_H5Dinsert(dset,off,NULL,cnt,buf,&out,H5T_NATIVE_DOUBLE));
+                if ((error|=cbf_H5Dinsert(dset,off,NULL,cnt,buf,&out,H5T_NATIVE_DOUBLE))) { 
+                    cbf_debug_print ("cbf_H5Dinsert failed ");
+                }
                     } else {
                 cbf_debug_print("error: unrecognised/not implemented data rank");
                     }
