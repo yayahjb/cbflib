@@ -12,6 +12,7 @@
                 Crystallographic Binary Files with ASCII Support
                                  Version 0.9.5
                                  27 April 2014
+                              rev 22 February 2015
 
                                        by
                                  Paul J. Ellis
@@ -5800,19 +5801,18 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      DESCRIPTION
 
-     cbf_set_pixel_size and cbf_set_pixel_size_sf set the item in the
-     &quote;size&quote; column of the "array_structure_list" category at the
-     row which matches axis axis_number of the detector element
-     element_number converting the double pixel size psize from meters to
-     millimeters in storing it in the "size" column for the axis axis_number
-     of the detector element element_number. The axis_number is numbered from
-     1, starting with the slowest axis. cbf_set_pixel_size_fs sets the item
-     in the &quote;size&quote; column of the "array_structure_list" category
-     at the row which matches axis axis_number of the detector element
-     element_number converting the double pixel size psize from meters to
-     millimeters in storing it in the "size" column for the axis axis_number
-     of the detector element element_number. The axis_number is numbered from
-     1, starting with the fastest axis.
+     cbf_set_pixel_size and cbf_set_pixel_size_sf set the item in the "size"
+     column of the "array_structure_list" category at the row which matches
+     axis axis_number of the detector element element_number converting the
+     double pixel size psize from meters to millimeters in storing it in the
+     "size" column for the axis axis_number of the detector element
+     element_number. The axis_number is numbered from 1, starting with the
+     slowest axis. cbf_set_pixel_size_fs sets the item in the "size" column
+     of the "array_structure_list" category at the row which matches axis
+     axis_number of the detector element element_number converting the double
+     pixel size psize from meters to millimeters in storing it in the "size"
+     column for the axis axis_number of the detector element element_number.
+     The axis_number is numbered from 1, starting with the fastest axis.
 
      If a negative axis number is given, the order of axes is reversed, so
      that -1 specifies the slowest axis for cbf_get_pixel_size_fs and the
@@ -11990,7 +11990,8 @@ src/                      include/             m4/                  Description
     cbf2nexus
 
      This program takes some CBF files describing a single scan and converts
-     them to a single NeXus file containing the same data.
+     them to a single NeXus file containing the same data. It can also be
+     used to merge a CBF file into an existing NeXus file.
 
      It currently takes several command line arguments:
 
@@ -12026,6 +12027,12 @@ src/                      include/             m4/                  Description
          without warning, so be careful that the name of any existing files
          that you wish to keep are not passed as an argument here.
 
+       * -u
+         --update
+         This take a single argument which is used as the filename for an
+         existing nexus file, to which the nexus translation of the input
+         file will be added. This is a direct change in the specified file.
+         It is not making a copy first.
        * -Z
          --register
          Takes a single case-insensitive argument of 'manual' or 'plugin'

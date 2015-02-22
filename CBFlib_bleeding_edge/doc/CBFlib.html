@@ -112,6 +112,7 @@ ALT="[CBF/imgCIF]"></A>
 Crystallographic Binary Files with ASCII Support</b><br />
 Version 0.9.5<BR>
 27 April 2014<BR>
+rev 22 February 2015<br />
 <p>
 </CENTER>
 </font><font color="#000000">
@@ -14533,7 +14534,7 @@ CBF_axis_omega vector [0 0 0]
 	
 	<h4>cbf2nexus</h4>
 	<p>This program takes some CBF files describing a single scan and converts them to a single NeXus file containing
-	the same data.</p>
+	the same data.  It can also be used to merge a CBF file into an existing NeXus file.</p>
 	<p>It currently takes several command line arguments:</p>
   <ul>
   	<li>
@@ -14564,6 +14565,12 @@ CBF_axis_omega vector [0 0 0]
   	  	same name are overwritten without warning, so be careful that the name of any existing files that you wish to
   	  	keep are not passed as an argument here.</p>
 	</li>
+	<li>
+		<p><code>-u</code><br/>
+		<code>--update</code><br/>
+		This take a single argument which is used as the filename for an existing nexus file, to which the nexus 
+		translation of the input file will be added.  This is a direct change in the specified file.  It is not
+		making a copy first.
 	<li>
 		<p><code>-Z</code><br/>
 		<code>--register</code><br/>
@@ -14651,7 +14658,7 @@ CBF_axis_omega vector [0 0 0]
 
 <hr />
 <hr />
-Updated 27 April 2014.
+Updated 22 February 2015.
 Contact:
 <script language="javascript" type="text/javascript">
 <!--
