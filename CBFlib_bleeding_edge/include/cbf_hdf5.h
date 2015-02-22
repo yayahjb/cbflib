@@ -1387,10 +1387,21 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
     
     int cbf_get_NX_axis_poise_path(cbf_h5handle h5handle, const char * axis_id, const char * * poise_path);
 
+    /* Set the parent path of an axis */
+    
+    int cbf_set_NX_parent_path(cbf_h5handle h5handle, const char * axis_id, const char * parent_path);
+    
+    /* increment the count of axes dependent on this axis */
+    
+    int cbf_increment_NX_axis_depcount(cbf_h5handle h5handle, const char * axis_id);
+
     /* Set the nexus path of an axis */
     
     int cbf_set_NX_axis_path(cbf_h5handle h5handle, const char * axis_id, const char * nexus_path);
 
+    /* Set the parent path of an axis */
+    
+    int cbf_set_NX_parent_path(cbf_h5handle h5handle, const char * axis_id, const char * parent_path);
     
     
     /* Write the HDF5 version of the NeXus axis definitions, if

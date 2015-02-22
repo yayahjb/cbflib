@@ -9055,6 +9055,15 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         const char * path_axis_goniometer[8];
         
+        const char * path_parent_detector[6];
+        
+        const char * path_parent_general[6];
+        
+        const char * path_parent_goniometer[6];
+        
+        const char * parentpath = NULL;
+
+        
         hid_t equipmentid;
         
         hid_t instrumentid;
@@ -9069,20 +9078,32 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         if (!cbf_get_NX_axis_path(h5handle,axis_id,nexus_path) &&
             !(*nexus_path)) return CBF_SUCCESS;
         
+        path_parent_general[0] =
+        path_parent_detector[0] =
+        path_parent_goniometer[0] =
         path_axis_general[0] =
         path_axis_detector[0] =
         path_axis_goniometer[0] = "";
         
+        path_parent_general[1] =
+        path_parent_detector[1] =
+        path_parent_goniometer[1] =
         path_axis_general[1] =
         path_axis_detector[1] =
         path_axis_goniometer[1] = (h5handle->nxid_name)?(h5handle->nxid_name):"entry";
         
+        path_parent_general[2] =
+        path_parent_detector[2] =
         path_axis_general[2] =
         path_axis_detector[2] =  (h5handle->nxinstrument_name)?(h5handle->nxinstrument_name):"instrument";
+        path_parent_goniometer[2] =
         path_axis_goniometer[2] = "sample";
         
         path_axis_general[3] = "transformations";
-        path_axis_detector[3] = 0;
+        path_parent_general[3] =
+        path_parent_detector[3] =
+        path_parent_goniometer[3] =
+        path_axis_detector[3] =
         path_axis_goniometer[3] = 0;
         
         path_axis_general[4] = 0;
@@ -9245,8 +9266,11 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     
                 }
             
+            path_parent_detector[3] =
             
             path_axis_detector[3] = nxequipment;
+            
+            path_parent_detector[4] = 0;
             
             path_axis_detector[4] = "transformations";
             
@@ -9255,6 +9279,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             path_axis_detector[6] = 0;
             
             axispath = _cbf_str_join(path_axis_detector,'/');
+            
+            parentpath = _cbf_str_join(path_parent_detector,'/');
             
             cbf_reportnez(cbf_require_nxgroup(h5handle,
                                               nxequipment, equipmentclass,
@@ -9273,13 +9299,19 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             
             equipmentclass = "NXsample";
             
+            path_parent_goniometer[3] =
+            
             path_axis_goniometer[3] = diffrn_measurement_id;
+            
+            path_parent_goniometer[4] = 0;
             
             path_axis_goniometer[4] = axis_id;
             
             path_axis_goniometer[5] = 0;
             
             axispath = _cbf_str_join(path_axis_goniometer,'/');
+            
+            parentpath = _cbf_str_join(path_parent_goniometer,'/');
             
             cbf_reportnez(cbf_h5handle_require_sample(h5handle,0,nxequipment),errorcode);
             
@@ -9301,6 +9333,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             path_axis_general[5] = 0;
             
             axispath = _cbf_str_join(path_axis_general,'/');
+            
+            parentpath = _cbf_str_join(path_parent_general,'/');
             
             cbf_reportnez(cbf_require_nxgroup(h5handle,
                                               "transformations", "NXtransformations",
@@ -9326,6 +9360,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             
             axispath = _cbf_str_join(path_axis_general,'/');
             
+            parentpath = _cbf_str_join(path_parent_general,'/');
+            
             cbf_reportnez(cbf_require_nxgroup(h5handle,
                                               "transformations", "NXtransformations",
                                               h5handle->nxinst, &poiseid),errorcode);
@@ -9338,6 +9374,12 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         cbf_debug_print3("logged axis_id '%s' axis_path '%s'\n", axis_id, axispath);
         
         free((void*)axispath);
+        
+        cbf_reportnez(cbf_set_NX_parent_path(h5handle, axis_id, parentpath),errorcode);
+        
+        cbf_debug_print3("logged axis_id '%s' parent_path '%s'\n", axis_id, parentpath);
+        
+        free((void*)parentpath);
         
         cbf_reportnez(cbf_get_NX_axis_path(h5handle, axis_id, nexus_path),errorcode);
         
@@ -9398,6 +9440,84 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
     }
 
+    /* Set the parent path of an axis */
+
+    int cbf_set_NX_parent_path(cbf_h5handle h5handle, const char * axis_id, const char * parent_path) {
+    
+        int ii, klen;
+        
+        int errorcode = 0;
+        
+        if (!h5handle || !axis_id || !parent_path ) return CBF_ARGUMENT;
+        
+        if (!(h5handle->scratch_tables)
+            || cbf_require_datablock(h5handle->scratch_tables,"scratch")
+            || cbf_require_category(h5handle->scratch_tables,"scratch_axis")
+            || cbf_require_column(h5handle->scratch_tables,"axis_id")
+            || cbf_rewind_row(h5handle->scratch_tables)) {
+            
+            return CBF_FORMAT;
+            
+        }
+        
+        if (cbf_find_row(h5handle->scratch_tables,axis_id)) {
+            
+            cbf_failnez(cbf_require_column(h5handle->scratch_tables,"axis_id"));
+            
+            cbf_failnez(cbf_new_row(h5handle->scratch_tables));
+            
+            cbf_failnez(cbf_set_value(h5handle->scratch_tables, axis_id));
+            
+        }
+        
+        cbf_failnez(cbf_require_column(h5handle->scratch_tables,"parent_path"));
+        
+        cbf_failnez(cbf_set_value(h5handle->scratch_tables,parent_path));
+        
+        return errorcode;
+        
+    }
+    
+     /* increment the count of axes dependent on this axis */
+    
+    int cbf_increment_NX_axis_depcount(cbf_h5handle h5handle, const char * axis_id) {
+        
+        int ii;
+        
+        int errorcode = 0;
+        
+        if (!h5handle || !axis_id ) return CBF_ARGUMENT;
+        
+        if (!(h5handle->scratch_tables)
+            || cbf_require_datablock(h5handle->scratch_tables,"scratch")
+            || cbf_require_category(h5handle->scratch_tables,"scratch_axis")
+            || cbf_require_column(h5handle->scratch_tables,"axis_id")
+            || cbf_rewind_row(h5handle->scratch_tables)) {
+            
+            return CBF_FORMAT;
+            
+        }
+        
+        if (cbf_find_row(h5handle->scratch_tables,axis_id)) {
+            
+            cbf_failnez(cbf_require_column(h5handle->scratch_tables,"axis_id"));
+            
+            cbf_failnez(cbf_new_row(h5handle->scratch_tables));
+            
+            cbf_failnez(cbf_set_value(h5handle->scratch_tables, axis_id));
+            
+        }
+        
+        cbf_failnez(cbf_require_column(h5handle->scratch_tables,"depcount"));
+        
+        if (cbf_get_integervalue(h5handle->scratch_tables, &ii)|| ii < 0) ii = 0;
+        
+        cbf_failnez(cbf_set_integervalue(h5handle->scratch_tables,ii+1));
+        
+        return errorcode;
+        
+    }
+   
 
     
     /* Set the nexus path of an axis */
@@ -9428,6 +9548,14 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             
             cbf_failnez(cbf_set_value(h5handle->scratch_tables, axis_id));
             
+            cbf_failnez(cbf_require_column(h5handle->scratch_tables,"nexus_path"));
+            
+            cbf_failnez(cbf_require_column(h5handle->scratch_tables,"poise_path"));
+            
+            cbf_failnez(cbf_require_column(h5handle->scratch_tables,"depcount"));
+            
+            cbf_failnez(cbf_require_column(h5handle->scratch_tables,"parent_path"));
+
         }
         
         cbf_failnez(cbf_require_column(h5handle->scratch_tables,"nexus_path"));
@@ -9452,6 +9580,16 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         errorcode |= cbf_set_value(h5handle->scratch_tables,poise_path);
         
+        for (ii = klen-1; ii >=0 && poise_path[ii] != '/'; ii--) poise_path[ii] = '\0';
+        
+        if (ii >=0) poise_path[ii] = '\0';
+
+        if (!cbf_require_column(h5handle->scratch_tables,"parent_path")) {
+            
+            errorcode |= cbf_set_value(h5handle->scratch_tables,poise_path);
+            
+        }
+        
         CBF_END_ARRAY_REPORTNEZ(poise_path,errorcode);
         
         return errorcode;
@@ -9465,12 +9603,11 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
     int cbf_write_h5nxaxes(cbf_handle handle, cbf_h5handle h5handle) {
 
-
         int errorcode;
         
         hid_t instrumentid;
 
-        unsigned int rows, row;
+        unsigned int rows, row, nrow, idepcount;
 
         double matrix[3][3];
 
@@ -9482,6 +9619,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         const char * first_element_id = NULL;
 
+        const char * axis_id = NULL;
+        
         unsigned int elements = 0;
 
 
@@ -9567,8 +9706,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
             const char * equipmentcomponent = NULL;
 
-            const char * axis_id = NULL;
-
             const char * depends_on = NULL;
 
             const char * rotation_axis = NULL;
@@ -9587,12 +9724,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
             size_t sscanpoints = 0;
             
-            const char * path_axis_general[8];
-
-            const char * path_axis_detector[8];
-
-            const char * path_axis_goniometer[8];
-
             const char * units = NULL;
 
             double vector[3] = {0.,0.,0.}, offset[3] = {0.,0.,0.};
@@ -9623,24 +9754,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
             system = "laboratory";
             
-            path_axis_general[0] =
-            path_axis_detector[0] =
-            path_axis_goniometer[0] = "";
-            
-            path_axis_general[1] =
-            path_axis_detector[1] =
-            path_axis_goniometer[1] = (h5handle->nxid_name)?(h5handle->nxid_name):"entry";
-            
-            path_axis_general[2] =
-            path_axis_detector[2] =  (h5handle->nxinstrument_name)?(h5handle->nxinstrument_name):"instrument";
-            path_axis_goniometer[2] = "sample";
-            
-            path_axis_general[3] = "transformations";
-            path_axis_detector[3] = 0;
-            path_axis_goniometer[3] = 0;
-            
-            path_axis_general[4] = 0;
-
             cbf_reportnez(cbf_select_row(handle,row),errorcode);
 
             cbf_reportnez(cbf_find_column(handle,"id"),errorcode);
@@ -9917,6 +10030,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                                                 dopath,errorcode);
                         }
                     
+                    errorcode |= cbf_increment_NX_axis_depcount(h5handle,depends_on);
+                    
                 }
                 
                 if (cbf_cistrcmp(rotation_axis,".")) {
@@ -9930,6 +10045,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     
                     errorcode |= cbf_apply_h5vector_attribute(nxaxisid,
                                                               "rotation",&rotation,1,errorcode);
+                    
+                    errorcode |= cbf_increment_NX_axis_depcount(h5handle,rotation_axis);
                     
                 }
                 
@@ -9975,6 +10092,139 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
         }
 
+        /* Process the depends_on fields */
+        
+        if (!(h5handle->scratch_tables)
+            || cbf_require_datablock(h5handle->scratch_tables,"scratch")
+            || cbf_require_category(h5handle->scratch_tables,"scratch_axis")
+            || cbf_require_column(h5handle->scratch_tables,"axis_id")
+            || cbf_rewind_row(h5handle->scratch_tables)) {
+            
+            return CBF_FORMAT;
+            
+        }
+        
+        cbf_reportnez(cbf_count_rows(h5handle->scratch_tables,&rows),errorcode);
+
+        
+        for(row=0; row < rows; row++) {
+            
+            const char * parent_path;
+            
+            const char * nexus_path;
+            
+            cbf_reportnez(cbf_select_row(h5handle->scratch_tables, row),errorcode);
+            
+            cbf_reportnez(cbf_find_column(h5handle->scratch_tables,"axis_id"),errorcode);
+            
+            cbf_reportnez(cbf_get_value(h5handle->scratch_tables,&axis_id),errorcode);
+            
+            cbf_reportnez(cbf_find_column(h5handle->scratch_tables,"depcount"),errorcode);
+            
+            cbf_reportnez(cbf_get_integervalue(h5handle->scratch_tables,&idepcount),errorcode);
+            
+            cbf_debug_print3("axis_id = '%s', depcount = %d\n",axis_id,idepcount);
+            
+            if (idepcount == 0) {
+                
+                parent_path = nexus_path = NULL;
+                
+                cbf_reportnez(cbf_find_column(h5handle->scratch_tables,"parent_path"),errorcode);
+                
+                cbf_reportnez(cbf_get_value(h5handle->scratch_tables,&parent_path),errorcode);
+
+                cbf_reportnez(cbf_find_column(h5handle->scratch_tables,"nexus_path"),errorcode);
+                
+                cbf_reportnez(cbf_get_value(h5handle->scratch_tables,&nexus_path),errorcode);
+                
+                cbf_debug_print3("parent_path = '%s', nexus_path = '%s'\n",parent_path,nexus_path);
+                
+                if (!nexus_path || !nexus_path[0]
+                    || !cbf_cistrcmp(nexus_path,".")
+                    || !cbf_cistrcmp(nexus_path,"?")){
+                    
+                    nexus_path = ".";
+                    
+                }
+               
+                if (parent_path && parent_path[0]
+                    && cbf_cistrcmp(parent_path,".")
+                    && cbf_cistrcmp(parent_path,"?")){
+                    
+                    hid_t parentid;
+                    
+                    htri_t dsexists;
+                    
+                    cbf_reportnez(cbf_H5Grequire(h5handle->hfile,&parentid,parent_path),errorcode);
+                    
+                    dsexists = H5Lexists(parentid,"depends_on",H5P_DEFAULT);
+                    
+                    if (dsexists > 0 ) {
+                    
+                        cbf_reportnez(cbf_add_h5text_dataset_slab(parentid,
+                                                              "depends_on",
+                                                              nexus_path,
+                                                              H5S_UNLIMITED,
+                                                              errorcode),errorcode);
+                        
+                    } else {
+                        
+                        const char * nparent_path;
+                        
+                        int done;
+                        
+                        done = 0;
+                        
+                        for (nrow = row+1; nrow < rows; nrow++) {
+                            
+                            cbf_reportnez(cbf_select_row(h5handle->scratch_tables, nrow),errorcode);
+                            
+                            cbf_reportnez(cbf_find_column(h5handle->scratch_tables,"depcount"),errorcode);
+                            
+                            cbf_reportnez(cbf_get_integervalue(h5handle->scratch_tables,&idepcount),errorcode);
+                            
+                            cbf_reportnez(cbf_find_column(h5handle->scratch_tables,"parent_path"),errorcode);
+                            
+                            cbf_reportnez(cbf_get_value(h5handle->scratch_tables,&nparent_path),errorcode);
+                            
+                            
+                            if (idepcount == 0 && nparent_path &&
+                                !cbf_cistrcmp(nparent_path,parent_path)) {
+                                
+                                
+                                cbf_reportnez(cbf_add_h5text_dataset_slab(parentid,
+                                                                          "depends_on",
+                                                                          nexus_path,
+                                                                          0,
+                                                                          errorcode),errorcode);
+                                
+                                done = 1;
+                                
+                                break;
+                                
+                            }
+                            
+                        }
+                        
+                        if (!done) {
+                            
+                            cbf_reportnez(cbf_add_h5text_dataset(parentid,
+                                                                      "depends_on",
+                                                                      nexus_path,
+                                                                      errorcode),errorcode);
+                            
+                        }
+                    }
+                    
+                    if (cbf_H5Ivalid(parentid)) H5Gclose(parentid);
+                    
+                }
+                
+            }
+            
+        }
+
+        
         return errorcode;
 
     }
