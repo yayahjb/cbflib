@@ -397,8 +397,8 @@ static testResult_t test_H5Arequire_cmp(const hid_t obj)
 		int attrValue[] = {42};
 		int attrValue_b[] = {43};
 		int buf[1];
-		TEST_COMPONENT(_test_H5Arequire_cmp(obj,"i0",0,0,0,0,H5T_STD_I32LE,H5T_STD_U32LE,H5T_NATIVE_INT,attrValue,attrValue_b,0,cmp_int_exact,0));
-		TEST_COMPONENT(_test_H5Arequire_cmp(obj,"i0_b",0,0,0,0,H5T_STD_I32LE,H5T_STD_U32LE,H5T_NATIVE_INT,attrValue,attrValue_b,buf,cmp_int_exact,0));
+		TEST_COMPONENT(_test_H5Arequire_cmp(obj,"i0",0,0,0,0,H5T_STD_I32LE,H5T_IEEE_F64BE,H5T_NATIVE_INT,attrValue,attrValue_b,0,cmp_int_exact,0));
+		TEST_COMPONENT(_test_H5Arequire_cmp(obj,"i0_b",0,0,0,0,H5T_STD_I32LE,H5T_IEEE_F64BE,H5T_NATIVE_INT,attrValue,attrValue_b,buf,cmp_int_exact,0));
 	}
 	{ /* rank 1 */
 		const hsize_t dim_l[] = {3};
@@ -407,8 +407,8 @@ static testResult_t test_H5Arequire_cmp(const hid_t obj)
 		int attrValue[] = {0,1,2,3};
 		int attrValue_b[] = {0,1,2,4};
 		int buf[4];
-		TEST_COMPONENT(_test_H5Arequire_cmp(obj,"i1",1,dim,dim_h,dim_l,H5T_STD_I32LE,H5T_STD_U32LE,H5T_NATIVE_INT,attrValue,attrValue_b,0,cmp_int_exact,0));
-		TEST_COMPONENT(_test_H5Arequire_cmp(obj,"i1_b",1,dim,dim_h,dim_l,H5T_STD_I32LE,H5T_STD_U32LE,H5T_NATIVE_INT,attrValue,attrValue_b,buf,cmp_int_exact,0));
+		TEST_COMPONENT(_test_H5Arequire_cmp(obj,"i1",1,dim,dim_h,dim_l,H5T_STD_I32LE,H5T_IEEE_F64BE,H5T_NATIVE_INT,attrValue,attrValue_b,0,cmp_int_exact,0));
+		TEST_COMPONENT(_test_H5Arequire_cmp(obj,"i1_b",1,dim,dim_h,dim_l,H5T_STD_I32LE,H5T_IEEE_F64BE,H5T_NATIVE_INT,attrValue,attrValue_b,buf,cmp_int_exact,0));
 	}
 	{ /* rank 2 */
 		const hsize_t dim_l[] = {3,3};
@@ -425,8 +425,8 @@ static testResult_t test_H5Arequire_cmp(const hid_t obj)
 			{8,9,10,12}
 		};
 		int buf[12];
-		TEST_COMPONENT(_test_H5Arequire_cmp(obj,"i2",2,dim,dim_h,dim_l,H5T_STD_I32LE,H5T_STD_U32LE,H5T_NATIVE_INT,attrValue,attrValue_b,0,cmp_int_exact,0));
-		TEST_COMPONENT(_test_H5Arequire_cmp(obj,"i2_b",2,dim,dim_h,dim_l,H5T_STD_I32LE,H5T_STD_U32LE,H5T_NATIVE_INT,attrValue,attrValue_b,buf,cmp_int_exact,0));
+		TEST_COMPONENT(_test_H5Arequire_cmp(obj,"i2",2,dim,dim_h,dim_l,H5T_STD_I32LE,H5T_IEEE_F64BE,H5T_NATIVE_INT,attrValue,attrValue_b,0,cmp_int_exact,0));
+		TEST_COMPONENT(_test_H5Arequire_cmp(obj,"i2_b",2,dim,dim_h,dim_l,H5T_STD_I32LE,H5T_IEEE_F64BE,H5T_NATIVE_INT,attrValue,attrValue_b,buf,cmp_int_exact,0));
 	}
 	return r;
 }
@@ -566,7 +566,7 @@ static testResult_t testDatasetFind(const hid_t grp, hsize_t * const buf)
 		{ /* test failure when type differs */
 			hid_t handle = CBF_H5FAIL;
 			const hid_t tmpHandle = handle;
-			TEST_CBF_FAIL(cbf_H5Dfind2(grp,&handle,name1,rank,max,buf,H5T_NATIVE_UINT));
+			TEST_CBF_FAIL(cbf_H5Dfind2(grp,&handle,name1,rank,max,buf,H5T_NATIVE_FLOAT));
 			TEST(!cbf_H5Ivalid(handle));
 			TEST(tmpHandle==handle);
 			cbf_H5Dfree(handle);

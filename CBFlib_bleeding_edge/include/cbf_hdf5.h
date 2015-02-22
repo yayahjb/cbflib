@@ -1369,9 +1369,23 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
     
     int cbf_count_NX_detector_names(cbf_h5handle h5handle, unsigned int * count);
     
+    /* get the Nexus axis path if previously established.
+     If not, try to create both the path and the intervening groups
+     */
+    
+    int cbf_require_NX_axis_path(cbf_handle handle,
+                                 cbf_h5handle h5handle,
+                                 const char * axis_id,
+                                 const char * * nexus_path);
+
+    
     /* Get the nexus path of an axis, if previously set */
     
     int cbf_get_NX_axis_path(cbf_h5handle h5handle, const char * axis_id, const char * * nexus_path);
+
+    /* Get the nexus poise path of an axis, if previously set. */
+    
+    int cbf_get_NX_axis_poise_path(cbf_h5handle h5handle, const char * axis_id, const char * * poise_path);
 
     /* Set the nexus path of an axis */
     
@@ -1728,6 +1742,11 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
 	/* Create an HDF5 File handle without adding an NXcbf group to it */
     
 	int cbf_create_h5handle2(cbf_h5handle *h5handle,const char * h5filename);
+    
+    /* Create an HDF5 File handle without adding a CBF_cbf group to it
+     in update mode*/
+    
+    int cbf_create_h5handle2u(cbf_h5handle *h5handle,const char * h5filename);
     
 	/**
 	\brief Allocates space for a HDF5 file handle and associates it with the given file.

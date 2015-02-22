@@ -4081,7 +4081,7 @@ return e; \
 CBFM_PROLOG { \
 const char * const _tkn = (TKN); \
 if (strcmp(_tkn,*buf)) { \
-fprintf(logFile,"Config parsing error on line %lu: expected " #TKN ", got '%s'\n",*ln,*buf); \
+fprintf(logFile,"Config parsing error on line %lu: expected " #TKN ", got '%s'\n",(long unsigned int)*ln,*buf); \
     return cbf_configError_unexpectedInput; \
 } \
 } CBFM_EPILOG
@@ -7859,8 +7859,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             processed_nxdetectors=1;
         }
         
-        fprintf(stderr,"line 7849");
-        
         /* Then process DIFFRN_DETECTOR_ELEMENT */
         
         if (!cbf_find_category(handle,"diffrn_detector_element")
@@ -9022,7 +9020,333 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
     }
     
-    /* Get the nexus path of an axis, if previously set */
+    
+    /* get the Nexus axis path if previously established.
+       If not, try to create both the path and the intervening groups
+     */
+    
+    int cbf_require_NX_axis_path(cbf_handle handle,
+                                 cbf_h5handle h5handle,
+                                 const char * axis_id,
+                                 const char * * nexus_path) {
+        
+        
+        const char * axiselementid = NULL;
+        
+        const char * axispath = NULL;
+        
+        const char * diffrn_measurement_id = NULL;
+        
+        const char * equipment = NULL;
+        
+        const char * equipmentclass = NULL;
+        
+        const char * equipmentcomponent = NULL;
+        
+        const char * equipmentname = NULL;
+        
+        const char * first_element_id = NULL;
+        
+        char nxequipment[2048];
+        
+        const char * path_axis_detector[8];
+        
+        const char * path_axis_general[8];
+        
+        const char * path_axis_goniometer[8];
+        
+        hid_t equipmentid;
+        
+        hid_t instrumentid;
+        
+        hid_t poiseid;
+        
+        unsigned int elements = 0;
+        
+        int errorcode = 0;
+        
+        
+        if (!cbf_get_NX_axis_path(h5handle,axis_id,nexus_path) &&
+            !(*nexus_path)) return CBF_SUCCESS;
+        
+        path_axis_general[0] =
+        path_axis_detector[0] =
+        path_axis_goniometer[0] = "";
+        
+        path_axis_general[1] =
+        path_axis_detector[1] =
+        path_axis_goniometer[1] = (h5handle->nxid_name)?(h5handle->nxid_name):"entry";
+        
+        path_axis_general[2] =
+        path_axis_detector[2] =  (h5handle->nxinstrument_name)?(h5handle->nxinstrument_name):"instrument";
+        path_axis_goniometer[2] = "sample";
+        
+        path_axis_general[3] = "transformations";
+        path_axis_detector[3] = 0;
+        path_axis_goniometer[3] = 0;
+        
+        path_axis_general[4] = 0;
+        
+        /* We will need an ID for the goniometer */
+        
+        if (!(!cbf_find_category(handle,"diffrn_measurement") &&
+              !cbf_find_column(handle,"id") &&
+              !cbf_rewind_row(handle) &&
+              !cbf_get_value(handle,&diffrn_measurement_id) &&
+              diffrn_measurement_id)) {
+            diffrn_measurement_id = "goniometer";
+        }
+        
+        /* We will need to use the instrument group or create it*/
+        
+        cbf_reportnez(cbf_h5handle_require_instrument(h5handle,
+                                                      &instrumentid,0),errorcode);
+        
+        /* We will need scratch_tables */
+        
+        cbf_reportnez(cbf_require_datablock(h5handle->scratch_tables,"scratch"),errorcode);
+        
+        cbf_reportnez(cbf_require_category(h5handle->scratch_tables,"scratch_axis"),errorcode);
+        
+        /* Try to find the  row with the axis_id*/
+        
+        cbf_reportnez(cbf_find_category(handle, "axis"),errorcode);
+        
+        cbf_reportnez(cbf_find_column(handle,"id"),errorcode);
+        
+        cbf_failnez(cbf_rewind_row(handle));
+        
+        cbf_failnez(cbf_find_row(handle,axis_id));
+        
+        /* Get the equipment for this axis
+         Note:  This will fail to find a second instance of the axis with
+         different equipment */
+        
+        if (!cbf_find_column(handle,"equipment")) {
+            
+            cbf_reportnez(cbf_get_value(handle,&equipment),errorcode);
+            
+            if (!equipment)  equipment = "general";
+            
+        }
+        
+        
+        if (!cbf_find_column(handle,"equipment_component")) {
+            
+            cbf_reportnez(cbf_get_value(handle,&equipmentcomponent),errorcode);
+            
+            if (!equipmentcomponent)  equipmentcomponent = ".";
+            
+        } else {
+            
+            equipmentcomponent = ".";
+            
+        }
+        
+        /* count the detector elements and get the name of the first
+         detector element */
+        
+        cbf_reportnez(cbf_count_elements(handle,&elements),errorcode);
+        
+        first_element_id = NULL;
+        
+        if (elements == 1) {
+            
+            cbf_reportnez(cbf_get_element_id(handle,0,&first_element_id),errorcode);
+            
+            if (!first_element_id
+                || !cbf_cistrcmp(first_element_id,".")
+                || !cbf_cistrcmp(first_element_id,"?"))
+            
+            first_element_id = "detector";
+            
+        } else if (elements == 0) {
+            
+            first_element_id = "detector";
+            
+        } else {
+            
+            first_element_id = NULL;
+            
+        }
+
+
+        
+        /*  We have the equipment type in equipment and the axis is in axis_id
+         If the equipment type is detector, we need to map the axis_id
+         to the appropriate detector so we can put this axis in
+         /instrument:NXinstrument
+         /ELEMENTNAME:NXdetector
+         /transformations:NXtransformations
+         /AXISID=[]
+         or
+         /instrument:NXinstrument
+         /DETECTORNAME:NXdetector_group
+         /transformations:NXtransformations
+         /AXISID=[]
+         with the former used for all axes when there is only one detector
+         element or if the axis is specific to a particular element
+         
+         If the equipment type is goniometer, we need to map the axis_id
+         to the appropriate goniometer, so we can put this axis in
+         /instrument:NXinstrument
+         /sample:NXsample
+         /GONIOMETERNAME:NXtransformations
+         /AXISID=[]
+         
+         For other equipment types, we put this axis in
+         /instrument:NXinstrument
+         /transformations:NXtransformations
+         /AXISID=[]
+         */
+        
+        cbf_reportnez(cbf_get_axis_equipment_id(handle,&equipmentname,equipment,axis_id),errorcode);
+        
+        
+        if (cbf_cistrcmp(equipment,"detector")==0) {
+            
+            nxequipment[0]='\0';
+            
+            axiselementid = NULL;
+            
+            if (elements < 2 ||
+                (!cbf_get_axis_element_id(handle,&axiselementid,
+                                          equipmentname,equipment,axis_id)
+                 && axiselementid && cbf_cistrcmp(axiselementid,".")
+                 && cbf_cistrcmp(axiselementid,"?"))) {
+                    
+                    if (axiselementid
+                        && cbf_cistrcmp(axiselementid,".")
+                        && cbf_cistrcmp(axiselementid,"?")) {
+                        
+                        strncat(nxequipment,axiselementid,2020);
+                        
+                    } else {
+                        
+                        strcpy(nxequipment,first_element_id);
+                        
+                    }
+                    
+                    equipmentclass = "NXdetector";
+                    
+                    
+                } else {
+                    
+                    if (equipmentname) {
+                        
+                        strncat(nxequipment,equipmentname,2020);
+                        
+                    } else {
+                        
+                        strcpy(nxequipment,"detector_group");
+                    }
+                    
+                    equipmentclass = "NXdetector_group";
+                    
+                }
+            
+            
+            path_axis_detector[3] = nxequipment;
+            
+            path_axis_detector[4] = "transformations";
+            
+            path_axis_detector[5] = axis_id;
+            
+            path_axis_detector[6] = 0;
+            
+            axispath = _cbf_str_join(path_axis_detector,'/');
+            
+            cbf_reportnez(cbf_require_nxgroup(h5handle,
+                                              nxequipment, equipmentclass,
+                                              h5handle->nxinst, &equipmentid),errorcode);
+            
+            cbf_reportnez(cbf_require_nxgroup(h5handle,
+                                              "transformations", "NXtransformations",
+                                              equipmentid, &poiseid),errorcode);
+            
+            
+        } else if (cbf_cistrcmp(equipment,"goniometer")==0) {
+            
+            nxequipment[0]='\0';
+            
+            strcpy(nxequipment,"sample");
+            
+            equipmentclass = "NXsample";
+            
+            path_axis_goniometer[3] = diffrn_measurement_id;
+            
+            path_axis_goniometer[4] = axis_id;
+            
+            path_axis_goniometer[5] = 0;
+            
+            axispath = _cbf_str_join(path_axis_goniometer,'/');
+            
+            cbf_reportnez(cbf_h5handle_require_sample(h5handle,0,nxequipment),errorcode);
+            
+            cbf_reportnez(cbf_require_nxgroup(h5handle,
+                                              diffrn_measurement_id, "NXtransformations",
+                                              h5handle->nxsample, &poiseid),errorcode);
+
+            
+        } else if (cbf_cistrcmp(equipment,"general")==0
+                   || cbf_cistrcmp(equipment,"beam")==0
+                   || cbf_cistrcmp(equipment,"gravity")==0){
+            
+            strcpy(nxequipment,"transformations");
+            
+            equipmentclass = "NXtransformations";
+            
+            path_axis_general[4] = axis_id;
+            
+            path_axis_general[5] = 0;
+            
+            axispath = _cbf_str_join(path_axis_general,'/');
+            
+            cbf_reportnez(cbf_require_nxgroup(h5handle,
+                                              "transformations", "NXtransformations",
+                                              h5handle->nxinst, &poiseid),errorcode);
+            
+        } else {
+            
+            if (!cbf_cistrcmp(equipmentcomponent,".")) {
+                
+                equipmentcomponent = equipment;
+                
+                equipment = "general";
+                
+            }
+            
+            strcpy(nxequipment,"transformations");
+            
+            equipmentclass = "NXtransformations";
+            
+            path_axis_general[4] = axis_id;
+            
+            path_axis_general[5] = 0;
+            
+            axispath = _cbf_str_join(path_axis_general,'/');
+            
+            cbf_reportnez(cbf_require_nxgroup(h5handle,
+                                              "transformations", "NXtransformations",
+                                              h5handle->nxinst, &poiseid),errorcode);
+            
+            
+        }
+        
+        cbf_reportnez(cbf_set_NX_axis_path(h5handle, axis_id, axispath),errorcode);
+        
+        cbf_debug_print3("logged axis_id '%s' axis_path '%s'\n", axis_id, axispath);
+        
+        free((void*)axispath);
+        
+        cbf_reportnez(cbf_get_NX_axis_path(h5handle, axis_id, nexus_path),errorcode);
+        
+        return errorcode;
+        
+    }
+    
+    
+    /* Get the nexus path of an axis, if previously set. */
     
     int cbf_get_NX_axis_path(cbf_h5handle h5handle, const char * axis_id, const char * * nexus_path) {
         
@@ -9048,10 +9372,41 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
     }
 
+    /* Get the nexus poise path of an axis, if previously set. */
+    
+    int cbf_get_NX_axis_poise_path(cbf_h5handle h5handle, const char * axis_id, const char * * poise_path) {
+        
+        if (!h5handle || !axis_id || !poise_path ) return CBF_ARGUMENT;
+        
+        if (!(h5handle->scratch_tables)
+            || cbf_find_datablock(h5handle->scratch_tables,"scratch")
+            || cbf_find_category(h5handle->scratch_tables,"scratch_axis")
+            || cbf_find_column(h5handle->scratch_tables,"axis_id")
+            || cbf_rewind_row(h5handle->scratch_tables)
+            || cbf_find_row(h5handle->scratch_tables,axis_id)
+            || cbf_find_column(h5handle->scratch_tables,"poise_path")
+            || cbf_get_value(h5handle->scratch_tables,poise_path)
+            || !(*poise_path)
+            || !cbf_cistrcmp(*poise_path,".")){
+            
+            
+            return CBF_NOTFOUND;
+            
+        }
+        
+        return CBF_SUCCESS;
+        
+    }
+
+
     
     /* Set the nexus path of an axis */
     
     int cbf_set_NX_axis_path(cbf_h5handle h5handle, const char * axis_id, const char * nexus_path) {
+        
+        int ii, klen;
+        
+        int errorcode = 0;
         
         if (!h5handle || !axis_id || !nexus_path ) return CBF_ARGUMENT;
         
@@ -9079,7 +9434,27 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         cbf_failnez(cbf_set_value(h5handle->scratch_tables,nexus_path));
         
-        return CBF_SUCCESS;
+        cbf_failnez(cbf_require_column(h5handle->scratch_tables,"poise_path"));
+        
+        klen = strlen(nexus_path);
+        
+        CBF_START_ARRAY(char,poise_path,(klen+1));
+                    
+        poise_path[0] = '\0';
+                    
+        strncat(poise_path,nexus_path,klen);
+        
+        poise_path[klen] = '\0';
+        
+        for (ii = klen-1; ii >=0 && poise_path[ii] != '/'; ii--) poise_path[ii] = '\0';
+        
+        if (ii >=0) poise_path[ii] = '\0';
+        
+        errorcode |= cbf_set_value(h5handle->scratch_tables,poise_path);
+        
+        CBF_END_ARRAY_REPORTNEZ(poise_path,errorcode);
+        
+        return errorcode;
         
     }
     
@@ -9101,15 +9476,13 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
         double zero[1];
 
-        const char* datablock;
+        const char* datablock = NULL;
         
-        const char * xaxispath;
+        const char * diffrn_measurement_id = NULL;
         
-        const char * diffrn_measurement_id;
+        const char * first_element_id = NULL;
 
-        const char * first_element_id;
-
-        unsigned int elements;
+        unsigned int elements = 0;
 
 
         errorcode = 0;
@@ -9180,8 +9553,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
             char * cbfloc = NULL;
 
-            char nxequipment[2048];
-
             hid_t poiseid = CBF_H5FAIL;
             
             hid_t equipmentid = CBF_H5FAIL;
@@ -9194,8 +9565,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
             const char * equipmentclass = NULL;
 
-            const char * equipmentname = NULL;
-            
             const char * equipmentcomponent = NULL;
 
             const char * axis_id = NULL;
@@ -9210,10 +9579,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             
             const char * axisequipment = NULL;
             
-            const char * axiselementid = NULL;
-            
             const char * axispath = NULL;
  
+            const char * axispoisepath = NULL;
+            
             hsize_t scanpoints = 0;
 
             size_t sscanpoints = 0;
@@ -9264,7 +9633,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             
             path_axis_general[2] =
             path_axis_detector[2] =  (h5handle->nxinstrument_name)?(h5handle->nxinstrument_name):"instrument";
-            path_axis_goniometer[2] = (h5handle->sample_id)?(h5handle->sample_id):"sample";
+            path_axis_goniometer[2] = "sample";
             
             path_axis_general[3] = "transformations";
             path_axis_detector[3] = 0;
@@ -9373,201 +9742,14 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
             }
 
-            /*  We have the equipment type in equipment and the axis is in axis_id
-             If the equipment type is detector, we need to map the axis_id
-             to the appropriate detector so we can put this axis in
-             /instrument:NXinstrument
-               /ELEMENTNAME:NXdetector
-                 /transformations:NXtransformations
-                   /AXISID=[]
-             or
-             /instrument:NXinstrument
-               /DETECTORNAME:NXdetector_group
-                 /transformations:NXtransformations
-                   /AXISID=[]
-             with the former used for all axes when there is only one detector
-             element or if the axis is specific to a particular element
 
-             If the equipment type is goniometer, we need to map the axis_id
-             to the appropriate goniometer, so we can put this axis in
-             /instrument:NXinstrument
-               /sample:NXsample
-                 /GONIOMETERNAME:NXtransformations
-                   /AXISID=[]
+            cbf_reportnez(cbf_require_NX_axis_path(handle,h5handle, axis_id, &axispath),errorcode);
 
-             For other equipment types, we put this axis in
-             /instrument:NXinstrument
-               /transformations:NXtransformations
-                 /AXISID=[]
-             */
+            cbf_reportnez(cbf_get_NX_axis_poise_path(h5handle,axis_id, &axispoisepath),errorcode);
 
-            cbf_reportnez(cbf_get_axis_equipment_id(handle,&equipmentname,equipment,axis_id),errorcode);
+            cbf_reportnez(_cbf_NXGrequire(h5handle->hfile, &poiseid,
+                                              axispoisepath, "NXtransformations"),errorcode);
 
-            if (!equipment) equipment = "general";
-
-            if (cbf_cistrcmp(equipment,"detector")==0) {
-
-                nxequipment[0]='\0';
-
-                axiselementid = NULL;
-                
-                if (elements < 2 ||
-                    (!cbf_get_axis_element_id(handle,&axiselementid,
-                                              equipmentname,equipment,axis_id)
-                     && axiselementid && cbf_cistrcmp(axiselementid,".")
-                     && cbf_cistrcmp(axiselementid,"?"))) {
-                        
-                        if (axiselementid
-                            && cbf_cistrcmp(axiselementid,".")
-                            && cbf_cistrcmp(axiselementid,"?")) {
-                            
-                            strncat(nxequipment,axiselementid,2020);
-                            
-                        } else {
-                            
-                            strcpy(nxequipment,first_element_id);
-                            
-                        }
-                        
-                        equipmentclass = "NXdetector_group";
-                        
-                        
-                    } else {
-                        
-                if (equipmentname) {
-
-                    strncat(nxequipment,equipmentname,2020);
-
-                } else {
-
-                    strcpy(nxequipment,"detector");
-                }
-
-                equipmentclass = "NXdetector_group";
-                
-                    }
-                
-                
-                
-                path_axis_detector[3] = nxequipment;
-                
-                path_axis_detector[4] = "transformations";
-                
-                path_axis_detector[5] = axis_id;
-                
-                path_axis_detector[6] = 0;
-                
-                axispath = _cbf_str_join(path_axis_detector,'/');
-                
-                cbf_reportnez(cbf_require_nxgroup(h5handle,
-                                                  nxequipment, equipmentclass,
-                                                  h5handle->nxinst, &equipmentid),errorcode);
-                
-                cbf_reportnez(cbf_require_nxgroup(h5handle,
-                                                  "transformations", "NXtransformations",
-                                                  equipmentid, &poiseid),errorcode);
-
-                
-            } else if (cbf_cistrcmp(equipment,"goniometer")==0) {
-
-                nxequipment[0]='\0';
-
-                if (equipmentname) {
-
-                    strncat(nxequipment,equipmentname,2020);
-
-                    nxequipment[2047] = 0;
-
-                } else {
-
-                    strcpy(nxequipment,"sample");
-                }
-
-                equipmentclass = "NXsample";
-                
-                path_axis_goniometer[3] = diffrn_measurement_id;
-                
-                path_axis_goniometer[4] = axis_id;
-                
-                path_axis_goniometer[5] = 0;
-                
-                axispath = _cbf_str_join(path_axis_goniometer,'/');
-                
-                cbf_reportnez(cbf_h5handle_require_sample(h5handle,0,nxequipment),errorcode);
-                
-                cbf_reportnez(cbf_require_nxgroup(h5handle,
-                                                  path_axis_goniometer[3], "NXtransformations",
-                                                  h5handle->nxsample, &poiseid),errorcode);
-                
-
-                
-            } else if (cbf_cistrcmp(equipment,"general")==0
-                       || cbf_cistrcmp(equipment,"beam")==0
-                       || cbf_cistrcmp(equipment,"gravity")==0){
-
-                strcpy(nxequipment,"transformations");
-
-                equipmentclass = "NXtransformations";
-                
-                path_axis_general[4] = axis_id;
-                
-                path_axis_general[5] = 0;
-                
-                axispath = _cbf_str_join(path_axis_general,'/');
-
-                cbf_reportnez(cbf_require_nxgroup(h5handle,
-                                                  "transformations", "NXtransformations",
-                                                  h5handle->nxinst, &poiseid),errorcode);
-
-            } else {
-                
-                if (!cbf_cistrcmp(equipmentcomponent,".")) {
-                    
-                    equipmentcomponent = equipment;
-                    
-                    equipment = "general";
-                
-                }
-                
-                strcpy(nxequipment,"transformations");
-                
-                equipmentclass = "NXtransformations";
-                
-                path_axis_general[4] = axis_id;
-                
-                path_axis_general[5] = 0;
-                
-                axispath = _cbf_str_join(path_axis_general,'/');
-                
-                cbf_reportnez(cbf_require_nxgroup(h5handle,
-                                                  "transformations", "NXtransformations",
-                                                  h5handle->nxinst, &poiseid),errorcode);
-
-
-            }
-            
-            if (axispath) {
-                
-                if (cbf_get_NX_axis_path(h5handle, axis_id, &xaxispath)) {
-                    
-                    cbf_reportnez(cbf_set_NX_axis_path(h5handle, axis_id, axispath),errorcode);
-                    
-                    cbf_debug_print3("logged axis_id '%s' axis_path '%s'\n", axis_id, axispath);
-                    
-                    free((void*)axispath);
-                    
-                    cbf_reportnez(cbf_get_NX_axis_path(h5handle, axis_id, &axispath),errorcode);
-                    
-                } else {
-                    
-                    axispath = xaxispath;
-                    
-                }
-                
-            }
-                          
-
-           
             cbf_reportnez(cbf_get_axis_parameters(handle,
                                                   &sscanpoints,
                                                   &units,
@@ -9724,80 +9906,27 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                                             "depends_on",depends_on,errorcode);
                 } else {
                     
-                    const char * dopath = NULL;
+                    const char * dopath;
                     
-                    const char * doequip = NULL;
+                    errorcode |= cbf_require_NX_axis_path(handle, h5handle,depends_on,&dopath);
                     
-                    const char * doequipname = NULL;
+                    if (!errorcode) {
                     
-                    if (cbf_get_NX_axis_path(h5handle,depends_on,&dopath)){
-                        
-                        cbf_reportnez(cbf_get_axis_equipment(handle,depends_on,&doequip),errorcode);
-                        
-                        cbf_reportnez(cbf_get_axis_equipment_id(handle,&doequipname,doequip,depends_on),errorcode);
-                        
-                        if (!cbf_cistrcmp(doequip,"detector")) {
-                            
-                            path_axis_detector[3] = doequipname;
-                            
-                            path_axis_detector[4] = "transformations";
-                            
-                            path_axis_detector[5] = depends_on;
-                            
-                            path_axis_detector[6] = 0;
-                            
-                            dopath = _cbf_str_join(path_axis_detector,'/');
-                            
-                            
-                        } else if (!cbf_cistrcmp(doequip,"goniometer")) {
-                            
-                            path_axis_goniometer[3] = doequipname;
-                            
-                            path_axis_goniometer[4] = "transformations";
-                            
-                            path_axis_goniometer[5] = depends_on;
-                            
-                            path_axis_goniometer[6] = 0;
-                            
-                            dopath = _cbf_str_join(path_axis_goniometer,'/');
-                            
-                        } else {
-                            
-                            path_axis_general[4] = depends_on;
-                            
-                            path_axis_general[5] = 0;
-                            
-                            dopath = _cbf_str_join(path_axis_general,'/');
-                        }
-                        
-                        cbf_reportnez(cbf_set_NX_axis_path(h5handle,depends_on,dopath),errorcode);
-                        
                         errorcode |= cbf_apply_h5text_attribute(nxaxisid,
                                                                 "depends_on",
                                                                 dopath,errorcode);
-                        
-                        cbf_debug_print3("logged axis_id '%s' axis path '%s'\n", depends_on, dopath);
-
-                        free((void*)dopath);
-                        
-                        cbf_reportnez(cbf_get_NX_axis_path(h5handle,depends_on,&dopath),errorcode);
-                        
-                    } else {
-                        
-                        if (dopath) {
-                            
-                            errorcode |= cbf_apply_h5text_attribute(nxaxisid,
-                                                                    "depends_on",
-                                                                    dopath,errorcode);
                         }
-                    }
                     
                 }
                 
                 if (cbf_cistrcmp(rotation_axis,".")) {
                     
+                    const char * rotpath;
+                    
+                    errorcode |= cbf_require_NX_axis_path(handle, h5handle,rotation_axis,&rotpath);
+                    
                     errorcode |= cbf_apply_h5text_attribute(nxaxisid,
-                                                            "rotation_axis",rotation_axis,errorcode);
+                                                            "rotation_axis",rotpath,errorcode);
                     
                     errorcode |= cbf_apply_h5vector_attribute(nxaxisid,
                                                               "rotation",&rotation,1,errorcode);
