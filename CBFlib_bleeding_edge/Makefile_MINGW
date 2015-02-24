@@ -350,6 +350,9 @@ ALLBUTONE = tail -n +2
 #
 SEXT = .md5
 
+# Default shell
+
+SHELL = bash
 
 # call to time a command
 
@@ -596,9 +599,9 @@ SOURCE   =  $(SRC)/cbf.c               \
 	$(SRC)/cbf_write.c         \
 	$(SRC)/cbf_write_binary.c  \
 	$(SRC)/cbf_ws.c            \
-    $(SRC)/cbff.c              \
+	$(SRC)/cbff.c              \
 	$(SRC)/md5c.c              \
-    $(SRC)/img.c
+	$(SRC)/img.c
 
 ifneq ($(CBFLIB_DONT_USE_PYCIFRW),yes)
 PYSOURCE  = $(SRC)/drel_lex.py		   \
@@ -657,7 +660,7 @@ HEADERS   =  $(INCLUDE)/cbf.h               \
 	$(INCLUDE)/global.h            \
 	$(INCLUDE)/cbff.h              \
 	$(INCLUDE)/md5.h               \
-    $(INCLUDE)/img.h
+	$(INCLUDE)/img.h
 
 #
 # m4 macro files
@@ -1159,7 +1162,7 @@ $(SRC)/cbf_stx.c: $(SRC)/cbf.stx.y
 #
 $(LIB)/libcbf.a: $(SOURCE) $(HEADERS) $(COMMONDEP) $(LIB) $(HDF5)
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) \
-    -DCBF_FILTER_STATIC $(LZ4FLAG)  $(PYCIFRWFLAG) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
+	-DCBF_FILTER_STATIC $(LZ4FLAG)  $(PYCIFRWFLAG) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
 ifneq ($(CBFLIB_DONT_USE_LZ4),yes)
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) -DCBF_FILTER_STATIC -c $(LZ4src)/lz4.c -o lz4.o
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) -DCBF_FILTER_STATIC -c $(LZ4src)/h5zlz4.c -o h5zlz4.o
@@ -1174,8 +1177,8 @@ $(SOLIB)/libcbf.so: $(SOURCE) $(HEADERS) $(COMMONDEP) $(SOLIB) $(HDF5)
 	-rm -f $@
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(LZ4FLAG) $(PYCIFRWFLAG) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
 ifneq ($(CBFLIB_DONT_USE_LZ4),yes)
-	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) -DCBF_FILTER_STATIC -c $(LZ4src)/lz4.c -o lz4.o
-	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) -DCBF_FILTER_STATIC -c $(LZ4src)/h5zlz4.c -o h5zlz4.o
+	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) $(SOCFLAGS) -DCBF_FILTER_STATIC -c $(LZ4src)/lz4.c -o lz4.o
+	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) $(SOCFLAGS) -DCBF_FILTER_STATIC -c $(LZ4src)/h5zlz4.c -o h5zlz4.o
 endif
 	$(CC) -o $@ *.o $(SOLDFLAGS) $(EXTRALIBS) $(HDF5SOLIBS)
 	rm *.o
@@ -1949,13 +1952,13 @@ endif
 	$(TIME) $(BIN)/testflatpacked
 	-cmp testflatpackedin.cbf testflatpackedout.cbf
 ifneq ($(F90C),)
-	echo testflatout.cbf | $(TIME) $(BIN)/test_xds_binary > test_xds_bin_testflatout.out
+	$(TIME) (echo testflatout.cbf | $(BIN)/test_xds_binary > test_xds_bin_testflatout.out)
 	-$(DIFF) test_xds_bin_testflatout.out test_xds_bin_testflatout_orig.out
-	echo testflatpackedout.cbf | $(TIME) $(BIN)/test_xds_binary > test_xds_bin_testflatpackedout.out
+	$(TIME) (echo testflatpackedout.cbf | $(BIN)/test_xds_binary > test_xds_bin_testflatpackedout.out)
 	-$(DIFF) test_xds_bin_testflatpackedout.out test_xds_bin_testflatpackedout_orig.out
-	echo testflatout.cbf | $(TIME) $(BIN)/test_fcb_read_image  > test_fcb_read_testflatout.out
+	$(TIME) (echo testflatout.cbf | $(BIN)/test_fcb_read_image  > test_fcb_read_testflatout.out)
 	-$(DIFF) test_fcb_read_testflatout.out test_fcb_read_testflatout_orig.out
-	echo testflatpackedout.cbf | $(TIME) $(BIN)/test_fcb_read_image > test_fcb_read_testflatpackedout.out
+	$(TIME) (echo testflatpackedout.cbf | $(BIN)/test_fcb_read_image > test_fcb_read_testflatpackedout.out)
 	-$(DIFF) test_fcb_read_testflatpackedout.out test_fcb_read_testflatpackedout_orig.out
 endif
 	$(TIME) $(BIN)/sauter_test
