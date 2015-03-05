@@ -552,6 +552,155 @@ extern "C" {
 
     /* Get the number of scans */
 
+    int cbf_count_scans (cbf_handle handle, unsigned int *scans)
+    {
+        const char *scan_id;
+        
+        int errorcode;
+        
+        unsigned int count;
+        
+        unsigned int crow, row, rows;
+        
+        if (!handle || !scans) return CBF_ARGUMENT;
+        
+        errorcode = 0;
+        
+        if (!cbf_find_category(handle,"diffrn_scan")
+            && !cbf_find_column(handle,"id")
+            && !cbf_rewind_row(handle)
+            && !cbf_count_rows(handle,&rows)
+            && rows > 0) {
+            
+            count = 0;
+            
+            CBF_START_ARRAY(const char *,scanids,rows);
+            
+            for (row = 0; row < rows; row++) {
+                
+                cbf_reportnez(cbf_select_row(handle,row),errorcode);
+                
+                cbf_reportnez(cbf_get_value(handle,&scan_id),errorcode);
+                
+                if (!errorcode && scan_id) {
+                    
+                    int match;
+                    
+                    match = 0;
+                    
+                    for(crow = 0; crow < count; crow++) {
+                        
+                        if (!cbf_cistrcmp(scan_id,scanids[crow])) {
+                            
+                            match = 1; break;
+                            
+                        }
+                        
+                    }
+                    
+                    if (!match) {
+                        
+                        scanids[count++] = scan_id;
+                        
+                    }
+                    
+                }
+                
+            }
+            
+            CBF_END_ARRAY_REPORTNEZ(scanids,errorcode);
+            
+            *scans = count;
+            
+        } else {
+            
+            *scans = 0;
+            
+        }
+        
+        return errorcode;
+        
+    }
+    
+    /* Get the scan id for a given scan number */
+    
+    int cbf_get_scan_id (cbf_handle handle, unsigned int scan_number, const char ** scan_id)
+    {
+        
+        int errorcode;
+        
+        unsigned int count;
+        
+        unsigned int crow, row, rows;
+        
+        const char * xscan_id;
+        
+        if (!handle || !scan_id) return CBF_ARGUMENT;
+        
+        errorcode = 0;
+        
+        *scan_id = NULL;
+        
+        if (!cbf_find_category(handle,"diffrn_scan")
+            && !cbf_find_column(handle,"id")
+            && !cbf_rewind_row(handle)
+            && !cbf_count_rows(handle,&rows)
+            && rows > 0) {
+            
+            count = 0;
+            
+            CBF_START_ARRAY(const char *,scanids,rows);
+            
+            for (row = 0; row < rows; row++) {
+                
+                cbf_reportnez(cbf_select_row(handle,row),errorcode);
+                
+                cbf_reportnez(cbf_get_value(handle,&xscan_id),errorcode);
+                
+                if (!errorcode && xscan_id) {
+                    
+                    int match;
+                    
+                    match = 0;
+                    
+                    for(crow = 0; crow < count+1; crow++) {
+                        
+                        if (!cbf_cistrcmp(xscan_id,scanids[crow])) {
+                            
+                            match = 1; break;
+                            
+                        }
+                        
+                    }
+                    
+                    if (!match) {
+                        
+                        scanids[count++] = xscan_id;
+                        
+                        if (count == scan_number+1) {
+                            
+                            *scan_id = xscan_id;
+                            
+                        }
+                        
+                    }
+                    
+                    if (*scan_id) break;
+                    
+                }
+                
+            }
+            
+            CBF_END_ARRAY_REPORTNEZ(scanids,errorcode);
+            
+        }
+        
+        return errorcode;
+        
+    }
+    
+
+
     /* Get the number of elements */
 
     int cbf_count_elements (cbf_handle handle, unsigned int *elements)
