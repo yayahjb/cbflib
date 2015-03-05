@@ -1354,7 +1354,7 @@ int	adscimg2cbf_sub(char *header,
 
   cbf_failnez (cbf_new_category     (cbf, "diffrn_data_frame"))
   cbf_failnez (cbf_new_column       (cbf, "id"))
-  cbf_failnez (cbf_set_value        (cbf, "frame_1"))
+  cbf_failnez (cbf_set_value        (cbf, "FRAME1"))
   cbf_failnez (cbf_new_column       (cbf, "detector_element_id"))
   cbf_failnez (cbf_set_value        (cbf, "ELEMENT1")) 
   cbf_failnez (cbf_new_column       (cbf, "detector_id"))
