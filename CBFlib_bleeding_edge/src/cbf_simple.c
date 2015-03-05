@@ -550,6 +550,7 @@ extern "C" {
         return 0;
     }
 
+    /* Get the number of scans */
 
     /* Get the number of elements */
 
@@ -882,7 +883,7 @@ extern "C" {
         if (!cbf_find_category(handle,"array_structure")
             &&!cbf_find_column(handle,"id")
             &&!cbf_rewind_row(handle)
-            &&!cbf_find_row(handle,"xarray_id")
+            &&!cbf_find_row(handle,xarray_id)
             &&!cbf_find_column(handle,"encoding_type")
             &&!cbf_get_value(handle,&encoding_type)
             &&encoding_type) {
@@ -975,6 +976,8 @@ extern "C" {
                     }
                     
                 }
+                
+                if (*ptr) ptr++;
                 
             }
             

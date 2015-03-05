@@ -389,7 +389,14 @@ extern "C" {
                             double div_y_source,
                             double div_x_y_source);
     
+    /* Get the number of scans */
     
+    int cbf_count_scans (cbf_handle handle, unsigned int *scans);
+    
+    /* Get the scan id for a given scan number */
+    
+    int cbf_get_scan_id (cbf_handle handle, unsigned int scan_number, const char ** scan_id);
+
     /* Get the number of elements */
     
     int cbf_count_elements (cbf_handle handle, unsigned int *elements);

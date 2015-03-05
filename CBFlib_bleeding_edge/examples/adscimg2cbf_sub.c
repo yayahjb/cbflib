@@ -1025,6 +1025,8 @@ int	adscimg2cbf_sub(char *header,
     /* Make the _diffrn_scan_frame category */
 
   cbf_failnez (cbf_new_category     (cbf, "diffrn_scan_frame"))
+  cbf_failnez (cbf_new_column       (cbf, "scan_id"))
+  cbf_failnez (cbf_set_value        (cbf, "SCAN1"))
   cbf_failnez (cbf_new_column       (cbf, "frame_id"))
   cbf_failnez (cbf_set_value        (cbf, "FRAME1"))
   cbf_failnez (cbf_new_column       (cbf, "frame_number"))
@@ -1417,6 +1419,14 @@ int	adscimg2cbf_sub(char *header,
   cbf_failnez (cbf_next_row         (cbf))
   cbf_failnez (cbf_set_doublevalue  (cbf, "%.3fe-6", pixel_size * 1000.))
 
+    /* Make the _array_structure category */
+    
+  cbf_failnez (cbf_new_category     (cbf, "array_structure"))
+  cbf_failnez (cbf_new_column       (cbf, "id"))
+  cbf_failnez (cbf_set_value        (cbf, "image_1"))
+  cbf_failnez (cbf_new_column       (cbf, "encoding_type"))
+  cbf_failnez (cbf_set_value        (cbf, "signed 32-bit integer"))
+    
     /* Make the _array_structure_list_axis category */
 
   cbf_failnez (cbf_new_category     (cbf, "array_structure_list_axis"))
@@ -1514,7 +1524,7 @@ int	adscimg2cbf_sub(char *header,
                           (unsigned int) pack_flags,
                           (int)          1,
                                          data_as_int,
-                          (size_t)        sizeof (int),
+                          (size_t)        4,
                           (int)           1,
                           (size_t)        smv_size1 * smv_size2,
                           	 	"little_endian",

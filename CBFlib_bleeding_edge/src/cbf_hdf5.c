@@ -9444,8 +9444,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
     int cbf_set_NX_parent_path(cbf_h5handle h5handle, const char * axis_id, const char * parent_path) {
     
-        int ii, klen;
-        
         int errorcode = 0;
         
         if (!h5handle || !axis_id || !parent_path ) return CBF_ARGUMENT;
@@ -9607,8 +9605,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         hid_t instrumentid;
 
-        unsigned int rows, row, nrow, idepcount;
+        unsigned int rows, row, nrow;
 
+        int idepcount;
+        
         double matrix[3][3];
 
         double zero[1];
@@ -10154,6 +10154,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     hid_t parentid;
                     
                     htri_t dsexists;
+                    
+                    parentid = CBF_H5FAIL;
                     
                     cbf_reportnez(cbf_H5Grequire(h5handle->hfile,&parentid,parent_path),errorcode);
                     
@@ -24474,13 +24476,13 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
             /* get the axis transformation matrix, which is constant within a datablock */
             CBF_CALL(cbf_get_NX_axis_transform(handle,key->matrix));
             /* Get the list of scans */
+            CBF_CALL(cbf_count_scans(handle, &key->nScans));
             CBF_CALL(cbf_find_category(handle, "diffrn_scan"));
             CBF_CALL(cbf_rewind_column(handle));
-            CBF_CALL(cbf_count_rows(handle, &key->nScans));
             /* get the first/requested/only scan id, depending on arguments given */
             found = cbf_find_column(handle, "id");
             if (CBF_NOTFOUND==found) {
-                if (1 != key->nScans) {
+                if (key->nScans > 1) {
                     /* unindexed scan ids => error */
                     cbf_debug_print("error: found multiple scans but no 'diffrn_scan.id'");
                     error |= CBF_FORMAT;
@@ -24499,7 +24501,7 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
                 /* get the scan id */
                 CBF_CALL(cbf_get_value(handle, &key->scan));
                 }
-            if (!scan && 1 != key->nScans) {
+            if (!scan && key->nScans > 1) {
                 cbf_debug_print("error: insufficient data to select a single scan");
                 error |= CBF_ARGUMENT;
             }
@@ -24525,8 +24527,9 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
                 CBF_CALL(cbf_count_rows(handle, &nFrames));
                 /* get the scan id, if it exists */
                 found = cbf_find_column(handle, "scan_id");
+                frames_scanid = NULL;
                 if (CBF_NOTFOUND==found) {
-                    if (scans && 1 != key->nScans) {
+                    if (scans && key->nScans > 1) {
                         /* multiple unindexed frame ids => error */
                         cbf_debug_print("error: 'diffrn_scan_frame.scan_id' not found");
                         error |= found;
@@ -24543,13 +24546,19 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
                 CBF_CALL(cbf_rewind_row(handle));
                 /* loop though all frames related to this scan */
                 for (frame_row = 0; CBF_SUCCESS == error && nFrames != frame_row; ++frame_row) {
+                    const char * curr_scanid = NULL;
                     if (frames_scanid) {
-                        const char * curr_scanid = NULL;
                         if (CBF_SUCCESS!=(error|=cbf_node_get_value(frames_scanid, frame_row, &curr_scanid))) {
                             cbf_debug_print2("error: %s\n",cbf_strerror(error));
                         } else if (strcmp(curr_scanid, key->scan)) {
                             continue;
                         }
+                    } else if (key->nScans == 1) {
+                        if (CBF_SUCCESS!=(error|=cbf_get_scan_id(handle,0,&curr_scanid))) {
+                            cbf_debug_print2("error: %s\n",cbf_strerror(error));
+                        } else if (strcmp(curr_scanid, key->scan)) {
+                            continue;
+                    }
                     }
                     _cbf_reset_cbf2nx_key(key);
                     /* get the frame id to work with */
@@ -24559,8 +24568,10 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
                     CBF_CALL(cbf_get_value(handle, &key->frame));
                     /* convert the row if the obtained scan value matches the expected value, always go to the next row */
                     CBF_CALL(cbf2nx_convert_category(db, h5handle, "diffrn_scan_frame", key, list, 1));
+                    if (h5handle->flags & CBF_H5_CBFNONAMES) {
                     /* navigate to the frame data & extract some IDs */
                     CBF_CALL(cbf2nx_convert_category(db, h5handle, "diffrn_data_frame", key, list, 1));
+                    }
                     /* convert the metadata */
                     CBF_CALL(cbf2nx_convert_category(db, h5handle, "diffrn_detector_element", key, list, 1));
                     CBF_CALL(cbf2nx_convert_category(db, h5handle, "diffrn_detector", key, list, 1));
