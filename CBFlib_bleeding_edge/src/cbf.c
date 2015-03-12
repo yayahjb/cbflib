@@ -3494,6 +3494,11 @@ int cbf_get_typeofvalue (cbf_handle handle, const char **typeofvalue)
 
     return CBF_ARGUMENT;
 
+    /* Get the value */
+    
+  cbf_failnez (cbf_get_columnrow (&text, handle->node, handle->row))
+
+
     /* Is the value binary? */
 
   if (cbf_is_binary (handle->node, handle->row)) {
@@ -3503,9 +3508,6 @@ int cbf_get_typeofvalue (cbf_handle handle, const char **typeofvalue)
     return 0;
 
   }
-    /* Get the value */
-
-  cbf_failnez (cbf_get_columnrow (&text, handle->node, handle->row))
 
   if (typeofvalue) {
 

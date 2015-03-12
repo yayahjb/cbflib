@@ -5224,7 +5224,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
      \param name A place to store the name of the group (if found), or null if the name isn't wanted.
      \sa cbf_h5handle_get_instrument
      \sa cbf_h5handle_set_instrument
-     \sa cbf_h5handle_find_instrument
      \sa cbf_h5handle_require_instrument
      \return An error code.
      */
@@ -5261,7 +5260,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
      \sa cbf_h5handle_get_instrument
      \sa cbf_h5handle_set_instrument
-     \sa cbf_h5handle_find_instrument
      \sa cbf_h5handle_require_instrument
 
      \return An error code.
@@ -5308,7 +5306,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
      \sa cbf_h5handle_get_instrument
      \sa cbf_h5handle_set_instrument
-     \sa cbf_h5handle_find_instrument
      \sa cbf_h5handle_require_instrument
 
      \return An error code.
@@ -5356,6 +5353,149 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         return error;
     }
 
+    
+    /**
+     Check the handle for the presence of a detector_group group and its name,
+     optionally returning any combination of them. The error code
+     'CBF_NOTFOUND' will be returned if any of the requested items of data
+     cannot be found.
+     
+     The handle retains ownership of the returned object and/or string, neither
+     of them should be free'd by the caller.
+     
+     \param nx A handle to query for the presence of the requested information.
+     \param group A place to store the group (if found), or null if the group isn't wanted.
+     \param name A place to store the name of the group (if found), or null if the name isn't wanted.
+     \sa cbf_h5handle_get_detector_group
+     \sa cbf_h5handle_set_detector_group
+     \sa cbf_h5handle_require_detector_group
+     \return An error code.
+     */
+    int cbf_h5handle_get_detector_group
+    (const cbf_h5handle nx,
+     hid_t * const group,
+     const char * * const name)
+    {
+        int error = CBF_SUCCESS;
+        if (!nx) {
+            error |= CBF_ARGUMENT;
+        } else {
+            /* check for a valid group */
+            if (group) {
+                if (cbf_H5Ivalid(nx->nxdetector_group)) *group = nx->nxdetector_group;
+                else error |= CBF_NOTFOUND;
+            }
+            /* check for a name */
+            if (name) {
+                if (nx->nxdetector_group_name) *name = nx->nxdetector_group_name;
+                else error |= CBF_NOTFOUND;
+            }
+        }
+        return error;
+    }
+    
+    /**
+     Sets the detector_group group and name within the handle to the given values.
+     Doesn't check or modify the <code>NX_class</code> attribute in any way.
+     The handle will take ownership of the group id iff this function succeeds.
+     \param nx The handle to add information to.
+     \param group The group to be set as the current detector_group group
+     \param name The name which the group should be given.
+     
+     \sa cbf_h5handle_get_detector_group
+     \sa cbf_h5handle_set_detector_group
+     \sa cbf_h5handle_require_detector_group
+     
+     \return An error code.
+     */
+    int cbf_h5handle_set_detector_group
+    (const cbf_h5handle nx,
+     const hid_t group,
+     const char * const name)
+    {
+        int error = CBF_SUCCESS;
+        if (!nx || !cbf_H5Ivalid(group) || !name) {
+            error |= CBF_ARGUMENT;
+        } else {
+            hid_t * const nxGroup = &(nx->nxdetector_group);
+            const char * * const nxName = &(nx->nxdetector_group_name);
+            const htri_t cmp = cbf_H5Ocmp(*nxGroup,group);
+            if (cmp < 0) {
+                error |= CBF_H5ERROR;
+            } else if (cmp) {
+                /* free the old group, take ownership of the new one */
+                cbf_H5Gfree(*nxGroup);
+                *nxGroup = group;
+                /* set the name */
+                if (*nxName) free((void*)(*nxName));
+                *nxName = _cbf_strdup(name);
+            } else {
+                /* already set - check that the names match, too */
+                if (!*nxName || strcmp(name,*nxName)) error |= CBF_H5DIFFERENT;
+            }
+        }
+        return error;
+    }
+
+    /**
+     This will check if the detector_group group within the handle matches any existing group of the
+     same name within the current file. If they don't match a new group is opened or created
+     and added to the handle. The <code>NX_class</code> attributes are not checked.
+     
+     \param nx The HDF5 handle to use.
+     \param group An optional pointer to a place where the group should be stored.
+     \param name The group name, or null to use the default name of <code>"detector_group"</code>.
+     
+     \sa cbf_h5handle_get_detector_group
+     \sa cbf_h5handle_set_detector_group
+     \sa cbf_h5handle_require_detector_group
+     
+     \return An error code.
+     */
+    int cbf_h5handle_require_detector_group
+    (const cbf_h5handle nx,
+     hid_t * const group,
+     const char * name)
+    {
+        int error = CBF_SUCCESS;
+        if (!nx) {
+            error |= CBF_ARGUMENT;
+        } else {
+            int match = 0;
+            hid_t curr_group = CBF_H5FAIL;
+            hid_t parent = CBF_H5FAIL;
+            const char * curr_name = NULL;
+            const char default_name[] = "detector_group";
+            const char * group_name = name ? name : default_name;
+            CBF_CALL(cbf_h5handle_get_instrument(nx,&parent,0));
+            /* check if the names of the groups match, and if the parent contains the assumed group */
+            if (CBF_SUCCESS==cbf_h5handle_get_detector_group(nx,&curr_group,&curr_name)) {
+                if (!strcmp(group_name,curr_name)) {
+                    hid_t test_group = CBF_H5FAIL;
+                    const int found = cbf_H5Gfind(parent,&test_group,group_name);
+                    if (CBF_SUCCESS==found) {
+                        if (!cbf_H5Ocmp(test_group,curr_group)) match = 1;
+                    } else if (CBF_NOTFOUND!=found) {
+                        error |= found;
+                    }
+                    cbf_H5Gfree(test_group);
+                }
+            }
+            /* if there is no match I need to create/find a suitable group and put it in the handle */
+            if (CBF_SUCCESS==error && !match) {
+                hid_t new_group = CBF_H5FAIL;
+                CBF_CALL(cbf_H5Grequire(parent,&new_group,group_name));
+                CBF_CALL(cbf_H5Arequire_string(new_group,"NX_class","NXdetector_group"));
+                CBF_CALL(cbf_h5handle_set_detector_group(nx,new_group,group_name));
+                if (CBF_SUCCESS!=error) cbf_H5Gfree(new_group);
+            }
+            /* if there haven't been any major problems, return any requested data */
+            CBF_CALL(cbf_h5handle_get_detector_group(nx,group,0));
+        }
+        return error;
+    }
+
+
     /**
      Check the handle for the presence of a detector group and its name,
     optionally returning any combination of them. The error code
@@ -5370,7 +5510,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
      \param name A place to store the name of the group (if found), or null if the name isn't wanted.
      \sa cbf_h5handle_get_detector
      \sa cbf_h5handle_set_detector
-     \sa cbf_h5handle_find_detector
      \sa cbf_h5handle_require_detector
      \return An error code.
      */
@@ -5410,7 +5549,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
      \param name The name which the group should be given.
      \sa cbf_h5handle_get_detector
      \sa cbf_h5handle_set_detector
-     \sa cbf_h5handle_find_detector
      \sa cbf_h5handle_require_detector
      \return An error code.
      */
@@ -5519,7 +5657,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
      \param name The group name, or null to use the default name of <code>"detector"</code>.
      \sa cbf_h5handle_get_detector
      \sa cbf_h5handle_set_detector
-     \sa cbf_h5handle_find_detector
      \sa cbf_h5handle_require_detector
      \return An error code.
      */
@@ -5604,6 +5741,23 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         return error;
     }
     
+    /* Code to either generate an NXdata group data_... field name from the
+       array_id and binary_id, or to use the value associated with the
+       optional _array_data.nxdata_field_name tag, if provided.
+     
+       The value provided is always a new copy that will need to be freed.
+     
+       Similarly, either the group name "data" is generated
+       the value associated with the optional _array_data.nxdata_group_name
+       is returned, but this value should not be freed.
+     
+       If _array_data.nxdata_field_link_target_file or
+          _array_data.nxdata_field_link_target_path
+       are provided, their values are returned
+     
+       If a binary value is available, it the type string 'bnry' is
+       returned in *typeofvalue. */
+    
     static int cbf_get_nxdata_field_name(const cbf_handle handle,
                                          const char * arrayid,
                                          const char * binaryid,
@@ -5630,19 +5784,24 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         row = handle->row;
 
+        int foundrow = -1;
+
         datasetname_parts[0] = "data";
         datasetname_parts[1] = arrayid;
         datasetname_parts[2] = binaryid;
         datasetname_parts[3] = NULL;
         
+        cbf_debug_print3(" nxdata_field_name arrayid '%s' binaryid '%s'",arrayid, binaryid);
+        
         if (!cbf_find_category(handle,"array_data") &&
-            !cbf_find_column(handle,"nxdata_field_name") &&
             !cbf_rewind_row(handle) &&
             !cbf_count_rows(handle,&rows) && rows > 0) {
             
             unsigned int row;
             
             for (row = 0; row < rows; row++) {
+                
+                cbf_debug_print4(" nxdata_field_name row %d, arrayid '%s' binaryid '%s'",row,arrayid, binaryid);
                 
                 if (!cbf_find_column(handle,"array_id") &&
                     !cbf_select_row(handle,row) &&
@@ -5651,6 +5810,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     !cbf_find_column(handle,"binary_id") &&
                     !cbf_get_value(handle,&xbinary_id) &&
                     xbinary_id && !cbf_cistrcmp(binaryid,xbinary_id)){
+                     
+                     cbf_debug_print(" Found row ");
+                     foundrow = row;
+                     
                     if (!(!cbf_find_column(handle,"nxdata_field_name") &&
                           !cbf_get_value(handle,&nxdata_field_name) &&
                           nxdata_field_name && nxdata_field_name[0] &&
@@ -5687,7 +5850,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     if (typeofvalue)
                         if(!(!cbf_find_column(handle,"data") &&
                              !cbf_get_typeofvalue(handle,typeofvalue) &&
-                             *typeofvalue))
+                             (*typeofvalue)))
                             *typeofvalue = "null";
                             
                     break;
@@ -5707,7 +5870,31 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         if (nxdata_field_name) {
             *datasetname = _cbf_strdup(nxdata_field_name);
         } else {
+            nxdata_field_name = NULL;
+            if (groupname) *groupname="data";
+            if (nxdata_field_link_target_file)
+                *nxdata_field_link_target_file = NULL;
+            if (nxdata_field_link_target_path)
+                *nxdata_field_link_target_path = NULL;
+            if (typeofvalue)
+                *typeofvalue = "null";
+            if (foundrow >= 0) {
             *datasetname = _cbf_str_join(datasetname_parts,'_');
+            } else {
+                *datasetname = _cbf_strdup("data");
+                if (typeofvalue &&
+                    !cbf_find_category(handle,"array_data") &&
+                    !cbf_rewind_row(handle) &&
+                    !cbf_count_rows(handle,&rows) && rows > 0 ) {
+                    if(!(!cbf_find_column(handle,"data") &&
+                        !cbf_get_typeofvalue(handle,typeofvalue) &&
+                        (*typeofvalue))) {
+                        *typeofvalue = "null";
+        }
+        
+                }
+                
+            }
         }
         
         cbf_debug_print2("datasetname = '%s'\n", *datasetname);
@@ -5784,13 +5971,15 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         row = handle->row;
         
-        cbf_debug_print("write_array_h5file\n");
+        cbf_debug_print("write_array_h5file2\n");
         
         cbf_get_nxdata_field_name(handle, arrayid, binaryid, &datasetname,
                                   0,
                                   &nxdata_field_link_target_file,
                                   &nxdata_field_link_target_path,
                                   &typeofvalue);
+        
+        cbf_debug_print2("cbf_write_array_h5file2 typeofvalue = %s",typeofvalue);
         
         if (!node) {
             cbf_debug_print("Invalid node given\n");
@@ -5807,7 +5996,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
              
             CBF_CALL(cbf_get_array_section_rank(handle,arrayid,&rank));
             
-            if (!cbf_cistrcmp(typeofvalue,"bnry") && !cbf_is_binary(node,row)) {
+            if (!cbf_cistrcmp(typeofvalue,"bnry") && cbf_is_binary(node,row)) {
                 
                 CBF_CALL(cbf_get_columnrow (&binval, node, row));
                 
@@ -5816,6 +6005,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 binval = NULL;
             }
             if (!binval){
+                
+                cbf_debug_print2(" non-binary value %s",typeofvalue);
                 
                 CBF_START_ARRAY(hsize_t,buf,(rank+1));
                 CBF_START_ARRAY(hsize_t,h5dim,(rank+1));
@@ -5968,6 +6159,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 CBF_END_ARRAY_REPORTNEZ(buf,error);
                 
             } else {
+                
+                cbf_debug_print(" binary value");
                 
                 CBF_START_ARRAY(hsize_t,buf,(rank+1));
                 CBF_START_ARRAY(hsize_t,h5dim,(rank+1));
@@ -6317,7 +6510,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
     
     
 
-    /* Process the array id related fields for a given nxdata and nxdetector */
+    /* Process the array id related fields for a given nxdata and nxdetector
+       */
     
     static int cbf_require_nxarrayid(const cbf_handle handle,
                               const cbf_h5handle h5handle,
@@ -7886,9 +8080,11 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     && !cbf_select_row(handle,row)
                     &&!cbf_get_value(handle,&detname) && detname) {
                     
-                    cbf_reportnez(_cbf_NXGrequire(instrumentid,&detector_groupid,
+                    cbf_reportnez(cbf_h5handle_require_detector_group(h5handle,&detector_groupid,detname),error);
+                    
+                    /* cbf_reportnez(_cbf_NXGrequire(instrumentid,&detector_groupid,
                                                   detname,
-                                                  "NXdetector_group"),error);
+                                                  "NXdetector_group"),error); */
                                         
                      /* If there is no group_names dataset, we need to
                      create it, as well as group_index, group_parent
@@ -9820,6 +10016,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
                 if (!type) type = "general";
 
+            } else {
+                
+                type = "general";
+                
             }
 
             if (!cbf_find_column(handle,"system")) {
@@ -9831,6 +10031,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 if (cbf_cistrcmp(system,".")||cbf_cistrcmp(system,"?"))
                     system = "laboratory";
 
+            } else {
+                
+                system = "laboratory";
+                
             }
 
             if (cbf_cistrcmp(system,"laboratory")) {
@@ -14747,6 +14951,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 }
             }
             
+            if (cbf_H5Ivalid(h5handle->nxdetector_group)) {
+                CBF_H5CALL(H5Gclose(h5handle->nxdetector_group));
+            }
+
             if (cbf_H5Ivalid(h5handle->nxgoniometer)) {
                 CBF_H5CALL(H5Gclose(h5handle->nxgoniometer));
             }
@@ -14763,23 +14971,36 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 CBF_H5CALL(H5Fclose(h5handle->hfile));
             }
             
+            if (h5handle->scan_id)
             free((void*)h5handle->scan_id);
+            if (h5handle->sample_id)
             free((void*)h5handle->sample_id);
+            if (h5handle->nxid_name)
             free((void*)h5handle->nxid_name);
             for (ii=0; ii < (ssize_t)(h5handle->num_detectors); ii++){
+                if (h5handle->nxdetector_names[ii])
                  free((void*)h5handle->nxdetector_names[ii]);
             }
             h5handle->num_detectors = 0;
             if (h5handle->nxdetectors) {
                 error |= cbf_free(&detblock,NULL);
             }
+            if (h5handle->nxdetector_group_name)
+                free((void*)h5handle->nxdetector_group_name);
+            if (h5handle->nxsample_name)
             free((void*)h5handle->nxsample_name);
+            if (h5handle->nxbeam_name)
             free((void*)h5handle->nxbeam_name);
+            if (h5handle->nxinstrument_name)
             free((void*)h5handle->nxinstrument_name);
+            if (h5handle->nxgoniometer_name)
             free((void*)h5handle->nxgoniometer_name);
+            if (h5handle->nxmonochromator_name)
             free((void*)h5handle->nxmonochromator_name);
+            if (h5handle->nxsource_name)
             free((void*)h5handle->nxsource_name);
-            if (h5handle->nxfilename) free((void*)h5handle->nxfilename);
+            if (h5handle->nxfilename)
+                free((void*)h5handle->nxfilename);
             cbf_free_handle(h5handle->scratch_tables);
             error |= cbf_free(&memblock,NULL);
         }
@@ -14806,6 +15027,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         (*h5handle)->nxinst  = (hid_t)CBF_H5FAIL;
         (*h5handle)->nxsample  = (hid_t)CBF_H5FAIL;
         (*h5handle)->nxbeam  = (hid_t)CBF_H5FAIL;
+        (*h5handle)->nxdetector_group = (hid_t)CBF_H5FAIL;
         (*h5handle)->nxdetectors  = NULL;
         (*h5handle)->num_detectors  = 0;
         (*h5handle)->cur_detector  = 0;
@@ -14815,6 +15037,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         (*h5handle)->curnxid = (hid_t)CBF_H5FAIL;
         (*h5handle)->dataid  = (hid_t)CBF_H5FAIL;
         (*h5handle)->nxid_name = NULL;
+        (*h5handle)->nxdetector_group_name = NULL;
         (*h5handle)->nxdetector_names = NULL;
         (*h5handle)->nxsample_name = NULL;
         (*h5handle)->nxbeam_name = NULL;
@@ -21470,6 +21693,9 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
     detector dependency in nexus, and traverses the dependency chain for it to add each
     required axis to the 'key' object with any relevant paths which were generated
     when extracting data from each individual row of 'diffrn_detector_axis'.
+             
+    The single leaf is the dependency for NXdetector_group.  For NXdetector, the chain
+    needs to be extended to include the axes for the image.
              */
     static int process_DiffrnDetectorAxisTCache
             (cbf_node * const category,
@@ -21545,7 +21771,13 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
                 const char * axis_id = c->axis_id[leaf];
                 size_t index;
                 /* I now have a valid leaf axis, write the dependency... */
+                if (nx->flags & CBF_H5_CBFNONAMES) {
                 CBF_CALL(cbf_H5Drequire_flstring(nx->nxdetectors[nx->cur_detector],0,"depends_on",c->path[leaf]));
+                } else {
+                    CBF_CALL(cbf_h5handle_require_detector_group(nx,NULL,nx->nxdetector_group_name));
+                    CBF_CALL(cbf_H5Drequire_flstring(nx->nxdetector_group,0,"depends_on",c->path[leaf]));
+                    return error;
+                }
                 /* ...record the leaf axis in the key... */
                 if ((error|=_cbf_insert_axis(&key->axis,axis_id,c->path[leaf]))) {
                     cbf_debug_print2("error: %s\n",cbf_strerror(error));

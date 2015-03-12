@@ -953,6 +953,7 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
 		hid_t nxsample; /* /entry/sample@NXsample group */
 		hid_t nxbeam; /* /entry/beam@NXbeam group */
 		hid_t nxinst;  /* /entry/instrument@NXinstrument */
+        hid_t nxdetector_group; /* /entry/instrument/detector_group@NXdetector_group */
 		hid_t * nxdetectors; /* /entry/instrument/detector@NXdetector */
 		hid_t nxmonochromator;  /* /entry/instrument/monochromator@NXmonochromator */
         hid_t nxgoniometer;  /* /entry/instrument/goniometer@NXgoniometer */
@@ -966,7 +967,19 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
         hid_t dataid;  /* The NeXus NXdata group */
 		/* Names of various groups, used to construct paths to the axes */
 		const char * nxid_name;
+        const char * nxdetector_group_name;
 		const char * * nxdetector_names;
+        const char * scan_id; /* a unique identifier for the scan */
+        const char * sample_id; /* a unique identifier for the sample */
+        const char * nxsample_name;
+        const char * nxbeam_name;
+        const char * nxinstrument_name;
+        const char * nxgoniometer_name;
+        const char * nxmonochromator_name;
+        const char * nxsource_name;
+        const char * nxdata_name;
+        const char * nxfilename;
+
 		/* Flags for various options */
         int flags;
 #ifdef CBF_USE_ULP
@@ -979,16 +992,6 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
 #endif
         cbf_bookmark
         bookmark;/* Read bookmark to save names for paths */
-        const char * scan_id; /* a unique identifier for the scan */
-        const char * sample_id; /* a unique identifier for the sample */
-		const char * nxsample_name;
-		const char * nxbeam_name;
-		const char * nxinstrument_name;
-		const char * nxgoniometer_name;
-		const char * nxmonochromator_name;
-		const char * nxsource_name;
-		const char * nxdata_name;
-        const char * nxfilename;
         cbf_handle scratch_tables;
         FILE * logfile;
     }
@@ -1178,7 +1181,36 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
 			 hid_t * const group,
 			 const char * name);
 
+    
 	/**
+     \brief Get the current id and name of the detector_group group within the given handle.
+	\ingroup section_H5Handle
+	 */
+    int cbf_h5handle_get_detector_group
+			(const cbf_h5handle nx,
+			 hid_t * const group,
+			 const char * * const name);
+
+	/**
+     \brief Set the id and name of the detector_group group within the given handle.
+	\ingroup section_H5Handle
+	 */
+    int cbf_h5handle_set_detector_group
+			(const cbf_h5handle nx,
+			 const hid_t group,
+			 const char * const name);
+
+	/**
+     \brief Ensure I have a detector_group in the hdf5 handle.
+	\ingroup section_H5Handle
+	 */
+    int cbf_h5handle_require_detector_group
+			(const cbf_h5handle nx,
+			 hid_t * const group,
+     const char * name);
+
+    
+    /**
 	\brief Get the current id and name of the detector group within the given handle.
 	\ingroup section_H5Handle
 	 */
@@ -1195,15 +1227,6 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
 			(const cbf_h5handle nx,
 			 const hid_t group,
 			 const char * const name);
-
-	/**
-	\brief Find an existing detector group within the given handle.
-	\ingroup section_H5Handle
-	 */
-	int cbf_h5handle_find_detector
-			(const cbf_h5handle nx,
-			 hid_t * const group,
-			 const char * * const name);
 
 	/**
 	\brief Ensure I have a detector in the hdf5 handle.
