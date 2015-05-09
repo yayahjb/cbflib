@@ -432,7 +432,7 @@ static void	smv_date_to_cbf_date(char *smv_date, char *cbf_date)
 #define	BEAM_CENTER_ULHC	2
 #define BEAM_CENTER_LLHC	3
 
-int	adscimg2cbf_sub(char *header, 
+int	adscimg2cbf_sub(char *header,
                     unsigned short *data, 
                     char *cbf_filename, 
                     int pack_flags, 

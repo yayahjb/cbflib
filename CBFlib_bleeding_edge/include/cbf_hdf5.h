@@ -1540,7 +1540,7 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
                                       int errorcode);
     
     
-    /* add a text list attribute slab to a text list attribue of a group or dataset
+    /* add a text list attribute slab to a text list attribute of a group or dataset
      this uses variable length strings*/
     
     int cbf_add_h5text_list_attribute_slab(hid_t hid,
@@ -1555,6 +1555,16 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
                                  const char* datasetname,
                                  const double datasetvalue,
                                  int errorcode);
+    
+    /* add a double dataset array slab to a double dataset array dataset */
+    
+
+    
+    int cbf_add_h5double_dataset_slab(hid_t hid,
+                                      const char* datasetname,
+                                      const double datasetvalue,
+                                      const hsize_t slab,
+                                      int errorcode);
     
     /* Count the number of links in an HDF5 group */
     
