@@ -10644,6 +10644,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                                               nexus_path,
                                                               H5S_UNLIMITED,
                                                               errorcode),errorcode);
+                        cbf_debug_print2("depends_on_path '%s'", nexus_path);
                         
                     } else {
                         
@@ -11628,7 +11629,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
         void * datasettextbuffer;
 
-        size_t old_size, new_size;
+        size_t text_size, old_size, new_size, ii;
 
         datasetspace = datasettype = memspace = memtype = CBF_H5FAIL;
 
@@ -11644,11 +11645,15 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
         chunk[0] = 1;
 
+        datasettextbuffer = NULL;
+
 
         /* ensure arguments all given */
 
         if (hid < 0 || !datasetname ||
             !datasettext || errorcode) return CBF_ARGUMENT;
+
+        text_size =  _cbf_strlen(datasettext);
 
         dsexists = H5Lexists(hid,datasetname, H5P_DEFAULT);
 
@@ -11660,7 +11665,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
             cbf_h5reportneg(datasettype = H5Tcopy(H5T_C_S1),CBF_ALLOC,errorcode);
 
-            cbf_h5reportneg(H5Tset_size(datasettype,_cbf_strlen(datasettext)+1),CBF_ALLOC,errorcode);
+            cbf_h5reportneg(H5Tset_size(datasettype,text_size+1),CBF_ALLOC,errorcode);
 
             cbf_reportnez(cbf_H5Dcreate(hid,&datasetid,datasetname,1,dssize,maxdssize,chunk,datasettype),errorcode);
 
@@ -11686,7 +11691,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
         old_size = H5Tget_size(datasettype);
 
-        new_size = _cbf_strlen(datasettext)+1;
+        new_size = text_size+1;
 
         cbf_h5reportneg(H5Sget_simple_extent_dims(datasetspace,
                                                   dsdims,dsmaxdims),CBF_FORMAT,errorcode);
@@ -11699,14 +11704,14 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
             /* rebuild the dataset with longer strings */
 
-            if (old_size+((old_size+1)>>1)>= new_size) {
+            if (old_size+(old_size>>1)+1 >= new_size) {
 
-                new_size = old_size+((old_size+1)>>1);
+                new_size = old_size+(old_size>>1)+1;
 
             }
 
             cbf_reportnez(cbf_alloc(&datasettextbuffer,NULL,
-                                    1,new_size+1),errorcode);
+                                    1,new_size),errorcode);
 
             if (datasettype >= 0) H5Tclose(datasettype);
 
@@ -11746,7 +11751,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
                     count[0] = 1;
 
-                    cbf_reportnez(cbf_H5Dwrite2(anondataset,offset,stride,count,(void *)datasettextbuffer,memtype),errorcode);
+                    cbf_reportnez(cbf_H5Dwrite2(anondataset,offset,stride,count,(void *)datasettextbuffer,nmemtype),errorcode);
 
                 }
 
@@ -11766,11 +11771,11 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
             datasetid = anondataset;
 
-            if (datasettextbuffer) cbf_free(&datasettextbuffer,NULL);
-
             if (memtype >= 0) H5Tclose(memtype);
 
             datasetspace = memtype = CBF_H5FAIL;
+
+            old_size = new_size;
 
         }
 
@@ -11799,7 +11804,28 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
         count[0] = 1;
 
-        cbf_reportnez(cbf_H5Dwrite2(datasetid,offset,stride,count,(void *)datasettext,datasettype),errorcode);
+        if (!datasettextbuffer) {
+
+              cbf_reportnez(cbf_alloc(&datasettextbuffer,NULL,
+                                1,old_size),errorcode);
+            
+        }
+        
+        for (ii = 0; ii < text_size; ii++) {
+            
+            ((char *)datasettextbuffer)[ii] = datasettext[ii];
+
+        }
+        
+        for (ii = text_size; ii < old_size; ii++) {
+            
+            ((char *)datasettextbuffer)[ii] = '\0';
+            
+        }
+    
+        cbf_debug_print4(" cbf_add_h5text_dataset_slab, text: '%s', oldsize: %d, newsize: %d", (char *)datasettextbuffer, old_size, new_size);
+
+        cbf_reportnez(cbf_H5Dwrite2(datasetid,offset,stride,count,datasettextbuffer,datasettype),errorcode);
 
         if (datasetspace >= 0)  H5Sclose(datasetspace);
 
@@ -11808,6 +11834,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         if (datasetid >= 0)     H5Dclose(datasetid);
 
         if (memtype >= 0)       H5Tclose(memtype);
+
+        if (datasettextbuffer) cbf_free(&datasettextbuffer,NULL);
 
         return errorcode;
 

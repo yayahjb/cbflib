@@ -484,20 +484,26 @@ extern "C" {
         
         void *memblock;
         
+        size_t n;
+        
         CBF_UNUSED( context );
+        
+        n = strlen(string);
         
         if (string) {
             
             if (type)
             {
                 if (cbf_alloc (&memblock, NULL,
-                               sizeof (char), strlen (string) + 2) == 0)
+                               sizeof (char), n  + 2) == 0)
                 {
                     new_string = (char *)memblock;
                     
                     *new_string = type;
                     
-                    strcpy (new_string + 1, string);
+                    strncpy (new_string + 1, string, n);
+                    
+                    new_string[n+1] = '\0';
                     
                     return new_string;
                 }
@@ -505,12 +511,14 @@ extern "C" {
             else
                 
                 if (cbf_alloc (&memblock, NULL, \
-                               sizeof (char), strlen (string) + 1) == 0)
+                               sizeof (char),  n + 1) == 0)
                 {
                     
                     new_string = (char *)memblock;
                     
-                    strcpy (new_string, string);
+                    strncpy (new_string, string, n);
+                    
+                    new_string[n] = '\0';
                     
                     return new_string;
                 }
