@@ -11385,7 +11385,7 @@ extern "C" {
                         
                 double newstart;
             
-                unsigned int frame_no;
+                int frame_no;
                 
                 row = handle->row;
                 

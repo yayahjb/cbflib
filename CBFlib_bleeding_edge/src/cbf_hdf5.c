@@ -945,7 +945,7 @@ cbf_debug_print2("%s", "'" #exp "' failed"); \
             if (!str) return NULL;
             n = 1;
             for (p = parts; *p; ) {
-                cbf_debug_print3("_cbf_str_join arg %d '%s'",n,*p);
+                /* cbf_debug_print3("_cbf_str_join arg %d '%s'",n,*p); */
                 c = _cbf_strcpy(c,*p) + _cbf_strlen(*p);
                 if (!*(++p)) break;
                 *c++ = sep;
@@ -9551,7 +9551,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         path_axis_goniometer[0] = "";
         path_axis_goniometer[1] = entryname;
-        path_axis_goniometer[2] = instrumentname;
+        path_axis_goniometer[2] = "sample";
         path_axis_goniometer[3] = 0;
         
         
@@ -9727,7 +9727,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             
             path_axis_detector[6] = 0;
             
-            {
+            /* {
                 int ii;
                 for (ii= 0; ii < 7; ii++) {
                     cbf_debug_print4("path_axis_detector [%d] length = %d, '%s'",
@@ -9743,7 +9743,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                      ii,_cbf_strlen(path_parent_detector[ii]),
                                      path_parent_detector[ii]);
                 }
-            }
+            } */
 
             axispath = _cbf_str_join(path_axis_detector,'/');
             
@@ -9765,8 +9765,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             _cbf_strcpy(nxequipment,"sample");
             
             equipmentclass = "NXsample";
-            
-            path_parent_goniometer[3] =
             
             path_axis_goniometer[3] = diffrn_measurement_id;
             
@@ -9838,13 +9836,13 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         cbf_reportnez(cbf_set_NX_axis_path(h5handle, axis_id, axispath),errorcode);
         
-        cbf_debug_print3("logged axis_id '%s' axis_path '%s'\n", axis_id, axispath);
+        /* cbf_debug_print3("logged axis_id '%s' axis_path '%s'\n", axis_id, axispath); */
         
         if (axispath) cbf_free_text(&axispath,NULL);
         
         cbf_reportnez(cbf_set_NX_parent_path(h5handle, axis_id, parentpath),errorcode);
         
-        cbf_debug_print3("logged axis_id '%s' parent_path '%s'\n", axis_id, parentpath);
+        /* cbf_debug_print3("logged axis_id '%s' parent_path '%s'\n", axis_id, parentpath); */
         
         if (parentpath) cbf_free_text(&parentpath,NULL);
         
@@ -10395,10 +10393,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                         
                     cbf_h5reportneg(H5Dwrite(nxaxisid, mtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, (void *)scanarray),CBF_ALLOC,errorcode);
                     
-                    if (!errorcode) {
+                    /* if (!errorcode) {
                         
                         cbf_debug_print4("write axis %s data %d points to %s\n",axis_id,(int)scanpointsfound, axispath);
-                    }
+                    } */
                     
                     cbf_reportnez(cbf_free((void **)(&scanarray),NULL),errorcode);
                     
@@ -10441,10 +10439,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     
                     cbf_h5reportneg(H5Dwrite(nxaxisid, mtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, (void *)zeropoint),CBF_ALLOC,errorcode);
                     
-                    if (!errorcode) {
+                    /* if (!errorcode) {
                         
                         cbf_debug_print4("write axis %s data %d points to %s\n",axis_id,(int)scanpointsfound[0], axispath);
-                    }
+                    } */
                     
                     
                     
@@ -10599,7 +10597,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             
             cbf_reportnez(cbf_get_integervalue(h5handle->scratch_tables,&idepcount),errorcode);
             
-            cbf_debug_print3("axis_id = '%s', depcount = %d\n",axis_id,idepcount);
+            /* cbf_debug_print3("axis_id = '%s', depcount = %d\n",axis_id,idepcount); */
             
             if (idepcount == 0) {
                 
@@ -10613,7 +10611,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 
                 cbf_reportnez(cbf_get_value(h5handle->scratch_tables,&nexus_path),errorcode);
                 
-                cbf_debug_print3("parent_path = '%s', nexus_path = '%s'\n",parent_path,nexus_path);
+                /* cbf_debug_print3("parent_path = '%s', nexus_path = '%s'\n",parent_path,nexus_path); */
                 
                 if (!nexus_path || !nexus_path[0]
                     || !cbf_cistrcmp(nexus_path,".")
@@ -10644,7 +10642,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                                               nexus_path,
                                                               H5S_UNLIMITED,
                                                               errorcode),errorcode);
-                        cbf_debug_print2("depends_on_path '%s'", nexus_path);
+                        /* cbf_debug_print2("depends_on_path '%s'", nexus_path); */
                         
                     } else {
                         
@@ -10910,9 +10908,9 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
         if (hid < 0 || !attribname || !attribtext ) return CBF_ARGUMENT;
         
-        if (!cbf_cistrcmp(attribname,"depends_on")) {
+        /* if (!cbf_cistrcmp(attribname,"depends_on")) {
             cbf_debug_print2("cbf_apply_h5text_attribute('depends_on','%s')\n",attribtext);
-        }
+        } */
 
 
         /* if the attribute exists, check the value is the same */
@@ -11823,7 +11821,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             
         }
     
-        cbf_debug_print4(" cbf_add_h5text_dataset_slab, text: '%s', oldsize: %d, newsize: %d", (char *)datasettextbuffer, old_size, new_size);
+        /* cbf_debug_print4(" cbf_add_h5text_dataset_slab, text: '%s', oldsize: %d, newsize: %d", (char *)datasettextbuffer, old_size, new_size); */
 
         cbf_reportnez(cbf_H5Dwrite2(datasetid,offset,stride,count,datasettextbuffer,datasettype),errorcode);
 
@@ -13438,7 +13436,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             
             /* allow compression */
             if (CBF_SUCCESS==errorcode) {
-                cbf_debug_print2("compression: %x",h5handle->flags);
+                /* cbf_debug_print2("compression: %x",h5handle->flags); */
                 if ((h5handle->flags & CBF_COMPRESSION_MASK)==CBF_H5COMPRESSION_ZLIB) {
                     H5Pset_deflate(valprop, 1);
                 } else if (h5handle->flags & CBF_H5COMPRESSION_CBF) {
@@ -14005,7 +14003,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                           CBF_FORMAT);
         }
 
-        cbf_debug_print(category->name);
+        /* cbf_debug_print(category->name); */
 
         handle->node = (cbf_node *)category;
 
@@ -14694,7 +14692,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             for (column= 0; column < category->children; column++)
             {
                 cbf_node * column_node = category->child[column];
-                cbf_debug_print2("\t%s",column_node->name);
+                /* cbf_debug_print2("\t%s",column_node->name); */
                 if(column_node->children > 1) cbf_debug_print2("warning: too many rows in '%s', only writing first row.\n",category->name);
                 if(!cbf_cistrcmp(column_node->name,"div_x_source")) {
                     const char * text = 0;
@@ -14721,7 +14719,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             for (column= 0; column < category->children; column++)
             {
                 cbf_node * column_node = category->child[column];
-                cbf_debug_print2("\t%s",column_node->name);
+                /* cbf_debug_print2("\t%s",column_node->name); */
                 if(column_node->children > 1) cbf_debug_print2( "warning: too many rows in '%s', only writing first row.\n",category->name);
                 if(!cbf_cistrcmp(column_node->name,"wavelength")){
                     cbf_name_value_pair attr = {"units","Angstroms"};
@@ -15203,7 +15201,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             void * detblock = (void *) h5handle->nxdetectors;
             void * detnameblock = (void *) h5handle->nxdetector_names;
             
-            cbf_debug_print("Entering cbf_free_h5handle");
+            /* cbf_debug_print("Entering cbf_free_h5handle"); */
             
             if (cbf_H5Ivalid(h5handle->colid)) {
                 CBF_H5CALL(H5Gclose(h5handle->colid));
@@ -15341,7 +15339,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             }
             cbf_free_handle(h5handle->scratch_tables);
             error |= cbf_free(&memblock,NULL);
-            cbf_debug_print("Exiting cbf_free_h5handle");
+            /* cbf_debug_print("Exiting cbf_free_h5handle"); */
         }
         return error;
     }
@@ -15696,7 +15694,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             
             cbf_failnez(cbf_free(((void **) &filename),NULL));
             
-            cbf_debug_print2("h5 filename '%s'\n",h5handle -> nxfilename);
+            /* cbf_debug_print2("h5 filename '%s'\n",h5handle -> nxfilename); */
             
             return CBF_SUCCESS;
         }
@@ -16808,6 +16806,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                         cbf_debug_print("Couldn't read string");
                         error |= CBF_H5ERROR;
                     }
+                    if (CBF_SUCCESS==error) lvalue[len] = '\0';
                 }
                 if (CBF_SUCCESS==error) *value = lvalue;
             }
@@ -17168,6 +17167,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                         /*--------------------------------------------------------------------------------------------------*/
                     } else if (!strcmp(name,"depends_on")) {
                         hid_t data_space = CBF_H5FAIL;
+                        hid_t do_base_id = CBF_H5FAIL;
                         if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
                         if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
                             cbf_debug_print("could not get data space");
@@ -17184,7 +17184,9 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                      all relevant details and write them out to the CBF file.
                                      */
                                     hid_t axis = CBF_H5FAIL;
-                                    if (!cbf_H5Ivalid(axis=H5Dopen2(g_id, path, H5P_DEFAULT))) {
+                                    do_base_id = g_id;
+                                    if (*path == '/') do_base_id = nx->hfile;
+                                    if (!cbf_H5Ivalid(axis=H5Dopen2(do_base_id, path, H5P_DEFAULT))) {
                                         cbf_debug_print("couldn't open dataset");
                                         error |= CBF_H5ERROR;
                                     } else {
@@ -17791,12 +17793,22 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             }
             if (cbf_H5Ivalid(object)) H5Oclose(object);
         }
+        
+        
+
         /*
          Convert a CBF error to something the HDF5 iteration function can understand.
          All errors should already have been reported, so I shouldn't need to print anything.
          */
         return (CBF_SUCCESS==error) ? 0 : -1;
     }
+
+    
+    int _cbf_write_nx2cbf__beam_op
+    (hid_t g_id,
+     const char * name,
+     const H5L_info_t * info,
+     void * op_data);
 
     static int cbf_write_nx2cbf__source_op
     (hid_t g_id,
@@ -18035,6 +18047,19 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                         if (!strcmp(NX_class,"NXcollection")) {
                             /* known class that should be ignored: ignoring it is the correct way to process it */
                             if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
+                            /*-----------------------------------------------------------------------------------------------*/
+                        } else if (!strcmp(NX_class,"NXbeam")) {
+                            const unsigned int indent = table->indent;
+                            hsize_t idx = 0;
+                            /* debugging output */
+                            if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
+                            /* leave ownership of the group with the iteration function, and process it */
+                            ++table->indent;
+                            if (H5Literate(object,H5_INDEX_NAME,H5_ITER_NATIVE,NULL,_cbf_write_nx2cbf__beam_op,op_data)<0) {
+                                cbf_debug_print3("error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
+                                error |= CBF_H5ERROR;
+                            }
+                            table->indent = indent;
                             /*-----------------------------------------------------------------------------------------------*/
                         } else {
                             /* unknown NX_class: (probably) not an error */
@@ -18318,7 +18343,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                 object = CBF_H5FAIL;
                                 /* The hdf5 handle now owns the group, process it */
                                 ++table->indent;
-                                if (H5Literate(group,H5_INDEX_NAME,H5_ITER_NATIVE,&idx,cbf_write_nx2cbf__detector_op,op_data)<0) {
+                                if (H5Literate(group,H5_INDEX_NAME,H5_ITER_NATIVE,NULL,cbf_write_nx2cbf__detector_op,op_data)<0) {
                                     cbf_debug_print3("error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
                                     error |= CBF_H5ERROR;
                                 } else {
@@ -18356,7 +18381,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                 object = CBF_H5FAIL;
                                 /* The hdf5 handle now owns the group, process it */
                                 ++table->indent;
-                                if (H5Literate(group,H5_INDEX_NAME,H5_ITER_NATIVE,&idx,cbf_write_nx2cbf__goniometer_op,op_data)<0) {
+                                if (H5Literate(group,H5_INDEX_NAME,H5_ITER_NATIVE,NULL,cbf_write_nx2cbf__goniometer_op,op_data)<0) {
                                     cbf_debug_print3("error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
                                     error |= CBF_H5ERROR;
                                 }
@@ -18379,7 +18404,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                 object = CBF_H5FAIL;
                                 /* The hdf5 handle now owns the group, process it */
                                 ++table->indent;
-                                if (H5Literate(group,H5_INDEX_NAME,H5_ITER_NATIVE,&idx,cbf_write_nx2cbf__monochromator_op,op_data)<0) {
+                                if (H5Literate(group,H5_INDEX_NAME,H5_ITER_NATIVE,NULL,cbf_write_nx2cbf__monochromator_op,op_data)<0) {
                                     cbf_debug_print3("error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
                                     error |= CBF_H5ERROR;
                                 }
@@ -18402,7 +18427,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                 object = CBF_H5FAIL;
                                 /* The hdf5 handle now owns the group, process it */
                                 ++table->indent;
-                                if (H5Literate(group,H5_INDEX_NAME,H5_ITER_NATIVE,&idx,cbf_write_nx2cbf__source_op,op_data)<0) {
+                                if (H5Literate(group,H5_INDEX_NAME,H5_ITER_NATIVE,NULL,cbf_write_nx2cbf__source_op,op_data)<0) {
                                     cbf_debug_print3("error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
                                     error |= CBF_H5ERROR;
                                 }
@@ -18429,7 +18454,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         return (CBF_SUCCESS==error) ? 0 : -1;
     }
 
-    static int cbf_write_nx2cbf__beam_op
+    int _cbf_write_nx2cbf__beam_op
     (hid_t g_id,
      const char * name,
      const H5L_info_t * info,
@@ -18897,6 +18922,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         return (CBF_SUCCESS==error) ? 0 : -1;
     }
 
+
     static int cbf_write_nx2cbf__sample_op
     (hid_t g_id,
      const char * name,
@@ -18915,6 +18941,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             cbf_nx2cbf_key_t * const table = op_data_struct->table;
             hid_t object = CBF_H5FAIL;
             H5I_type_t type = H5I_BADID;
+            cbf_debug_print("Entering cbf_write_nx2cbf__sample_op");
             if (!nx) {
                 cbf_debug_print("Invalid NeXus handle given");
                 error |= CBF_ARGUMENT;
@@ -18937,6 +18964,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     error |= CBF_H5ERROR;
                 } else if (H5I_DATASET==type) {
                     /* handle all datasets here */
+                    cbf_debug_print2("cbf_write_nx2cbf__sample_op dataset name '%s'",name);
                     if (!strcmp(name,"depends_on")) {
                         hid_t data_space = CBF_H5FAIL;
                         if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
@@ -18949,13 +18977,17 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                 const char * path = NULL;
                                 cbf_axisData_t * prevAxisPtr = NULL;
                                 CBF_CALL(_cbf_nx2cbfDread_scalar_string(object,&path));
+                                cbf_debug_print2("cbf_write_nx2cbf__sample_op depends_on '%s'",path);
                                 while (CBF_SUCCESS==error && path && strcmp(path,".")) {
                                     /*
                                      Given the path to an axis dataset, I want to extract
                                      all relevant details and write them out to the CBF file.
                                      */
                                     hid_t axis = CBF_H5FAIL;
-                                    if (!cbf_H5Ivalid(axis=H5Dopen2(g_id, path, H5P_DEFAULT))) {
+                                    hid_t do_base_id = CBF_H5FAIL;
+                                    do_base_id = g_id;
+                                    if (*path == '/') do_base_id = nx->hfile;
+                                    if (!cbf_H5Ivalid(axis=H5Dopen2(do_base_id, path, H5P_DEFAULT))) {
                                         cbf_debug_print("couldn't open dataset");
                                         error |= CBF_H5ERROR;
                                     } else {
@@ -19011,6 +19043,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                         error |= found;
                     } else {
                         /* I have a group with an NX_class: match on NX_class */
+                        cbf_debug_print3("cbf_write_nx2cbf__sample_op group name '%s', NXclass '%s'",name,NX_class);
                         if (!strcmp(NX_class,"NXtransformations")) {
                             /* known class that will be processed */
                             if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
@@ -19027,7 +19060,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                             if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
                             /* leave ownership of the group with the iteration function, and process it */
                             ++table->indent;
-                            if (H5Literate(object,H5_INDEX_NAME,H5_ITER_NATIVE,&idx,cbf_write_nx2cbf__beam_op,op_data)<0) {
+                            if (H5Literate(object,H5_INDEX_NAME,H5_ITER_NATIVE,NULL,_cbf_write_nx2cbf__beam_op,op_data)<0) {
                                 cbf_debug_print3("error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
                                 error |= CBF_H5ERROR;
                             }
@@ -19050,6 +19083,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
          Convert a CBF error to something the HDF5 iteration function can understand.
          All errors should already have been reported, so I shouldn't need to print anything.
          */
+        cbf_debug_print2("sample_op exit error %x",error);
         return (CBF_SUCCESS==error) ? 0 : -1;
     }
 
@@ -19207,7 +19241,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                 object = CBF_H5FAIL;
                                 /* The hdf5 handle now owns the group, process it */
                                 ++table->indent;
-                                if (H5Literate(group,H5_INDEX_NAME,H5_ITER_NATIVE,&idx,cbf_write_nx2cbf__instrument_op,op_data)<0) {
+                                if (H5Literate(group,H5_INDEX_NAME,H5_ITER_NATIVE,NULL,cbf_write_nx2cbf__instrument_op,op_data)<0) {
                                     cbf_debug_print3("error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
                                     error |= CBF_H5ERROR;
                                 }
@@ -19230,7 +19264,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                 object = CBF_H5FAIL;
                                 /* The hdf5 handle now owns the group, process it */
                                 ++table->indent;
-                                if (H5Literate(group,H5_INDEX_NAME,H5_ITER_NATIVE,&idx,cbf_write_nx2cbf__sample_op,op_data)<0) {
+                                if (H5Literate(group,H5_INDEX_NAME,H5_ITER_NATIVE,NULL,cbf_write_nx2cbf__sample_op,op_data)<0) {
                                     cbf_debug_print3("error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
                                     error |= CBF_H5ERROR;
                                 }
@@ -19528,7 +19562,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     find_data.searchName = NULL;
                     find_data.searchClass = class;
                     find_data.searchType = H5I_GROUP;
-                    err = H5Literate(entry,H5_INDEX_NAME,H5_ITER_INC,&idx,cbf_findObject_op,&find_data);
+                    err = H5Literate(entry,H5_INDEX_NAME,H5_ITER_INC,NULL,cbf_findObject_op,&find_data);
                     if (err < 0) {
                         cbf_debug_print2("error: problem while trying to find '*:%s'\n",class);
                         error |= CBF_H5ERROR;
@@ -19555,7 +19589,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     find_data.searchName = NULL;
                     find_data.searchClass = class;
                     find_data.searchType = H5I_GROUP;
-                    err = H5Literate(instrument,H5_INDEX_NAME,H5_ITER_INC,&idx,cbf_findObject_op,&find_data);
+                    err = H5Literate(instrument,H5_INDEX_NAME,H5_ITER_INC,NULL,cbf_findObject_op,&find_data);
                     if (err < 0) {
                         cbf_debug_print2("error: problem while trying to find '*:%s'\n",class);
                         error |= CBF_H5ERROR;
@@ -19585,7 +19619,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     find_data.searchName = name;
                     find_data.searchClass = NULL;
                     find_data.searchType = H5I_DATASET;
-                    err = H5Literate(detector,H5_INDEX_NAME,H5_ITER_INC,&idx,cbf_findObject_op,&find_data);
+                    err = H5Literate(detector,H5_INDEX_NAME,H5_ITER_INC,NULL,cbf_findObject_op,&find_data);
                     if (err < 0) {
                         cbf_debug_print2("error: problem while trying to find '%s' in NXdetector\n",name);
                         error |= CBF_H5ERROR;
@@ -20190,7 +20224,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     while (--len > 0) fputc('-',nx->logfile);
                     fputc('\n',nx->logfile);
         }
-                if (H5Literate(entry,H5_INDEX_NAME,H5_ITER_NATIVE,&idx,cbf_write_nx2cbf__entry_op,&op_data_struct)<0) {
+                if (H5Literate(entry,H5_INDEX_NAME,H5_ITER_NATIVE,NULL,cbf_write_nx2cbf__entry_op,&op_data_struct)<0) {
                     cbf_debug_print2("error: failed to iterate over items in the '%s' group\n",entry_name);
                     error |= CBF_H5ERROR;
                 }
