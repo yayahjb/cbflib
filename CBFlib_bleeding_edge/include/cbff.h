@@ -247,7 +247,7 @@
  * Crystallography                                                    *
  **********************************************************************/
 
-#ifdef  CBFF_H
+#ifndef CBFF_H
 #define CBFF_H
 
 #ifdef __cplusplus
@@ -273,7 +273,7 @@ extern "C" {
     /* Return the bit pattern of a cbf_handle as a size_t opaque
      handle */
     
-    size_t cbff_handle(cbf_handle cbfHandle));
+    size_t cbff_handle(cbf_handle cbfHandle);
     
     /* Return the cbf_handle for a size_t opaque
      handle */
@@ -283,7 +283,7 @@ extern "C" {
     /* Return the bit pattern of a goniometer as a size_t opaque
      handle */
     
-    size_t cbff_goniometer(cbf_goniometer cbfGoniometer);
+    size_t cbff_goniometer_handle(cbf_goniometer cbfGoniometer);
     
     /* Return the goniometer handle for a size_t opaque
      handle */
@@ -293,13 +293,18 @@ extern "C" {
     /* Return the bit pattern of a detector as a size_t opaque
      handle */
     
-    size_t cbff_detector(cbf_detector cbfDetector);
+    size_t cbff_detector_handle(cbf_detector cbfDetector);
     
     /* Return the detector handle for a size_t opaque
      handle */
     
-    cbf_detector cbff_cbf_detector(size_t CBFFdetector);
+    cbf_detector cbff_cbf_detector_handle(size_t CBFFdetector);
     
+    
+    /* Return the bit pattern of a node handle as a size_t opaque
+     handle */
+    
+    size_t cbff_cbf_node(cbf_node * cbfNode);
     
     /* Return the bit pattern of a node handle as a size_t opaque
      handle */
@@ -1016,6 +1021,15 @@ extern "C" {
                                        size_t * dimfast,
                                        size_t * padding);
     
+    /* Get the dimensions of the current (row, column) array entry
+     from the CBF tags */
+    
+    
+    int cbff_get_arraydimensions(size_t CBFFhandle,
+                                 size_t * dimover,
+                                 size_t * dimfast,
+                                 size_t * dimmid,
+                                 size_t * dimslow);
     
     /* Get the parameters of the current (row, column) integer array entry */
     
@@ -1268,26 +1282,21 @@ extern "C" {
      
     /* Issue a warning message */
     
-    void cbf_warning (const char *message);
+    void cbff_warning (const char *message);
     
     
     
     /* Issue an error message */
     
-    void cbf_error (const char *message);
+    void cbff_error (const char *message);
     
     
     
     /* issue a log message for a cbf */
     
-    void cbf_log (cbf_handle handle, const char *message, int logflags);
+    void cbff_log (size_t CBFFhandle, const char *message, int logflags);
     
 
-    /* issue a log message for a cbf_file */
-    
-    void cbf_flog (cbf_file * file, const char *message, int logflags);
-    
-    
     
     /* Find a datablock, creating it if necessary */
     
@@ -1360,7 +1369,7 @@ extern "C" {
     
     int cbff_get_dictionary(
                             size_t CBFFhandle,
-                            cbf_handle * dictionary);
+                            size_t * CBFFdictionary);
     
     
     /* Set the dictionary for a cbf */
@@ -1400,8 +1409,8 @@ extern "C" {
      has tables of a cbf dictionary */
     
     int cbff_convert_dictionary_definition(
-                                           size_t CBFFhandle,
-                                           size_t CBFFhandle,
+                                           size_t CBFFcbfdictionary,
+                                           size_t CBFFdictionary,
                                            const char * name);
     
     
@@ -1425,7 +1434,7 @@ extern "C" {
     /* Reset reference counts for a dictionary */
     
     int cbff_reset_refcounts(
-                             size_t CBFFhandle);
+                             size_t CBFFdictionar);
     
     
     
@@ -1433,7 +1442,7 @@ extern "C" {
     
     int cbff_convert_dictionary(
                                 size_t CBFFhandle,
-                                size_t CBFFhandle);
+                                size_t CBFFdictionary);
     
     
     
@@ -1457,7 +1466,7 @@ extern "C" {
     
     int cbff_srch_tag(
                       size_t CBFFhandle,
-                      cbf_node * node,
+                      size_t CBFFnode,
                       const char * categoryname,
                       const char * columnname);
     
@@ -1792,8 +1801,7 @@ extern "C" {
                             size_t CBFFhandle,
                             unsigned int element_number,
                             int axis_number,
-                            double psize){
-        return cbf_set_pixel_size;
+                            double psize);
     
     int cbff_set_pixel_size_fs(
                                size_t CBFFhandle,
@@ -2673,20 +2681,7 @@ extern "C" {
                                        size_t elsize,
                                        size_t ndimslow,
                                        size_t ndimmid,
-                                          size_t ndimfast){
-        return cbf_set_real_map_segment_mask(
-                                             cbff_cbf_handle(CBFFhandle),
-                                             reserved,
-                                             segment_id,
-                                             binary_id,
-                                             compression,
-                                             array,
-                                             elsize,
-                                             ndimslow,
-                                             ndimmid,
-                                             ndimfast);
-    }
-    
+                                       size_t ndimfast);
     
     int cbff_set_real_map_segment_mask_fs(
                                           size_t CBFFhandle,
@@ -2723,15 +2718,7 @@ extern "C" {
                                const char * array_id,
                                size_t * ndimslow,
                                size_t * ndimmid,
-                               size_t * ndimfast){
-        return cbf_get_3d_array_size(
-                                     cbff_cbf_handle(CBFFhandle),
-                                     reserved,
-                                     array_id,
-                                     ndimslow,
-                                     ndimmid,
-                                     ndimfast);
-    }
+                               size_t * ndimfast);
     
     
     int cbff_get_3d_array_size_fs(
@@ -2740,15 +2727,7 @@ extern "C" {
                                   const char * array_id,
                                   size_t * ndimfast,
                                   size_t * ndimmid,
-                                  size_t * ndimslow){
-        return cbf_get_3d_array_size(
-                                     cbff_cbf_handle(CBFFhandle),
-                                     reserved,
-                                     array_id,
-                                     ndimslow,
-                                     ndimmid,
-                                     ndimfast);
-    }
+                                  size_t * ndimslow);
     
     
     int cbff_get_3d_array_size_sf(
@@ -3167,28 +3146,14 @@ extern "C" {
                             double indexslow,
                             double indexfast,
                             double * area,
-                            double * projected_area){
-        return cbf_get_pixel_area(
-                                  cbff_cbf_detector(CBFFdetector),
-                                  indexslow,
-                                  indexfast,
-                                  area,
-                                  projected_area);
-    }
+                            double * projected_area);
 
     int cbff_get_pixel_area_fs(
                             size_t CBFFdetector,
                             double indexfast,
                             double indexslow,
                             double * area,
-                            double * projected_area){
-        return cbf_get_pixel_area(
-                                  cbff_cbf_detector(CBFFdetector),
-                                  indexslow,
-                                  indexfast,
-                                  area,
-                                  projected_area);
-    }
+                            double * projected_area);
 
     int cbff_get_pixel_area_sf(
                             size_t CBFFdetector,

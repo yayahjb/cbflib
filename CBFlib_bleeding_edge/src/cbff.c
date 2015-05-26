@@ -383,17 +383,17 @@ extern "C" {
                 strcpy(rstring,"CBF_UNDEFNODE"); break;                
         }
         length = strlen(rstring);
-        for (index = 0; index < length-start_nodetypestring+1
-             && index < end_nodetypestring-start_nodetypestring+1; index++) {
+        for (index = 0; index < (size_t)length-start_nodetypestring+1
+             && index < (size_t)end_nodetypestring-start_nodetypestring+1; index++) {
             nodetypestring[index] = rstring[index+start_nodetypestring-1];
         }
-        if (index < end_nodetypestring-start_nodetypestring+1) {
-            for (; index < end_nodetypestring-start_nodetypestring+1; index++) {
+        if (index < (size_t)end_nodetypestring-start_nodetypestring+1) {
+            for (; index < (size_t)end_nodetypestring-start_nodetypestring+1; index++) {
                 nodetypestring[index] = ' ';
             }
             *status_nodetypestring = 0; /* transfer complete */
         } else {
-            if (length > end_nodetypestring) {
+            if (length > (size_t)end_nodetypestring) {
                 *status_nodetypestring = 1; /* more to transfer */
             } else {
                 *status_nodetypestring = 0; /* transfer complete */
@@ -1157,20 +1157,20 @@ extern "C" {
                             size_t CBFFhandle,
                             char * copy_datablockname, size_t start_datablockname, size_t end_datablockname, int * status_datablockname){
         const char * datablockname;
-        int index;
-        int length;
+        size_t index;
+        size_t length;
         int errorcode;
         errorcode = cbf_datablock_name(
                                        cbff_cbf_handle(CBFFhandle),
                                        &datablockname);
         if (datablockname) {
             length = strlen(datablockname);
-            for (index = 0; index < length-start_datablockname+1
-                 && index < end_datablockname-start_datablockname+1; index++) {
+            for (index = 0; index < (size_t)length-start_datablockname+1
+                 && index < (size_t)end_datablockname-start_datablockname+1; index++) {
                 copy_datablockname[index] = datablockname[index+start_datablockname-1];
             }
-            if (index < end_datablockname-start_datablockname+1) {
-                for (; index < end_datablockname-start_datablockname+1; index++) {
+            if (index < (size_t)end_datablockname-start_datablockname+1) {
+                for (; index < (size_t)end_datablockname-start_datablockname+1; index++) {
                     copy_datablockname[index] = ' ';
                 }
                 *status_datablockname = 0; /* transfer complete */
@@ -1182,7 +1182,7 @@ extern "C" {
                 }
             }
         } else {
-            for (index = 0; index < end_datablockname-start_datablockname+1; index++) {
+            for (index = 0; index < (size_t)end_datablockname-start_datablockname+1; index++) {
                 copy_datablockname[index] = ' ';
             }
             *status_datablockname = -1; /* null string case */
@@ -1197,20 +1197,20 @@ extern "C" {
                             size_t CBFFhandle,
                             char * copy_saveframename, size_t start_saveframename, size_t end_saveframename, int * status_saveframename){
         const char * saveframename;
-        int index;
-        int length;
+        size_t index;
+        size_t length;
         int errorcode;
         errorcode = cbf_saveframe_name(
                                        cbff_cbf_handle(CBFFhandle),
                                        &saveframename);
         if (saveframename) {
             length = strlen(saveframename);
-            for (index = 0; index < length-start_saveframename+1
-                 && index < end_saveframename-start_saveframename+1; index++) {
+            for (index = 0; index < (size_t)length-start_saveframename+1
+                 && index < (size_t)end_saveframename-start_saveframename+1; index++) {
                 copy_saveframename[index] = saveframename[index+start_saveframename-1];
             }
-            if (index < end_saveframename-start_saveframename+1) {
-                for (; index < end_saveframename-start_saveframename+1; index++) {
+            if (index < (size_t)end_saveframename-start_saveframename+1) {
+                for (; index < (size_t)end_saveframename-start_saveframename+1; index++) {
                     copy_saveframename[index] = ' ';
                 }
                 *status_saveframename = 0; /* transfer complete */
@@ -1222,7 +1222,7 @@ extern "C" {
                 }
             }
         } else {
-            for (index = 0; index < end_saveframename-start_saveframename+1; index++) {
+            for (index = 0; index < (size_t)end_saveframename-start_saveframename+1; index++) {
                 copy_saveframename[index] = ' ';
             }
             *status_saveframename = -1; /* null string case */
@@ -1237,20 +1237,20 @@ extern "C" {
                            size_t CBFFhandle,
                            char * copy_categoryname, size_t start_categoryname, size_t end_categoryname, int * status_categoryname){
         const char * categoryname;
-        int index;
-        int length;
+        size_t index;
+        size_t length;
         int errorcode;
         errorcode = cbf_category_name(
                                       cbff_cbf_handle(CBFFhandle),
                                       &categoryname);
         if (categoryname) {
             length = strlen(categoryname);
-            for (index = 0; index < length-start_categoryname+1
-                 && index < end_categoryname-start_categoryname+1; index++) {
+            for (index = 0; index < (size_t)length-start_categoryname+1
+                 && index < (size_t)end_categoryname-start_categoryname+1; index++) {
                 copy_categoryname[index] = categoryname[index+start_categoryname-1];
             }
-            if (index < end_categoryname-start_categoryname+1) {
-                for (; index < end_categoryname-start_categoryname+1; index++) {
+            if (index < (size_t)end_categoryname-start_categoryname+1) {
+                for (; index < (size_t)end_categoryname-start_categoryname+1; index++) {
                     copy_categoryname[index] = ' ';
                 }
                 *status_categoryname = 0; /* transfer complete */
@@ -1262,7 +1262,7 @@ extern "C" {
                 }
             }
         } else {
-            for (index = 0; index < end_categoryname-start_categoryname+1; index++) {
+            for (index = 0; index < (size_t)end_categoryname-start_categoryname+1; index++) {
                 copy_categoryname[index] = ' ';
             }
             *status_categoryname = -1; /* null string case */
@@ -1278,20 +1278,20 @@ extern "C" {
                          size_t CBFFhandle,
                          char * copy_columnname, size_t start_columnname, size_t end_columnname, int * status_columnname){
         const char * columnname;
-        int index;
-        int length;
+        size_t index;
+        size_t length;
         int errorcode;
         errorcode = cbf_column_name(
                                     cbff_cbf_handle(CBFFhandle),
                                     &columnname);
         if (columnname) {
             length = strlen(columnname);
-            for (index = 0; index < length-start_columnname+1
-                 && index < end_columnname-start_columnname+1; index++) {
+            for (index = 0; index < (size_t)length-start_columnname+1
+                 && index < (size_t)end_columnname-start_columnname+1; index++) {
                 copy_columnname[index] = columnname[index+start_columnname-1];
             }
-            if (index < end_columnname-start_columnname+1) {
-                for (; index < end_columnname-start_columnname+1; index++) {
+            if (index < (size_t)end_columnname-start_columnname+1) {
+                for (; index < (size_t)end_columnname-start_columnname+1; index++) {
                     copy_columnname[index] = ' ';
                 }
                 *status_columnname = 0; /* transfer complete */
@@ -1303,7 +1303,7 @@ extern "C" {
                 }
             }
         } else {
-            for (index = 0; index < end_columnname-start_columnname+1; index++) {
+            for (index = 0; index < (size_t)end_columnname-start_columnname+1; index++) {
                 copy_columnname[index] = ' ';
             }
             *status_columnname = -1; /* null string case */
@@ -1355,20 +1355,20 @@ extern "C" {
                        size_t CBFFhandle,
                        char * copy_value, size_t start_value, size_t end_value, int * status_value){
         const char * value;
-        int index;
-        int length;
+        size_t index;
+        size_t length;
         int errorcode;
         errorcode = cbf_get_value(
                                   cbff_cbf_handle(CBFFhandle),
                                   &value);
         if (value) {
             length = strlen(value);
-            for (index = 0; index < length-start_value+1
-                 && index < end_value-start_value+1; index++) {
+            for (index = 0; index < (size_t)length-start_value+1
+                 && index < (size_t)end_value-start_value+1; index++) {
                 copy_value[index] = value[index+start_value-1];
             }
-            if (index < end_value-start_value+1) {
-                for (; index < end_value-start_value+1; index++) {
+            if (index < (size_t)end_value-start_value+1) {
+                for (; index < (size_t)end_value-start_value+1; index++) {
                     copy_value[index] = ' ';
                 }
                 *status_value = 0; /* transfer complete */
@@ -1380,7 +1380,7 @@ extern "C" {
                 }
             }
         } else {
-            for (index = 0; index < end_value-start_value+1; index++) {
+            for (index = 0; index < (size_t)end_value-start_value+1; index++) {
                 copy_value[index] = ' ';
             }
             *status_value = -1; /* null string case */
@@ -1409,8 +1409,8 @@ extern "C" {
                            char * copy_value, size_t start_value, size_t end_value, int * status_value,
                            const char * defaultvalue){
         const char * value;
-        int index;
-        int length;
+        size_t index;
+        size_t length;
         int errorcode;
         errorcode = cbf_require_value(
                                       cbff_cbf_handle(CBFFhandle),
@@ -1418,12 +1418,12 @@ extern "C" {
                                       defaultvalue);
         if (value) {
             length = strlen(value);
-            for (index = 0; index < length-start_value+1
-                 && index < end_value-start_value+1; index++) {
+            for (index = 0; index < (size_t)length-start_value+1
+                 && index < (size_t)end_value-start_value+1; index++) {
                 copy_value[index] = value[index+start_value-1];
             }
-            if (index < end_value-start_value+1) {
-                for (; index < end_value-start_value+1; index++) {
+            if (index < (size_t)end_value-start_value+1) {
+                for (; index < (size_t)end_value-start_value+1; index++) {
                     copy_value[index] = ' ';
                 }
                 *status_value = 0; /* transfer complete */
@@ -1435,7 +1435,7 @@ extern "C" {
                 }
             }
         } else {
-            for (index = 0; index < end_value-start_value+1; index++) {
+            for (index = 0; index < (size_t)end_value-start_value+1; index++) {
                 copy_value[index] = ' ';
             }
             *status_value = -1; /* null string case */
@@ -1452,20 +1452,20 @@ extern "C" {
                              size_t CBFFhandle,
                              char * copy_typeofvalue, size_t start_typeofvalue, size_t end_typeofvalue, int * status_typeofvalue){
         const char * typeofvalue;
-        int index;
-        int length;
+        size_t index;
+        size_t length;
         int errorcode;
         errorcode = cbf_get_typeofvalue(
                                         cbff_cbf_handle(CBFFhandle),
                                         &typeofvalue);
         if (typeofvalue) {
             length = strlen(typeofvalue);
-            for (index = 0; index < length-start_typeofvalue+1
-                 && index < end_typeofvalue-start_typeofvalue+1; index++) {
+            for (index = 0; index < (size_t)length-start_typeofvalue+1
+                 && index < (size_t)end_typeofvalue-start_typeofvalue+1; index++) {
                 copy_typeofvalue[index] = typeofvalue[index+start_typeofvalue-1];
             }
-            if (index < end_typeofvalue-start_typeofvalue+1) {
-                for (; index < end_typeofvalue-start_typeofvalue+1; index++) {
+            if (index < (size_t)end_typeofvalue-start_typeofvalue+1) {
+                for (; index < (size_t)end_typeofvalue-start_typeofvalue+1; index++) {
                     copy_typeofvalue[index] = ' ';
                 }
                 *status_typeofvalue = 0; /* transfer complete */
@@ -1477,7 +1477,7 @@ extern "C" {
                 }
             }
         } else {
-            for (index = 0; index < end_typeofvalue-start_typeofvalue+1; index++) {
+            for (index = 0; index < (size_t)end_typeofvalue-start_typeofvalue+1; index++) {
                 copy_typeofvalue[index] = ' ';
             }
             *status_typeofvalue = -1; /* null string case */
@@ -1623,8 +1623,8 @@ extern "C" {
                                        size_t * dimslow,
                                        size_t * padding){
         const char * byteorder;
-        int index;
-        int length;
+        size_t index;
+        size_t length;
         int errorcode;
         errorcode = cbf_get_arrayparameters_wdims(
                                                   cbff_cbf_handle(CBFFhandle),
@@ -1644,12 +1644,12 @@ extern "C" {
                                                   padding);
         if (byteorder) {
             length = strlen(byteorder);
-            for (index = 0; index < length-start_byteorder+1
-                 && index < end_byteorder-start_byteorder+1; index++) {
+            for (index = 0; index < (size_t)length-start_byteorder+1
+                 && index < (size_t)end_byteorder-start_byteorder+1; index++) {
                 copy_byteorder[index] = byteorder[index+start_byteorder-1];
             }
-            if (index < end_byteorder-start_byteorder+1) {
-                for (; index < end_byteorder-start_byteorder+1; index++) {
+            if (index < (size_t)end_byteorder-start_byteorder+1) {
+                for (; index < (size_t)end_byteorder-start_byteorder+1; index++) {
                     copy_byteorder[index] = ' ';
                 }
                 *status_byteorder = 0; /* transfer complete */
@@ -1661,7 +1661,7 @@ extern "C" {
                 }
             }
         } else {
-            for (index = 0; index < end_byteorder-start_byteorder+1; index++) {
+            for (index = 0; index < (size_t)end_byteorder-start_byteorder+1; index++) {
                 copy_byteorder[index] = ' ';
             }
             *status_byteorder = -1; /* null string case */
@@ -1686,8 +1686,8 @@ extern "C" {
                                           size_t * dimslow,
                                           size_t * padding){
         const char * byteorder;
-        int index;
-        int length;
+        size_t index;
+        size_t length;
         int errorcode;
         errorcode = cbf_get_arrayparameters_wdims(
                                                   cbff_cbf_handle(CBFFhandle),
@@ -1707,12 +1707,12 @@ extern "C" {
                                                   padding);
         if (byteorder) {
             length = strlen(byteorder);
-            for (index = 0; index < length-start_byteorder+1
-                 && index < end_byteorder-start_byteorder+1; index++) {
+            for (index = 0; index < (size_t)length-start_byteorder+1
+                 && index < (size_t)end_byteorder-start_byteorder+1; index++) {
                 copy_byteorder[index] = byteorder[index+start_byteorder-1];
             }
-            if (index < end_byteorder-start_byteorder+1) {
-                for (; index < end_byteorder-start_byteorder+1; index++) {
+            if (index < (size_t)end_byteorder-start_byteorder+1) {
+                for (; index < (size_t)end_byteorder-start_byteorder+1; index++) {
                     copy_byteorder[index] = ' ';
                 }
                 *status_byteorder = 0; /* transfer complete */
@@ -1724,7 +1724,7 @@ extern "C" {
                 }
             }
         } else {
-            for (index = 0; index < end_byteorder-start_byteorder+1; index++) {
+            for (index = 0; index < (size_t)end_byteorder-start_byteorder+1; index++) {
                 copy_byteorder[index] = ' ';
             }
             *status_byteorder = -1; /* null string case */
@@ -1749,8 +1749,8 @@ extern "C" {
                                           size_t * dimfast,
                                           size_t * padding){
         const char * byteorder;
-        int index;
-        int length;
+        size_t index;
+        size_t length;
         int errorcode;
         errorcode = cbf_get_arrayparameters_wdims(
                                                   cbff_cbf_handle(CBFFhandle),
@@ -1770,12 +1770,12 @@ extern "C" {
                                                   padding);
         if (byteorder) {
             length = strlen(byteorder);
-            for (index = 0; index < length-start_byteorder+1
-                 && index < end_byteorder-start_byteorder+1; index++) {
+            for (index = 0; index < (size_t)length-start_byteorder+1
+                 && index < (size_t)end_byteorder-start_byteorder+1; index++) {
                 copy_byteorder[index] = byteorder[index+start_byteorder-1];
             }
-            if (index < end_byteorder-start_byteorder+1) {
-                for (; index < end_byteorder-start_byteorder+1; index++) {
+            if (index < (size_t)end_byteorder-start_byteorder+1) {
+                for (; index < (size_t)end_byteorder-start_byteorder+1; index++) {
                     copy_byteorder[index] = ' ';
                 }
                 *status_byteorder = 0; /* transfer complete */
@@ -1787,7 +1787,7 @@ extern "C" {
                 }
             }
         } else {
-            for (index = 0; index < end_byteorder-start_byteorder+1; index++) {
+            for (index = 0; index < (size_t)end_byteorder-start_byteorder+1; index++) {
                 copy_byteorder[index] = ' ';
             }
             *status_byteorder = -1; /* null string case */
@@ -1857,8 +1857,8 @@ extern "C" {
                                               size_t * dimslow,
                                               size_t * padding){
         const char * byteorder;
-        int index;
-        int length;
+        size_t index;
+        size_t length;
         int errorcode;
         errorcode = cbf_get_integerarrayparameters_wdims(
                                                          cbff_cbf_handle(CBFFhandle),
@@ -1877,12 +1877,12 @@ extern "C" {
                                                          padding);
         if (byteorder) {
             length = strlen(byteorder);
-            for (index = 0; index < length-start_byteorder+1
-                 && index < end_byteorder-start_byteorder+1; index++) {
+            for (index = 0; index < (size_t)length-start_byteorder+1
+                 && index < (size_t)end_byteorder-start_byteorder+1; index++) {
                 copy_byteorder[index] = byteorder[index+start_byteorder-1];
             }
-            if (index < end_byteorder-start_byteorder+1) {
-                for (; index < end_byteorder-start_byteorder+1; index++) {
+            if (index < (size_t)end_byteorder-start_byteorder+1) {
+                for (; index < (size_t)end_byteorder-start_byteorder+1; index++) {
                     copy_byteorder[index] = ' ';
                 }
                 *status_byteorder = 0; /* transfer complete */
@@ -1894,7 +1894,7 @@ extern "C" {
                 }
             }
         } else {
-            for (index = 0; index < end_byteorder-start_byteorder+1; index++) {
+            for (index = 0; index < (size_t)end_byteorder-start_byteorder+1; index++) {
                 copy_byteorder[index] = ' ';
             }
             *status_byteorder = -1; /* null string case */
@@ -1918,8 +1918,8 @@ extern "C" {
                                                  size_t * dimslow,
                                                  size_t * padding){
         const char * byteorder;
-        int index;
-        int length;
+        size_t index;
+        size_t length;
         int errorcode;
         errorcode = cbf_get_integerarrayparameters_wdims(
                                                          cbff_cbf_handle(CBFFhandle),
@@ -1938,12 +1938,12 @@ extern "C" {
                                                          padding);
         if (byteorder) {
             length = strlen(byteorder);
-            for (index = 0; index < length-start_byteorder+1
-                 && index < end_byteorder-start_byteorder+1; index++) {
+            for (index = 0; index < (size_t)length-start_byteorder+1
+                 && index < (size_t)end_byteorder-start_byteorder+1; index++) {
                 copy_byteorder[index] = byteorder[index+start_byteorder-1];
             }
-            if (index < end_byteorder-start_byteorder+1) {
-                for (; index < end_byteorder-start_byteorder+1; index++) {
+            if (index < (size_t)end_byteorder-start_byteorder+1) {
+                for (; index < (size_t)end_byteorder-start_byteorder+1; index++) {
                     copy_byteorder[index] = ' ';
                 }
                 *status_byteorder = 0; /* transfer complete */
@@ -1955,7 +1955,7 @@ extern "C" {
                 }
             }
         } else {
-            for (index = 0; index < end_byteorder-start_byteorder+1; index++) {
+            for (index = 0; index < (size_t)end_byteorder-start_byteorder+1; index++) {
                 copy_byteorder[index] = ' ';
             }
             *status_byteorder = -1; /* null string case */
@@ -1979,8 +1979,8 @@ extern "C" {
                                                  size_t * dimfast,
                                                  size_t * padding){
         const char * byteorder;
-        int index;
-        int length;
+        size_t index;
+        size_t length;
         int errorcode;
         errorcode = cbf_get_integerarrayparameters_wdims(
                                                          cbff_cbf_handle(CBFFhandle),
@@ -1999,12 +1999,12 @@ extern "C" {
                                                          padding);
         if (byteorder) {
             length = strlen(byteorder);
-            for (index = 0; index < length-start_byteorder+1
-                 && index < end_byteorder-start_byteorder+1; index++) {
+            for (index = 0; index < (size_t)length-start_byteorder+1
+                 && index < (size_t)end_byteorder-start_byteorder+1; index++) {
                 copy_byteorder[index] = byteorder[index+start_byteorder-1];
             }
-            if (index < end_byteorder-start_byteorder+1) {
-                for (; index < end_byteorder-start_byteorder+1; index++) {
+            if (index < (size_t)end_byteorder-start_byteorder+1) {
+                for (; index < (size_t)end_byteorder-start_byteorder+1; index++) {
                     copy_byteorder[index] = ' ';
                 }
                 *status_byteorder = 0; /* transfer complete */
@@ -2016,7 +2016,7 @@ extern "C" {
                 }
             }
         } else {
-            for (index = 0; index < end_byteorder-start_byteorder+1; index++) {
+            for (index = 0; index < (size_t)end_byteorder-start_byteorder+1; index++) {
                 copy_byteorder[index] = ' ';
             }
             *status_byteorder = -1; /* null string case */
@@ -2096,8 +2096,8 @@ extern "C" {
                                            size_t * dimslow,
                                            size_t * padding){
         const char * byteorder;
-        int index;
-        int length;
+        size_t index;
+        size_t length;
         int errorcode;
         errorcode = cbf_get_realarrayparameters_wdims(
                                                       cbff_cbf_handle(CBFFhandle),
@@ -2112,12 +2112,12 @@ extern "C" {
                                                       padding);
         if (byteorder) {
             length = strlen(byteorder);
-            for (index = 0; index < length-start_byteorder+1
-                 && index < end_byteorder-start_byteorder+1; index++) {
+            for (index = 0; index < (size_t)length-start_byteorder+1
+                 && index < (size_t)end_byteorder-start_byteorder+1; index++) {
                 copy_byteorder[index] = byteorder[index+start_byteorder-1];
             }
-            if (index < end_byteorder-start_byteorder+1) {
-                for (; index < end_byteorder-start_byteorder+1; index++) {
+            if (index < (size_t)end_byteorder-start_byteorder+1) {
+                for (; index < (size_t)end_byteorder-start_byteorder+1; index++) {
                     copy_byteorder[index] = ' ';
                 }
                 *status_byteorder = 0; /* transfer complete */
@@ -2129,7 +2129,7 @@ extern "C" {
                 }
             }
         } else {
-            for (index = 0; index < end_byteorder-start_byteorder+1; index++) {
+            for (index = 0; index < (size_t)end_byteorder-start_byteorder+1; index++) {
                 copy_byteorder[index] = ' ';
             }
             *status_byteorder = -1; /* null string case */
@@ -2149,8 +2149,8 @@ extern "C" {
                                               size_t * dimslow,
                                               size_t * padding){
         const char * byteorder;
-        int index;
-        int length;
+        size_t index;
+        size_t length;
         int errorcode;
         errorcode = cbf_get_realarrayparameters_wdims(
                                                       cbff_cbf_handle(CBFFhandle),
@@ -2165,12 +2165,12 @@ extern "C" {
                                                       padding);
         if (byteorder) {
             length = strlen(byteorder);
-            for (index = 0; index < length-start_byteorder+1
-                 && index < end_byteorder-start_byteorder+1; index++) {
+            for (index = 0; index < (size_t)length-start_byteorder+1
+                 && index < (size_t)end_byteorder-start_byteorder+1; index++) {
                 copy_byteorder[index] = byteorder[index+start_byteorder-1];
             }
-            if (index < end_byteorder-start_byteorder+1) {
-                for (; index < end_byteorder-start_byteorder+1; index++) {
+            if (index < (size_t)end_byteorder-start_byteorder+1) {
+                for (; index < (size_t)end_byteorder-start_byteorder+1; index++) {
                     copy_byteorder[index] = ' ';
                 }
                 *status_byteorder = 0; /* transfer complete */
@@ -2182,7 +2182,7 @@ extern "C" {
                 }
             }
         } else {
-            for (index = 0; index < end_byteorder-start_byteorder+1; index++) {
+            for (index = 0; index < (size_t)end_byteorder-start_byteorder+1; index++) {
                 copy_byteorder[index] = ' ';
             }
             *status_byteorder = -1; /* null string case */
@@ -2202,8 +2202,8 @@ extern "C" {
                                               size_t * dimfast,
                                               size_t * padding){
         const char * byteorder;
-        int index;
-        int length;
+        size_t index;
+        size_t length;
         int errorcode;
         errorcode = cbf_get_realarrayparameters_wdims(
                                                       cbff_cbf_handle(CBFFhandle),
@@ -2218,12 +2218,12 @@ extern "C" {
                                                       padding);
         if (byteorder) {
             length = strlen(byteorder);
-            for (index = 0; index < length-start_byteorder+1
-                 && index < end_byteorder-start_byteorder+1; index++) {
+            for (index = 0; index < (size_t)length-start_byteorder+1
+                 && index < (size_t)end_byteorder-start_byteorder+1; index++) {
                 copy_byteorder[index] = byteorder[index+start_byteorder-1];
             }
-            if (index < end_byteorder-start_byteorder+1) {
-                for (; index < end_byteorder-start_byteorder+1; index++) {
+            if (index < (size_t)end_byteorder-start_byteorder+1) {
+                for (; index < (size_t)end_byteorder-start_byteorder+1; index++) {
                     copy_byteorder[index] = ' ';
                 }
                 *status_byteorder = 0; /* transfer complete */
@@ -2235,7 +2235,7 @@ extern "C" {
                 }
             }
         } else {
-            for (index = 0; index < end_byteorder-start_byteorder+1; index++) {
+            for (index = 0; index < (size_t)end_byteorder-start_byteorder+1; index++) {
                 copy_byteorder[index] = ' ';
             }
             *status_byteorder = -1; /* null string case */
@@ -2517,8 +2517,8 @@ extern "C" {
                                   char * copy_value, size_t start_value, size_t end_value, int * status_value,
                                   const char * defaultvalue){
         const char * value;
-        int index;
-        int length;
+        size_t index;
+        size_t length;
         int errorcode;
         errorcode = cbf_require_column_value(
                                              cbff_cbf_handle(CBFFhandle),
@@ -2527,12 +2527,12 @@ extern "C" {
                                              defaultvalue);
         if (value) {
             length = strlen(value);
-            for (index = 0; index < length-start_value+1
-                 && index < end_value-start_value+1; index++) {
+            for (index = 0; index < (size_t)length-start_value+1
+                 && index < (size_t)end_value-start_value+1; index++) {
                 copy_value[index] = value[index+start_value-1];
             }
-            if (index < end_value-start_value+1) {
-                for (; index < end_value-start_value+1; index++) {
+            if (index < (size_t)end_value-start_value+1) {
+                for (; index < (size_t)end_value-start_value+1; index++) {
                     copy_value[index] = ' ';
                 }
                 *status_value = 0; /* transfer complete */
@@ -2544,7 +2544,7 @@ extern "C" {
                 }
             }
         } else {
-            for (index = 0; index < end_value-start_value+1; index++) {
+            for (index = 0; index < (size_t)end_value-start_value+1; index++) {
                 copy_value[index] = ' ';
             }
             *status_value = -1; /* null string case */
@@ -2588,19 +2588,19 @@ extern "C" {
     int cbff_get_local_integer_byte_order(
                                           char * copy_byte_order, size_t start_byte_order, size_t end_byte_order, int * status_byte_order){
         char * byte_order;
-        int index;
-        int length;
+        size_t index;
+        size_t length;
         int errorcode;
         errorcode = cbf_get_local_integer_byte_order(
                                                      &byte_order);
         if (byte_order) {
             length = strlen(byte_order);
-            for (index = 0; index < length-start_byte_order+1
-                 && index < end_byte_order-start_byte_order+1; index++) {
+            for (index = 0; index < (size_t)length-start_byte_order+1
+                 && index < (size_t)end_byte_order-start_byte_order+1; index++) {
                 copy_byte_order[index] = byte_order[index+start_byte_order-1];
             }
-            if (index < end_byte_order-start_byte_order+1) {
-                for (; index < end_byte_order-start_byte_order+1; index++) {
+            if (index < (size_t)end_byte_order-start_byte_order+1) {
+                for (; index < (size_t)end_byte_order-start_byte_order+1; index++) {
                     copy_byte_order[index] = ' ';
                 }
                 *status_byte_order = 0; /* transfer complete */
@@ -2612,7 +2612,7 @@ extern "C" {
                 }
             }
         } else {
-            for (index = 0; index < end_byte_order-start_byte_order+1; index++) {
+            for (index = 0; index < (size_t)end_byte_order-start_byte_order+1; index++) {
                 copy_byte_order[index] = ' ';
             }
             *status_byte_order = -1; /* null string case */
@@ -2626,19 +2626,19 @@ extern "C" {
     int cbff_get_local_real_byte_order(
                                        char * copy_byte_order, size_t start_byte_order, size_t end_byte_order, int * status_byte_order){
         char * byte_order;
-        int index;
-        int length;
+        size_t index;
+        size_t length;
         int errorcode;
         errorcode = cbf_get_local_real_byte_order(
                                                   &byte_order);
         if (byte_order) {
             length = strlen(byte_order);
-            for (index = 0; index < length-start_byte_order+1
-                 && index < end_byte_order-start_byte_order+1; index++) {
+            for (index = 0; index < (size_t)length-start_byte_order+1
+                 && index < (size_t)end_byte_order-start_byte_order+1; index++) {
                 copy_byte_order[index] = byte_order[index+start_byte_order-1];
             }
-            if (index < end_byte_order-start_byte_order+1) {
-                for (; index < end_byte_order-start_byte_order+1; index++) {
+            if (index < (size_t)end_byte_order-start_byte_order+1) {
+                for (; index < (size_t)end_byte_order-start_byte_order+1; index++) {
                     copy_byte_order[index] = ' ';
                 }
                 *status_byte_order = 0; /* transfer complete */
@@ -2650,7 +2650,7 @@ extern "C" {
                 }
             }
         } else {
-            for (index = 0; index < end_byte_order-start_byte_order+1; index++) {
+            for (index = 0; index < (size_t)end_byte_order-start_byte_order+1; index++) {
                 copy_byte_order[index] = ' ';
             }
             *status_byte_order = -1; /* null string case */
@@ -2664,19 +2664,19 @@ extern "C" {
     int cbff_get_local_real_format(
                                    char * copy_real_format, size_t start_real_format, size_t end_real_format, int * status_real_format){
         char * real_format;
-        int index;
-        int length;
+        size_t index;
+        size_t length;
         int errorcode;
         errorcode = cbf_get_local_real_format(
                                               &real_format);
         if (real_format) {
             length = strlen(real_format);
-            for (index = 0; index < length-start_real_format+1
-                 && index < end_real_format-start_real_format+1; index++) {
+            for (index = 0; index < (size_t)length-start_real_format+1
+                 && index < (size_t)end_real_format-start_real_format+1; index++) {
                 copy_real_format[index] = real_format[index+start_real_format-1];
             }
-            if (index < end_real_format-start_real_format+1) {
-                for (; index < end_real_format-start_real_format+1; index++) {
+            if (index < (size_t)end_real_format-start_real_format+1) {
+                for (; index < (size_t)end_real_format-start_real_format+1; index++) {
                     copy_real_format[index] = ' ';
                 }
                 *status_real_format = 0; /* transfer complete */
@@ -2688,7 +2688,7 @@ extern "C" {
                 }
             }
         } else {
-            for (index = 0; index < end_real_format-start_real_format+1; index++) {
+            for (index = 0; index < (size_t)end_real_format-start_real_format+1; index++) {
                 copy_real_format[index] = ' ';
             }
             *status_real_format = -1; /* null string case */
@@ -2877,8 +2877,8 @@ extern "C" {
                                 const char* categoryname,
                                 char * copy_categoryroot, size_t start_categoryroot, size_t end_categoryroot, int * status_categoryroot){
         const char * categoryroot;
-        int index;
-        int length;
+        size_t index;
+        size_t length;
         int errorcode;
         errorcode = cbf_find_category_root(
                                            cbff_cbf_handle(CBFFhandle),
@@ -2886,12 +2886,12 @@ extern "C" {
                                            &categoryroot);
         if (categoryroot) {
             length = strlen(categoryroot);
-            for (index = 0; index < length-start_categoryroot+1
-                 && index < end_categoryroot-start_categoryroot+1; index++) {
+            for (index = 0; index < (size_t)length-start_categoryroot+1
+                 && index < (size_t)end_categoryroot-start_categoryroot+1; index++) {
                 copy_categoryroot[index] = categoryroot[index+start_categoryroot-1];
             }
-            if (index < end_categoryroot-start_categoryroot+1) {
-                for (; index < end_categoryroot-start_categoryroot+1; index++) {
+            if (index < (size_t)end_categoryroot-start_categoryroot+1) {
+                for (; index < (size_t)end_categoryroot-start_categoryroot+1; index++) {
                     copy_categoryroot[index] = ' ';
                 }
                 *status_categoryroot = 0; /* transfer complete */
@@ -2903,7 +2903,7 @@ extern "C" {
                 }
             }
         } else {
-            for (index = 0; index < end_categoryroot-start_categoryroot+1; index++) {
+            for (index = 0; index < (size_t)end_categoryroot-start_categoryroot+1; index++) {
                 copy_categoryroot[index] = ' ';
             }
             *status_categoryroot = -1; /* null string case */
@@ -2919,8 +2919,8 @@ extern "C" {
                                    const char* categoryname,
                                    char * copy_categoryroot, size_t start_categoryroot, size_t end_categoryroot, int * status_categoryroot){
         const char * categoryroot;
-        int index;
-        int length;
+        size_t index;
+        size_t length;
         int errorcode;
         errorcode = cbf_require_category_root(
                                               cbff_cbf_handle(CBFFhandle),
@@ -2928,12 +2928,12 @@ extern "C" {
                                               &categoryroot);
         if (categoryroot) {
             length = strlen(categoryroot);
-            for (index = 0; index < length-start_categoryroot+1
-                 && index < end_categoryroot-start_categoryroot+1; index++) {
+            for (index = 0; index < (size_t)length-start_categoryroot+1
+                 && index < (size_t)end_categoryroot-start_categoryroot+1; index++) {
                 copy_categoryroot[index] = categoryroot[index+start_categoryroot-1];
             }
-            if (index < end_categoryroot-start_categoryroot+1) {
-                for (; index < end_categoryroot-start_categoryroot+1; index++) {
+            if (index < (size_t)end_categoryroot-start_categoryroot+1) {
+                for (; index < (size_t)end_categoryroot-start_categoryroot+1; index++) {
                     copy_categoryroot[index] = ' ';
                 }
                 *status_categoryroot = 0; /* transfer complete */
@@ -2945,7 +2945,7 @@ extern "C" {
                 }
             }
         } else {
-            for (index = 0; index < end_categoryroot-start_categoryroot+1; index++) {
+            for (index = 0; index < (size_t)end_categoryroot-start_categoryroot+1; index++) {
                 copy_categoryroot[index] = ' ';
             }
             *status_categoryroot = -1; /* null string case */
@@ -2974,8 +2974,8 @@ extern "C" {
                            const char* tagname,
                            char * copy_tagroot, size_t start_tagroot, size_t end_tagroot, int * status_tagroot){
         const char * tagroot;
-        int index;
-        int length;
+        size_t index;
+        size_t length;
         int errorcode;
         errorcode = cbf_find_tag_root(
                                       cbff_cbf_handle(CBFFhandle),
@@ -2983,12 +2983,12 @@ extern "C" {
                                       &tagroot);
         if (tagroot) {
             length = strlen(tagroot);
-            for (index = 0; index < length-start_tagroot+1
-                 && index < end_tagroot-start_tagroot+1; index++) {
+            for (index = 0; index < (size_t)length-start_tagroot+1
+                 && index < (size_t)end_tagroot-start_tagroot+1; index++) {
                 copy_tagroot[index] = tagroot[index+start_tagroot-1];
             }
-            if (index < end_tagroot-start_tagroot+1) {
-                for (; index < end_tagroot-start_tagroot+1; index++) {
+            if (index < (size_t)end_tagroot-start_tagroot+1) {
+                for (; index < (size_t)end_tagroot-start_tagroot+1; index++) {
                     copy_tagroot[index] = ' ';
                 }
                 *status_tagroot = 0; /* transfer complete */
@@ -3000,7 +3000,7 @@ extern "C" {
                 }
             }
         } else {
-            for (index = 0; index < end_tagroot-start_tagroot+1; index++) {
+            for (index = 0; index < (size_t)end_tagroot-start_tagroot+1; index++) {
                 copy_tagroot[index] = ' ';
             }
             *status_tagroot = -1; /* null string case */
@@ -3016,8 +3016,8 @@ extern "C" {
                               const char* tagname,
                               char * copy_tagroot, size_t start_tagroot, size_t end_tagroot, int * status_tagroot){
         const char * tagroot;
-        int index;
-        int length;
+        size_t index;
+        size_t length;
         int errorcode;
         errorcode = cbf_require_tag_root(
                                          cbff_cbf_handle(CBFFhandle),
@@ -3025,12 +3025,12 @@ extern "C" {
                                          &tagroot);
         if (tagroot) {
             length = strlen(tagroot);
-            for (index = 0; index < length-start_tagroot+1
-                 && index < end_tagroot-start_tagroot+1; index++) {
+            for (index = 0; index < (size_t)length-start_tagroot+1
+                 && index < (size_t)end_tagroot-start_tagroot+1; index++) {
                 copy_tagroot[index] = tagroot[index+start_tagroot-1];
             }
-            if (index < end_tagroot-start_tagroot+1) {
-                for (; index < end_tagroot-start_tagroot+1; index++) {
+            if (index < (size_t)end_tagroot-start_tagroot+1) {
+                for (; index < (size_t)end_tagroot-start_tagroot+1; index++) {
                     copy_tagroot[index] = ' ';
                 }
                 *status_tagroot = 0; /* transfer complete */
@@ -3042,7 +3042,7 @@ extern "C" {
                 }
             }
         } else {
-            for (index = 0; index < end_tagroot-start_tagroot+1; index++) {
+            for (index = 0; index < (size_t)end_tagroot-start_tagroot+1; index++) {
                 copy_tagroot[index] = ' ';
             }
             *status_tagroot = -1; /* null string case */
@@ -3071,8 +3071,8 @@ extern "C" {
                                const char* tagname,
                                char * copy_categoryname, size_t start_categoryname, size_t end_categoryname, int * status_categoryname){
         const char * categoryname;
-        int index;
-        int length;
+        size_t index;
+        size_t length;
         int errorcode;
         errorcode = cbf_find_tag_category(
                                           cbff_cbf_handle(CBFFhandle),
@@ -3080,12 +3080,12 @@ extern "C" {
                                           &categoryname);
         if (categoryname) {
             length = strlen(categoryname);
-            for (index = 0; index < length-start_categoryname+1
-                 && index < end_categoryname-start_categoryname+1; index++) {
+            for (index = 0; index < (size_t)length-start_categoryname+1
+                 && index < (size_t)end_categoryname-start_categoryname+1; index++) {
                 copy_categoryname[index] = categoryname[index+start_categoryname-1];
             }
-            if (index < end_categoryname-start_categoryname+1) {
-                for (; index < end_categoryname-start_categoryname+1; index++) {
+            if (index < (size_t)end_categoryname-start_categoryname+1) {
+                for (; index < (size_t)end_categoryname-start_categoryname+1; index++) {
                     copy_categoryname[index] = ' ';
                 }
                 *status_categoryname = 0; /* transfer complete */
@@ -3097,7 +3097,7 @@ extern "C" {
                 }
             }
         } else {
-            for (index = 0; index < end_categoryname-start_categoryname+1; index++) {
+            for (index = 0; index < (size_t)end_categoryname-start_categoryname+1; index++) {
                 copy_categoryname[index] = ' ';
             }
             *status_categoryname = -1; /* null string case */
@@ -3297,20 +3297,20 @@ extern "C" {
                            size_t CBFFhandle,
                            char * copy_diffrn_id, size_t start_diffrn_id, size_t end_diffrn_id, int * status_diffrn_id){
         const char * diffrn_id;
-        int index;
-        int length;
+        size_t index;
+        size_t length;
         int errorcode;
         errorcode = cbf_get_diffrn_id(
                                       cbff_cbf_handle(CBFFhandle),
                                       &diffrn_id);
         if (diffrn_id) {
             length = strlen(diffrn_id);
-            for (index = 0; index < length-start_diffrn_id+1
-                 && index < end_diffrn_id-start_diffrn_id+1; index++) {
+            for (index = 0; index < (size_t)length-start_diffrn_id+1
+                 && index < (size_t)end_diffrn_id-start_diffrn_id+1; index++) {
                 copy_diffrn_id[index] = diffrn_id[index+start_diffrn_id-1];
             }
-            if (index < end_diffrn_id-start_diffrn_id+1) {
-                for (; index < end_diffrn_id-start_diffrn_id+1; index++) {
+            if (index < (size_t)end_diffrn_id-start_diffrn_id+1) {
+                for (; index < (size_t)end_diffrn_id-start_diffrn_id+1; index++) {
                     copy_diffrn_id[index] = ' ';
                 }
                 *status_diffrn_id = 0; /* transfer complete */
@@ -3322,7 +3322,7 @@ extern "C" {
                 }
             }
         } else {
-            for (index = 0; index < end_diffrn_id-start_diffrn_id+1; index++) {
+            for (index = 0; index < (size_t)end_diffrn_id-start_diffrn_id+1; index++) {
                 copy_diffrn_id[index] = ' ';
             }
             *status_diffrn_id = -1; /* null string case */
@@ -3351,8 +3351,8 @@ extern "C" {
                                char * copy_diffrn_id, size_t start_diffrn_id, size_t end_diffrn_id, int * status_diffrn_id,
                                const char * default_id){
         const char * diffrn_id;
-        int index;
-        int length;
+        size_t index;
+        size_t length;
         int errorcode;
         errorcode = cbf_require_diffrn_id(
                                           cbff_cbf_handle(CBFFhandle),
@@ -3360,12 +3360,12 @@ extern "C" {
                                           default_id);
         if (diffrn_id) {
             length = strlen(diffrn_id);
-            for (index = 0; index < length-start_diffrn_id+1
-                 && index < end_diffrn_id-start_diffrn_id+1; index++) {
+            for (index = 0; index < (size_t)length-start_diffrn_id+1
+                 && index < (size_t)end_diffrn_id-start_diffrn_id+1; index++) {
                 copy_diffrn_id[index] = diffrn_id[index+start_diffrn_id-1];
             }
-            if (index < end_diffrn_id-start_diffrn_id+1) {
-                for (; index < end_diffrn_id-start_diffrn_id+1; index++) {
+            if (index < (size_t)end_diffrn_id-start_diffrn_id+1) {
+                for (; index < (size_t)end_diffrn_id-start_diffrn_id+1; index++) {
                     copy_diffrn_id[index] = ' ';
                 }
                 *status_diffrn_id = 0; /* transfer complete */
@@ -3377,7 +3377,7 @@ extern "C" {
                 }
             }
         } else {
-            for (index = 0; index < end_diffrn_id-start_diffrn_id+1; index++) {
+            for (index = 0; index < (size_t)end_diffrn_id-start_diffrn_id+1; index++) {
                 copy_diffrn_id[index] = ' ';
             }
             *status_diffrn_id = -1; /* null string case */
@@ -3393,20 +3393,20 @@ extern "C" {
                             size_t CBFFhandle,
                             char * copy_crystal_id, size_t start_crystal_id, size_t end_crystal_id, int * status_crystal_id){
         const char * crystal_id;
-        int index;
-        int length;
+        size_t index;
+        size_t length;
         int errorcode;
         errorcode = cbf_get_crystal_id(
                                        cbff_cbf_handle(CBFFhandle),
                                        &crystal_id);
         if (crystal_id) {
             length = strlen(crystal_id);
-            for (index = 0; index < length-start_crystal_id+1
-                 && index < end_crystal_id-start_crystal_id+1; index++) {
+            for (index = 0; index < (size_t)length-start_crystal_id+1
+                 && index < (size_t)end_crystal_id-start_crystal_id+1; index++) {
                 copy_crystal_id[index] = crystal_id[index+start_crystal_id-1];
             }
-            if (index < end_crystal_id-start_crystal_id+1) {
-                for (; index < end_crystal_id-start_crystal_id+1; index++) {
+            if (index < (size_t)end_crystal_id-start_crystal_id+1) {
+                for (; index < (size_t)end_crystal_id-start_crystal_id+1; index++) {
                     copy_crystal_id[index] = ' ';
                 }
                 *status_crystal_id = 0; /* transfer complete */
@@ -3418,7 +3418,7 @@ extern "C" {
                 }
             }
         } else {
-            for (index = 0; index < end_crystal_id-start_crystal_id+1; index++) {
+            for (index = 0; index < (size_t)end_crystal_id-start_crystal_id+1; index++) {
                 copy_crystal_id[index] = ' ';
             }
             *status_crystal_id = -1; /* null string case */
@@ -3543,8 +3543,8 @@ extern "C" {
                             unsigned int element_number,
                             char * copy_element_id, size_t start_element_id, size_t end_element_id, int * status_element_id){
         const char * element_id;
-        int index;
-        int length;
+        size_t index;
+        size_t length;
         int errorcode;
         errorcode = cbf_get_element_id(
                                        cbff_cbf_handle(CBFFhandle),
@@ -3552,12 +3552,12 @@ extern "C" {
                                        &element_id);
         if (element_id) {
             length = strlen(element_id);
-            for (index = 0; index < length-start_element_id+1
-                 && index < end_element_id-start_element_id+1; index++) {
+            for (index = 0; index < (size_t)length-start_element_id+1
+                 && index < (size_t)end_element_id-start_element_id+1; index++) {
                 copy_element_id[index] = element_id[index+start_element_id-1];
             }
-            if (index < end_element_id-start_element_id+1) {
-                for (; index < end_element_id-start_element_id+1; index++) {
+            if (index < (size_t)end_element_id-start_element_id+1) {
+                for (; index < (size_t)end_element_id-start_element_id+1; index++) {
                     copy_element_id[index] = ' ';
                 }
                 *status_element_id = 0; /* transfer complete */
@@ -3569,7 +3569,7 @@ extern "C" {
                 }
             }
         } else {
-            for (index = 0; index < end_element_id-start_element_id+1; index++) {
+            for (index = 0; index < (size_t)end_element_id-start_element_id+1; index++) {
                 copy_element_id[index] = ' ';
             }
             *status_element_id = -1; /* null string case */
@@ -3586,8 +3586,8 @@ extern "C" {
                              unsigned int element_number,
                              char * copy_detector_id, size_t start_detector_id, size_t end_detector_id, int * status_detector_id){
         const char * detector_id;
-        int index;
-        int length;
+        size_t index;
+        size_t length;
         int errorcode;
         errorcode = cbf_get_detector_id(
                                         cbff_cbf_handle(CBFFhandle),
@@ -3595,12 +3595,12 @@ extern "C" {
                                         &detector_id);
         if (detector_id) {
             length = strlen(detector_id);
-            for (index = 0; index < length-start_detector_id+1
-                 && index < end_detector_id-start_detector_id+1; index++) {
+            for (index = 0; index < (size_t)length-start_detector_id+1
+                 && index < (size_t)end_detector_id-start_detector_id+1; index++) {
                 copy_detector_id[index] = detector_id[index+start_detector_id-1];
             }
-            if (index < end_detector_id-start_detector_id+1) {
-                for (; index < end_detector_id-start_detector_id+1; index++) {
+            if (index < (size_t)end_detector_id-start_detector_id+1) {
+                for (; index < (size_t)end_detector_id-start_detector_id+1; index++) {
                     copy_detector_id[index] = ' ';
                 }
                 *status_detector_id = 0; /* transfer complete */
@@ -3612,7 +3612,7 @@ extern "C" {
                 }
             }
         } else {
-            for (index = 0; index < end_detector_id-start_detector_id+1; index++) {
+            for (index = 0; index < (size_t)end_detector_id-start_detector_id+1; index++) {
                 copy_detector_id[index] = ' ';
             }
             *status_detector_id = -1; /* null string case */
@@ -3629,8 +3629,8 @@ extern "C" {
                           unsigned int element_number,
                           char * copy_array_id, size_t start_array_id, size_t end_array_id, int * status_array_id){
         const char * array_id;
-        int index;
-        int length;
+        size_t index;
+        size_t length;
         int errorcode;
         errorcode = cbf_get_array_id(
                                      cbff_cbf_handle(CBFFhandle),
@@ -3638,12 +3638,12 @@ extern "C" {
                                      &array_id);
         if (array_id) {
             length = strlen(array_id);
-            for (index = 0; index < length-start_array_id+1
-                 && index < end_array_id-start_array_id+1; index++) {
+            for (index = 0; index < (size_t)length-start_array_id+1
+                 && index < (size_t)end_array_id-start_array_id+1; index++) {
                 copy_array_id[index] = array_id[index+start_array_id-1];
             }
-            if (index < end_array_id-start_array_id+1) {
-                for (; index < end_array_id-start_array_id+1; index++) {
+            if (index < (size_t)end_array_id-start_array_id+1) {
+                for (; index < (size_t)end_array_id-start_array_id+1; index++) {
                     copy_array_id[index] = ' ';
                 }
                 *status_array_id = 0; /* transfer complete */
@@ -3655,7 +3655,7 @@ extern "C" {
                 }
             }
         } else {
-            for (index = 0; index < end_array_id-start_array_id+1; index++) {
+            for (index = 0; index < (size_t)end_array_id-start_array_id+1; index++) {
                 copy_array_id[index] = ' ';
             }
             *status_array_id = -1; /* null string case */
@@ -4640,8 +4640,8 @@ extern "C" {
                               size_t ndimmid,
                               size_t ndimfast){
         const char * array_id;
-        int index;
-        int length;
+        size_t index;
+        size_t length;
         int errorcode;
         errorcode = cbf_get_map_array_id(
                                          cbff_cbf_handle(CBFFhandle),
@@ -4655,12 +4655,12 @@ extern "C" {
                                          ndimfast);
         if (array_id) {
             length = strlen(array_id);
-            for (index = 0; index < length-start_array_id+1
-                 && index < end_array_id-start_array_id+1; index++) {
+            for (index = 0; index < (size_t)length-start_array_id+1
+                 && index < (size_t)end_array_id-start_array_id+1; index++) {
                 copy_array_id[index] = array_id[index+start_array_id-1];
             }
-            if (index < end_array_id-start_array_id+1) {
-                for (; index < end_array_id-start_array_id+1; index++) {
+            if (index < (size_t)end_array_id-start_array_id+1) {
+                for (; index < (size_t)end_array_id-start_array_id+1; index++) {
                     copy_array_id[index] = ' ';
                 }
                 *status_array_id = 0; /* transfer complete */
@@ -4672,7 +4672,7 @@ extern "C" {
                 }
             }
         } else {
-            for (index = 0; index < end_array_id-start_array_id+1; index++) {
+            for (index = 0; index < (size_t)end_array_id-start_array_id+1; index++) {
                 copy_array_id[index] = ' ';
             }
             *status_array_id = -1; /* null string case */
@@ -4691,8 +4691,8 @@ extern "C" {
                                  size_t ndimmid,
                                  size_t ndimslow){
         const char * array_id;
-        int index;
-        int length;
+        size_t index;
+        size_t length;
         int errorcode;
         errorcode = cbf_get_map_array_id(
                                          cbff_cbf_handle(CBFFhandle),
@@ -4706,12 +4706,12 @@ extern "C" {
                                          ndimfast);
         if (array_id) {
             length = strlen(array_id);
-            for (index = 0; index < length-start_array_id+1
-                 && index < end_array_id-start_array_id+1; index++) {
+            for (index = 0; index < (size_t)length-start_array_id+1
+                 && index < (size_t)end_array_id-start_array_id+1; index++) {
                 copy_array_id[index] = array_id[index+start_array_id-1];
             }
-            if (index < end_array_id-start_array_id+1) {
-                for (; index < end_array_id-start_array_id+1; index++) {
+            if (index < (size_t)end_array_id-start_array_id+1) {
+                for (; index < (size_t)end_array_id-start_array_id+1; index++) {
                     copy_array_id[index] = ' ';
                 }
                 *status_array_id = 0; /* transfer complete */
@@ -4723,7 +4723,7 @@ extern "C" {
                 }
             }
         } else {
-            for (index = 0; index < end_array_id-start_array_id+1; index++) {
+            for (index = 0; index < (size_t)end_array_id-start_array_id+1; index++) {
                 copy_array_id[index] = ' ';
             }
             *status_array_id = -1; /* null string case */
@@ -4742,8 +4742,8 @@ extern "C" {
                                  size_t ndimmid,
                                  size_t ndimfast){
         const char * array_id;
-        int index;
-        int length;
+        size_t index;
+        size_t length;
         int errorcode;
         errorcode = cbf_get_map_array_id(
                                          cbff_cbf_handle(CBFFhandle),
@@ -4757,12 +4757,12 @@ extern "C" {
                                          ndimfast);
         if (array_id) {
             length = strlen(array_id);
-            for (index = 0; index < length-start_array_id+1
-                 && index < end_array_id-start_array_id+1; index++) {
+            for (index = 0; index < (size_t)length-start_array_id+1
+                 && index < (size_t)end_array_id-start_array_id+1; index++) {
                 copy_array_id[index] = array_id[index+start_array_id-1];
             }
-            if (index < end_array_id-start_array_id+1) {
-                for (; index < end_array_id-start_array_id+1; index++) {
+            if (index < (size_t)end_array_id-start_array_id+1) {
+                for (; index < (size_t)end_array_id-start_array_id+1; index++) {
                     copy_array_id[index] = ' ';
                 }
                 *status_array_id = 0; /* transfer complete */
@@ -4774,7 +4774,7 @@ extern "C" {
                 }
             }
         } else {
-            for (index = 0; index < end_array_id-start_array_id+1; index++) {
+            for (index = 0; index < (size_t)end_array_id-start_array_id+1; index++) {
                 copy_array_id[index] = ' ';
             }
             *status_array_id = -1; /* null string case */
