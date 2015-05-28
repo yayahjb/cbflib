@@ -11465,6 +11465,455 @@ extern "C" {
 
     }
 
+    /* get the scan points for an axis.  If the axis
+     is an array axis, with no scan changes, an array
+     of the pixel centers is provided.  If there are
+     scan changes, a linearized 2-dimensional array
+     will be returned, with the pixel positions as
+     the fast index and the frame as the slow.  
+
+     An additional, optional array of scan end points
+     will be provided in scanendpointarray and optional
+     flags is_arrayaxis and is_scanaxis are returned.
+     
+     */
+    
+    int cbf_get_axis_scan_points2(cbf_handle handle,
+                                 double * scanarray,
+                                 double * scanendpointarray,
+                                 size_t scanpoints,
+                                 size_t *scanpointsfound,
+                                 int * is_arrayaxis,
+                                 int * is_scanaxis,
+                                 const char * units,
+                                 const char * axis_id) {
+        
+        const char * axis_set_id;
+        
+        const char * detector_element_id;
+        
+        cbf_axis_type axis_type;
+        
+        int dimension;
+        
+        int isarrayaxis, isscanaxis;
+        
+        double displacement, displacement_increment, displacement_rstrt_incr;
+        
+        double displacement_start, displacement_range;
+        
+        double angle, angle_increment, angle_rstrt_incr;
+        
+        double angle_start, angle_range;
+        
+        const char * direction;
+        
+        
+        /* check the arguments */
+        
+        if (!handle || !scanarray || scanpoints < 1 || !units || !axis_id)
+            
+            return CBF_ARGUMENT;
+        
+        if (!is_arrayaxis) is_arrayaxis = &isarrayaxis;
+        
+        if (!is_scanaxis) is_scanaxis = &isscanaxis;
+        
+        *is_arrayaxis = 0;
+        
+        *is_scanaxis = 0;
+        
+        cbf_debug_print2("entering cbf_get_axis_scan_points axis_id = %s\n", axis_id);
+        
+        *scanpointsfound = 0;
+        
+        axis_set_id = detector_element_id = NULL;
+        
+        displacement = displacement_start
+        = displacement_increment = displacement_rstrt_incr = 0.;
+        
+        angle = angle_start = angle_increment = angle_rstrt_incr = 0.;
+        
+        if (cbf_get_axis_type(handle,axis_id,&axis_type)) {
+            
+            axis_type=CBF_GENERAL_AXIS;
+            
+        }
+        
+        
+        direction = "increasing";
+        
+        if (!cbf_find_category(handle, "array_structure_list_axis")
+            &&!cbf_find_column(handle,"axis_id")
+            &&!cbf_rewind_row(handle)
+            &&!cbf_find_row(handle, axis_id)
+            &&!cbf_find_column(handle,"axis_set_id")
+            &&!cbf_get_value(handle,&axis_set_id))
+        {
+            
+            if (!cbf_find_column(handle,"displacement_increment")) {
+                
+                cbf_require_doublevalue(handle,&displacement_increment,0.);
+                
+            }
+            
+            if (!cbf_find_column(handle,"displacement")) {
+                
+                cbf_require_doublevalue(handle,&displacement,0.);
+                
+            }
+            
+            if (!cbf_find_column(handle,"angle_increment")) {
+                
+                cbf_require_doublevalue(handle,&angle_increment,0.);
+                
+            }
+            
+            if (!cbf_find_column(handle,"angle")) {
+                
+                cbf_require_doublevalue(handle,&angle,0.);
+                
+            }
+            
+            if (!cbf_find_category(handle, "array_structure_list")
+                &&!cbf_find_column(handle,"axis_set_id")
+                &&!cbf_rewind_row(handle)
+                &&!cbf_find_row(handle, axis_set_id)
+                &&!cbf_find_column(handle,"dimension")
+                &&!cbf_require_integervalue(handle,&dimension,0)){
+                
+                if (!cbf_find_column(handle,"direction")) {
+                    
+                    cbf_require_value(handle,&direction,"increasing");
+                    
+                }
+                
+                *is_arrayaxis = 1;
+                
+            }
+            
+        }
+        
+        if (!(*is_arrayaxis)
+            && !cbf_find_category(handle, "diffrn_scan_axis")
+            && !cbf_find_column(handle,"axis_id")
+            && !cbf_rewind_row(handle)
+            && !cbf_find_nextrow(handle,axis_id)) {
+            
+            if (!cbf_find_column(handle,"displacement_increment")) {
+                
+                cbf_require_doublevalue(handle,&displacement_increment,0.);
+                
+            }
+            
+            if (!cbf_find_column(handle,"displacement_start")) {
+                
+                cbf_require_doublevalue(handle,&displacement_start,0.);
+                
+            }
+            
+            if (!cbf_find_column(handle,"displacement_range")) {
+                
+                cbf_require_doublevalue(handle,&displacement_range,0.);
+                
+            }
+            
+            if (!cbf_find_column(handle,"displacement_rstrt_incr")) {
+                
+                cbf_require_doublevalue(handle,&displacement_rstrt_incr,0.);
+                
+            }
+            
+            
+            if (!cbf_find_column(handle,"angle_increment")) {
+                
+                cbf_require_doublevalue(handle,&angle_increment,0.);
+                
+            }
+            
+            if (!cbf_find_column(handle,"angle_start")) {
+                
+                cbf_require_doublevalue(handle,&angle_start,0.);
+                
+            }
+            
+            if (!cbf_find_column(handle,"angle_range")) {
+                
+                cbf_require_doublevalue(handle,&angle_range,0.);
+                
+            }
+            
+            *is_scanaxis = 1;
+            
+            /* The diffraction_scan_axis data points can be used to populate the
+             scan points array, but if there are diffrn_scan_frame_axis points
+             they will be used in preference */
+            
+            if (axis_type == CBF_TRANSLATION_AXIS) {
+                
+                while (*scanpointsfound < scanpoints) {
+                    
+                    double next_displacement;
+                    
+                    next_displacement =
+                    
+                    displacement_start + (displacement_increment+displacement_rstrt_incr)*(*scanpointsfound);
+                    
+                    if (fabs(displacement_range)+1.e-10 >=
+                        fabs(next_displacement) || *scanpointsfound == 0) {
+                        
+                        scanarray[*scanpointsfound] =  next_displacement;
+                        
+                        if (scanendpointarray) {
+                            
+                            scanendpointarray[*scanpointsfound] =
+                            next_displacement+displacement_increment;
+                            
+                        }
+                        
+                        (*scanpointsfound)++;
+                        
+                        
+                    } else {
+                        
+                        break;
+                        
+                    }
+                    
+                }
+                
+            } else if (axis_type == CBF_ROTATION_AXIS) {
+                
+                while (*scanpointsfound < scanpoints) {
+                    
+                    double next_angle;
+                    
+                    next_angle =
+                    
+                    angle_start + (angle_increment+angle_rstrt_incr)*(*scanpointsfound);
+                    
+                    if (fabs(angle_range)+1.e-10 >=
+                        fabs(next_angle) || *scanpointsfound == 0 ) {
+                        
+                        scanarray[*scanpointsfound] =  next_angle;
+                        
+                        if (scanendpointarray) {
+                            
+                            scanendpointarray[*scanpointsfound] =
+                            next_angle+angle_increment;
+                            
+                        }
+
+                        
+                        (*scanpointsfound)++;
+                        
+                    } else {
+                        
+                        break;
+                        
+                    }
+                    
+                }
+                
+            }
+            
+        }
+        
+        
+        if (cbf_find_category(handle, "diffrn_scan_frame_axis")
+            || cbf_find_column(handle,"axis_id")
+            || cbf_rewind_row(handle)
+            || cbf_find_nextrow(handle,axis_id)
+            || cbf_rewind_row(handle))  {
+            
+            if (*is_arrayaxis) {
+                
+                if (!direction || !cbf_cistrcmp(direction,"increasing" )) {
+                    
+                    if (axis_type == CBF_TRANSLATION_AXIS) {
+                        
+                        while (*scanpointsfound < scanpoints
+                               && *scanpointsfound < (size_t)dimension) {
+                            
+                            scanarray[*scanpointsfound] =
+                            displacement + displacement_increment*(*scanpointsfound);
+                            
+                            if (scanendpointarray) {
+                                
+                                scanendpointarray[*scanpointsfound] = scanarray[*scanpointsfound];
+                                
+                            }
+                            
+                            (*scanpointsfound)++;
+                            
+                        }
+                        
+                        
+                    } else if (axis_type == CBF_ROTATION_AXIS){
+                        
+                        
+                        while (*scanpointsfound < scanpoints
+                               && *scanpointsfound < (size_t)dimension) {
+                            
+                            scanarray[*scanpointsfound] =
+                            angle + angle_increment*(*scanpointsfound);
+                            
+                            if (scanendpointarray) {
+                                
+                                scanendpointarray[*scanpointsfound] =
+                                scanarray[*scanpointsfound];
+                                
+                            }
+                            
+                            (*scanpointsfound)++;
+                            
+                            
+                        }
+                        
+                    }
+                    
+                } else {
+                    
+                    if (axis_type == CBF_TRANSLATION_AXIS) {
+                        
+                        
+                        while (*scanpointsfound < scanpoints
+                               && *scanpointsfound < (size_t)dimension) {
+                            
+                            scanarray[*scanpointsfound] =
+                            displacement + displacement_increment
+                            *(dimension - *scanpointsfound - 1);
+                            
+                            if (scanendpointarray) {
+                                
+                                scanendpointarray[*scanpointsfound] =
+                                scanarray[*scanpointsfound];
+                                
+                            }
+                            
+                            (*scanpointsfound)++;
+                            
+                            
+                        }
+                        
+                        
+                    } else if (axis_type == CBF_ROTATION_AXIS){
+                        
+                        while (*scanpointsfound < scanpoints
+                               && *scanpointsfound < (size_t)dimension) {
+                            
+                            scanarray[*scanpointsfound] =
+                            angle + angle_increment
+                            *(dimension - *scanpointsfound - 1);
+                            
+                            if (scanendpointarray) {
+                                
+                                scanendpointarray[*scanpointsfound] =
+                                scanarray[*scanpointsfound];
+                                
+                            }
+
+                            
+                            (*scanpointsfound)++;
+                            
+                            
+                        }
+                        
+                    }
+                }
+                
+                return CBF_SUCCESS;
+                
+            }
+            
+            while (!cbf_find_nextrow(handle,axis_id)&& scanpoints > 0) {
+                
+                unsigned int row;
+                
+                const char * frame_id;
+                
+                double newstart;
+                
+                int frame_no;
+                
+                row = handle->row;
+                
+                frame_no = 0;
+                
+                if ( axis_type == CBF_ROTATION_AXIS ) {
+                    
+                    cbf_failnez(cbf_find_column(handle,"angle"));
+                    
+                    cbf_failnez(cbf_get_doublevalue(handle, &newstart));
+                    
+                    frame_no = 1;
+                    
+                } else if ( axis_type == CBF_TRANSLATION_AXIS ) {
+                    
+                    cbf_failnez(cbf_find_column(handle,"displacement"));
+                    
+                    cbf_failnez(cbf_get_doublevalue(handle, &newstart));
+                    
+                    frame_no = 1;
+                    
+                }
+                
+                cbf_debug_print3("axis %s newstart %g\n", axis_id,newstart);
+                
+                if ( frame_no == 1 ) {
+                    
+                    if (!cbf_find_column(handle,"frame_id")
+                        &&!cbf_get_value(handle,&frame_id)
+                        &&frame_id) {
+                        
+                        if (!cbf_find_category(handle,"diffrn_scan_frame")
+                            && !cbf_find_column(handle,"frame_id")
+                            && !cbf_rewind_row(handle)
+                            && !cbf_find_row(handle,frame_id)
+                            && !cbf_find_column(handle,"frame_number")) {
+                            
+                            if (cbf_get_integervalue(handle,&frame_no)) {
+                                frame_no = 1;
+                            }
+                            
+                            
+                            cbf_failnez(cbf_find_category(handle, "diffrn_scan_frame_axis"));
+                            cbf_failnez(cbf_find_column(handle,"axis_id"));
+                            cbf_failnez(cbf_rewind_row(handle))
+                            if (cbf_select_row(handle,row+1)) break;
+                            
+                            
+                        } else {
+                            
+                            frame_no = 1;
+                            
+                        }
+                        
+                        if (frame_no > 0 && frame_no <= scanpoints) {
+                            
+                            scanarray[frame_no-1] = newstart;
+                            
+                        }
+                        
+                        
+                    }
+                    
+                }
+                
+            }
+            
+        }
+        
+        if (scanpointsfound == 0) {
+            
+            scanarray[0] = 0.;
+            
+        }
+        
+        return CBF_SUCCESS;
+        
+    }
+
 
     /* Unit conversion tables */
 

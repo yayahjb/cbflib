@@ -703,6 +703,16 @@ cbf_H5Arequire_cmp2(id,nm,rk,dm,ft,mt,vl,bf,cmp)
         void * const value);
 
 	/**
+     \brief Extract some existing data from a dataset at a known position.
+     \ingroup section_HDF5_H5D
+     */
+    int cbf_H5Dread_element_as_string
+    (const hid_t dataset,
+     const hsize_t * const offsets,
+     const size_t noffsets,
+     char * * value);
+    
+	/**
 	\brief Extract some existing data from a dataset at a known position with memtype.
 	\ingroup section_HDF5_H5D
 	 */
@@ -1391,6 +1401,7 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
     /* Count the nexus detector names */
     
     int cbf_count_NX_detector_names(cbf_h5handle h5handle, unsigned int * count);
+    
     
     /* get the Nexus axis path if previously established.
      If not, try to create both the path and the intervening groups

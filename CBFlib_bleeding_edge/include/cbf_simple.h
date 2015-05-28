@@ -1585,6 +1585,16 @@ cbf_get_inferred_pixel_size((detector), (axis_number), (psize))
                                  const char * units,
                                  const char * axis_id);
     
+    int cbf_get_axis_scan_points2(cbf_handle handle,
+                                  double * scanarray,
+                                  double * scanendpointarray,
+                                  size_t scanpoints,
+                                  size_t *scanpointsfound,
+                                  int * is_arrayaxis,
+                                  int * is_scanaxis,
+                                  const char * units,
+                                  const char * axis_id);
+    
     int cbf_scale_unit(const char * unit, char * *  rev_unit,
                        double * unit_per_rev_unit);
     
