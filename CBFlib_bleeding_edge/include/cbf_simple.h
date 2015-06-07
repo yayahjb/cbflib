@@ -1568,6 +1568,25 @@ cbf_get_inferred_pixel_size((detector), (axis_number), (psize))
                                   const char * equipment,
                                   const char * axis_id);
     
+    /* get the dimension and units of the available scan points for an axis
+     If the axis is an array axis or array section axis, the number
+     of scan points in the number of pixels for that axis.  If axis is not
+     a general axis, scanpoints will be at least 1
+     If isarrayaxis is provided, *isarrayaxis will be set to 1 for an array
+     axis
+     If isscanaxis is provided, *isscanacis will be set to 1 for a scanaxis
+     
+     */
+    
+    int cbf_get_axis_parameters2(cbf_handle handle,
+                                 size_t * scanpoints,
+                                 int * isarrayaxis,
+                                 int * isscanaxis,
+                                 const char ** units,
+                                 const char * equipment,
+                                 const char * axis_id);
+
+        
     /* get the dimension and units of the available scan points for an axis */
     
     int cbf_get_axis_parameters(cbf_handle handle,
@@ -1578,20 +1597,20 @@ cbf_get_inferred_pixel_size((detector), (axis_number), (psize))
     
     /* get the scan points for an axis */
     
-    int cbf_get_axis_scan_points(cbf_handle handle,
+    int cbf_get_axis_scan_points2(cbf_handle handle,
                                  double * scanarray,
+                                  double * scanendpointarray,
                                  size_t scanpoints,
                                  size_t *scanpointsfound,
+                                  int * is_arrayaxis,
+                                  int * is_scanaxis,
                                  const char * units,
                                  const char * axis_id);
     
-    int cbf_get_axis_scan_points2(cbf_handle handle,
+    int cbf_get_axis_scan_points(cbf_handle handle,
                                   double * scanarray,
-                                  double * scanendpointarray,
                                   size_t scanpoints,
                                   size_t *scanpointsfound,
-                                  int * is_arrayaxis,
-                                  int * is_scanaxis,
                                   const char * units,
                                   const char * axis_id);
     

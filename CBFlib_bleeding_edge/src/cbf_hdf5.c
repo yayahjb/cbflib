@@ -6036,7 +6036,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
           _array_data.nxdata_field_link_target_path
        are provided, their values are returned
      
-       If a binary value is available, it the type string 'bnry' is
+       If a binary value is available, the type string 'bnry' is
        returned in *typeofvalue. */
     
     static int cbf_get_nxdata_field_name(const cbf_handle handle,
@@ -6597,8 +6597,12 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                         }
 
                         /* create the dataset */
-                        if (CBF_SUCCESS == error)
+                        if (CBF_SUCCESS == error) {
                             dset = H5Dcreate2(parent,datasetname,h5type,dataSpace,H5P_DEFAULT,valprop,H5P_DEFAULT);
+                            cbf_debug_print2("creating dataset '%s'",datasetname);
+                        } else {
+                            cbf_debug_print2("unable to create dataset, prior error %x", error);
+                        }
                         
                         /* check local variables are properly closed */
                         if (cbf_H5Ivalid(dataSpace)) H5Sclose(dataSpace);
@@ -6933,6 +6937,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             || !h5handle
             || !array_id ) return CBF_ARGUMENT;
         
+        cbf_debug_print("Entering cbf_require_nxarryid");
+        
         dsetid = CBF_H5FAIL;
         
         if (cbf_H5Ivalid(nxdata)) {
@@ -6941,6 +6947,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                       0,
                                       &nxdata_field_link_target_file,
                                       &nxdata_field_link_target_path, 0);
+            
+            cbf_debug_print2("opening dataset '%s'",datasetname);
             
             dsetid = H5Dopen2(nxdata,datasetname,H5P_DEFAULT);
             
@@ -8277,11 +8285,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                                          offset,
                                                          scaling,
                                                          data_dataid),error);
-                        cbf_reportnez(cbf_require_nxarrayid(handle,data_h5handle,
-                                                      arrayid,
-                                                      binaryid,
-                                                      data_dataid,
-                                                      data_detectorid),error);
 
                         
                         /* need to set up link
@@ -8304,8 +8307,17 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                             
                             if (dataname) cbf_free((void **)&dataname,NULL);
                  
+                    } else {
+                        
+                        cbf_debug_print("Failed to create link from NXdetector to NXdata");
                         }
                          
+                    cbf_reportnez(cbf_require_nxarrayid(handle,data_h5handle,
+                                                        arrayid,
+                                                        binaryid,
+                                                        data_dataid,
+                                                        data_detectorid),error);
+                    
                     } else {
                         
                         handle->node = (cbf_node *)node;
@@ -8325,11 +8337,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                                          scaling,
                                                          data_detectorid),error);
                         
-                        cbf_reportnez(cbf_require_nxarrayid(handle,data_h5handle,
-                                                      arrayid,
-                                                      binaryid,
-                                                      data_dataid,
-                                                      data_detectorid),error);
                         
                         if (cbf_H5Ivalid(data_dataid) && cbf_H5Ivalid(data_detectorid) ) {
                             
@@ -8346,9 +8353,16 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                             if (dataname) cbf_free((void **)&dataname,NULL);
                             
                             
+                    } else {
+                        
+                        cbf_debug_print("Failed to create link from NXdata to NXdetector");
                         }
                         
-                        
+                    cbf_reportnez(cbf_require_nxarrayid(handle,data_h5handle,
+                                                        arrayid,
+                                                        binaryid,
+                                                        data_dataid,
+                                                        data_detectorid),error);
                         
                     }
                     
@@ -8622,7 +8636,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 cbf_reportnez(cbf_get_NX_detector_name(h5handle,curdet,&detmodname),error);
                 
                 cbf_reportnez(cbf_require_nxdata(handle, h5handle, NULL,
-                                                 detmodname, 1),error);
+                                                 detmodname, 0),error);
                 
             }
             
@@ -9697,21 +9711,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             instrumentname = "instrument";
         }
         
-        path_parent_general[0] = "";
-        path_parent_general[1] = entryname;
-        path_parent_general[2] = instrumentname;
-        path_parent_general[3] = 0;
-        path_parent_general[4] = 0;
-        
-        path_parent_detector[0] = "";
-        path_parent_detector[1] = entryname;
-        path_parent_detector[2] = instrumentname;
-        path_parent_detector[3] = 0;
-
-        path_parent_goniometer[0] = "";
-        path_parent_goniometer[1] = entryname;
-        path_parent_goniometer[2] = "sample";
-        path_parent_goniometer[3] = 0;
         
         path_axis_general[0] = "";
         path_axis_general[1] = entryname;
@@ -9728,6 +9727,23 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         path_axis_goniometer[1] = entryname;
         path_axis_goniometer[2] = "sample";
         path_axis_goniometer[3] = 0;
+
+        path_parent_general[0] = "";
+        path_parent_general[1] = entryname;
+        path_parent_general[2] = instrumentname;
+        path_parent_general[3] = 0;
+        path_parent_general[4] = 0;
+        
+        path_parent_detector[0] = "";
+        path_parent_detector[1] = entryname;
+        path_parent_detector[2] = instrumentname;
+        path_parent_detector[3] = 0;
+
+        path_parent_goniometer[0] = "";
+        path_parent_goniometer[1] = entryname;
+        path_parent_goniometer[2] = "sample";
+        path_parent_goniometer[3] = 0;
+        
         
         
         
@@ -9829,8 +9845,14 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
          /DETECTORNAME:NXdetector_group
          /transformations:NXtransformations
          /AXISID=[]
-         with the former used for all axes when there is only one detector
-         element or if the axis is specific to a particular element
+         or
+         /data:NXdata
+         /array_axes:NXtransformatioms
+         /AXISID=[[]
+         with the first used for all axes, except array axes when there 
+         is only one detector element or if the axis is specific to a 
+         particular element, and the second used for all other detector
+         axes except for array axes
          
          If the equipment type is goniometer, we need to map the axis_id
          to the appropriate goniometer, so we can put this axis in
@@ -10011,13 +10033,13 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         cbf_reportnez(cbf_set_NX_axis_path(h5handle, axis_id, axispath),errorcode);
         
-        /* cbf_debug_print3("logged axis_id '%s' axis_path '%s'\n", axis_id, axispath); */
+        cbf_debug_print3("logged axis_id '%s' axis_path '%s'\n", axis_id, axispath);
         
         if (axispath) cbf_free_text(&axispath,NULL);
         
         cbf_reportnez(cbf_set_NX_parent_path(h5handle, axis_id, parentpath),errorcode);
         
-        /* cbf_debug_print3("logged axis_id '%s' parent_path '%s'\n", axis_id, parentpath); */
+        cbf_debug_print3("logged axis_id '%s' parent_path '%s'\n", axis_id, parentpath);
         
         if (parentpath) cbf_free_text(&parentpath,NULL);
         
@@ -10055,6 +10077,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
     }
 
     /* Get the nexus poise path of an axis, if previously set. */
+    
     
     int cbf_get_NX_axis_poise_path(cbf_h5handle h5handle, const char * axis_id, const char * * poise_path) {
         
@@ -10116,6 +10139,86 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
     }
     
+    /* Get the flag that this is an array_axis to the value given */
+    
+    int cbf_get_NX_axis_array_axis(cbf_h5handle h5handle,
+                                   const char * axis_id, int *flag) {
+        
+        int ii;
+        
+        int errorcode = 0;
+        
+        if (!h5handle || !axis_id ) return CBF_ARGUMENT;
+        
+        if (!(h5handle->scratch_tables)
+            || cbf_require_datablock(h5handle->scratch_tables,"scratch")
+            || cbf_require_category(h5handle->scratch_tables,"scratch_axis")
+            || cbf_require_column(h5handle->scratch_tables,"axis_id")
+            || cbf_rewind_row(h5handle->scratch_tables)) {
+            
+            return CBF_FORMAT;
+            
+        }
+        
+        if (cbf_find_row(h5handle->scratch_tables,axis_id)) {
+            
+            cbf_failnez(cbf_require_column(h5handle->scratch_tables,"axis_id"));
+            
+            cbf_failnez(cbf_new_row(h5handle->scratch_tables));
+            
+            cbf_failnez(cbf_set_value(h5handle->scratch_tables, axis_id));
+            
+        }
+        
+        cbf_failnez(cbf_require_column(h5handle->scratch_tables,"is_array_axis"));
+        
+        cbf_failnez(cbf_get_integervalue(h5handle->scratch_tables,flag));
+        
+        return errorcode;
+        
+    }
+
+    
+    /* Set the flag that this is an array_axis to the value given */
+    
+    int cbf_set_NX_axis_array_axis(cbf_h5handle h5handle,
+                                   const char * axis_id, const int flag) {
+        
+        int ii;
+        
+        int errorcode = 0;
+        
+        if (!h5handle || !axis_id ) return CBF_ARGUMENT;
+        
+        if (!(h5handle->scratch_tables)
+            || cbf_require_datablock(h5handle->scratch_tables,"scratch")
+            || cbf_require_category(h5handle->scratch_tables,"scratch_axis")
+            || cbf_require_column(h5handle->scratch_tables,"axis_id")
+            || cbf_rewind_row(h5handle->scratch_tables)) {
+            
+            return CBF_FORMAT;
+            
+        }
+        
+        if (cbf_find_row(h5handle->scratch_tables,axis_id)) {
+            
+            cbf_failnez(cbf_require_column(h5handle->scratch_tables,"axis_id"));
+            
+            cbf_failnez(cbf_new_row(h5handle->scratch_tables));
+            
+            cbf_failnez(cbf_set_value(h5handle->scratch_tables, axis_id));
+            
+        }
+        
+        cbf_failnez(cbf_require_column(h5handle->scratch_tables,"is_array_axis"));
+        
+        cbf_failnez(cbf_set_integervalue(h5handle->scratch_tables,flag));
+        
+        return errorcode;
+        
+    }
+    
+
      /* increment the count of axes dependent on this axis */
     
     int cbf_increment_NX_axis_depcount(cbf_h5handle h5handle, const char * axis_id) {
@@ -10385,6 +10488,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             
             const char * axisendpointparts[3] = {NULL, NULL, NULL};
             
+            int isarrayaxis = 0;
+            
+            int isscanaxis = 0;
+            
             hsize_t scanpoints = 0;
 
             size_t sscanpoints = 0;
@@ -10539,6 +10646,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             }
 
 
+            cbf_debug_print("calling cbf_require_NX_axis_path");
+            
             cbf_reportnez(cbf_require_NX_axis_path(handle,h5handle, axis_id, &axispath),errorcode);
 
             axisendpointparts[0] = axispath;
@@ -10557,17 +10666,33 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             
             axisrangetot = _cbf_str_join(axisendpointparts,'_');
 
+            cbf_reportnez(cbf_get_axis_parameters2(handle,
+                                                   &sscanpoints,
+                                                   &isarrayaxis,
+                                                   &isscanaxis,
+                                                   &units,
+                                                   equipment,
+                                                   axis_id),errorcode);
+            
+
+            if (!isarrayaxis) {
+                
             cbf_reportnez(cbf_get_NX_axis_poise_path(h5handle,axis_id, &axispoisepath),errorcode);
+
 
             cbf_reportnez(_cbf_NXGrequire(h5handle->hfile, &poiseid,
                                               axispoisepath, "NXtransformations"),errorcode);
 
-            cbf_reportnez(cbf_get_axis_parameters(handle,
-                                                  &sscanpoints,
-                                                  &units,
-                                                  equipment,
-                                                  axis_id),errorcode);
+                cbf_reportnez(cbf_set_NX_axis_array_axis(h5handle,axis_id,0),errorcode);
 
+                
+            } else {
+                
+                cbf_reportnez(cbf_set_NX_axis_array_axis(h5handle,axis_id,1),errorcode);
+
+            }
+            
+            
             scanpoints = (hsize_t)sscanpoints;
 
             /* At this point we are ready to write the field AXISID[] */
@@ -10589,10 +10714,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     size_t sscanpointsfound = 0;
                     
                     size_t is;
-                    
-                    int isarrayaxis = 0;
-                    
-                    int isscanaxis = 0;
                     
                     double * scanarray = NULL;
                     
@@ -10841,6 +10962,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     
                     const char * dopath;
                     
+                    int isarrayaxis;
+                    
+                    cbf_debug_print("calling cbf_require_NX_axis_path");
+                    
                     errorcode |= cbf_require_NX_axis_path(handle, h5handle,depends_on,&dopath);
                     
                     if (!errorcode) {
@@ -10850,13 +10975,21 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                                                 dopath,errorcode);
                         }
                     
+                    if (!cbf_get_NX_axis_array_axis(h5handle, axis_id, &isarrayaxis)
+                        && !isarrayaxis) {
+                    
                     errorcode |= cbf_increment_NX_axis_depcount(h5handle,depends_on);
+                    
+                }
+                
                     
                 }
                 
                 if (cbf_cistrcmp(rotation_axis,".")) {
                     
                     const char * rotpath;
+                    
+                    cbf_debug_print("calling cbf_require_NX_axis_path");
                     
                     errorcode |= cbf_require_NX_axis_path(handle, h5handle,rotation_axis,&rotpath);
                     
@@ -10903,7 +11036,13 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
             if (axisendpointpath) cbf_free_text(&axisendpointpath,0);
             
+            if (cbf_H5Ivalid(poiseid)){
+            
+                cbf_debug_print("calling H5Gclose");
+            
             cbf_h5reportneg(H5Gclose(poiseid),CBF_FORMAT,errorcode);
+            
+            }
             
             if (cbf_H5Ivalid(equipmentid)) {
                 
@@ -10935,6 +11074,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             
             const char * nexus_path;
             
+            int isarrayaxis;
+            
             cbf_reportnez(cbf_select_row(h5handle->scratch_tables, row),errorcode);
             
             cbf_reportnez(cbf_find_column(h5handle->scratch_tables,"axis_id"),errorcode);
@@ -10945,9 +11086,15 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             
             cbf_reportnez(cbf_get_integervalue(h5handle->scratch_tables,&idepcount),errorcode);
             
-            /* cbf_debug_print3("axis_id = '%s', depcount = %d\n",axis_id,idepcount); */
+            cbf_reportnez(cbf_find_column(h5handle->scratch_tables,"is_array_axis"),errorcode);
             
-            if (idepcount == 0) {
+            isarrayaxis = 0;
+                
+            cbf_get_integervalue(h5handle->scratch_tables,&isarrayaxis);
+            
+            cbf_debug_print4("axis_id = '%s', depcount = %d, isarrayaxid = %d",axis_id,idepcount, isarrayaxis);
+            
+            if (idepcount == 0 && isarrayaxis == 0) {
                 
                 parent_path = nexus_path = NULL;
                 
@@ -10990,7 +11137,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                                               nexus_path,
                                                               H5S_UNLIMITED,
                                                               errorcode),errorcode);
-                        /* cbf_debug_print2("depends_on_path '%s'", nexus_path); */
+                        cbf_debug_print2("depends_on_path '%s'", nexus_path);
                         
                     } else {
                         
@@ -11017,10 +11164,9 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                 !cbf_cistrcmp(nparent_path,parent_path)) {
                                 
                                 
-                                cbf_reportnez(cbf_add_h5text_dataset_slab(parentid,
+                                cbf_reportnez(cbf_add_h5text_dataset(parentid,
                                                                           "depends_on",
                                                                           nexus_path,
-                                                                          0,
                                                                           errorcode),errorcode);
                                 
                                 done = 1;
@@ -12033,7 +12179,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
         cbf_h5reportneg(ndims = H5Sget_simple_extent_ndims(datasetspace),CBF_FORMAT,errorcode);
 
-        if ( errorcode || ndims != 1 ) return CBF_FORMAT;
+        if ( errorcode || ndims > 1 ) return CBF_FORMAT;
 
         old_size = H5Tget_size(datasettype);
 
@@ -12042,7 +12188,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         cbf_h5reportneg(H5Sget_simple_extent_dims(datasetspace,
                                                   dsdims,dsmaxdims),CBF_FORMAT,errorcode);
 
-        if ( old_size < new_size ) {
+        if ( old_size < new_size || ndims == 0 ) {
 
             ndatasettype = CBF_H5FAIL;
 
@@ -12069,7 +12215,20 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
             cbf_h5reportneg(nmemtype = H5Tcopy(H5T_C_S1),CBF_ALLOC,errorcode);
 
+            if (ndims==0) {
+                
+                cbf_h5reportneg(memspace = H5Screate(H5S_SCALAR),CBF_ALLOC,errorcode);
+                
+                dsdims[0] = 0;
+                
+                dsmaxdims[0] = H5S_UNLIMITED;
+                
+            } else {
+
+
             cbf_h5reportneg(memspace = H5Screate_simple(1,memsize,NULL),CBF_ALLOC,errorcode);
+
+            }
 
             cbf_h5reportneg(H5Tset_size(memtype,new_size),CBF_ALLOC,errorcode);
 
@@ -12077,6 +12236,31 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
             cbf_reportnez(cbf_H5Dcreate(hid,&anondataset,NULL,1,dsdims,maxdssize,chunk,datasettype),errorcode);
 
+            if (ndims == 0) {
+                
+                if(H5Dread(datasetid, memtype, memspace, datasetspace, H5P_DEFAULT, (void *)datasettextbuffer) >= 0 ) {
+                    
+                    curdim[0] = 1;
+                    
+                    cbf_h5reportneg(H5Dset_extent(anondataset,curdim),CBF_FORMAT,errorcode);
+                    
+                    offset[0] = 0;
+                    
+                    stride[0] = 1;
+                    
+                    count[0] = 1;
+                    
+                    cbf_reportnez(cbf_H5Dwrite2(anondataset,offset,stride,count,(void *)datasettextbuffer,nmemtype),errorcode);
+                    
+                    dsdims[0] = 1;
+                    
+                    curdim[0] = 1;
+                    
+                }
+                
+                
+            } else {
+                
             for (dsslab=0; dsslab < dsdims[0]; dsslab++) {
 
                 offset[0] = dsslab;
@@ -12100,6 +12284,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     cbf_reportnez(cbf_H5Dwrite2(anondataset,offset,stride,count,(void *)datasettextbuffer,nmemtype),errorcode);
 
                 }
+
+            }
 
             }
 
@@ -17197,6 +17383,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
      void * op_data)
     {
         int error = CBF_SUCCESS;
+        cbf_debug_print("Entering cbf_write_nx2cbf__detector_op");
         
         if (!cbf_H5Ivalid(g_id) || !name || !info || !op_data) {
             cbf_debug_print(cbf_strerror(CBF_ARGUMENT));
@@ -17232,6 +17419,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     error |= CBF_H5ERROR;
                 } else if (H5I_DATASET==type) {
                     /* handle all datasets here */
+                    cbf_debug_print2("cbf_write_nx2cbf__detector_op dataset '%s'",name);
                     if (!strcmp(name,"beam_center_x")) {
                         hid_t data_space = CBF_H5FAIL;
                         if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
@@ -18003,6 +18191,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     /* get NXclass & handle all groups here */
                     const char * NX_class = NULL;
                     const int found = _cbf_NXclass(object,&NX_class);
+                    cbf_debug_print2("cbf_write_nx2cbf__detector_op group '%s'",name);
+                    
                     if (CBF_NOTFOUND==found) {
                         /* no NX_class: can't process it, but it's not an error */
                         if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
@@ -18031,6 +18221,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     free((void*)NX_class);
                 } else {
                     /* unrecognised object type: can't process it, but it's not an error */
+                    cbf_debug_print2("cbf_write_nx2cbf__detector_op unrecognized '%s'",name);
+                    
                     if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
                 }
             }

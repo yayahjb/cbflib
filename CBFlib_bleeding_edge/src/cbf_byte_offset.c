@@ -1638,7 +1638,7 @@ static int cbf_decompress_byte_offset_fast(void         *destination,
                 delta.el0 |= (signed char) rawdata[i++] << 8;
                 if (delta.el0 & 0x8000L) {
                     delta.el0 |= ~0x7FFFL;
-                    delta.el1 = ~0L;
+                    delta.el1 = (unsigned int)~0L;
                 }
                 
                 if ((delta.el0 & 0xffffL) ==  0x8000) {
@@ -1649,7 +1649,7 @@ static int cbf_decompress_byte_offset_fast(void         *destination,
                     delta.el0 |= (signed char) rawdata[i++] << 24;
                     if (delta.el0 & 0x80000000L) {
                         delta.el0 |= ~0x7FFFFFFFL;
-                        delta.el1 = ~0L;
+                        delta.el1 = (unsigned int)~0L;
                     }
                     
                     if ((delta.el0 & 0xffffffffL) == 0x80000000L) {
@@ -1942,7 +1942,7 @@ static int cbf_decompress_byte_offset_fast(void         *destination,
                 delta.el0 |= (signed char) rawdata[i++] << 8;
                 if (delta.el0 & 0x8000L) {
                     delta.el0 |= ~0x7FFFL;
-                    delta.el1 = ~0L;
+                    delta.el1 = (unsigned int)~0L;
                 }
                 
                 if ((delta.el0 & 0xffff) ==  0x8000) {
