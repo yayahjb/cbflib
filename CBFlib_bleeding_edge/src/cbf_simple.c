@@ -287,9 +287,15 @@ extern "C" {
 
     int cbf_get_diffrn_id (cbf_handle handle, const char **diffrn_id)
     {
-        cbf_failnez (cbf_find_category (handle, "diffrn"));
+        if (!cbf_find_category (handle, "diffrn")) {
         cbf_failnez (cbf_find_column   (handle, "id"));
-        cbf_failnez (cbf_get_value     (handle, diffrn_id))
+            cbf_failnez (cbf_get_value     (handle, diffrn_id));
+        } else {
+            cbf_failnez (cbf_find_category (handle, "diffrn_detector"));
+            cbf_failnez (cbf_find_column   (handle, "diffrn_id"));
+            cbf_failnez (cbf_rewind_row    (handle));
+            cbf_failnez (cbf_get_value     (handle, diffrn_id));
+        }
 
         return 0;
     }
@@ -3070,6 +3076,27 @@ extern "C" {
     }
 
 
+    /* Count the number of images available in the CBF */
+    
+    int cbf_count_images (cbf_handle handle, unsigned int * nrows) {
+        
+        if (!handle || !nrows ) return CBF_ARGUMENT;
+        
+        if (cbf_find_category(handle,"array_data")
+            && cbf_count_rows(handle,nrows)) {
+            
+            return CBF_SUCCESS;
+            
+        } else {
+            
+            *nrows = 0;
+            
+        }
+        
+        return CBF_SUCCESS;
+        
+    }
+
     /* Get the image size.  ndimslow is the slow dimension, ndimfast is fast. */
 
     int cbf_get_image_size (cbf_handle    handle,
@@ -3150,7 +3177,7 @@ extern "C" {
         
         int binary_id;
 
-        binary_id = 1;
+        binary_id = 0;
 
         cbf_failnez (cbf_get_array_section_id (handle, element_number, &array_section_id));
 
@@ -3206,7 +3233,7 @@ extern "C" {
     {
         const char *array_section_id;
 
-        int binary_id;
+        int binary_id = 0;
 
         cbf_failnez (cbf_get_array_section_id (handle, element_number, &array_section_id));
 
@@ -3241,7 +3268,7 @@ extern "C" {
     {
         const char *array_section_id;
 
-        int binary_id;
+        int binary_id = 0;
 
         cbf_failnez (cbf_get_array_section_id (handle, element_number, &array_section_id));
 

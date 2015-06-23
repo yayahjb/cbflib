@@ -20795,6 +20795,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 if (!error) { /* Do the conversion to CBF format */
                     cbf_node * diffrn_measurement_axis = NULL;
                     cbf_node * diffrn_detector_axis = NULL;
+                    cbf_node * diffrn_scan_axis = NULL;
                     cbf_node * diffrn_scan_frame_axis = NULL;
                     cbf_node * axis = NULL;
                     double McStas2CBF[3][3];
@@ -20808,6 +20809,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     diffrn_measurement_axis = cbf->node;
                     CBF_CALL(cbf_require_category(cbf,"diffrn_detector_axis"));
                     diffrn_detector_axis = cbf->node;
+                    CBF_CALL(cbf_require_category(cbf,"diffrn_scan_axis"));
+                    diffrn_scan_axis = cbf->node;
                     CBF_CALL(cbf_require_category(cbf,"diffrn_scan_frame_axis"));
                     diffrn_scan_frame_axis = cbf->node;
                     CBF_CALL(cbf_require_category(cbf,"axis"));

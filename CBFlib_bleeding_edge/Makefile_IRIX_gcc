@@ -555,6 +555,7 @@ COMMONDEP = Makefile
 #
 
 SOURCE   =  $(SRC)/cbf.c               \
+	$(SRC)/cbf_airy_disk.c     \
 	$(SRC)/cbf_alloc.c         \
 	$(SRC)/cbf_ascii.c         \
 	$(SRC)/cbf_binary.c        \
@@ -613,6 +614,7 @@ F90SOURCE = $(SRC)/fcb_atol_wcnt.f90     \
 # Header files
 #
 HEADERS   =  $(INCLUDE)/cbf.h               \
+	$(INCLUDE)/cbf_airy_disk.h     \
 	$(INCLUDE)/cbf_alloc.h         \
 	$(INCLUDE)/cbf_ascii.h         \
 	$(INCLUDE)/cbf_binary.h        \
@@ -801,7 +803,8 @@ all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) $(HDF5) $(LZ4DEPS) $(PYCIFRWDEPS)
 	$(BIN)/testflatpacked \
 	$(BIN)/testhdf5       \
 	$(BIN_TESTULP)        \
-	$(BIN)/tiff2cbf
+	$(BIN)/tiff2cbf       \
+	$(BIN)/test_cbf_airy_disk
 
 ifneq ($(F90C),)
 all::	$(BIN)/test_xds_binary   \
@@ -957,6 +960,8 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
 	cp $(BIN)/testflatpacked $(INSTALLDIR)/bin/testflatpacked
 	-cp $(INSTALLDIR)/bin/tiff2cbf $(INSTALLDIR)/bin/tiff2cbf_old
 	cp $(BIN)/tiff2cbf $(INSTALLDIR)/bin/tiff2cbf
+	-cp $(INSTALLDIR)/bin/test_cbf_airy_disk $(INSTALLDIR)/bin/test_cbf_airy_disk_old
+	cp $(BIN)/test_cbf_airy_disk $(INSTALLDIR)/bin/test_cbf_airy_disk
 	-cp $(INSTALLDIR)/bin/testhdf5 $(INSTALLDIR)/bin/testhdf5_old
 	cp $(BIN)/testhdf5 $(INSTALLDIR)/bin/testhdf5
 ifneq ($(CBF_USE_ULP),)
@@ -1002,6 +1007,7 @@ ifneq ($(CBF_USE_ULP),)
 	chmod 755 $(INSTALLDIR)/bin/testulp
 endif
 	chmod 755 $(INSTALLDIR)/bin/tiff2cbf
+	chmod 755 $(INSTALLDIR)/bin/test_cbf_airy_disk
 	chmod 755 $(INSTALLDIR)/bin/batch_convert_minicbf.sh
 	chmod 644 $(INSTALLDIR)/include/cbflib/*.h
 	
@@ -1523,6 +1529,13 @@ $(BIN)/testalloc: $(LIB)/libcbf.a $(EXAMPLES)/testalloc.c $(EXAMPLES)/unittest.h
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) $(EXAMPLES)/testalloc.c -L$(LIB) $(LIB)/libcbf.a $(EXTRALIBS) -o $@.tmp
 	mv $@.tmp $@
 	
+#
+# test_cbf_airy_disk test program
+#
+$(BIN)/test_cbf_airy_disk: $(LIB)/libcbf.a $(EXAMPLES)/test_cbf_airy_disk.c
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) $(EXAMPLES)/test_cbf_airy_disk.c -L$(LIB) $(LIB)/libcbf.a $(EXTRALIBS) -o $@.tmp
+	mv $@.tmp $@
+
 
 
 #
@@ -1904,6 +1917,7 @@ endif
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
 	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_enc2.cbf.h5 -o insulin_pilatus6mconverted_enc2.cbf.h5.cbf)
 	-cmp insulin_pilatus6mconverted_enc2.cbf.h5.cbf insulin_pilatus6mconverted_orig.cbf.h5.cbf
+	$(TINE) $(BIN)/test_cbf_airy_disk
 	$(TIME) $(BIN)/testalloc
 	$(TIME) $(BIN)/testhdf5; rm -f testfile.h5
 ifneq ($(CBF_USE_ULP),)
@@ -2092,6 +2106,7 @@ empty:
 	@-rm -rf  $(BIN)/sequence*
 	@-rm -rf  $(BIN)/gif*
 	@-rm -rf  $(BIN)/thumbnail*
+	@-rm -rf  $(BIN)/test_cbf_airy_disk
 	@-rm -f  makecbf.cbf
 	@-rm -f  img2cif_packed.cif
 	@-rm -f  img2cif_canonical.cif
