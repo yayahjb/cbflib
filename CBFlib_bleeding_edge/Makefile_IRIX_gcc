@@ -2,7 +2,7 @@
 ######################################################################
 #  Makefile - command file for make to create CBFlib                 #
 #                                                                    #
-# Version 0.9.5 2 Feb 2015                                          #
+# Version 0.9.5 24 Jul 2015                                          #
 #                                                                    #
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
@@ -804,7 +804,8 @@ all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) $(HDF5) $(LZ4DEPS) $(PYCIFRWDEPS)
 	$(BIN)/testhdf5       \
 	$(BIN_TESTULP)        \
 	$(BIN)/tiff2cbf       \
-	$(BIN)/test_cbf_airy_disk
+	$(BIN)/test_cbf_airy_disk \
+	$(BIN)/cbf_testxfelread
 
 ifneq ($(F90C),)
 all::	$(BIN)/test_xds_binary   \
@@ -906,7 +907,9 @@ symlinksdone:
 
 install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
 	$(INSTALLDIR)/include $(INSTALLDIR)/include/cbflib \
-	$(PYSOURCE) shared $(EXAMPLES)/batch_convert_minicbf.sh
+	$(PYSOURCE) shared $(EXAMPLES)/batch_convert_minicbf.sh \
+	$(LIB)/libcbf.a $(LIB)/libimg.a $(LIB)/libfcb.a \
+	$(SOLIB)/libcbf.so $(SOLIB)/libimg.so $(SOLIB)/libfcb.so
 	-chmod -R 755 $(INSTALLDIR)/include/cbflib
 	-chmod 755 $(INSTALLDIR)/lib/libcbf.a
 	-cp $(INSTALLDIR)/lib/libcbf.a $(INSTALLDIR)/lib/libcbf_old.a
@@ -919,13 +922,13 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
 	cp $(LIB)/libfcb.a $(INSTALLDIR)/lib/libfcb.a
 	-chmod 755 $(INSTALLDIR)/lib/libcbf.so
 	-cp $(INSTALLDIR)/lib/libcbf.so $(INSTALLDIR)/lib/libcbf_old.so
-	cp $(LIB)/libcbf.so $(INSTALLDIR)/lib/libcbf.so
+	cp $(SOLIB)/libcbf.so $(INSTALLDIR)/lib/libcbf.so
 	-chmod 755 $(INSTALLDIR)/lib/libimg.so
 	-cp $(INSTALLDIR)/lib/libimg.so $(INSTALLDIR)/lib/libimg_old.so
-	cp $(LIB)/libimg.so $(INSTALLDIR)/lib/libimg.so
+	cp $(SOLIB)/libimg.so $(INSTALLDIR)/lib/libimg.so
 	-chmod 755 $(INSTALLDIR)/lib/libfcb.so
 	-cp $(INSTALLDIR)/lib/libfcb.so $(INSTALLDIR)/lib/libfcb_old.so
-	cp $(LIB)/libfcb.so $(INSTALLDIR)/lib/libfcb.so
+	cp $(SOLIB)/libfcb.so $(INSTALLDIR)/lib/libfcb.so
 	-cp $(INSTALLDIR)/bin/adscimg2cbf $(INSTALLDIR)/bin/adscimg2cbf_old
 	cp $(BIN)/adscimg2cbf $(INSTALLDIR)/bin/adscimg2cbf
 	-cp $(INSTALLDIR)/bin/cbf2adscimg $(INSTALLDIR)/bin/cbf2adscimg_old
@@ -948,6 +951,8 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
 	cp $(BIN)/nexus2cbf $(INSTALLDIR)/bin/nexus2cbf
 	-cp $(INSTALLDIR)/bin/sequence_match $(INSTALLDIR)/bin/sequence_match_old
 	cp $(BIN)/sequence_match $(INSTALLDIR)/bin/sequence_match
+	-cp $(INSTALLDIR)/bin/testalloc $(INSTALLDIR)/bin/testalloc_old
+	cp $(BIN)/testalloc $(INSTALLDIR)/bin/testalloc
 	-cp $(INSTALLDIR)/bin/arvai_test $(INSTALLDIR)/bin/arvai_test_old
 	cp $(BIN)/arvai_test $(INSTALLDIR)/bin/arvai_test
 	-cp $(INSTALLDIR)/bin/cif2c $(INSTALLDIR)/bin/cif2c_old
@@ -962,14 +967,16 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
 	cp $(BIN)/tiff2cbf $(INSTALLDIR)/bin/tiff2cbf
 	-cp $(INSTALLDIR)/bin/test_cbf_airy_disk $(INSTALLDIR)/bin/test_cbf_airy_disk_old
 	cp $(BIN)/test_cbf_airy_disk $(INSTALLDIR)/bin/test_cbf_airy_disk
+	-cp $(INSTALLDIR)/bin/test_cbf_airy_disk $(INSTALLDIR)/bin/test_cbf_airy_disk_old
+	cp $(BIN)/test_cbf_airy_disk $(INSTALLDIR)/bin/test_cbf_airy_disk
 	-cp $(INSTALLDIR)/bin/testhdf5 $(INSTALLDIR)/bin/testhdf5_old
 	cp $(BIN)/testhdf5 $(INSTALLDIR)/bin/testhdf5
 ifneq ($(CBF_USE_ULP),)
 	-cp $(INSTALLDIR)/bin/testulp $(INSTALLDIR)/bin/testulp_old
 	cp $(BIN)/testulp $(INSTALLDIR)/bin/testulp
+endif
 	-cp $(INSTALLDIR)/bin/batch_convert_minicbf.sh $(INSTALLDIR)/bin/batch_convert_minicbf_old.sh
 	cp $(EXAMPLES)/batch_convert_minicbf.sh $(INSTALLDIR)/bin/batch_convert_minicbf.sh
-endif
 ifneq ($(CBFLIB_DONT_USE_PYCIFRW),yes)
 	cp $(SRC)/drel_lex.py $(INSTALLDIR)/bin/drel_lex.py
 	cp $(SRC)/drel_yacc.py $(INSTALLDIR)/bin/drel_yacc.py
@@ -1536,7 +1543,12 @@ $(BIN)/test_cbf_airy_disk: $(LIB)/libcbf.a $(EXAMPLES)/test_cbf_airy_disk.c
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) $(EXAMPLES)/test_cbf_airy_disk.c -L$(LIB) $(LIB)/libcbf.a $(EXTRALIBS) -o $@.tmp
 	mv $@.tmp $@
 
-
+#
+# cbf_testxfelread: test program
+#
+$(BIN)/cbf_testxfelread: $(LIB)/libcbf.a $(EXAMPLES)/cbf_testxfelread.c $(EXAMPLES)/cbf_testxfelread.h
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) $(EXAMPLES)/cbf_testxfelread.c -L$(LIB) $(LIB)/libcbf.a $(EXTRALIBS) -o $@.tmp
+	mv $@.tmp $@
 
 #
 # Data files for tests
@@ -1918,6 +1930,7 @@ endif
 	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_enc2.cbf.h5 -o insulin_pilatus6mconverted_enc2.cbf.h5.cbf)
 	-cmp insulin_pilatus6mconverted_enc2.cbf.h5.cbf insulin_pilatus6mconverted_orig.cbf.h5.cbf
 	$(TINE) $(BIN)/test_cbf_airy_disk
+	$(TIME) $(BIN)/cbf_testxfelread
 	$(TIME) $(BIN)/testalloc
 	$(TIME) $(BIN)/testhdf5; rm -f testfile.h5
 ifneq ($(CBF_USE_ULP),)
@@ -2107,6 +2120,7 @@ empty:
 	@-rm -rf  $(BIN)/gif*
 	@-rm -rf  $(BIN)/thumbnail*
 	@-rm -rf  $(BIN)/test_cbf_airy_disk
+	@-rm -rf  $(BIN)/cbf_testxfelread
 	@-rm -f  makecbf.cbf
 	@-rm -f  img2cif_packed.cif
 	@-rm -f  img2cif_canonical.cif
