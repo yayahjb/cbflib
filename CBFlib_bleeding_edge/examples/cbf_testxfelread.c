@@ -591,9 +591,12 @@ extern "C" {
                     xfel_elongate[element][islow][0]= xfel_elongate[element][islow][1] = 0.;
                 }
             } else {
+                double elongavg;
+                double datavalue;
+                elongavg = 0;
                 for (islow = 0; islow < slowdim; islow++) {
-                    double datavalue;
                     datavalue = xfel_rawdata[element][islow][XFEL_FAST_DIM-1];
+                    elongavg += datavalue;
                     if (datavalue == XFEL_UNDEFINED || datavalue == XFEL_OVERLOAD ) {
                         xfel_elongate[element][islow][0] = xfel_elongate[element][islow][1] = datavalue;
                     } else {
@@ -607,6 +610,8 @@ extern "C" {
                         xfel_rawdata[element][islow][0] = 2.*datavalue/5.;
                     }
                 }
+                elongavg /= 2.5*((double)slowdim);
+                fprintf(stdout," element %d elongated pixel average %g\n", element, elongavg);
             }
             
             
@@ -691,7 +696,7 @@ extern "C" {
         for (ii=0; ii < XFEL_DIAMETER; ii++) {
             for (jj=0; jj < XFEL_DIAMETER; jj++) {
                 outarray[ii][jj] = XFEL_UNDEFINED;
-                intoutarray[ii][jj] = elementassign[ii][jj]-3;
+                intoutarray[ii][jj] = -3;
             }
         }
         
@@ -750,8 +755,8 @@ extern "C" {
                         (1.-yalpha)*bottom_edge_y +
                         yalpha*top_edge_y;
                     
-                    xpos = (pixel_fast-pixel_low[0]+XFEL_PIXEL_SIZE+.5)/XFEL_PIXEL_SIZE;
-                    ypos = (pixel_slow-pixel_low[1]+XFEL_PIXEL_SIZE+.5)/XFEL_PIXEL_SIZE;
+                    xpos = (pixel_fast-pixel_low[0]+.5)/XFEL_PIXEL_SIZE;
+                    ypos = (pixel_slow-pixel_low[1]+.5)/XFEL_PIXEL_SIZE;
                     
                     if ((ii==0 || ii==XFEL_FAST_DIM-1)&&(jj==0 || jj ==XFEL_SLOW_DIM-1)){
                         fprintf(stdout,"processing element %d, pixel [%d,%d]\n",element,ii,jj);
@@ -772,15 +777,12 @@ extern "C" {
                         ylo = ypos*XFEL_PIXEL_SIZE+pixel_low[1];
                         xcen = xlo+XFEL_PIXEL_SIZE/2.;
                         ycen = ylo+XFEL_PIXEL_SIZE/2.;
+                        xcen = pixel_fast;
+                        ycen = pixel_slow;
                         xhi = xlo+XFEL_PIXEL_SIZE;
                         yhi = ylo+XFEL_PIXEL_SIZE;
                         if (datavalue== XFEL_UNDEFINED
-                            || datavalue == XFEL_OVERLOAD
-                            || (fabs(xcen - pixel_fast)
-                                < (XFEL_PIXEL_SIZE-XFEL_PSF_FWHM/CBF_AIRY_UNIT_DISK_FWHM)/2.
-                                && fabs(ycen - pixel_slow)
-                                < (XFEL_PIXEL_SIZE-XFEL_PSF_FWHM/CBF_AIRY_UNIT_DISK_FWHM)/2.)
-                            ) {
+                            || datavalue == XFEL_OVERLOAD) {
                             outarray[ypos][xpos] = datavalue;
                         } else {
                             cbf_airy_disk_volume(xlo-XFEL_PIXEL_SIZE, ylo-XFEL_PIXEL_SIZE,
@@ -908,7 +910,7 @@ extern "C" {
             for (jj=0; jj < XFEL_DIAMETER; jj++) {
                 if (outarray[ii][jj] != XFEL_UNDEFINED
                     && outarray[ii][jj] != XFEL_OVERLOAD);
-                intoutarray[ii][jj] = (int)(10.*outarray[ii][jj]+0.5);
+                intoutarray[ii][jj] = (int)(outarray[ii][jj]+0.5);
             }
         }
 
