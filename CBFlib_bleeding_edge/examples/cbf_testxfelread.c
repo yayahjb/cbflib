@@ -305,6 +305,7 @@ extern "C" {
     cbf_detector xfel_element[XFEL_ELEMENTS];
     double xfel_rawdata[XFEL_ELEMENTS][XFEL_SLOW_DIM][XFEL_FAST_DIM];
     double xfel_elongate[XFEL_ELEMENTS][XFEL_SLOW_DIM][2];
+    double xfel_min_long[XFEL_ELEMENTS][2];
     double outarray[XFEL_DIAMETER][XFEL_DIAMETER];
     int intoutarray[XFEL_DIAMETER][XFEL_DIAMETER];
     char elementassign[XFEL_DIAMETER][XFEL_DIAMETER];
@@ -593,21 +594,38 @@ extern "C" {
             } else {
                 double elongavg;
                 double datavalue;
+                double edgerat;
+                edgerat = 2.5;
+                xfel_min_long[element][0] = xfel_rawdata[element][0][XFEL_FAST_DIM-1];
+                xfel_min_long[element][1] = xfel_rawdata[element][0][(element%2)==0?XFEL_FAST_DIM-2:0];
+                for (islow = 1; islow < slowdim; islow++) {
+                   if(xfel_min_long[element][0] < xfel_rawdata[element][islow][XFEL_FAST_DIM-1])
+                       xfel_min_long[element][0] = xfel_rawdata[element][islow][XFEL_FAST_DIM-1];
+                   if(xfel_min_long[element][1] < xfel_rawdata[element][islow][(element%2)==0?XFEL_FAST_DIM-2:0])
+                       xfel_min_long[element][1] = xfel_rawdata[element][islow][(element%2)==0?XFEL_FAST_DIM-2:0];
+                }
+                if (xfel_min_long[element][1] > 2. && xfel_min_long[element][0] > 5.) {
+                    edgerat = xfel_min_long[element][0]/xfel_min_long[element][1];
+                    if (edgerat < 2.5) edgerat = 2.5;
+                    if (edgerat > 7.5) edgerat = 7.5;
+                }
+                edgerat = edgerat/2.5;
+                
                 elongavg = 0;
                 for (islow = 0; islow < slowdim; islow++) {
                     datavalue = xfel_rawdata[element][islow][XFEL_FAST_DIM-1];
-                    elongavg += datavalue;
+                    elongavg += datavalue/edgerat;
                     if (datavalue == XFEL_UNDEFINED || datavalue == XFEL_OVERLOAD ) {
                         xfel_elongate[element][islow][0] = xfel_elongate[element][islow][1] = datavalue;
                     } else {
-                        xfel_elongate[element][islow][1] = datavalue/5.;
-                        xfel_elongate[element][islow][0] = 2.*datavalue/5.;
+                        xfel_elongate[element][islow][1] = datavalue/5./edgerat;
+                        xfel_elongate[element][islow][0] = 2.*datavalue/5./edgerat;
                     }
 
                     if ((element%2) == 0) {
-                        xfel_rawdata[element][islow][XFEL_FAST_DIM-1] = 2.*datavalue/5.;
+                        xfel_rawdata[element][islow][XFEL_FAST_DIM-1] = 2.*datavalue/5./edgerat;;
                     } else {
-                        xfel_rawdata[element][islow][0] = 2.*datavalue/5.;
+                        xfel_rawdata[element][islow][0] = 2.*datavalue/5./edgerat;
                     }
                 }
                 elongavg /= 2.5*((double)slowdim);

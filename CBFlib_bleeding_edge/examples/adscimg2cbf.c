@@ -138,6 +138,7 @@ int	main(int argc, char *argv[])
                     "--pad_2K",                     /* 9 */
                     "--pad_4K",                     /*10 */
                     "--no_pad",                     /*11 */
+                    "--cbf_nibble_offset",          /*12 */
 					NULL
 				   };
 
@@ -207,9 +208,11 @@ int	main(int argc, char *argv[])
             case 11:
                 pad_flag = 0;
                 break;
-                
+            case 12:
+                pack_flags = CBF_NIBBLE_OFFSET;
+                break;
 		}
-		if(j < 3)
+		if(j < 3 || j==12)
 		{
 			if(NULL != strstr(argv[1], ",flat"))
 				pack_flags |= CBF_FLAT_IMAGE;

@@ -637,7 +637,24 @@ int	adscimg2cbf_sub(char *header,
 	detector_center_x = -105.;
 	detector_center_y = 105.;
   } else
+                    if (smv_size2 == 2527 && smv_size1 == 2463)
   {
+                        sprintf(detector_id, "PILATUS6M-SN%d", detector_sn);
+                        strcpy(detector_type, "DECTRIS Pilatus 6M");
+                        gain = 1;
+                        detector_center_x = -211.732;
+                        detector_center_y = 219.644;
+                    } else
+                        if (smv_size2 == 4371 && smv_size1 == 4150)
+                        {
+                            sprintf(detector_id, "EIGER16M-SN%d", detector_sn);
+                            strcpy(detector_type, "DECTRIS Eiger 16M");
+                            gain = 1;
+                            detector_center_x = -155;
+                            detector_center_y = 163.825;
+                        } else
+
+                    {
 	fprintf(stderr, 
 	  "adscimg2cbf_sub: Error: Detector size of %d rows x %d columns does not correspond to an ADSC detector type\n",
 			smv_size2, smv_size1);
@@ -663,6 +680,10 @@ int	adscimg2cbf_sub(char *header,
 		pixel_size = 0.0512;
 	else if(NULL != strstr(detector_id, "315"))
 		pixel_size = 0.051296;
+    else if(NULL != strstr(detector_id, "6M"))
+        pixel_size = 0.172;
+    else if(NULL != strstr(detector_id, "PILATUS"))
+        pixel_size = 0.075;
 	else	pixel_size = 0.0816;
 	s1[0] = '\0';
 	gethd("BIN", s1, header);
