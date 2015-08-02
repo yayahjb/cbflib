@@ -305,6 +305,8 @@ extern "C" {
     cbf_detector xfel_element[XFEL_ELEMENTS];
     double xfel_rawdata[XFEL_ELEMENTS][XFEL_SLOW_DIM][XFEL_FAST_DIM];
     double xfel_elongate[XFEL_ELEMENTS][XFEL_SLOW_DIM][2];
+    int xfel_elongate_order[XFEL_ELEMENTS][XFEL_SLOW_DIM];
+    double xfel_elongate_ratio[XFEL_ELEMENTS][XFEL_SLOW_DIM];
     double xfel_min_long[XFEL_ELEMENTS][2];
     double outarray[XFEL_DIAMETER][XFEL_DIAMETER];
     int intoutarray[XFEL_DIAMETER][XFEL_DIAMETER];
@@ -595,25 +597,83 @@ extern "C" {
                 double elongavg;
                 double datavalue;
                 double edgerat;
+                int sorted;
+                int stemp;
+                int kslow;
                 edgerat = 2.5;
-                xfel_min_long[element][0] = xfel_rawdata[element][0][XFEL_FAST_DIM-1];
-                xfel_min_long[element][1] = xfel_rawdata[element][0][(element%2)==0?XFEL_FAST_DIM-2:0];
+                xfel_min_long[element][0] = xfel_rawdata[element][0][(element%2)==0?XFEL_FAST_DIM-1:0];
+                xfel_min_long[element][1] = xfel_rawdata[element][0][(element%2)==0?XFEL_FAST_DIM-2:1];
+                if (xfel_min_long[element][1] > 0.) {
+                    xfel_elongate_ratio[element][0] = xfel_min_long[element][0]/xfel_min_long[element][1];
+                } else {
+                    xfel_elongate_ratio[element][0] = -1.;
+                }
+                for (islow = 0; islow < slowdim; islow++) {
+                    xfel_elongate_order[element][islow] = islow;
+                }
                 for (islow = 1; islow < slowdim; islow++) {
-                   if(xfel_min_long[element][0] < xfel_rawdata[element][islow][XFEL_FAST_DIM-1])
-                       xfel_min_long[element][0] = xfel_rawdata[element][islow][XFEL_FAST_DIM-1];
-                   if(xfel_min_long[element][1] < xfel_rawdata[element][islow][(element%2)==0?XFEL_FAST_DIM-2:0])
-                       xfel_min_long[element][1] = xfel_rawdata[element][islow][(element%2)==0?XFEL_FAST_DIM-2:0];
+                   if(xfel_min_long[element][0]
+                      < xfel_rawdata[element][islow][(element%2)==0?XFEL_FAST_DIM-1:0])
+                       xfel_min_long[element][0]
+                       = xfel_rawdata[element][islow][(element%2)==0?XFEL_FAST_DIM-1:0];
+                   if(xfel_min_long[element][1]
+                      < xfel_rawdata[element][islow][(element%2)==0?XFEL_FAST_DIM-2:1])
+                       xfel_min_long[element][1]
+                       = xfel_rawdata[element][islow][(element%2)==0?XFEL_FAST_DIM-2:1];
+                   if ( xfel_rawdata[element][islow][(element%2)==0?XFEL_FAST_DIM-2:1]
+                       > 0. ) {
+                       xfel_elongate_ratio[element][islow]
+                       = xfel_rawdata[element][islow][(element%2)==0?XFEL_FAST_DIM-1:0]
+                       /xfel_rawdata[element][islow][(element%2)==0?XFEL_FAST_DIM-2:1];
+                   } else {
+                       xfel_elongate_ratio[element][islow] = -1.;
                 }
-                if (xfel_min_long[element][1] > 2. && xfel_min_long[element][0] > 5.) {
-                    edgerat = xfel_min_long[element][0]/xfel_min_long[element][1];
-                    if (edgerat < 2.5) edgerat = 2.5;
-                    if (edgerat > 7.5) edgerat = 7.5;
                 }
+                sorted = 0;
+                while (!sorted) {
+                    sorted = 1;
+                    for (islow = 1; islow < slowdim; islow++) {
+                       if (xfel_rawdata[element][xfel_elongate_order[element][islow-1]][(element%2)==0?XFEL_FAST_DIM-1:0]
+                         < xfel_rawdata[element][xfel_elongate_order[element][islow]][(element%2)==0?XFEL_FAST_DIM-1:0]) continue;
+                       if (xfel_rawdata[element][xfel_elongate_order[element][islow-1]][(element%2)==0?XFEL_FAST_DIM-1:0]
+                           == xfel_rawdata[element][xfel_elongate_order[element][islow]][(element%2)==0?XFEL_FAST_DIM-1:0]
+                           &&
+                           xfel_rawdata[element][xfel_elongate_order[element][islow-1]][(element%2)==0?XFEL_FAST_DIM-2:1]
+                            <= xfel_rawdata[element][xfel_elongate_order[element][islow]][(element%2)==0?XFEL_FAST_DIM-2:1]) continue;
+                        sorted = 0;
+                        stemp = xfel_elongate_order[element][islow-1];
+                        xfel_elongate_order[element][islow-1]
+                         = xfel_elongate_order[element][islow];
+                        xfel_elongate_order[element][islow] = stemp;
+                    }
+                }
+                if (xfel_min_long[element][1] > 0.5 && xfel_min_long[element][0] > 0.5) {
+                    kslow = 0;
+                    edgerat = 0;
+                    for (islow = 0; islow < 10; islow++) {
+                        if (xfel_elongate_ratio[element][xfel_elongate_order[element][islow]] > 1.5
+                            && xfel_elongate_ratio[element][xfel_elongate_order[element][islow]] < 7.5
+                            && xfel_rawdata[element][xfel_elongate_order[element][islow]][(element%2)==0?XFEL_FAST_DIM-1:0]
+                               <= 1.5*xfel_rawdata[element][xfel_elongate_order[element][0]][(element%2)==0?XFEL_FAST_DIM-1:0]
+                            && xfel_rawdata[element][xfel_elongate_order[element][islow]][(element%2)==0?XFEL_FAST_DIM-2:1]
+                               <= 3.*xfel_rawdata[element][xfel_elongate_order[element][0]][(element%2)==0?XFEL_FAST_DIM-1:0]){
+                            edgerat += xfel_elongate_ratio[element][xfel_elongate_order[element][islow]];
+                            kslow++;
+                        }
+                    }
+                    if (kslow > 0) {
+                        edgerat /= (double)kslow;
+                    } else {
+                        edgerat = 2.5;
+                    }
                 edgerat = edgerat/2.5;
+                } else {
+                    edgerat = 1.0;
+                }
                 
                 elongavg = 0;
                 for (islow = 0; islow < slowdim; islow++) {
-                    datavalue = xfel_rawdata[element][islow][XFEL_FAST_DIM-1];
+                    datavalue = xfel_rawdata[element][islow][(element%2)==0?XFEL_FAST_DIM-1:0];
                     elongavg += datavalue/edgerat;
                     if (datavalue == XFEL_UNDEFINED || datavalue == XFEL_OVERLOAD ) {
                         xfel_elongate[element][islow][0] = xfel_elongate[element][islow][1] = datavalue;
@@ -673,14 +733,22 @@ extern "C" {
                     pixel_mapped_1_0[element][0],pixel_mapped_1_0[element][1],pixel_mapped_1_1[element][2],
                     pixel_mapped_1_1[element][0],pixel_mapped_1_1[element][1],pixel_mapped_1_1[element][2]);
             for (ii = 0; ii < 3; ii++) {
-                if (pixel_mapped_0_0[element][ii] < pixel_low[ii]) pixel_low[ii] = pixel_mapped_0_0[element][ii];
-                if (pixel_mapped_0_1[element][ii] < pixel_low[ii]) pixel_low[ii] = pixel_mapped_0_1[element][ii];
-                if (pixel_mapped_1_0[element][ii] < pixel_low[ii]) pixel_low[ii] = pixel_mapped_1_0[element][ii];
-                if (pixel_mapped_1_1[element][ii] < pixel_low[ii]) pixel_low[ii] = pixel_mapped_1_1[element][ii];
-                if (pixel_mapped_0_0[element][ii] > pixel_high[ii]) pixel_high[ii] = pixel_mapped_0_0[element][ii];
-                if (pixel_mapped_0_1[element][ii] > pixel_high[ii]) pixel_high[ii] = pixel_mapped_0_1[element][ii];
-                if (pixel_mapped_1_0[element][ii] > pixel_high[ii]) pixel_high[ii] = pixel_mapped_1_0[element][ii];
-                if (pixel_mapped_1_1[element][ii] > pixel_high[ii]) pixel_high[ii] = pixel_mapped_1_1[element][ii];
+                if (pixel_mapped_0_0[element][ii]
+                    < pixel_low[ii]) pixel_low[ii] = pixel_mapped_0_0[element][ii];
+                if (pixel_mapped_0_1[element][ii]
+                    < pixel_low[ii]) pixel_low[ii] = pixel_mapped_0_1[element][ii];
+                if (pixel_mapped_1_0[element][ii]
+                    < pixel_low[ii]) pixel_low[ii] = pixel_mapped_1_0[element][ii];
+                if (pixel_mapped_1_1[element][ii]
+                    < pixel_low[ii]) pixel_low[ii] = pixel_mapped_1_1[element][ii];
+                if (pixel_mapped_0_0[element][ii]
+                    > pixel_high[ii]) pixel_high[ii] = pixel_mapped_0_0[element][ii];
+                if (pixel_mapped_0_1[element][ii]
+                    > pixel_high[ii]) pixel_high[ii] = pixel_mapped_0_1[element][ii];
+                if (pixel_mapped_1_0[element][ii]
+                    > pixel_high[ii]) pixel_high[ii] = pixel_mapped_1_0[element][ii];
+                if (pixel_mapped_1_1[element][ii]
+                    > pixel_high[ii]) pixel_high[ii] = pixel_mapped_1_1[element][ii];
             }
             
             fprintf(stdout, " pixel normal [%g,%g,%g]\n",
