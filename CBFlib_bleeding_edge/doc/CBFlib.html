@@ -783,6 +783,7 @@ http://downloads.sf.net/cbflib/tiff-3.9.4-rev-6Feb11.tar.gz</a>
       <LI><A HREF="#2.4.56">2.4.56 cbf_get_orientation_matrix, cbf_set_orientation_matrix</a>
       <LI><A HREF="#2.4.57">2.4.57 cbf_get_bin_sizes, cbf_set_bin_sizes</a>
       <LI><A HREF="#2.4.58">2.4.58 cbf_get_axis_poise, cbf_get_goniometer_poise, cbf_get_axis_reference_poise</a>
+      <LI><A HREF="#2.4.59">2.4.59 cbf_airy_disk, cbf_airy_disk_volume</a>
     </UL>
     <LI><A HREF="#2.5">2.5   F90 function interfaces</A>
     <UL>
@@ -6580,6 +6581,73 @@ Returns an error code on failure or 0 for success.
         <TR><td valign="top">&nbsp;&nbsp;<i>axis_id</i><td valign="top">&nbsp;&nbsp;The specified axis</TR>
         <TR><td valign="top">&nbsp;&nbsp;<i>frame_id</i><td valign="top">&nbsp;&nbsp;The specified frame</TR>
         <TR><td valign="top">&nbsp;&nbsp;<i>positioner</i><td valign="top">&nbsp;&nbsp;CBF goniometer</TR>
+    </TABLE>
+    <p>
+    <b>RETURN VALUE</b>
+    <p>
+    Returns an error code on failure or 0 for success.
+    <p><hr /><P>
+
+<h4><a NAME="#2.4.59">2.4.59 cbf_airy_disk, cbf_airy_disk_volume
+</a></h4>
+<p><b>PROTOTYPE</b>
+<p>#include "cbf_airy_disk.h"
+    <p>
+    int cbf_airy_disk(double <i>x</i>, double <i>y</i>,
+    double <i>cenx</i>, double <i>ceny</i>, double <i>volume</i>, double <i>fwhm</i>,
+    double * <i>value</i>);<br />
+    int cbf_airy_disk_volume(double <i>xlo</i>, double <i>ylo</i>,
+    double <i>xhi</i>, double <i>yhi</i>,
+    double <i>cenx</i>, double <i>ceny</i>,
+    double <i>volume</i>, double <i>fwhm</i>,
+    double * <i>volumeout</i>);
+
+    <p>
+    <b>DESCRIPTION</b>
+    <p>
+    cbf_airy_disk sets <i>value</i> to point to the value taken at (<i>x</i>,<i>y</i>)
+    of an truncated Airy function approximation to a point-spread function of
+    total included volume <i>volume</i> and full width at half max <i>fwhm</i>
+    centered on (<i>cenx</i>, <i>ceny</i>).
+    <p>
+    cbf_airy_disk_volume sets <volumeout</a> to point to the integral in the box
+        with diagonal corners (<i>xlo</i>, <i>ylo</i>) and
+        of (<i>xhi</i>, <i>yhi</i>) of a truncated Airy function approximation
+        to a point-spread function of total included volume <i>volume</i> and
+        full width at half max <i>fwhm</i>
+        centered on (<i>cenx</i>, <i>ceny</i>).
+        <p>
+    The Airy function used is an 8-digit approximation up to the first minimum,
+    after which it is forced to zero, so it cannot be used to simulate diffraction
+    rings.
+    
+    <P>
+    <b>ARGUMENTS</b><br />
+    <TABLE>
+        <TR><td valign="top">&nbsp;&nbsp;<i>x</i><td valign="top">&nbsp;&nbsp;the x-coordinate of
+          a point in the real plane</TR>
+        <TR><td valign="top">&nbsp;&nbsp;<i>y</i><td valign="top">&nbsp;&nbsp;the y-coordinate of
+            a point in the real plane</TR>
+        <TR><td valign="top">&nbsp;&nbsp;<i>xlo</i><td valign="top">&nbsp;&nbsp;the x-coordinate of
+            a point in the real plane marking the left bound of integration</TR>
+        <TR><td valign="top">&nbsp;&nbsp;<i>ylo</i><td valign="top">&nbsp;&nbsp;the y-coordinate of
+            a point in the real plane marking the bottom bound of integration</TR>
+        <TR><td valign="top">&nbsp;&nbsp;<i>xhi</i><td valign="top">&nbsp;&nbsp;the x-coordinate of
+            a point in the real plane marking the right bound of integration</TR>
+        <TR><td valign="top">&nbsp;&nbsp;<i>yhi</i><td valign="top">&nbsp;&nbsp;the y-coordinate of
+            a point in the real plane marking the top bound of integration</TR>
+        <TR><td valign="top">&nbsp;&nbsp;<i>cenx</i><td valign="top">&nbsp;&nbsp;the x-coordinate of
+            a point in the real plane marking the PSF center</TR>
+        <TR><td valign="top">&nbsp;&nbsp;<i>ceny</i><td valign="top">&nbsp;&nbsp;the y-coordinate of
+            a point in the real plane marking the PSF center</TR>
+        <TR><td valign="top">&nbsp;&nbsp;<i>volume</i><td valign="top">&nbsp;&nbsp;the total volume of the
+            PSF</TR>
+        <TR><td valign="top">&nbsp;&nbsp;<i>fwhm</i><td valign="top">&nbsp;&nbsp;the full-width at half
+            max of the PSF</TR>
+        <TR><td valign="top">&nbsp;&nbsp;<i>value</i><td valign="top">&nbsp;&nbsp;Pointer to the value of
+            the Airy function</TR>
+        <TR><td valign="top">&nbsp;&nbsp;<i>volumeout</i><td valign="top">&nbsp;&nbsp;Pointer to the value
+            of the integral/TR>
     </TABLE>
     <p>
     <b>RETURN VALUE</b>

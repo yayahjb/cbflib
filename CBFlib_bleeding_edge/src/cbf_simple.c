@@ -10994,7 +10994,7 @@ extern "C" {
             
             if (cbf_get_value(handle,&axistype)) return CBF_SUCCESS;
             
-            if (!axistype 
+            if (!axistype
                 ||!cbf_cistrcmp(axistype,"general")) return CBF_SUCCESS;
             
             if (!cbf_cistrcmp(axistype,"rotation")) {

@@ -125,12 +125,56 @@ Returns an error code on failure or 0 for success.
   }
   }
 
-/* cfunc cbf_H5Arequire_cmp   pyfunc H5Arequire_cmp  
-   arg const hid_t ID    arg const char * const name    arg const      int rank    arg const hsize_t * const dim    arg const hid_t filetype    arg const void *      const value    arg void * const buf    arg int */
+/* cfunc cbf_airy_disk   pyfunc airy_disk  
+   arg double x    arg double y    arg double cenx    arg double ceny    arg double      volume    arg double fwhm    arg double * value */
 
+%feature("autodoc", "
+Returns : Float value
+*args   : double x,double y,double cenx,double ceny,double volume,double fwhm
 
-/* cfunc cbf_H5Drequire_scalar_F64LE   pyfunc H5Drequire_scalar_F64LE  
-   arg const hid_t location    arg hid_t * const      dataset    arg const char * const name    arg const double value */
+C prototype: int cbf_airy_disk(double x, double y, double cenx, double ceny,
+                 double      volume, double fwhm, double * value);
+
+CBFLib documentation:
+DESCRIPTION
+cbf_airy_disk sets value to point to the value taken at (x,y) of an 
+truncated Airy function approximation to a point-spread function of 
+total included volume volume and full width at half max fwhm centered 
+on (cenx, ceny).
+cbf_airy_disk_volume sets to point to the integral in the box with 
+diagonal corners (xlo, ylo) and of (xhi, yhi) of a truncated Airy 
+function approximation to a point-spread function of total included 
+volume volume and full width at half max fwhm centered on (cenx, 
+ceny).
+The Airy function used is an 8-digit approximation up to the first 
+minimum, after which it is forced to zero, so it cannot be used to 
+simulate diffraction rings.
+ARGUMENTS
+x           the x-coordinate of a point in the real plane y           
+the y-coordinate of a point in the real plane xlo         the 
+x-coordinate of a point in the real plane marking the left bound of 
+integration ylo         the y-coordinate of a point in the real plane 
+marking the bottom bound of integration xhi         the x-coordinate 
+of a point in the real plane marking the right bound of integration 
+yhi         the y-coordinate of a point in the real plane marking the 
+top bound of integration cenx        the x-coordinate of a point in 
+the real plane marking the PSF center ceny        the y-coordinate of 
+a point in the real plane marking the PSF center volume      the 
+total volume of the PSF fwhm        the full-width at half max of the 
+PSF value       Pointer to the value of the Airy function volumeout   
+Pointer to the value of the integral/TR>
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+----------------------------------------------------------------------
+")cbf_airy_disk;
+
+%apply double *OUTPUT {double *value};
+%inline {
+void airy_disk(double x, double y, double cenx, double ceny,
+double volume, double fwhm, double *value) {
+cbf_failnez(cbf_airy_disk(x,y,cenx,ceny,volume,fwhm,value));
+}
+}
 
 
 /* cfunc cbf_get_local_real_byte_order   pyfunc get_local_real_byte_order  
@@ -179,10 +223,6 @@ Returns an error code on failure or 0 for success.
   }
   }
 
-/* cfunc cbf_H5Arequire_cmp_ULP   pyfunc H5Arequire_cmp_ULP  
-   arg const hid_t ID    arg const char * const name    arg const int rank    arg const hsize_t * const dim    arg const hid_t fileType    arg const      hid_t memType    arg const void * const value    arg void * const buf    arg int */
-
-
 /* cfunc cbf_compute_reciprocal_cell   pyfunc compute_reciprocal_cell  
    arg double cell[6]    arg double rcell[6] */
 
@@ -211,7 +251,7 @@ doubles for cell volume.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
 SEE ALSO
-")compute_reciprocal_cell;
+")cbf_compute_reciprocal_cell;
 
 %apply double *OUTPUT {double *astar, double *bstar, double *cstar,
   double *alphastar, double *betastar, double *gammastar};
@@ -230,7 +270,57 @@ SEE ALSO
   }
 
 
-/* cfunc cbf_H5Arequire_cmp2   pyfunc H5Arequire_cmp2  
-   arg const hid_t ID    arg const char * const name    arg const      int rank    arg const hsize_t * const dim    arg const hid_t fileType    arg const hid_t      memType    arg const void * const value    arg void * const buf    arg int */
+/* cfunc cbf_airy_disk_volume   pyfunc airy_disk_volume  
+   arg double xlo    arg double ylo    arg double xhi    arg double yhi    arg double cenx    arg double ceny    arg double volume    arg double fwhm    arg double *      volumeout */
+
+%feature("autodoc", "
+Returns : Float volumeout
+*args   : double xlo,double ylo,double xhi,double yhi,double cenx,double ceny,
+          double volume,double fwhm
+
+C prototype: int cbf_airy_disk_volume(double xlo, double ylo, double xhi,
+                 double yhi,      double cenx, double ceny, double volume,
+                 double fwhm, double *      volumeout);
+
+CBFLib documentation:
+DESCRIPTION
+cbf_airy_disk sets value to point to the value taken at (x,y) of an 
+truncated Airy function approximation to a point-spread function of 
+total included volume volume and full width at half max fwhm centered 
+on (cenx, ceny).
+cbf_airy_disk_volume sets to point to the integral in the box with 
+diagonal corners (xlo, ylo) and of (xhi, yhi) of a truncated Airy 
+function approximation to a point-spread function of total included 
+volume volume and full width at half max fwhm centered on (cenx, 
+ceny).
+The Airy function used is an 8-digit approximation up to the first 
+minimum, after which it is forced to zero, so it cannot be used to 
+simulate diffraction rings.
+ARGUMENTS
+x           the x-coordinate of a point in the real plane y           
+the y-coordinate of a point in the real plane xlo         the 
+x-coordinate of a point in the real plane marking the left bound of 
+integration ylo         the y-coordinate of a point in the real plane 
+marking the bottom bound of integration xhi         the x-coordinate 
+of a point in the real plane marking the right bound of integration 
+yhi         the y-coordinate of a point in the real plane marking the 
+top bound of integration cenx        the x-coordinate of a point in 
+the real plane marking the PSF center ceny        the y-coordinate of 
+a point in the real plane marking the PSF center volume      the 
+total volume of the PSF fwhm        the full-width at half max of the 
+PSF value       Pointer to the value of the Airy function volumeout   
+Pointer to the value of the integral/TR>
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+----------------------------------------------------------------------
+")airy_disk_volume;
+
+%apply double *OUTPUT {double *volumeout};
+%inline {
+void airy_disk_volume(double xlo, double ylo, double xhi, double yhi,
+double cenx, double ceny, double volumein, double fwhm, double * volumeout) {
+cbf_failnez(cbf_airy_disk_volume(xlo,ylo,xhi,yhi,cenx,ceny,volumein,fwhm,volumeout));
+}
+}
 
 // End of generic functions

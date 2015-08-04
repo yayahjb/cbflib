@@ -325,6 +325,10 @@ extern "C" {
     double pixel_normal_avg[3];
     double prj[3][3];
     double rotmat[3][3];
+    double velements_offset[3];
+    double velements_axis_fast[3];
+    double velements_axis_slow[3];
+    double lvaf, lvas;
     int ii, jj;
     int slowactual,fastactual;
     int revnormal;
@@ -756,6 +760,33 @@ extern "C" {
             
         }
         
+        for (ii=0; ii < 3; ii++) {
+            velements_offset[ii] = pixel_low[ii];
+            velements_axis_fast[ii] = pixel_high[ii] - pixel_low[ii];
+            velements_axis_slow[ii] = pixel_high[ii] - pixel_low[ii];
+            if (ii==0) {
+                velements_axis_slow[ii] = 0.;
+            } else if (ii==1) {
+                velements_axis_fast[ii] = 0.;
+            }
+        }
+        
+        lvaf = sqrt(velements_axis_fast[0]*velements_axis_fast[0]
+                    + velements_axis_fast[1]*velements_axis_fast[1]
+                    + velements_axis_fast[2]*velements_axis_fast[2]);
+        if (lvaf < 1.e-18) lvaf = 1.;
+        lvas = sqrt(velements_axis_slow[0]*velements_axis_slow[0]
+                    + velements_axis_slow[1]*velements_axis_slow[1]
+                    + velements_axis_slow[2]*velements_axis_slow[2]);
+        if (lvas < 1.e-18) lvas = 1.;
+        
+        for (ii=0; ii < 3; ii++) {
+            velements_axis_fast[ii] /= lvaf;
+            velements_axis_slow[ii] /= lvas;
+        }
+
+
+        
         fprintf(stdout, " pixel_normal_avg [%g,%g,%g]\n",
                 pixel_normal_avg[0],pixel_normal[element][1],pixel_normal[element][2]);
         
@@ -843,6 +874,7 @@ extern "C" {
                     
                     xpos = (pixel_fast-pixel_low[0]+.5)/XFEL_PIXEL_SIZE;
                     ypos = (pixel_slow-pixel_low[1]+.5)/XFEL_PIXEL_SIZE;
+                    ypos = slowactual-1-ypos;
                     
                     if ((ii==0 || ii==XFEL_FAST_DIM-1)&&(jj==0 || jj ==XFEL_SLOW_DIM-1)){
                         fprintf(stdout,"processing element %d, pixel [%d,%d]\n",element,ii,jj);
@@ -1005,6 +1037,62 @@ extern "C" {
          to do it as integer data */
         
         cbf_failnez(cbf_force_new_datablock(cbf_out,"virtual_cspad"));
+        
+        cbf_failnez(cbf_require_category(cbf_out,"axis"));
+        
+        /* set up velement_x depending on velement_y */
+        cbf_failnez(cbf_require_column(cbf_out,"id"));
+        cbf_failnez(cbf_set_value(cbf_out,"velement_x"));
+        cbf_failnez(cbf_require_column(cbf_out,"type"));
+        cbf_failnez(cbf_set_value(cbf_out,"translation"));
+        cbf_failnez(cbf_require_column(cbf_out,"equipment"));
+        cbf_failnez(cbf_set_value(cbf_out,"detector"));
+        cbf_failnez(cbf_require_column(cbf_out,"depends_on"));
+        cbf_failnez(cbf_set_value(cbf_out,"velement_y"));
+        cbf_failnez(cbf_set_value(cbf_out,"detector_equipment"));
+        cbf_failnez(cbf_require_column(cbf_out,"virtual_detector"));
+        cbf_failnez(cbf_require_column(cbf_out,"vector[1]"));
+        cbf_failnez(cbf_set_doublevalue(cbf_out,"%g",velements_axis_fast[0]));
+        cbf_failnez(cbf_require_column(cbf_out,"vector[2]"));
+        cbf_failnez(cbf_set_doublevalue(cbf_out,"%g",velements_axis_fast[1]));
+        cbf_failnez(cbf_require_column(cbf_out,"vector[3]"));
+        cbf_failnez(cbf_set_doublevalue(cbf_out,"%g",velements_axis_fast[2]));
+        cbf_failnez(cbf_require_column(cbf_out,"offset[1]"));
+        cbf_failnez(cbf_set_doublevalue(cbf_out,"%g",0.));
+        cbf_failnez(cbf_require_column(cbf_out,"offset[2]"));
+        cbf_failnez(cbf_set_doublevalue(cbf_out,"%g",0.));
+        cbf_failnez(cbf_require_column(cbf_out,"offset[3]"));
+        cbf_failnez(cbf_set_doublevalue(cbf_out,"%g",0.));
+        
+        /* set up velement_y depending on . */
+        
+        cbf_failnez(cbf_new_row(cbf_out));
+        cbf_failnez(cbf_require_column(cbf_out,"id"));
+        cbf_failnez(cbf_set_value(cbf_out,"velement_y"));
+        cbf_failnez(cbf_require_column(cbf_out,"type"));
+        cbf_failnez(cbf_set_value(cbf_out,"translation"));
+        cbf_failnez(cbf_require_column(cbf_out,"equipment"));
+        cbf_failnez(cbf_set_value(cbf_out,"detector"));
+        cbf_failnez(cbf_require_column(cbf_out,"depends_on"));
+        cbf_failnez(cbf_set_value(cbf_out,"."));
+        cbf_failnez(cbf_set_value(cbf_out,"detector_equipment"));
+        cbf_failnez(cbf_require_column(cbf_out,"virtual_detector"));
+        cbf_failnez(cbf_require_column(cbf_out,"vector[1]"));
+        cbf_failnez(cbf_set_doublevalue(cbf_out,"%g",velements_axis_slow[0]));
+        cbf_failnez(cbf_require_column(cbf_out,"vector[2]"));
+        cbf_failnez(cbf_set_doublevalue(cbf_out,"%g",velements_axis_slow[1]));
+        cbf_failnez(cbf_require_column(cbf_out,"vector[3]"));
+        cbf_failnez(cbf_set_doublevalue(cbf_out,"%g",velements_axis_slow[2]));
+        cbf_failnez(cbf_require_column(cbf_out,"offset[1]"));
+        cbf_failnez(cbf_set_doublevalue(cbf_out,"%g",velements_offset[0]));
+        cbf_failnez(cbf_require_column(cbf_out,"offset[2]"));
+        cbf_failnez(cbf_set_doublevalue(cbf_out,"%g",velements_offset[1]));
+        cbf_failnez(cbf_require_column(cbf_out,"offset[3]"));
+        cbf_failnez(cbf_set_doublevalue(cbf_out,"%g",velements_offset[2]));
+        
+
+        
+        
         cbf_failnez(cbf_require_category(cbf_out,"array_data"));
         cbf_failnez(cbf_require_column(cbf_out,"array_id"));
         cbf_failnez(cbf_set_value(cbf_out,"virtual_cspad"));

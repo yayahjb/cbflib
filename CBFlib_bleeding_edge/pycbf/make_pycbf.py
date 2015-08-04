@@ -1856,6 +1856,7 @@ void require_column_integervalue(const char *columnname,
 ""","get_element_id", ["Integer element_number"],["String"]],
 
 
+
 "cbf_set_axis_setting":["""
    void set_axis_setting(const char *axis_id,
                     double start, double increment){
@@ -1969,7 +1970,6 @@ void require_column_integervalue(const char *columnname,
     }
     ""","get_axis_vector",["String axis_id"],
                        ["Float vector1", "Float vector2", "Float vector3"],],
-
 
 "cbf_get_axis_setting":["""
 %apply double *OUTPUT {double *start, double *increment} get_axis_setting;
@@ -3258,7 +3258,45 @@ cbfgeneric_specials = {
 ""","compute_reciprocal_cell",["double cell[6]"],
 ["Float astar", "Float bstar", "Float cstar", "Float alphastar", "Float betastar", "Float gammastar"] ]
 
+"cbf_airy_unit_disk":["""
+%apply double *OUTPUT {double *value};
+%inline {
+void airy_unit_disk(double x, double y, double *value) {
+cbf_failnez(cbf_airy_unit_disk(x,y,value));
 }
+}
+
+""","airy_unit_disk",["double x", "double y"],
+["Float value"] ],
+
+"cbf_airy_disk":["""
+%apply double *OUTPUT {double *value};
+%inline {
+void airy_disk(double x, double y, double cenx, double ceny,
+double volume, double fwhm, double *value) {
+cbf_failnez(cbf_airy_disk(x,y,cenx,ceny,volume,fwhm,value));
+}
+}
+
+""","airy_disk",["double x", "double y", "double cenx", "double ceny", "double volume", "double fwhm"],
+["Float value"] ],
+
+"cbf_airy_disk_volume":["""
+%apply double *OUTPUT {double *volumeout};
+%inline {
+void airy_disk_volume(double xlo, double ylo, double xhi, double yhi,
+double cenx, double ceny, double volumein, double fwhm, double * volumeout) {
+cbf_failnez(cbf_airy_disk_volume(xlo,ylo,xhi,yhi,cenx,ceny,volumein,fwhm,volumeout));
+}
+}
+
+""","airy_disk_volume",["double xlo", "double ylo", "double xhi", "double yhi", "double cenx", "double ceny", "double volume", "double fwhm"],
+["Float volumeout"] ]
+
+
+}
+
+
 
 
 class genericwrapper:

@@ -9,7 +9,7 @@ from distutils.core import setup, Extension
 e = Extension('_pycbf',
               sources = ["pycbf_wrap.c","../src/cbf_simple.c"],
          extra_compile_args=["-g"],
-         library_dirs=["../solib/"],
+         library_dirs=["../lib/"],
          libraries=["cbf"],
          include_dirs = ["../include"] )
             

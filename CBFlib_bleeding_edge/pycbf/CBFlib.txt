@@ -570,6 +570,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                * 2.4.57 cbf_get_bin_sizes, cbf_set_bin_sizes
                * 2.4.58 cbf_get_axis_poise, cbf_get_goniometer_poise,
                  cbf_get_axis_reference_poise
+               * 2.4.59 cbf_airy_disk, cbf_airy_disk_volume
           * 2.5 F90 function interfaces
                * 2.5.1 FCB_ATOL_WCNT
                * 2.5.2 FCB_CI_STRNCMPARR
@@ -5801,18 +5802,19 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      DESCRIPTION
 
-     cbf_set_pixel_size and cbf_set_pixel_size_sf set the item in the "size"
-     column of the "array_structure_list" category at the row which matches
-     axis axis_number of the detector element element_number converting the
-     double pixel size psize from meters to millimeters in storing it in the
-     "size" column for the axis axis_number of the detector element
-     element_number. The axis_number is numbered from 1, starting with the
-     slowest axis. cbf_set_pixel_size_fs sets the item in the "size" column
-     of the "array_structure_list" category at the row which matches axis
-     axis_number of the detector element element_number converting the double
-     pixel size psize from meters to millimeters in storing it in the "size"
-     column for the axis axis_number of the detector element element_number.
-     The axis_number is numbered from 1, starting with the fastest axis.
+     cbf_set_pixel_size and cbf_set_pixel_size_sf set the item in the
+     &quote;size&quote; column of the "array_structure_list" category at the
+     row which matches axis axis_number of the detector element
+     element_number converting the double pixel size psize from meters to
+     millimeters in storing it in the "size" column for the axis axis_number
+     of the detector element element_number. The axis_number is numbered from
+     1, starting with the slowest axis. cbf_set_pixel_size_fs sets the item
+     in the &quote;size&quote; column of the "array_structure_list" category
+     at the row which matches axis axis_number of the detector element
+     element_number converting the double pixel size psize from meters to
+     millimeters in storing it in the "size" column for the axis axis_number
+     of the detector element element_number. The axis_number is numbered from
+     1, starting with the fastest axis.
 
      If a negative axis number is given, the order of axes is reversed, so
      that -1 specifies the slowest axis for cbf_get_pixel_size_fs and the
@@ -6323,6 +6325,61 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
        axis_id      The specified axis                                        
        frame_id     The specified frame                                       
        positioner   CBF goniometer                                            
+
+     RETURN VALUE
+
+     Returns an error code on failure or 0 for success.
+
+     ----------------------------------------------------------------------
+
+    2.4.59 cbf_airy_disk, cbf_airy_disk_volume
+
+     PROTOTYPE
+
+     #include "cbf_airy_disk.h"
+
+     int cbf_airy_disk(double x, double y, double cenx, double ceny, double
+     volume, double fwhm, double * value);
+     int cbf_airy_disk_volume(double xlo, double ylo, double xhi, double yhi,
+     double cenx, double ceny, double volume, double fwhm, double *
+     volumeout);
+
+     DESCRIPTION
+
+     cbf_airy_disk sets value to point to the value taken at (x,y) of an
+     truncated Airy function approximation to a point-spread function of
+     total included volume volume and full width at half max fwhm centered on
+     (cenx, ceny).
+
+     cbf_airy_disk_volume sets to point to the integral in the box with
+     diagonal corners (xlo, ylo) and of (xhi, yhi) of a truncated Airy
+     function approximation to a point-spread function of total included
+     volume volume and full width at half max fwhm centered on (cenx, ceny).
+
+     The Airy function used is an 8-digit approximation up to the first
+     minimum, after which it is forced to zero, so it cannot be used to
+     simulate diffraction rings.
+
+     ARGUMENTS
+
+       x           the x-coordinate of a point in the real plane              
+       y           the y-coordinate of a point in the real plane              
+       xlo         the x-coordinate of a point in the real plane marking the  
+                 left bound of integration                                    
+       ylo         the y-coordinate of a point in the real plane marking the  
+                 bottom bound of integration                                  
+       xhi         the x-coordinate of a point in the real plane marking the  
+                 right bound of integration                                   
+       yhi         the y-coordinate of a point in the real plane marking the  
+                 top bound of integration                                     
+       cenx        the x-coordinate of a point in the real plane marking the  
+                 PSF center                                                   
+       ceny        the y-coordinate of a point in the real plane marking the  
+                 PSF center                                                   
+       volume      the total volume of the PSF                                
+       fwhm        the full-width at half max of the PSF                      
+       value       Pointer to the value of the Airy function                  
+       volumeout   Pointer to the value of the integral/TR>                   
 
      RETURN VALUE
 
@@ -12147,4 +12204,4 @@ src/                      include/             m4/                  Description
 
      ----------------------------------------------------------------------
 
-     Updated 27 April 2014. Contact:  yaya at bernstein-plus-sons dot com
+     Updated 22 February 2015. Contact:  yaya at bernstein-plus-sons dot com

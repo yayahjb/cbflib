@@ -576,8 +576,15 @@ extern "C" {
         int icutxlo, icutxhi, icutylo, icutyhi;
         double diffxlo=0., diffxhi=0., diffylo=0., diffyhi=0.;
         
-        if (!volumeout || fwhm <= 0. || volumein <= 0.) return CBF_ARGUMENT;
+        if (!volumeout || fwhm <= 0.) {
+            return CBF_ARGUMENT;
+        }
         
+        if (fabs(volumein) < 1.e-38) {
+            *volumeout = 0.;
+            return 0;
+        }
+                
         scale = fwhm/CBF_AIRY_UNIT_DISK_FWHM;
         xofflo = (xlo-cenx)/scale;
         yofflo = (ylo-ceny)/scale;
