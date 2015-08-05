@@ -261,7 +261,8 @@ extern "C" {
 #include "cbf_airy_disk.h"
     
     int main() {
-        double xhi,xlo,yhi,ylo;
+        double xhi,xlo,yhi,ylo, xx, yy;
+        double g[41][41];
         double partvol[40][40];
         double partvol2[40][40];
         double test_slices_1D[20];
@@ -270,6 +271,21 @@ extern "C" {
         double test_partvol_2D[20][20];
         int ia, ib;
         int error=0;
+        
+        
+        /* generate the function table */
+        
+        for (ia = 0; ia < 41; ia++) {
+            xx = (double)(ia-20)/20.;
+            for (ib = 0; ib < 41; ib++) {
+                yy = (double)(ib-20)/20.;
+                cbf_airy_unit_disk(xx, yy, &(g[ia][ib]));
+                if (g[ia][ib] < 0. || g[ia][ib] > 1.395330318373548+1.e-20) {
+                    fprintf(stdout,"Airy function error at ia %d ib %d value %g\n",
+                            ia, ib, g[ia][ib]);
+                }
+            }
+        }
         
         /* test the simpson's rule code */
         
@@ -338,9 +354,9 @@ extern "C" {
             for (ib = 0; ib < 20; ib++) {
                 ylo = 0.+.05*(double)ib;
                 yhi = ylo+.05;
-                error |= cbf_airy_disk_volume(xlo,ylo,xhi,yhi,0.,0.,1.,CBF_AIRY_UNIT_DISK_FWHM,&(partvol2[ia][ib]));
-                if (fabs(partvol[ia][ib]-partvol2[ia][ib]) > 1.e-7) {
-                    fprintf(stdout,"%d %d partvol %15.9g partvol2 %15.9g \n",ia, ib,partvol[ia][ib],partvol2[ia][ib]);
+                error |= cbf_airy_disk_volume(xlo*10./3.+5.7,ylo*10./3.+2.3,xhi*10./3.+5.7,yhi*10./3.+2.3,5.7,2.3,255.,CBF_AIRY_UNIT_DISK_FWHM*10./3.,&(partvol2[ia][ib]));
+                if (fabs(partvol[ia][ib]-partvol2[ia][ib]/255.) > 1.e-7) {
+                    fprintf(stdout,"%d %d partvol %15.9g partvol2 %15.9g \n",ia, ib,partvol[ia][ib],partvol2[ia][ib]/255.);
                 }
             }
         }
