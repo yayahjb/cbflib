@@ -3256,18 +3256,7 @@ cbfgeneric_specials = {
   }
 
 ""","compute_reciprocal_cell",["double cell[6]"],
-["Float astar", "Float bstar", "Float cstar", "Float alphastar", "Float betastar", "Float gammastar"] ]
-
-"cbf_airy_unit_disk":["""
-%apply double *OUTPUT {double *value};
-%inline {
-void airy_unit_disk(double x, double y, double *value) {
-cbf_failnez(cbf_airy_unit_disk(x,y,value));
-}
-}
-
-""","airy_unit_disk",["double x", "double y"],
-["Float value"] ],
+["Float astar", "Float bstar", "Float cstar", "Float alphastar", "Float betastar", "Float gammastar"] ],
 
 "cbf_airy_disk":["""
 %apply double *OUTPUT {double *value};
@@ -3290,7 +3279,7 @@ cbf_failnez(cbf_airy_disk_volume(xlo,ylo,xhi,yhi,cenx,ceny,volumein,fwhm,volumeo
 }
 }
 
-""","airy_disk_volume",["double xlo", "double ylo", "double xhi", "double yhi", "double cenx", "double ceny", "double volume", "double fwhm"],
+""","airy_disk_volume",["double xlo", "double ylo", "double xhi", "double yhi", "double cenx", "double ceny", "double volumein", "double fwhm"],
 ["Float volumeout"] ]
 
 

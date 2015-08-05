@@ -166,7 +166,7 @@ Pointer to the value of the integral/TR>
 RETURN VALUE
 Returns an error code on failure or 0 for success.
 ----------------------------------------------------------------------
-")cbf_airy_disk;
+")airy_disk;
 
 %apply double *OUTPUT {double *value};
 %inline {
@@ -251,7 +251,7 @@ doubles for cell volume.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
 SEE ALSO
-")cbf_compute_reciprocal_cell;
+")compute_reciprocal_cell;
 
 %apply double *OUTPUT {double *astar, double *bstar, double *cstar,
   double *alphastar, double *betastar, double *gammastar};

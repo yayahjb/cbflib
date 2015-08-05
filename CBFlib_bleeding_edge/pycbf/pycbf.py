@@ -498,7 +498,46 @@ def get_local_real_format():
     return _pycbf.get_local_real_format()
 
 def airy_disk(x, y, cenx, ceny, volume, fwhm):
-    """airy_disk(double x, double y, double cenx, double ceny, double volume, double fwhm)"""
+    """
+    Returns : Float value
+    *args   : double x,double y,double cenx,double ceny,double volume,double fwhm
+
+    C prototype: int cbf_airy_disk(double x, double y, double cenx, double ceny,
+                     double      volume, double fwhm, double * value);
+
+    CBFLib documentation:
+    DESCRIPTION
+    cbf_airy_disk sets value to point to the value taken at (x,y) of an 
+    truncated Airy function approximation to a point-spread function of 
+    total included volume volume and full width at half max fwhm centered 
+    on (cenx, ceny).
+    cbf_airy_disk_volume sets to point to the integral in the box with 
+    diagonal corners (xlo, ylo) and of (xhi, yhi) of a truncated Airy 
+    function approximation to a point-spread function of total included 
+    volume volume and full width at half max fwhm centered on (cenx, 
+    ceny).
+    The Airy function used is an 8-digit approximation up to the first 
+    minimum, after which it is forced to zero, so it cannot be used to 
+    simulate diffraction rings.
+    ARGUMENTS
+    x           the x-coordinate of a point in the real plane y           
+    the y-coordinate of a point in the real plane xlo         the 
+    x-coordinate of a point in the real plane marking the left bound of 
+    integration ylo         the y-coordinate of a point in the real plane 
+    marking the bottom bound of integration xhi         the x-coordinate 
+    of a point in the real plane marking the right bound of integration 
+    yhi         the y-coordinate of a point in the real plane marking the 
+    top bound of integration cenx        the x-coordinate of a point in 
+    the real plane marking the PSF center ceny        the y-coordinate of 
+    a point in the real plane marking the PSF center volume      the 
+    total volume of the PSF fwhm        the full-width at half max of the 
+    PSF value       Pointer to the value of the Airy function volumeout   
+    Pointer to the value of the integral/TR>
+    RETURN VALUE
+    Returns an error code on failure or 0 for success.
+    ----------------------------------------------------------------------
+
+    """
     return _pycbf.airy_disk(x, y, cenx, ceny, volume, fwhm)
 
 def get_local_real_byte_order():
@@ -535,14 +574,40 @@ def get_local_real_byte_order():
     return _pycbf.get_local_real_byte_order()
 
 def compute_reciprocal_cell(cell):
-    """compute_reciprocal_cell(double [6] cell)"""
+    """
+    Returns : Float astar,Float bstar,Float cstar,Float alphastar,Float betastar,
+              Float gammastar
+    *args   : double cell[6]
+
+    C prototype: int cbf_compute_reciprocal_cell ( double cell[6],
+                     double rcell[6] );
+
+    CBFLib documentation:
+    DESCRIPTION
+    cbf_compute_reciprocal_cell sets rcell to point to the array of 
+    reciprocal cell parameters computed from the double values cell[0:2] 
+    giving the cell edge lengths a, b and c in AAngstroms, and the double 
+    values cell[3:5] giving the cell angles a, b and g in degrees. The 
+    double values rcell[0:2] will be set to the reciprocal cell lengths 
+    a*, b* and c* in AAngstroms-1 and the double values rcell[3:5] will 
+    be set to the reciprocal cell angles a*, b* and g* in degrees.
+    ARGUMENTS
+    cell     Pointer to the array of 6 doubles giving the cell 
+    parameters. rcell    Pointer to the destination array of 6 doubles 
+    giving the reciprocal cell parameters. volume   Pointer to the 
+    doubles for cell volume.
+    RETURN VALUE
+    Returns an error code on failure or 0 for success.
+    SEE ALSO
+
+    """
     return _pycbf.compute_reciprocal_cell(cell)
 
 def airy_disk_volume(xlo, ylo, xhi, yhi, cenx, ceny, volumein, fwhm):
     """
     Returns : Float volumeout
     *args   : double xlo,double ylo,double xhi,double yhi,double cenx,double ceny,
-              double volume,double fwhm
+              double volumein,double fwhm
 
     C prototype: int cbf_airy_disk_volume(double xlo, double ylo, double xhi,
                      double yhi,      double cenx, double ceny, double volume,

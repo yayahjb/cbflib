@@ -11,6 +11,7 @@
 % Revised for CBFlib 0.9 releases, Herbert J. Bernstein, 23 Aug 2010
 % Revised for CBFlib 0.9.2.8, Herbert J. Bernstein, 12 December 2012
 % Revised for CBFlib 0.9.3.2, Herbert J. Bernstein, 4 November 2013
+% Revised for CBFlib 0.9.5.8, Herbert J. Bernstein, 5 August 2015
 %
 %######################################################################
 %#                                                                    #
@@ -3326,17 +3327,6 @@ cbfgeneric_specials = {
 ""","compute_reciprocal_cell",["double cell[6]"],
 ["Float astar", "Float bstar", "Float cstar", "Float alphastar", "Float betastar", "Float gammastar"] ],
 
-"cbf_airy_unit_disk":["""
-%apply double *OUTPUT {double *value};
-%inline {
-void airy_unit_disk(double x, double y, double *value) {
-cbf_failnez(cbf_airy_unit_disk(x,y,value));
-}
-}
-
-""","airy_unit_disk",["double x", "double y"],
-["Float value"] ],
-
 "cbf_airy_disk":["""
 %apply double *OUTPUT {double *value};
 %inline {
@@ -3353,12 +3343,12 @@ cbf_failnez(cbf_airy_disk(x,y,cenx,ceny,volume,fwhm,value));
 %apply double *OUTPUT {double *volumeout};
 %inline {
 void airy_disk_volume(double xlo, double ylo, double xhi, double yhi,
-double cenx, double ceny, double volumein, double fwhm, double * volumeout) {
-cbf_failnez(cbf_airy_disk_volume(xlo,ylo,xhi,yhi,cenx,ceny,volumein,fwhm,volumeout));
+double cenx, double ceny, double volume, double fwhm, double * volumeout) {
+cbf_failnez(cbf_airy_disk_volume(xlo,ylo,xhi,yhi,cenx,ceny,volume,fwhm,volumeout));
 }
 }
 
-""","airy_disk_volume",["double xlo", "double ylo", "double xhi", "double yhi", "double cenx", "double ceny", "double volumein", "double fwhm"],
+""","airy_disk_volume",["double xlo", "double ylo", "double xhi", "double yhi", "double cenx", "double ceny", "double volume", "double fwhm"],
 ["Float volumeout"] ]
 
 

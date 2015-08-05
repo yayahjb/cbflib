@@ -407,6 +407,9 @@ extern "C" {
         return 0;
     }
     
+    /* Compute an airy disk for a specified fwhm and
+       volume. */
+    
     int cbf_airy_disk(double x, double y,
                       double cenx, double ceny,
                       double volume, double fwhm, double * value) {
@@ -488,7 +491,7 @@ extern "C" {
     }
     
     static int cbf_airy_bin_big(double cutpoint) {
-        if (cutpoint <= -0.9) return 0;
+        if (cutpoint < -0.9) return 0;
         if (cutpoint >= 1.) return 20;
         return (int)((cutpoint+1.)*10.);
     }
@@ -498,7 +501,7 @@ extern "C" {
     }
     
     static int cbf_airy_bin_small(double cutpoint) {
-        if (cutpoint <= -0.95) return -20;
+        if (cutpoint < -0.95) return -20;
         if (cutpoint >= 1.) return 20;
         return -20+(int)((cutpoint+1.)*20.);
     }
@@ -560,12 +563,13 @@ extern "C" {
         vol01 = partvol_2D(ii+1,jj);
         vol10 = partvol_2D(ii,jj+1);
         vol11 = partvol_2D(ii+1,jj+1);
-        volout = (1.-20.*xdif)*(1-20.*ydif)*vol00
-        + 400.*xdif*ydif*vol11
-        + (1.-20.*xdif)*ydif*vol10
-        + xdif*(1-20.*ydif)*vol01;
+        volout = vol00
+        +(vol01-vol00)*xdif*20.
+        +(vol10-vol00)*ydif*20.
+        +(vol11+vol00-vol01-vol10)*xdif*ydif*400;
         return volout;
     }
+    
     
     int cbf_airy_disk_volume(double xlo, double ylo,
                              double xhi, double yhi,
@@ -603,7 +607,7 @@ extern "C" {
             icutyhi = cbf_airy_bin_big(yoffhi);
             diffyhi = cbf_airy_bin_big_diff(yoffhi,icutyhi);
             if (diffyhi > 0.1) diffyhi = 0.1;
-            *volumeout = (volumein/(scale*scale))*
+            *volumeout = volumein*
             ((partvol_1D(icutyhi)+diffyhi*10.*(partvol_1D(icutyhi+1)
                           -partvol_1D(icutyhi)))
             -(partvol_1D(icutylo)+diffylo*10.*(partvol_1D(icutylo+1)
@@ -619,7 +623,7 @@ extern "C" {
             icutxhi = cbf_airy_bin_big(xoffhi);
             diffxlo = cbf_airy_bin_big_diff(xoffhi,icutxhi);
             if (diffxhi > 0.1) diffxhi = 0.1;
-            *volumeout = (volumein/(scale*scale))*
+            *volumeout = volumein*
             ((partvol_1D(icutxhi)+diffxhi*10.*(partvol_1D(icutxhi+1)
                            -partvol_1D(icutxhi)))
              -(partvol_1D(icutxlo)+diffxlo*10.*(partvol_1D(icutxlo+1)
@@ -646,7 +650,7 @@ extern "C" {
             v3 = partvol_2D_real(icutxlo,icutyhi,diffxlo,diffyhi);
             v4 = partvol_2D_real(icutxhi,icutyhi,diffxhi,diffyhi);
             
-            *volumeout = v1+v4-v2-v3;
+            *volumeout = volumein*(v1+v4-v2-v3);
             return 0;
             
         }
