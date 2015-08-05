@@ -257,6 +257,7 @@ extern "C" {
 #endif
     
 #include "cbf.h"
+#include "cbf_airy_disk.h"
     
 #define CBF_NOTIMEZONE 1440
     

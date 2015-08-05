@@ -7,9 +7,9 @@ from distutils.core import setup, Extension
 # Make our extension module
 
 e = Extension('_pycbf',
-              sources = ["pycbf_wrap.c","../src/cbf_simple.c"],
+              sources = ["pycbf_wrap.c","../src/cbf_simple.c","../src/cbf_airy_disk.c"],
          extra_compile_args=["-g"],
-         library_dirs=["../lib/"],
+         library_dirs=["../solib/"],
          libraries=["cbf"],
          include_dirs = ["../include"] )
             
