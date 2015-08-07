@@ -1,5 +1,3 @@
-
-
 # Import the things to build python binary extensions
 
 from distutils.core import setup, Extension
@@ -14,4 +12,4 @@ e = Extension('_pycbf',
          include_dirs = ["../include"] )
             
 # Build it
-setup(name="_pycbf",ext_modules=[e],)
+setup(name="_pycbf",ext_modules=[e],py_modules = ['pycbf'])
