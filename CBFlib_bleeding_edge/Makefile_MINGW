@@ -429,6 +429,7 @@ MISCFLAG = $(NOLLFLAG) $(ULPFLAG)
 #
 PYCBFEXT = so
 PYCBFBOPT =
+PYCBFIOPT =
 SETUP_PY = setup.py
 
 #
@@ -1257,6 +1258,12 @@ $(PYCBF)/_pycbf.$(PYCBFEXT): $(PYCBF)  shared \
 	$(PYCBF)/cbfgoniometerwrappers.i
 	(cd $(PYCBF); python $(SETUP_PY) build $(PYCBFBOPT); cp build/lib.*/_pycbf.$(PYCBFEXT) .) 
 
+$(PYCBF)/pycbfinstall:
+	(cd $(PYCBF); python $(SETUP_PY) install $(PYCBFIOPT))
+
+$(PYCBF)/pycbfuserinstall:
+	(cd $(PYCBF); python $(SETUP_PY) install $(PYCBFIOPT) --user)
+
 $(PYCBF)/setup.py: $(M4)/setup_py.m4
 	(m4 -P -Dregexlib=REGEXLIB -Dregexlibdir=REGEXLIBDIR $(M4)/setup_py.m4 > $@)
 
@@ -2083,6 +2090,10 @@ pycbftests:  $(PYCBF)/_pycbf.$(PYCBFEXT)
 	-$(DIFF) $(PYCBF)/fel_test1.out $(PYCBF)/fel_test1_orig.out
 	-$(DIFF) $(PYCBF)/fel_test2.out $(PYCBF)/fel_test2_orig.out 
 	-$(DIFF) $(PYCBF)/fel_test3.out $(PYCBF)/fel_test3_orig.out
+
+pycbfinstall: $(PYCBF)/_pycbf.$(PYCBFEXT) $(PYCBF)/pycbfinstall
+
+pycbfuserinstall: $(PYCBF)/_pycbf.$(PYCBFEXT) $(PYCBF)/pycbfuserinstall
 
 javatests: $(BIN)/ctestcbf $(BIN)/testcbf.class $(SOLIB)/libcbf_wrap.so
 	$(BIN)/ctestcbf > testcbfc.txt
