@@ -16,18 +16,10 @@ for element in range(64):
     v11 = d.get_pixel_coordinates(1, 1)
     prec = Decimal('1.000000000')
 
-    print (0, 0), 'v00', '[', Decimal(str(v00[0])).quantize(prec,rounding=ROUND_HALF_UP),\
-                              Decimal(str(v00[1])).quantize(prec,rounding=ROUND_HALF_UP),\
-                              Decimal(str(v00[2])).quantize(prec,rounding=ROUND_HALF_UP),']'
-    print (0, 1), 'v01', '[', Decimal(str(v01[0])).quantize(prec,rounding=ROUND_HALF_UP),\
-                              Decimal(str(v01[1])).quantize(prec,rounding=ROUND_HALF_UP),\
-                              Decimal(str(v01[2])).quantize(prec,rounding=ROUND_HALF_UP),']'
-    print (1, 0), 'v10', '[', Decimal(str(v10[0])).quantize(prec,rounding=ROUND_HALF_UP),\
-                              Decimal(str(v10[1])).quantize(prec,rounding=ROUND_HALF_UP),\
-                              Decimal(str(v10[2])).quantize(prec,rounding=ROUND_HALF_UP),']'
-    print (1, 1), 'v11', '[', Decimal(str(v11[0])).quantize(prec,rounding=ROUND_HALF_UP),\
-                              Decimal(str(v11[1])).quantize(prec,rounding=ROUND_HALF_UP),\
-                              Decimal(str(v11[2])).quantize(prec,rounding=ROUND_HALF_UP),']'
+    print '(0, 0) v00 [ %.9f %.9f %.9f ]' %(round(v00[0],9), round(v00[1],9), round(v00[2],9))
+    print '(0, 1) v01 [ %.9g %.9g %.9g ]' %(round(v01[0],9), round(v01[1],9), round(v01[2],9))
+    print '(1, 0) v10 [ %.9g %.9g %.9g ]' %(round(v10[0],9), round(v10[1],9), round(v10[2],9))
+    print '(1, 1) v11 [ %.9g %.9g %.9g ]' %(round(v11[0],9), round(v11[1],9), round(v11[2],9))
 
     print "surface axes:",  d.get_detector_surface_axes(0), d.get_detector_surface_axes(1)
 
@@ -42,8 +34,10 @@ for element in range(64):
         print "    equipment", cbf.get_axis_equipment(cur_axis)
         print "    depends_on", cbf.get_axis_depends_on(cur_axis)
         print "    equipment_component", cbf.get_axis_equipment_component(cur_axis)
-        print "    vector", cbf.get_axis_vector(cur_axis)
-        print "    offset", cbf.get_axis_offset(cur_axis)
+        vector = cbf.get_axis_vector(cur_axis)
+        print "    vector [ %.8g %.8g %.8g ]" % (round(vector[0],7), round(vector[1],7), round(vector[2],7))
+        offset = cbf.get_axis_offset(cur_axis)
+        print "    offset [ %.8g %.8g %.8g ]" % (round(offset[0],7), round(offset[1],7), round(offset[2],7))
         print "    rotation", cbf.get_axis_rotation(cur_axis)
         print "    rotation_axis", cbf.get_axis_rotation_axis(cur_axis)
         cur_axis = cbf.get_axis_depends_on(cur_axis)
