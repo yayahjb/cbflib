@@ -254,6 +254,29 @@ m4_ifelse(cbf_system,`',`m4_define(`cbf_system',`LINUX')')
 # Version string
 VERSION = 'cbf_version`
 
+#
+# Directories
+#
+ROOT     = .
+LIB      = $(ROOT)/lib
+SOLIB    = $(ROOT)/solib
+JCBF     = $(ROOT)/jcbf
+JAVADIR  = $(ROOT)/java
+BIN      = $(ROOT)/bin
+SRC      = $(ROOT)/src
+INCLUDE  = $(ROOT)/include
+M4       = $(ROOT)/m4
+PYCBF    = $(ROOT)/pycbf
+EXAMPLES = $(ROOT)/examples
+TEMPLATES= $(ROOT)/templates
+DECTRIS_EXAMPLES = $(EXAMPLES)/dectris_cbf_template_test
+DOC      = $(ROOT)/doc
+MINICBF_TEST = $(ROOT)/minicbf_test
+GRAPHICS = $(ROOT)/html_graphics
+DATADIRI  = $(ROOT)/../CBFlib_$(VERSION)_Data_Files_Input
+DATADIRO  = $(ROOT)/../CBFlib_$(VERSION)_Data_Files_Output
+DATADIRS  = $(ROOT)/../CBFlib_$(VERSION)_Data_Files_Output_Sigs_Only
+INSTALLDIR  ?= $(HOME)
 
 #
 # Comment out the next line if scratch test files should be retained
@@ -284,8 +307,8 @@ TIFFPREFIX = $(PWD)
 #HDF5 = hdf5-1.8.11
 HDF5 = hdf5-1.8.14
 HDF5PREFIX = $(PWD)
-HDF5LIBS = ./lib/libhdf5.a -lz -ldl
-HDF5SOLIBS = -L./lib -lhdf5 -lz
+HDF5LIBS = $(LIB)/libhdf5.a -lz -ldl
+HDF5SOLIBS = -L$(LIB) -lhdf5 -lz
 HDF5REGISTER ?= --register plugin
 
 CBFLIB_DONT_USE_LZ4 ?= no
@@ -296,7 +319,7 @@ ifneq ($(CBFLIB_DONT_USE_LZ4),yes)
 LZ4 = HDF5Plugin_6Feb15
 LZ4src = $(LZ4)/src
 LZ4include = $(LZ4)/include
-LZ4SOLIBS = -L./solib -lh5zlz4
+LZ4SOLIBS = -L$(SOLIB) -lh5zlz4
 else
 LZ4SOLIBS =
 endif
@@ -311,11 +334,12 @@ CBF_REGEXLIB_REGEX ?= regex.h
 
 # Program to use to retrieve a URL
 
-DOWNLOAD = wget
+DOWNLOAD = wget -N
 
 # Flag to control symlinks versus copying
 
 SLFLAGS = --use_ln
+LN = ln -s -f
 
 #
 # Program to use to pack shars
@@ -433,6 +457,7 @@ PYCBFEXT = so
 PYCBFBOPT =
 PYCBFIOPT =
 SETUP_PY = setup.py
+INSTALLSETUP_PY = installsetup.py
 
 #
 # Set the compiler and flags
@@ -453,7 +478,7 @@ F90LDFLAGS = -bind_at_load
 EXTRALIBS = -lm
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time
-DOWNLOAD = /sw/bin/wget',
+DOWNLOAD = /sw/bin/wget -N',
 cbf_system,`OSX_gcc42',`
 #########################################################
 #
@@ -475,7 +500,7 @@ LDPREFIX = LD_LIBRARY_PATH=$(SOLIB)
 EXTRALIBS = -lm
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time
-DOWNLOAD = /sw/bin/wget',
+DOWNLOAD = /sw/bin/wget -N',
 cbf_system,`OSX_gcc42_DMALLOC',`
 #########################################################
 #
@@ -497,7 +522,7 @@ LDPREFIX = LD_LIBRARY_PATH=$(SOLIB)
 EXTRALIBS = -lm -L$(HOME)/lib -ldmalloc
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time
-DOWNLOAD = /sw/bin/wget',
+DOWNLOAD = /sw/bin/wget -N',
 cbf_system,`LINUX_64',`
 #########################################################
 #
@@ -639,10 +664,12 @@ TIME =
 PYCBFEXT = pyd
 PYCBFBOPT = --compiler=mingw32
 SETUP_PY = setup_MINGW.py
+INSTALLSETUP_PY = installsetup_MINGW.py
 JDKDIR = /java
 JSWIG = /swig/swig -java
 PYSWIG = /swig/swig -python
 SLFLAGS = --use_cp
+LN = cp
 SHAR	= shar
 AR		=  ar
 RANLIB  =  ranlib',
@@ -689,30 +716,6 @@ TIME = time')`
 ifneq ($(NOFORTRAN),)
 F90C =
 endif
-
-#
-# Directories
-#
-ROOT     = .
-LIB      = $(ROOT)/lib
-SOLIB    = $(ROOT)/solib
-JCBF     = $(ROOT)/jcbf
-JAVADIR  = $(ROOT)/java
-BIN      = $(ROOT)/bin
-SRC      = $(ROOT)/src
-INCLUDE  = $(ROOT)/include
-M4       = $(ROOT)/m4
-PYCBF    = $(ROOT)/pycbf
-EXAMPLES = $(ROOT)/examples
-TEMPLATES= $(ROOT)/templates
-DECTRIS_EXAMPLES = $(EXAMPLES)/dectris_cbf_template_test
-DOC      = $(ROOT)/doc
-MINICBF_TEST = $(ROOT)/minicbf_test
-GRAPHICS = $(ROOT)/html_graphics
-DATADIRI  = $(ROOT)/../CBFlib_$(VERSION)_Data_Files_Input
-DATADIRO  = $(ROOT)/../CBFlib_$(VERSION)_Data_Files_Output
-DATADIRS  = $(ROOT)/../CBFlib_$(VERSION)_Data_Files_Output_Sigs_Only
-INSTALLDIR  = $(HOME)
 
 #
 # URLs from which to retrieve the data directories
@@ -1137,7 +1140,11 @@ symlinksdone:
 	./.symlinks $(SLFLAGS)
 	touch symlinksdone
 
-install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
+install:  baseinstall pycbfinstall
+
+userinstall: baseinstall pycbfuserinstall
+
+baseinstall:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
 	$(INSTALLDIR)/include $(INSTALLDIR)/include/cbflib \
 	$(PYSOURCE) shared $(EXAMPLES)/batch_convert_minicbf.sh \
 	$(LIB)/libcbf.a $(LIB)/libimg.a $(LIB)/libfcb.a \
@@ -1155,12 +1162,15 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
 	-chmod 755 $(INSTALLDIR)/lib/libcbf.so
 	-cp $(INSTALLDIR)/lib/libcbf.so $(INSTALLDIR)/lib/libcbf_old.so
 	cp $(SOLIB)/libcbf.so $(INSTALLDIR)/lib/libcbf.so
+	$(LN) $(INSTALLDIR)/lib/libcbf.so $(INSTALLDIR)/lib/lib_cbf.so
 	-chmod 755 $(INSTALLDIR)/lib/libimg.so
 	-cp $(INSTALLDIR)/lib/libimg.so $(INSTALLDIR)/lib/libimg_old.so
 	cp $(SOLIB)/libimg.so $(INSTALLDIR)/lib/libimg.so
+	$(LN) $(INSTALLDIR)/lib/libimg.so $(INSTALLDIR)/lib/lib_img.so
 	-chmod 755 $(INSTALLDIR)/lib/libfcb.so
 	-cp $(INSTALLDIR)/lib/libfcb.so $(INSTALLDIR)/lib/libfcb_old.so
 	cp $(SOLIB)/libfcb.so $(INSTALLDIR)/lib/libfcb.so
+	$(LN) $(INSTALLDIR)/lib/libfcb.so $(INSTALLDIR)/lib/lib_fcb.so
 	-cp $(INSTALLDIR)/bin/adscimg2cbf $(INSTALLDIR)/bin/adscimg2cbf_old
 	cp $(BIN)/adscimg2cbf $(INSTALLDIR)/bin/adscimg2cbf
 	-cp $(INSTALLDIR)/bin/cbf2adscimg $(INSTALLDIR)/bin/cbf2adscimg_old
@@ -1474,10 +1484,10 @@ $(PYCBF)/_pycbf.$(PYCBFEXT): $(PYCBF)  shared \
 	(cd $(PYCBF); python $(SETUP_PY) build $(PYCBFBOPT); cp build/lib.*/_pycbf.$(PYCBFEXT) .) 
 
 $(PYCBF)/pycbfinstall:
-	(cd $(PYCBF); python $(SETUP_PY) install $(PYCBFIOPT))
+	(cd $(PYCBF); python $(INSTALLSETUP_PY) install $(PYCBFIOPT))
 
 $(PYCBF)/pycbfuserinstall:
-	(cd $(PYCBF); python $(SETUP_PY) install $(PYCBFIOPT) --user)
+	(cd $(PYCBF); python $(INSTALLSETUP_PY) install $(PYCBFIOPT) --user)
 
 $(PYCBF)/setup.py: $(M4)/setup_py.m4
 	(m4 -P -Dregexlib=REGEXLIB -Dregexlibdir=REGEXLIBDIR $(M4)/setup_py.m4 > $@)
