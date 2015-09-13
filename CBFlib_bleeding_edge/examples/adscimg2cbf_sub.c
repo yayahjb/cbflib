@@ -304,8 +304,8 @@ static int gethdn ( int n, char* field, char* value, char* header )
   for (hp=header, i = -1; *hp != '}' && i<n; hp++)
     if ( *hp == ';' ) 
       {
-	i++;
-	if ( i==(n-1) ) sp=hp;
+    i++;
+    if ( i==(n-1) ) sp=hp;
       }
   /*
    * Return if couldn't find nth field
@@ -332,71 +332,71 @@ static int gethdn ( int n, char* field, char* value, char* header )
 
 static char	*which_facility(int serial_number)
 {
-	switch(serial_number)
-	{
-		case 901:
-		case 902:
-		case 908:
-			return("ssrl");
-			break;
-		case 903:
-		case 906:
-			return("nsls");
-			break;	
-		case 904:
-		case 911:
-		case 916:
-			return("necat");
-			break;
-		case 907:
-		case 926:
-		case 925:
-		case 923:
-		case 913:
-			return("als");
-			break;
-		case 912:
-			return("kek");
-			break;
-		case 914:
-			return("sbccat");
-			break;
-		case 910:
-		case 905:
-			return("biocars");
-			break;
-		case 909:
-			return("nsrrc");
-			break;
-		case 915:
-			return("spring8");
-			break;
-		case 917:
-		case 918:
-		case 919:
-			return("esrf");
-			break;
-		case 920:
-		case 921:
-		case 922:
-			return("dls");
-			break;
-		case 924:
-			return("fip");
-			break;
-		case 927:	
-			return("soleil");
-			break;
-		case 928:
-			return("as");
-			break;
-		case 929:
-			return("pohang");
-			break;
-		default:
-			return(" ");
-			break;
-	}
+    switch(serial_number)
+    {
+        case 901:
+        case 902:
+        case 908:
+        	return("ssrl");
+        	break;
+        case 903:
+        case 906:
+        	return("nsls");
+        	break;	
+        case 904:
+        case 911:
+        case 916:
+        	return("necat");
+        	break;
+        case 907:
+        case 926:
+        case 925:
+        case 923:
+        case 913:
+        	return("als");
+        	break;
+        case 912:
+        	return("kek");
+        	break;
+        case 914:
+        	return("sbccat");
+        	break;
+        case 910:
+        case 905:
+        	return("biocars");
+        	break;
+        case 909:
+        	return("nsrrc");
+        	break;
+        case 915:
+        	return("spring8");
+        	break;
+        case 917:
+        case 918:
+        case 919:
+        	return("esrf");
+        	break;
+        case 920:
+        case 921:
+        case 922:
+        	return("dls");
+        	break;
+        case 924:
+        	return("fip");
+        	break;
+        case 927:	
+        	return("soleil");
+        	break;
+        case 928:
+        	return("as");
+        	break;
+        case 929:
+        	return("pohang");
+        	break;
+        default:
+        	return(" ");
+        	break;
+    }
 }
 static void	smv_date_to_cbf_date(char *smv_date, char *cbf_date)
 {
@@ -427,17 +427,57 @@ static void	smv_date_to_cbf_date(char *smv_date, char *cbf_date)
 
 }
 
+int convertroi(char *roi, int fastdim, int slowdim, 
+		int * fastlow, int * fasthigh, int * slowlow, int * slowhigh) {
+    char * endptr;
+    char * str;
+    if (!fastlow || !fasthigh || !slowlow || !slowhigh) return CBF_ARGUMENT;
+    *fastlow = *slowlow = 0;
+    *fasthigh = fastdim-1;
+    *slowhigh = slowdim-1;
+    if (!roi) {
+      return CBF_SUCCESS;
+    }
+    str = roi;
+    *fastlow = (int)strtol(str,&endptr,0);
+    if (*fastlow < 0) *fastlow = 0;
+    if (*fastlow > fastdim-1) *fastlow = fastdim-1;
+    if (*endptr == '\0') return CBF_SUCCESS;
+    if (*endptr != ',') return CBF_FORMAT;
+    str = endptr+1;
+    *fasthigh = (int)strtol(str,&endptr,0);
+    if (*fasthigh < *fastlow) *fasthigh = *fastlow;
+    if (*fasthigh > fastdim-1) *fasthigh = fastdim-1;
+    if (*endptr == '\0') return CBF_SUCCESS;
+    if (*endptr != ',') return CBF_FORMAT;
+    str = endptr+1;
+    *slowlow = (int)strtol(str,&endptr,0);
+    if (*slowlow < 0) *slowlow = 0;
+    if (*slowlow > slowdim-1) *slowlow = slowdim-1;
+    if (*endptr == '\0') return CBF_SUCCESS;
+    if (*endptr != ',') return CBF_FORMAT;
+    str = endptr+1;
+    *slowhigh = (int)strtol(str,&endptr,0);
+    if (*slowhigh < *slowlow) *slowhigh = *slowlow;
+    if (*slowhigh > slowdim-1) *slowhigh = slowdim-1;
+    if (*endptr == '\0') return CBF_SUCCESS;
+    return CBF_FORMAT;
+}
+
+
+
 #define	BEAM_CENTER_FROM_HEADER	0
 #define BEAM_CENTER_MOSFLM	1
 #define	BEAM_CENTER_ULHC	2
 #define BEAM_CENTER_LLHC	3
 
-int	adscimg2cbf_sub(char *header,
+int	adscimg2cbf_sub2(char *header,
                     unsigned short *data, 
                     char *cbf_filename, 
                     int pack_flags, 
                     int beam_center_convention,
-                    int pad_flag)
+                    int pad_flag,
+                    char *roi)
 {
   FILE *out;
 
@@ -458,6 +498,7 @@ int	adscimg2cbf_sub(char *header,
   char  	detector_mode[20];
   char		smv_date[100], cbf_date[100];
   int   	smv_size1, smv_size2;
+  int           fastlow, fasthigh, slowlow, slowhigh;
   int		smv_bin, smv_adc, smv_bin_type;
   double	smv_time;
   int		detector_sn;
@@ -465,7 +506,7 @@ int	adscimg2cbf_sub(char *header,
   int		*ip;
   unsigned short *up;
   int		i, j;
-  char *  local_bo;
+  char          *local_bo;
   int		this_bo, smv_bo;
   char		*header_as_details;
   int		header_size;
@@ -475,8 +516,8 @@ int	adscimg2cbf_sub(char *header,
   double	header_beam_x, header_beam_y;
 
 
-	if(0 == pack_flags)
-		pack_flags = CBF_BYTE_OFFSET;	/* default if 0 is given for "pack_flags" */
+    if(0 == pack_flags)
+        pack_flags = CBF_BYTE_OFFSET;	/* default if 0 is given for "pack_flags" */
 
     /* Get some detector parameters */
 
@@ -502,29 +543,29 @@ int	adscimg2cbf_sub(char *header,
   gethd("HEADER_BYTES", s, header);
   if('\0' == s[0])
   {
-	fprintf(stderr, "adscimg2cbf_sub: Error: ADSC header has no HEADER_BYTES keyword\n");
-	return(1);
+    fprintf(stderr, "adscimg2cbf_sub2: Error: ADSC header has no HEADER_BYTES keyword\n");
+    return(1);
   }
   header_size = atoi(s);
 
   if(NULL == (header_as_details = (char *) malloc(header_size + 2)))
   {
-	fprintf(stderr,"adscimg2cbf_sub: Error allocating %d bytes of memory for header_as_details.\n", header_size + 2);
-	return(1);
+    fprintf(stderr,"adscimg2cbf_sub2: Error allocating %d bytes of memory for header_as_details.\n", header_size + 2);
+    return(1);
   }
   strcpy(header_as_details, "\n");
   for(i = 0; 0 != gethdn(i, s, s1, header); i++)
   {
-	sprintf(temp, "%s=%s;\n", s, s1);
-	strcat(header_as_details, temp);
+    sprintf(temp, "%s=%s;\n", s, s1);
+    strcat(header_as_details, temp);
   }
 
   s[0] = '\0';
   gethd("SIZE1", s, header);
   if('\0' == s[0])
   {
-	fprintf(stderr, "adscimg2cbf_sub: Error: ADSC header has no SIZE1 keyword\n");
-	return(1);
+    fprintf(stderr, "adscimg2cbf_sub2: Error: ADSC header has no SIZE1 keyword\n");
+    return(1);
   }
   smv_size1 = atoi(s);
 
@@ -532,8 +573,8 @@ int	adscimg2cbf_sub(char *header,
   gethd("SIZE2", s, header);
   if('\0' == s[0])
   {
-	fprintf(stderr, "adscimg2cbf_sub: Error: ADSC header has no SIZE2 keyword\n");
-	return(1);
+    fprintf(stderr, "adscimg2cbf_sub2: Error: ADSC header has no SIZE2 keyword\n");
+    return(1);
   }
   smv_size2 = atoi(s);
 
@@ -548,119 +589,121 @@ int	adscimg2cbf_sub(char *header,
   s[0] = '\0';
   gethd("ADC", s, header);
   if('\0' != s[0])
-	smv_adc = atoi(s);
+    smv_adc = atoi(s);
 
   s[0] = '\0';
   gethd("BIN", s, header);
   if('\0' != s[0])
   {
-	if(0 == strcmp("2x2", s))
-		smv_bin = 2;
-	else
-		smv_bin = 1;
-	s1[0] = '\0';
-	gethd("BIN_TYPE", s1, header);
-	if('\0' != s1[0])
-	{
-		if(NULL != strstr(s1, "SW"))
-		{
-			smv_bin = 2;
-			smv_adc = 0;
-		}
-		else
-		{
-			smv_bin = 2;
-			smv_adc = 1;
-		}
-	}
+    if(0 == strcmp("2x2", s))
+        smv_bin = 2;
+    else
+        smv_bin = 1;
+    s1[0] = '\0';
+    gethd("BIN_TYPE", s1, header);
+    if('\0' != s1[0])
+    {
+        if(NULL != strstr(s1, "SW"))
+        {
+        	smv_bin = 2;
+        	smv_adc = 0;
+        }
+        else
+        {
+        	smv_bin = 2;
+        	smv_adc = 1;
+        }
+    }
   }
 
   if(1 == smv_bin)
-	strcpy(detector_mode, "bin none");
+    strcpy(detector_mode, "bin none");
   else if(1 == smv_adc)
-	strcpy(detector_mode, "bin 2x2 hardware");
+    strcpy(detector_mode, "bin 2x2 hardware");
   else
-	strcpy(detector_mode, "bin 2x2 software");
+    strcpy(detector_mode, "bin 2x2 software");
 
   s[0] = '\0';
   gethd("DETECTOR_SN", s, header);
   if('\0' == s[0])
-	detector_sn = 0;
+    detector_sn = 0;
   else
-	detector_sn = atoi(s);
+    detector_sn = atoi(s);
 
   sprintf(facility, "%s crystallography", which_facility(detector_sn));
 
   if(0 == (smv_size1 % 576))
   {
-	sprintf(detector_id, "ADSCQ4-SN%d", detector_sn);
-	strcpy(detector_type, "ADSC QUANTUM4");
-	gain = 3.1;
-	detector_center_x = -94.;
-	detector_center_y = 94.;
+    sprintf(detector_id, "ADSCQ4-SN%d", detector_sn);
+    strcpy(detector_type, "ADSC QUANTUM4");
+    gain = 3.1;
+    detector_center_x = -94.;
+    detector_center_y = 94.;
   } else
   if(0 == (smv_size1 % 1042))
   {
-	sprintf(detector_id, "ADSCQ270-SN%d", detector_sn);
-	strcpy(detector_type, "ADSC QUANTUM270");
-	gain = 2.8;
-	detector_center_x = -135.;
-	detector_center_y = 135.;
+    sprintf(detector_id, "ADSCQ270-SN%d", detector_sn);
+    strcpy(detector_type, "ADSC QUANTUM270");
+    gain = 2.8;
+    detector_center_x = -135.;
+    detector_center_y = 135.;
   } else
   if(0 == (smv_size1 % 1536))
   {
-	sprintf(detector_id, "ADSCQ315-SN%d", detector_sn);
-	strcpy(detector_type, "ADSC QUANTUM315");
-	gain = 2.4;
-	if(2 == smv_bin && -1 != smv_adc)
-	{
-		if(0 == smv_adc)
-			gain /= 4;
-		else
-			gain = 1.8;
-	}
-	detector_center_x = -157.5;
-	detector_center_y = 157.5;
+    sprintf(detector_id, "ADSCQ315-SN%d", detector_sn);
+    strcpy(detector_type, "ADSC QUANTUM315");
+    gain = 2.4;
+    if(2 == smv_bin && -1 != smv_adc)
+    {
+        if(0 == smv_adc)
+        	gain /= 4;
+        else
+        	gain = 1.8;
+    }
+    detector_center_x = -157.5;
+    detector_center_y = 157.5;
   } else
   if(0 == (smv_size1 % 1024))
   {
-	sprintf(detector_id, "ADSCQ210-SN%d", detector_sn);
-	strcpy(detector_type, "ADSC QUANTUM210");
-	gain = 2.4;
-	if(2 == smv_bin && -1 != smv_adc)
-	{
-		if(0 == smv_adc)
-			gain /= 4;
-		else
-			gain = 1.8;
-	}
-	detector_center_x = -105.;
-	detector_center_y = 105.;
-  } else
-                    if (smv_size2 == 2527 && smv_size1 == 2463)
+    sprintf(detector_id, "ADSCQ210-SN%d", detector_sn);
+    strcpy(detector_type, "ADSC QUANTUM210");
+    gain = 2.4;
+    if(2 == smv_bin && -1 != smv_adc)
+    {
+        if(0 == smv_adc)
+        	gain /= 4;
+        else
+        	gain = 1.8;
+    }
+    detector_center_x = -105.;
+    detector_center_y = 105.;
+  } else if (smv_size2 == 2527 && smv_size1 == 2463)
   {
-                        sprintf(detector_id, "PILATUS6M-SN%d", detector_sn);
-                        strcpy(detector_type, "DECTRIS Pilatus 6M");
-                        gain = 1;
-                        detector_center_x = -211.732;
-                        detector_center_y = 219.644;
-                    } else
-                        if (smv_size2 == 4371 && smv_size1 == 4150)
-                        {
-                            sprintf(detector_id, "EIGER16M-SN%d", detector_sn);
-                            strcpy(detector_type, "DECTRIS Eiger 16M");
-                            gain = 1;
-                            detector_center_x = -155;
-                            detector_center_y = 163.825;
-                        } else
-
-                    {
-	fprintf(stderr, 
-	  "adscimg2cbf_sub: Error: Detector size of %d rows x %d columns does not correspond to an ADSC detector type\n",
-			smv_size2, smv_size1);
-	return(1);
+    sprintf(detector_id, "PILATUS6M-SN%d", detector_sn);
+    strcpy(detector_type, "DECTRIS Pilatus 6M");
+    gain = 1;
+    detector_center_x = -211.732;
+    detector_center_y = 219.644;
+  } else if (smv_size2 == 4371 && smv_size1 == 4150)
+  {
+    sprintf(detector_id, "EIGER16M-SN%d", detector_sn);
+    strcpy(detector_type, "DECTRIS Eiger 16M");
+    gain = 1;
+    detector_center_x = -155;
+    detector_center_y = 163.825;
+  } else
+  {
+    fprintf(stderr, 
+      "adscimg2cbf_sub2: Error: Detector size of %d rows x %d columns does not correspond to an ADSC detector type\n",
+      smv_size2, smv_size1);
+    return(1);
   }
-  
+  if (convertroi(roi, smv_size1, smv_size2,
+		             &fastlow, &fasthigh, &slowlow, &slowhigh)) {
+    fprintf(stderr,
+	    "adscimg2cbf_sub2: Error: Invalid region of interest '%s'\n", roi);
+  }
+	  
 
   /*
    *	Pixel size.
@@ -674,27 +717,27 @@ int	adscimg2cbf_sub(char *header,
   gethd("PIXEL_SIZE", s, header);
   if('\0' == s[0])
   {
-	if(NULL != strstr(detector_id, "270"))
-		pixel_size = 0.06478;
-	else if(NULL != strstr(detector_id, "210"))
-		pixel_size = 0.0512;
-	else if(NULL != strstr(detector_id, "315"))
-		pixel_size = 0.051296;
+    if(NULL != strstr(detector_id, "270"))
+        pixel_size = 0.06478;
+    else if(NULL != strstr(detector_id, "210"))
+        pixel_size = 0.0512;
+    else if(NULL != strstr(detector_id, "315"))
+        pixel_size = 0.051296;
     else if(NULL != strstr(detector_id, "6M"))
         pixel_size = 0.172;
     else if(NULL != strstr(detector_id, "PILATUS"))
         pixel_size = 0.075;
-	else	pixel_size = 0.0816;
-	s1[0] = '\0';
-	gethd("BIN", s1, header);
-	if('\0' != s1[0])
-	{
-		if(0 == strcmp(s1, "2x2"))
-			pixel_size *= 2;
-	}
+    else	pixel_size = 0.0816;
+    s1[0] = '\0';
+    gethd("BIN", s1, header);
+    if('\0' != s1[0])
+    {
+        if(0 == strcmp(s1, "2x2"))
+        	pixel_size *= 2;
+    }
   }
   else
-	pixel_size = atof(s);
+    pixel_size = atof(s);
 
     /* beam center in x and y */
 
@@ -726,39 +769,39 @@ int	adscimg2cbf_sub(char *header,
   s[0] = '\0';
   gethd("BEAM_CENTER_X", s, header);
   if('\0' == s[0])
-	header_beam_x = detector_center_x;
+    header_beam_x = detector_center_x;
   else
-	header_beam_x = atof(s);
+    header_beam_x = atof(s);
 
   det_beam_center_to_origin_dist_x = - header_beam_x;
     
   s[0] = '\0';
   gethd("BEAM_CENTER_Y", s, header);
   if('\0' == s[0])
-	header_beam_y = detector_center_y;
+    header_beam_y = detector_center_y;
   else
-	header_beam_y = atof(s);
+    header_beam_y = atof(s);
     
-	switch(beam_center_convention)
-	{
-		case BEAM_CENTER_FROM_HEADER:
-		case BEAM_CENTER_LLHC:
-		default:
+    switch(beam_center_convention)
+    {
+        case BEAM_CENTER_FROM_HEADER:
+        case BEAM_CENTER_LLHC:
+        default:
 
-			det_beam_center_to_origin_dist_x = - header_beam_x;
-			det_beam_center_to_origin_dist_y =   (smv_size1 - 1.5) * pixel_size - header_beam_y;
-			break;
+        	det_beam_center_to_origin_dist_x = - header_beam_x;
+        	det_beam_center_to_origin_dist_y =   (smv_size1 - 1.5) * pixel_size - header_beam_y;
+        	break;
 
-		case BEAM_CENTER_ULHC:
-			det_beam_center_to_origin_dist_x = - header_beam_x;
-			det_beam_center_to_origin_dist_y =   header_beam_y;
-			break;
+        case BEAM_CENTER_ULHC:
+        	det_beam_center_to_origin_dist_x = - header_beam_x;
+        	det_beam_center_to_origin_dist_y =   header_beam_y;
+        	break;
 
-		case BEAM_CENTER_MOSFLM:
-			det_beam_center_to_origin_dist_x = - header_beam_y;
-			det_beam_center_to_origin_dist_y =   header_beam_x;
-			break;
-	}
+        case BEAM_CENTER_MOSFLM:
+        	det_beam_center_to_origin_dist_x = - header_beam_y;
+        	det_beam_center_to_origin_dist_y =   header_beam_x;
+        	break;
+    }
 
     /* Date */
 
@@ -766,13 +809,13 @@ int	adscimg2cbf_sub(char *header,
   gethd("DATE", s, header);
   if('\0' == s[0])
   {
-	smv_date[0] = '\0';
-	cbf_date[0] = '\0';
+    smv_date[0] = '\0';
+    cbf_date[0] = '\0';
   }
   else
   {
-	strcpy(smv_date, s);
-	smv_date_to_cbf_date(smv_date, cbf_date);
+    strcpy(smv_date, s);
+    smv_date_to_cbf_date(smv_date, cbf_date);
   }
   
 
@@ -781,11 +824,11 @@ int	adscimg2cbf_sub(char *header,
   s[0] = '\0';
   gethd("WAVELENGTH", s, header);
   if('\0' == s[0])
-	wavelength = -1;
+    wavelength = -1;
   else
   {
-	wavelength = atof(s);
-	gain = gain / wavelength;
+    wavelength = atof(s);
+    gain = gain / wavelength;
   }
   
     /* Oscillation start */
@@ -793,43 +836,43 @@ int	adscimg2cbf_sub(char *header,
   s[0] = '\0';
   gethd("OSC_START", s, header);
   if('\0' == s[0])
-	oscillation_start = 0.0;
+    oscillation_start = 0.0;
   else
-	oscillation_start = atof(s);
+    oscillation_start = atof(s);
 
     /* Oscillation range */
 
   s[0] = '\0';
   gethd("OSC_RANGE", s, header);
   if('\0' == s[0])
-	oscillation_range = 0.0;
+    oscillation_range = 0.0;
   else
-	oscillation_range = atof(s);
+    oscillation_range = atof(s);
 
     /* Distance */
 
   s[0] = '\0';
   gethd("DISTANCE", s, header);
   if('\0' == s[0])
-	distance = -1;
+    distance = -1;
   else
-	distance = atof(s);
+    distance = atof(s);
   
     /* Time */
 
   s[0] = '\0';
   gethd("TIME", s, header);
   if('\0' == s[0])
-	smv_time = -1;
+    smv_time = -1;
   else
-	smv_time = atof(s);
+    smv_time = atof(s);
   
   overload = 65535;
 
   /* Image size and orientation & gain and overload */
 
-  dimension [0] = smv_size1;
-  dimension [1] = smv_size2;
+  dimension [0] = 1+fasthigh-fastlow;
+  dimension [1] = 1+slowhigh-slowlow;
 
   precedence [0] = 1;
   precedence [1] = 2;
@@ -849,13 +892,13 @@ int	adscimg2cbf_sub(char *header,
   gethd("BYTE_ORDER", s, header);
   if('\0' != s[0])
   {
-	if(0 == strcmp(s, "little_endian"))
-		smv_bo = 0;
-	else if(0 == strcmp(s, "big_endian"))
-		smv_bo = 1;
+    if(0 == strcmp(s, "little_endian"))
+        smv_bo = 0;
+    else if(0 == strcmp(s, "big_endian"))
+        smv_bo = 1;
   }
   if(this_bo != smv_bo)
-	short_swap(data, smv_size1 * smv_size1);
+    short_swap(data, smv_size1 * smv_size1);
  
     /* Make a cbf version of the image */
 
@@ -1059,8 +1102,8 @@ int	adscimg2cbf_sub(char *header,
   }
   if('\0' != cbf_date[0])
   {
-	cbf_failnez (cbf_new_column       (cbf, "date"))
-	cbf_failnez (cbf_set_value        (cbf, cbf_date))
+    cbf_failnez (cbf_new_column       (cbf, "date"))
+    cbf_failnez (cbf_set_value        (cbf, cbf_date))
   }
 
     /* Make the _diffrn_scan_frame_axis category */  
@@ -1462,9 +1505,9 @@ int	adscimg2cbf_sub(char *header,
   cbf_failnez (cbf_set_value        (cbf, "ELEMENT_Y"))
   cbf_failnez (cbf_new_column       (cbf, "displacement"))
   cbf_failnez (cbf_rewind_row       (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.6f", 0.0))
+  cbf_failnez (cbf_set_doublevalue  (cbf, "%.6f", fastlow*pixel_size))
   cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.6f", 0.0))
+  cbf_failnez (cbf_set_doublevalue  (cbf, "%.6f", -slowlow*pixel_size))
   cbf_failnez (cbf_new_column       (cbf, "displacement_increment"))
   cbf_failnez (cbf_rewind_row       (cbf))
   cbf_failnez (cbf_set_doublevalue  (cbf, "%.6f", pixel_size))
@@ -1513,19 +1556,24 @@ int	adscimg2cbf_sub(char *header,
 
 
     /* Save the binary data */
-  if(NULL == (data_as_int = (int *) malloc(smv_size1 * smv_size2 * sizeof (int))))
+  if(NULL == 
+		  (data_as_int = 
+		   (int *) malloc((1+fasthigh-fastlow)*(1+slowhigh-slowlow)*sizeof(int))))
   {
-	fprintf(stderr, "Error mallocing %d bytes of temporary memory for image conversion\n",
-				(int) (smv_size1 * smv_size2 * sizeof (int)));
-	return(1);
+    fprintf(stderr, "Error mallocing %d bytes of temporary memory for image conversion\n",
+        		(int) ((1+fasthigh-fastlow)*(1+slowhigh-slowlow)*sizeof(int)));
+    return(1);
   }
  
   ip = data_as_int;
   up = data;
 
-  for(i = 0; i < smv_size2; i++)
-	for(j = 0; j < smv_size1; j++)
-		*ip++ = 0x0000ffff & *up++;
+  for(i = slowlow; i <= slowhigh; i++) {
+    for(j = fastlow; j <= fasthigh; j++) {
+        *ip++ = 0x0000ffff &
+         (int)up[i*smv_size1+j];	
+    }
+  }
 
 /*
  int cbf_set_integerarray_wdims_fs (cbf_handle    handle,
@@ -1547,10 +1595,10 @@ int	adscimg2cbf_sub(char *header,
                                          data_as_int,
                           (size_t)        4,
                           (int)           1,
-                          (size_t)        smv_size1 * smv_size2,
+                          (size_t)        (1+fasthigh-fastlow) * (1+slowhigh-slowlow),
                           	 	"little_endian",
-                          (size_t)        smv_size1,
-                          (size_t)        smv_size2,
+                          (size_t)        (1+fasthigh-fastlow),
+                          (size_t)        (1+slowhigh-slowlow),
                           (size_t)        0,
                           (size_t)        0))
 
@@ -1580,3 +1628,13 @@ int	adscimg2cbf_sub(char *header,
 
   return 0;
 }
+
+int     adscimg2cbf_sub(char *header,
+		         unsigned short *data,
+			 char *cbf_filename,
+			 int pack_flags,
+			 int beam_center_convention,
+		         int pad_flag){
+	return adscimg2cbf_sub2(header,data,cbf_filename,pack_flags,beam_center_convention,pad_flag,NULL);
+}
+

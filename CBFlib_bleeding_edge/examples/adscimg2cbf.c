@@ -1,17 +1,17 @@
-#include	<stdio.h>
+#include    <stdio.h>
 
 #ifdef NO_POPEN_PROTOTYPE
-	/*
-	 *	This is supposed to be found in stdio.h.
-	 */
+    /*
+     *    This is supposed to be found in stdio.h.
+     */
 
-	FILE	*popen(char *popen_command, const char *type);
-	int		pclose(FILE *stream);
+    FILE    *popen(char *popen_command, const char *type);
+    int        pclose(FILE *stream);
 #endif
 
-#include	<stdlib.h>
-#include	<string.h>
-#include	<cbf.h>
+#include    <stdlib.h>
+#include    <string.h>
+#include    <cbf.h>
 
 /****************************************************************/
 
@@ -57,121 +57,129 @@ static void gethd ( char* field, char* value, char* header )
   free (newfield);
 }
 
-static int	endswith(char *haystack, char *needle)
+static int    endswith(char *haystack, char *needle)
 {
-	char	*cp;
+    char    *cp;
 
-	if(NULL == (cp = (char *) strstr(haystack, needle)))
-		return(0);
-	if('\0' == *(cp + strlen(needle)))
-		return(1);
-	return(0);
+    if(NULL == (cp = (char *) strstr(haystack, needle)))
+        return(0);
+    if('\0' == *(cp + strlen(needle)))
+        return(1);
+    return(0);
 }
 
 static void usage( void )
 {
-		fprintf(stderr,"Usage: adscimg2cbf [--flag[,modifier]] file1.img ... filen.img     (creates file1.cbf ... filen.cbf)\n");
-		fprintf(stderr,"       Image files may also be compressed (.gz, .bz2, .Z)\n");
-		fprintf(stderr,"Flags:\n");
-		fprintf(stderr,"\t--cbf_byte_offset		Use BYTE_OFFSET compression (DEFAULT).\n");
-		fprintf(stderr,"\t--cbf_packed			Use CCP4 packing (JPA) compression.\n");
-		fprintf(stderr,"\t--cbf_packed_v2		Use CCP4 packing version 2 (JPA) compression.\n");
-		fprintf(stderr,"\t--no_compression		No compression.\n\n");
-		fprintf(stderr,"The following two modifiers can be appended to the flags (syntax: --flag,modifier):\n");
-		fprintf(stderr,"\t,flat				Flat (linear) images.\n");
-		fprintf(stderr,"\t,uncorrelated			Uncorrelated sections.\n\n");
-		fprintf(stderr,"The following describe how to interpret the beam center in the ADSC header:\n");
-		fprintf(stderr,"\t--beam_center_from_header	Figure out beam center from ADSC header information (default)\n");
-		fprintf(stderr,"\t--beam_center_mosflm		Beam center in ADSC header: MOSFLM coordinates.\n");
-		fprintf(stderr,"\t--beam_center_ulhc		Beam center in ADSC header: origin: upper left hand corner of image.(HKL mm)\n");
-		fprintf(stderr,"\t--beam_center_llhc		Beam center in ADSC header: origin: lower left hand corner of image.(adxv mm)\n");
+        fprintf(stderr,"Usage: adscimg2cbf [--flag[,modifier]] file1.img ... filen.img     (creates file1.cbf ... filen.cbf)\n");
+        fprintf(stderr,"       Image files may also be compressed (.gz, .bz2, .Z)\n");
+        fprintf(stderr,"Flags:\n");
+        fprintf(stderr,"\t--cbf_byte_offset        Use BYTE_OFFSET compression (DEFAULT).\n");
+        fprintf(stderr,"\t--cbf_packed            Use CCP4 packing (JPA) compression.\n");
+        fprintf(stderr,"\t--cbf_packed_v2        Use CCP4 packing version 2 (JPA) compression.\n");
+        fprintf(stderr,"\t--no_compression        No compression.\n\n");
+        fprintf(stderr,"The following two modifiers can be appended to the flags (syntax: --flag,modifier):\n");
+        fprintf(stderr,"\t,flat                Flat (linear) images.\n");
+        fprintf(stderr,"\t,uncorrelated            Uncorrelated sections.\n\n");
+        fprintf(stderr,"The following describe how to interpret the beam center in the ADSC header:\n");
+        fprintf(stderr,"\t--beam_center_from_header    Figure out beam center from ADSC header information (default)\n");
+        fprintf(stderr,"\t--beam_center_mosflm        Beam center in ADSC header: MOSFLM coordinates.\n");
+        fprintf(stderr,"\t--beam_center_ulhc        Beam center in ADSC header: origin: upper left hand corner of image.(HKL mm)\n");
+        fprintf(stderr,"\t--beam_center_llhc        Beam center in ADSC header: origin: lower left hand corner of image.(adxv mm)\n");
+        fprintf(stderr,"\t--region_of_interest=fastlow,fasthigh,slowlow,slowhigh\n");
+        fprintf(stderr,"\t                              Region of interest to map to CBF\n");
 }
 
 /*
- *	Jiffy to take one or more adsc .img files, convert each in turn to
- *	.cbf files, and output the files.  The input file is preserved; the
- *	output file has the same name as the input file with the suffix .img
- *	replaced by .cbf.
+ *    Jiffy to take one or more adsc .img files, convert each in turn to
+ *    .cbf files, and output the files.  The input file is preserved; the
+ *    output file has the same name as the input file with the suffix .img
+ *    replaced by .cbf.
  */
 
-char	popen_command[1080];
+char    popen_command[1080];
 
 #define BEAM_CENTER_FROM_HEADER 0
 #define BEAM_CENTER_MOSFLM      1
 #define BEAM_CENTER_ULHC        2
 #define BEAM_CENTER_LLHC        3
 
-int	main(int argc, char *argv[])
+int    main(int argc, char *argv[])
 {
-	FILE		*fp;
-	char		in_filename[1024], out_filename[1024];
-	char		field[128];
-	char		*hptr;
-	unsigned short	*uptr;
-	char		header_bytes[6];
-	int		file_size, header_size_char, actread;
-	int		cbf_status;
-	int		i, j, k=0;
-	int		size1, size2;
-	int		file_type;
-	int		pack_flags;
-    int     pad_flag;
-	int		status_pclose;
-	int		beam_center_convention;
-	static char	*endings[] = {
-					".img",
-					".img.gz",
-					".img.bz2",
-					".img.Z",
-					NULL
-				     };
-	static char	*flags[] = {
-					"--cbf_byte_offset",            /* 0 */
-					"--cbf_packed_v2",              /* 1 */
-					"--cbf_packed",                 /* 2 */
-					"--no_compression",             /* 3 */
-					"--beam_center_from_header",    /* 4 */
-					"--beam_center_mosflm",         /* 5 */
-					"--beam_center_ulhc",           /* 6 */
-					"--beam_center_llhc",           /* 7 */
+    FILE        *fp;
+    char        in_filename[1024], out_filename[1024];
+    char        field[128];
+    char        *hptr;
+    unsigned short    *uptr;
+    char        header_bytes[6];
+    int        file_size, header_size_char, actread;
+    int        cbf_status;
+    int        i, j, k=0;
+    int        size1, size2;
+    int        file_type;
+    int        pack_flags;
+    int        pad_flag;
+    int        status_pclose;
+    int        beam_center_convention;
+    const char *    roi=NULL;
+    char *     strstrhit;
+    static char    *endings[] = {
+                    ".img",
+                    ".img.gz",
+                    ".img.bz2",
+                    ".img.Z",
+                    NULL
+                     };
+    static char    *flags[] = {
+                    "--cbf_byte_offset",            /* 0 */
+                    "--cbf_packed_v2",              /* 1 */
+                    "--cbf_packed",                 /* 2 */
+                    "--no_compression",             /* 3 */
+                    "--beam_center_from_header",    /* 4 */
+                    "--beam_center_mosflm",         /* 5 */
+                    "--beam_center_ulhc",           /* 6 */
+                    "--beam_center_llhc",           /* 7 */
                     "--pad_1K",                     /* 8 */
                     "--pad_2K",                     /* 9 */
                     "--pad_4K",                     /*10 */
                     "--no_pad",                     /*11 */
                     "--cbf_nibble_offset",          /*12 */
-					NULL
-				   };
+                    "--region_of_interest",         /*13 */
+                    NULL
+                   };
 
-	int		adscimg2cbf_sub(char *header, 
+    int            adscimg2cbf_sub2(char *header, 
                             unsigned short *data, 
                             char *cbf_filename, 
                             int pack_flags, 
                             int beam_center_convention,
-                            int pad_flag );
+                            int pad_flag,
+		            const char *roi);
 
-	if(argc < 2)
-	{
-		usage();
-		exit(0);
-	}
+    if(argc < 2)
+    {
+        usage();
+        exit(0);
+    }
 
-	pack_flags = CBF_BYTE_OFFSET;
-	beam_center_convention = BEAM_CENTER_FROM_HEADER;
+    pack_flags = CBF_BYTE_OFFSET;
+    beam_center_convention = BEAM_CENTER_FROM_HEADER;
     pad_flag = PAD_4K;
 
-	while(argc > 1 && argv[1][0] == '-' && argv[1][1] == '-')
-	{
-		for(j = 0; flags[j] != NULL; j++)
-			if(NULL != strstr(argv[1], flags[j]))
-				break;
-		if(NULL == flags[j])
-		{
-			fprintf(stderr,"adscimg2cbf: %s is an unknown flag\n\n", argv[1]);
-			usage();
-			exit(0);
-		}
-		switch(j)
-		{
+    while(argc > 1 && argv[1][0] == '-' && argv[1][1] == '-')
+    {
+        for(j = 0; flags[j] != NULL; j++) {
+        strstrhit = strstr(argv[1], flags[j]);
+            if(NULL != strstrhit && strstrhit==argv[1] )
+                break;
+    }
+        if(NULL == flags[j])
+        {
+            fprintf(stderr,"adscimg2cbf: %s is an unknown flag\n\n", argv[1]);
+            usage();
+            exit(0);
+        }
+        switch(j)
+        {
             case 0:
                 pack_flags = CBF_BYTE_OFFSET;
                 break;
@@ -211,200 +219,208 @@ int	main(int argc, char *argv[])
             case 12:
                 pack_flags = CBF_NIBBLE_OFFSET;
                 break;
-		}
-		if(j < 3 || j==12)
-		{
-			if(NULL != strstr(argv[1], ",flat"))
-				pack_flags |= CBF_FLAT_IMAGE;
-			else
-			if(NULL != strstr(argv[1], ",uncorrelated"))
-				pack_flags |= CBF_UNCORRELATED_SECTIONS;
-		}
-		argc--;
-		argv++;
-	}
+            case 13:
+                roi = argv[1]+strlen(flags[j])+1;
+                if (*(roi-1)!='='||strlen(roi)<3){
+                    fprintf(stderr,"adscimg2cbf: %s should be --region_of_interest=fastlow,fasthigh,slowlow,slowhigh\n\n", argv[1]);
+                    usage();
+                    exit(0);
+                }
+                break;
+        }
+        if(j < 3 || j==12)
+        {
+            if(NULL != strstr(argv[1], ",flat"))
+                pack_flags |= CBF_FLAT_IMAGE;
+            else
+            if(NULL != strstr(argv[1], ",uncorrelated"))
+                pack_flags |= CBF_UNCORRELATED_SECTIONS;
+        }
+        argc--;
+        argv++;
+    }
 
-	while(argc > 1)
-	{
-		file_type = 0;
-		strcpy(in_filename, argv[1]);
-		i = strlen(in_filename);
-		for(j = 0; endings[j] != NULL; j++)
-		{
-			k = strlen(endings[j]);
-			if(endswith(in_filename, endings[j]))
-			{
-				file_type = j;
-				break;
-			}
-		}
-		if(NULL == endings[j])
-		{
-			fprintf(stderr,"adscimg2cbf: Input file name %s does not end in .img, .img.gz, or .img.bz2, or .img.Z\n", in_filename);
-			exit(0);
-		}
-		strcpy(out_filename, in_filename);
-		out_filename[i - k] = '\0';
-		strcat(out_filename, ".cbf");
+    while(argc > 1)
+    {
+        file_type = 0;
+        strcpy(in_filename, argv[1]);
+        i = strlen(in_filename);
+        for(j = 0; endings[j] != NULL; j++)
+        {
+            k = strlen(endings[j]);
+            if(endswith(in_filename, endings[j]))
+            {
+                file_type = j;
+                break;
+            }
+        }
+        if(NULL == endings[j])
+        {
+            fprintf(stderr,"adscimg2cbf: Input file name %s does not end in .img, .img.gz, or .img.bz2, or .img.Z\n", in_filename);
+            exit(0);
+        }
+        strcpy(out_filename, in_filename);
+        out_filename[i - k] = '\0';
+        strcat(out_filename, ".cbf");
 
-		if(0 == file_type)
-		{
-			if(NULL == (fp = fopen(in_filename, "rb")))
-			{
-				fprintf(stderr, "adscimg2cbf: Cannot open %s as input .img file\n", in_filename);
-				exit(0);
-			}
-		}
-		else
-		{
-			if(2 == file_type)
-				sprintf(popen_command, "bzcat %s", in_filename);
-			else
-				sprintf(popen_command, "zcat %s", in_filename);
-			if(NULL == (fp = popen(popen_command, "rb")))
-			{
-				fprintf(stderr, "adscimg2cbf: Cannot exec %s command to uncompress input file\n", popen_command);
-				exit(0);
-			}
-		}
+        if(0 == file_type)
+        {
+            if(NULL == (fp = fopen(in_filename, "rb")))
+            {
+                fprintf(stderr, "adscimg2cbf: Cannot open %s as input .img file\n", in_filename);
+                exit(0);
+            }
+        }
+        else
+        {
+            if(2 == file_type)
+                sprintf(popen_command, "bzcat %s", in_filename);
+            else
+                sprintf(popen_command, "zcat %s", in_filename);
+            if(NULL == (fp = popen(popen_command, "rb")))
+            {
+                fprintf(stderr, "adscimg2cbf: Cannot exec %s command to uncompress input file\n", popen_command);
+                exit(0);
+            }
+        }
 
-		/*
-		 *	Get the first header block.  Can't use seeks on input file.
-		 */
+        /*
+         *    Get the first header block.  Can't use seeks on input file.
+         */
 
-		if(NULL == (hptr = malloc(512 * sizeof (char))))
-		{
-			fprintf(stderr,"adscimg2cbf: cannot allocate memory for first 512 bytes of header of input file %s\n", in_filename);
-			exit(0);
-		}
-		if(512 != (actread=fread(hptr, sizeof (char), 512, fp)))
-		{
-			fprintf(stderr, "adscimg2cbf: Cannot read first header block of file %s, actual read %d.\n", 
+        if(NULL == (hptr = malloc(512 * sizeof (char))))
+        {
+            fprintf(stderr,"adscimg2cbf: cannot allocate memory for first 512 bytes of header of input file %s\n", in_filename);
+            exit(0);
+        }
+        if(512 != (actread=fread(hptr, sizeof (char), 512, fp)))
+        {
+            fprintf(stderr, "adscimg2cbf: Cannot read first header block of file %s, actual read %d.\n", 
                           in_filename,actread);
-			if(0 == file_type)
-				fclose(fp);
-			else
-			{
-				status_pclose = pclose(fp);
-				if(0 != status_pclose)
-				{
-					fprintf(stderr, "Status returned from uncompress command via popen NON-ZERO: %d\n", status_pclose);
-					perror("popen command (maybe this will be useful)");
-					fprintf(stderr, "Program exiting.  This may be evidence of a corrupt compressed file!\n");
-					fprintf(stderr, "Filename being uncompressed: %s with command: %s\n", in_filename, popen_command);
-					exit(0);
-				}
-			}
-			exit(0);
-		}
-		for(i = 0; i < 5; i++)
-			header_bytes[0 + i] = hptr[15 + i];
+            if(0 == file_type)
+                fclose(fp);
+            else
+            {
+                status_pclose = pclose(fp);
+                if(0 != status_pclose)
+                {
+                    fprintf(stderr, "Status returned from uncompress command via popen NON-ZERO: %d\n", status_pclose);
+                    perror("popen command (maybe this will be useful)");
+                    fprintf(stderr, "Program exiting.  This may be evidence of a corrupt compressed file!\n");
+                    fprintf(stderr, "Filename being uncompressed: %s with command: %s\n", in_filename, popen_command);
+                    exit(0);
+                }
+            }
+            exit(0);
+        }
+        for(i = 0; i < 5; i++)
+            header_bytes[0 + i] = hptr[15 + i];
 
-		header_bytes[5] = '\0';
-		header_size_char = atoi(header_bytes);
-		
-		if(NULL == (hptr = realloc(hptr, header_size_char)))
-		{
-			fprintf(stderr,"adscimg2cbf: cannot reallocate memory for %d bytes of header of input file %s\n", 
-					header_size_char, in_filename);
-			exit(0);
-		}
+        header_bytes[5] = '\0';
+        header_size_char = atoi(header_bytes);
+        
+        if(NULL == (hptr = realloc(hptr, header_size_char)))
+        {
+            fprintf(stderr,"adscimg2cbf: cannot reallocate memory for %d bytes of header of input file %s\n", 
+                    header_size_char, in_filename);
+            exit(0);
+        }
 
-		if(header_size_char > 512)
-		{
-			if((header_size_char - 512) != (actread=fread(hptr + 512, sizeof (char), 
+        if(header_size_char > 512)
+        {
+            if((header_size_char - 512) != (actread=fread(hptr + 512, sizeof (char), 
                                                         (header_size_char - 512), fp)))
-			{
-				fprintf(stderr, "adscimg2cbf: Cannot read next %d bytes of header of file %s,"
+            {
+                fprintf(stderr, "adscimg2cbf: Cannot read next %d bytes of header of file %s,"
                                                 " actual read %d.\n", 
-						header_size_char - 512, in_filename, actread);
-				if(0 == file_type)
-					fclose(fp);
-				else
-				{
-					status_pclose = pclose(fp);
-					if(0 != status_pclose)
-					{
-						fprintf(stderr, "Status returned from uncompress command via popen NON-ZERO: %d\n", status_pclose);
-						perror("popen command (maybe this will be useful)");
-						fprintf(stderr, "Program exiting.  This may be evidence of a corrupt compressed file!\n");
-						fprintf(stderr, "Filename being uncompressed: %s with command: %s\n", in_filename, popen_command);
-						exit(0);
-					}
-				}
-				exit(0);
-			}
-		}
-		field[0] = '\0';
-		gethd("SIZE1", field, hptr);
-		if('\0' == field[0])
-		{
-			fprintf(stderr,"adscimg2cbf: keyword SIZE1 not found in header.  Cannot convert file %s\n", in_filename);
-			exit(0);
-		}
-		size1 = atoi(field);
-		
-		field[0] = '\0';
-		gethd("SIZE2", field, hptr);
-		if('\0' == field[0])
-		{
-			fprintf(stderr,"adscimg2cbf: keyword SIZE2 not found in header.  Cannot convert file %s\n", in_filename);
-			exit(0);
-		}
-		size2 = atoi(field);
-		
-		file_size = header_size_char + size1 * size2 * sizeof(unsigned short);
+                        header_size_char - 512, in_filename, actread);
+                if(0 == file_type)
+                    fclose(fp);
+                else
+                {
+                    status_pclose = pclose(fp);
+                    if(0 != status_pclose)
+                    {
+                        fprintf(stderr, "Status returned from uncompress command via popen NON-ZERO: %d\n", status_pclose);
+                        perror("popen command (maybe this will be useful)");
+                        fprintf(stderr, "Program exiting.  This may be evidence of a corrupt compressed file!\n");
+                        fprintf(stderr, "Filename being uncompressed: %s with command: %s\n", in_filename, popen_command);
+                        exit(0);
+                    }
+                }
+                exit(0);
+            }
+        }
+        field[0] = '\0';
+        gethd("SIZE1", field, hptr);
+        if('\0' == field[0])
+        {
+            fprintf(stderr,"adscimg2cbf: keyword SIZE1 not found in header.  Cannot convert file %s\n", in_filename);
+            exit(0);
+        }
+        size1 = atoi(field);
+        
+        field[0] = '\0';
+        gethd("SIZE2", field, hptr);
+        if('\0' == field[0])
+        {
+            fprintf(stderr,"adscimg2cbf: keyword SIZE2 not found in header.  Cannot convert file %s\n", in_filename);
+            exit(0);
+        }
+        size2 = atoi(field);
+        
+        file_size = header_size_char + size1 * size2 * sizeof(unsigned short);
 
-		if(NULL == (hptr = realloc(hptr, file_size)))
-		{
-			fprintf(stderr,"adscimg2cbf: cannot reallocate memory (size %d) for input file %s\n", 
-						file_size, in_filename);
-			exit(0);
-		}
-		if((file_size - header_size_char) != (actread=fread(hptr + header_size_char, sizeof (char), 
+        if(NULL == (hptr = realloc(hptr, file_size)))
+        {
+            fprintf(stderr,"adscimg2cbf: cannot reallocate memory (size %d) for input file %s\n", 
+                        file_size, in_filename);
+            exit(0);
+        }
+        if((file_size - header_size_char) != (actread=fread(hptr + header_size_char, sizeof (char), 
                                                       (file_size - header_size_char), fp)))
-		{
-			fprintf(stderr, "adscimg2cbf: Cannot read data (size %d bytes) from input file %s."
+        {
+            fprintf(stderr, "adscimg2cbf: Cannot read data (size %d bytes) from input file %s."
                                         " actual read %d\n", 
-					file_size - header_size_char, in_filename, actread);
-			if(0 == file_type)
-				fclose(fp);
-			else
-			{
-				status_pclose = pclose(fp);
-				if(0 != status_pclose)
-				{
-					fprintf(stderr, "Status returned from uncompress command via popen NON-ZERO: %d\n", status_pclose);
-					perror("popen command (maybe this will be useful)");
-					fprintf(stderr, "Program exiting.  This may be evidence of a corrupt compressed file!\n");
-					fprintf(stderr, "Filename being uncompressed: %s with command: %s\n", in_filename, popen_command);
-					exit(0);
-				}
-			}
-			exit(0);
-		}
-		if(0 == file_type)
-			fclose(fp);
-		else
-		{
-			status_pclose = pclose(fp);
-			if(0 != status_pclose)
-			{
-				fprintf(stderr, "Status returned from uncompress command via popen NON-ZERO: %d\n", status_pclose);
-				perror("popen command (maybe this will be useful)");
-				fprintf(stderr, "Program exiting.  This may be evidence of a corrupt compressed file!\n");
-				fprintf(stderr, "Filename being uncompressed: %s with command: %s\n", in_filename, popen_command);
-				exit(0);
-			}
-		}
+                    file_size - header_size_char, in_filename, actread);
+            if(0 == file_type)
+                fclose(fp);
+            else
+            {
+                status_pclose = pclose(fp);
+                if(0 != status_pclose)
+                {
+                    fprintf(stderr, "Status returned from uncompress command via popen NON-ZERO: %d\n", status_pclose);
+                    perror("popen command (maybe this will be useful)");
+                    fprintf(stderr, "Program exiting.  This may be evidence of a corrupt compressed file!\n");
+                    fprintf(stderr, "Filename being uncompressed: %s with command: %s\n", in_filename, popen_command);
+                    exit(0);
+                }
+            }
+            exit(0);
+        }
+        if(0 == file_type)
+            fclose(fp);
+        else
+        {
+            status_pclose = pclose(fp);
+            if(0 != status_pclose)
+            {
+                fprintf(stderr, "Status returned from uncompress command via popen NON-ZERO: %d\n", status_pclose);
+                perror("popen command (maybe this will be useful)");
+                fprintf(stderr, "Program exiting.  This may be evidence of a corrupt compressed file!\n");
+                fprintf(stderr, "Filename being uncompressed: %s with command: %s\n", in_filename, popen_command);
+                exit(0);
+            }
+        }
 
-		uptr = ((unsigned short *) (hptr + header_size_char));
+        uptr = ((unsigned short *) (hptr + header_size_char));
 
-		cbf_status = adscimg2cbf_sub(hptr, uptr, out_filename, pack_flags, beam_center_convention, pad_flag);
-		free(hptr);
+        cbf_status = adscimg2cbf_sub2(hptr, uptr, out_filename, pack_flags, beam_center_convention, pad_flag, roi);
+        free(hptr);
 
-		argv++;
-		argc--;
-	}
-	exit(0);
+        argv++;
+        argc--;
+    }
+    exit(0);
 }
