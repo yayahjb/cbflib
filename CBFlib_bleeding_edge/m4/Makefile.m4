@@ -1,5 +1,5 @@
 m4_define(`cbf_version',`0.9.5')m4_dnl
-m4_define(`cbf_date',`24 Jul 2015')m4_dnl
+m4_define(`cbf_date',`20 Sep 2015')m4_dnl
 m4_ifelse(cbf_system,`',`m4_define(`cbf_system',`LINUX')')
 `######################################################################
 #  Makefile - command file for make to create CBFlib                 #
@@ -805,6 +805,7 @@ SOURCE   =  $(SRC)/cbf.c               \
 	$(SRC)/cbf_hdf5.c          \
 	$(SRC)/cbf_hdf5_filter.c   \
 	$(SRC)/cbf_lex.c           \
+	$(SRC)/cbf_minicbf_header.c\
 	$(SRC)/cbf_nibble_offset.c \
 	$(SRC)/cbf_packed.c        \
 	$(SRC)/cbf_predictor.c     \
@@ -864,6 +865,7 @@ HEADERS   =  $(INCLUDE)/cbf.h               \
 	$(INCLUDE)/cbf_hdf5.h          \
 	$(INCLUDE)/cbf_hdf5_filter.h   \
 	$(INCLUDE)/cbf_lex.h           \
+	$(INCLUDE)/cbf_minicbf_header.h\
 	$(INCLUDE)/cbf_nibble_offset.h \
 	$(INCLUDE)/cbf_packed.h        \
 	$(INCLUDE)/cbf_predictor.h     \

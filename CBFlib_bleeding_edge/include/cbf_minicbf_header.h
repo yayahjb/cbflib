@@ -1,23 +1,25 @@
+
 /**********************************************************************
- * tiffcbf -- convert a tiff file to a cbf file                       *
+ * cbf_set_minicbf_header.h -- set a minicbfheader in a cbf           *
  *                                                                    *
- * Version 0.7.6 28 June 2006                                         *
+ * Version 0.9.5 19 September 2015                                    *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  *                                                                    *
- * (C) Copyright 2006 Herbert J. Bernstein                            *
+ * (C) Copyright 2006 -- 2015 Herbert J. Bernstein                    *
  *                                                                    *
  **********************************************************************/
 
 /**********************************************************************
  *                                                                    *
  * YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE GPL *
- * WHILE YOU MAY ALTERNATIVE DISTRIBUTE THE API UNDER THE LGPL        *
- * YOU MAY ***NOT*** DISTRBUTE THIS PROGRAM UNDER THE LGPL            *
+ *                                                                    *
+ * ALTERNATIVELY YOU MAY REDISTRIBUTE THE CBFLIB API UNDER THE TERMS  *
+ * OF THE LGPL                                                        *
  *                                                                    *
  **********************************************************************/
- 
+
 /*************************** GPL NOTICES ******************************
  *                                                                    *
  * This program is free software; you can redistribute it and/or      *
@@ -36,9 +38,83 @@
  * 02111-1307  USA                                                    *
  *                                                                    *
  **********************************************************************/
-  
+
+/************************* LGPL NOTICES *******************************
+ *                                                                    *
+ * This library is free software; you can redistribute it and/or      *
+ * modify it under the terms of the GNU Lesser General Public         *
+ * License as published by the Free Software Foundation; either       *
+ * version 2.1 of the License, or (at your option) any later version. *
+ *                                                                    *
+ * This library is distributed in the hope that it will be useful,    *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU  *
+ * Lesser General Public License for more details.                    *
+ *                                                                    *
+ * You should have received a copy of the GNU Lesser General Public   *
+ * License along with this library; if not, write to the Free         *
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,    *
+ * MA  02110-1301  USA                                                *
+ *                                                                    *
+ **********************************************************************/
+
 /**********************************************************************
- *                                 NOTICE                             *
+ *                                                                    *
+ *                    Stanford University Notices                     *
+ *  for the CBFlib software package that incorporates SLAC software   *
+ *                 on which copyright is disclaimed                   *
+ *                                                                    *
+ * This software                                                      *
+ * -------------                                                      *
+ * The term "this software", as used in these Notices, refers to      *
+ * those portions of the software package CBFlib that were created by *
+ * employees of the Stanford Linear Accelerator Center, Stanford      *
+ * University.                                                        *
+ *                                                                    *
+ * Stanford disclaimer of copyright                                   *
+ * --------------------------------                                   *
+ * Stanford University, owner of the copyright, hereby disclaims its  *
+ * copyright and all other rights in this software.  Hence, anyone    *
+ * may freely use it for any purpose without restriction.             *
+ *                                                                    *
+ * Acknowledgement of sponsorship                                     *
+ * ------------------------------                                     *
+ * This software was produced by the Stanford Linear Accelerator      *
+ * Center, Stanford University, under Contract DE-AC03-76SFO0515 with *
+ * the Department of Energy.                                          *
+ *                                                                    *
+ * Government disclaimer of liability                                 *
+ * ----------------------------------                                 *
+ * Neither the United States nor the United States Department of      *
+ * Energy, nor any of their employees, makes any warranty, express or *
+ * implied, or assumes any legal liability or responsibility for the  *
+ * accuracy, completeness, or usefulness of any data, apparatus,      *
+ * product, or process disclosed, or represents that its use would    *
+ * not infringe privately owned rights.                               *
+ *                                                                    *
+ * Stanford disclaimer of liability                                   *
+ * --------------------------------                                   *
+ * Stanford University makes no representations or warranties,        *
+ * express or implied, nor assumes any liability for the use of this  *
+ * software.                                                          *
+ *                                                                    *
+ * Maintenance of notices                                             *
+ * ----------------------                                             *
+ * In the interest of clarity regarding the origin and status of this *
+ * software, this and all the preceding Stanford University notices   *
+ * are to remain affixed to any copy or derivative of this software   *
+ * made or distributed by the recipient and are to be affixed to any  *
+ * copy of software made or distributed by the recipient that         *
+ * contains a copy or derivative of this software.                    *
+ *                                                                    *
+ * Based on SLAC Software Notices, Set 4                              *
+ * OTT.002a, 2004 FEB 03                                              *
+ **********************************************************************/
+
+
+
+/**********************************************************************
+ *                               NOTICE                               *
  * Creative endeavors depend on the lively exchange of ideas. There   *
  * are laws and customs which establish rights and responsibilities   *
  * for authors and the users of what authors create.  This notice     *
@@ -81,7 +157,7 @@
  * OR DOCUMENTS OR FILE OR FILES AND NOT WITH AUTHORS OF THE          *
  * PROGRAMS OR DOCUMENTS.                                             *
  **********************************************************************/
- 
+
 /**********************************************************************
  *                                                                    *
  *                           The IUCr Policy                          *
@@ -112,7 +188,7 @@
  *                                                                    *
  * Protection of the standards                                        *
  *                                                                    *
- * To protect the STAR File and the CIF as standards for              * 
+ * To protect the STAR File and the CIF as standards for              *
  * interchanging and archiving electronic data, the IUCr, on behalf   *
  * of the scientific community,                                       *
  *                                                                    *
@@ -172,261 +248,31 @@
  * Crystallography                                                    *
  **********************************************************************/
 
+#ifndef CBF_MINICBF_HEADER_H
+#define CBF_MINICBF_HEADER_H
 
+
+#ifdef __cplusplus
+
+extern "C" {
+    
+#endif
+    
 #include "cbf.h"
-#include <tiffio.h>
-
-#include <stdlib.h>
-#include <stdio.h>
+#include "cbf_alloc.h"
+#include "cbf_simple.h"
 #include <string.h>
 #include <ctype.h>
-#include <time.h>
+#include <math.h>
 
-int local_exit(int);
+    
+    int cbf_set_minicbf_header(cbf_handle handle, char ** log);
 
-int local_exit(int status) {
-  exit(status);
-  return status;    /* to avoid warning messages */
+#ifdef __cplusplus
+    
 }
+        
+#endif
 
 
-#undef cbf_failnez
-#define cbf_failnez(x) \
- {int err; \
-  err = (x); \
-  if (err) { \
-    fprintf(stderr,"\nCBFlib fatal error %x \n",err); \
-    local_exit(-1); \
-  } \
- }
-
-
-int main (int argc, char *argv [])
-{
-    FILE *out;
-    TIFF *tif;
-    cbf_handle cbf;
-    clock_t a,b;
-    
-    uint32 width;
-    uint32 height;
-    uint32 npixels;
-    unsigned char * raster;
-    
-    int imageno;
-    
-     
-    /* Usage */ 
-    
-    if (argc < 3)
-    {
-        fprintf (stderr, "\n Usage: %s tifffile cbffile\n", argv [0]);
-        exit (2);
-    }
-    
-    
-    /* Read the tiff image */
-        
-    a = clock ();
-    
-    if (!(tif=TIFFOpen(argv[1], "r"))) {
-        
-        fprintf(stderr," %s unable to open tiff image %s, abort\n", argv[0], argv[1]);
-        local_exit(-1);
-    }
-    
-    b = clock ();
-    
-    fprintf (stderr, " Time to read the image: %.3fs\n", ((b - a) * 1.0) / CLOCKS_PER_SEC);
-    
-    
-    /* Make a cbf version of the image */
-    
-    a = clock ();
-    
-    
-    /* Create the cbf */
-    
-    cbf_failnez (cbf_make_handle (&cbf))
-    
-    
-    /* Make a new data block */
-    
-    cbf_failnez (cbf_new_datablock (cbf, "image_1"))
-    
-    
-    
-    imageno = 0;
-    cbf_failnez (cbf_require_category     (cbf, "array_data"))
-    do {
-        char buffer[40];
-        char * headstring;
-        size_t headsize, nheadsize;
-        unsigned int rows;
-        tstrip_t nstrips, strip;
-        tsize_t stripsize;
-        size_t totread;
-        int elsize, elsign, real, plex, treturn;
-        uint16 sampleformat, samplesperpixel, bitspersample, planarconfig;
-        size_t dimslow, dimmid, dimfast;
-        
-        plex = 1;
-        real = 0;
-        elsign = 0;
-        
-        imageno++;      /* bump the image number, starting with 1
-         versus the tiff directory number that starts
-         with zero */
-        
-        /* Make or add to the _array_data category */
-        
-        cbf_failnez (cbf_require_column       (cbf, "header_convention"))
-        cbf_failnez (cbf_count_rows           (cbf, &rows))
-        while (imageno >=0 && rows < (unsigned int)imageno) {
-            cbf_failnez (cbf_new_row          (cbf))
-            rows++;
-        }
-        cbf_failnez (cbf_select_row           (cbf,imageno-1))
-        cbf_failnez (cbf_set_value            (cbf, "TIFF"))
-        cbf_failnez (cbf_require_column       (cbf, "array_id"))
-        sprintf(buffer,"image_%d",imageno);
-        cbf_failnez (cbf_set_value            (cbf, buffer))
-        cbf_failnez (cbf_require_column       (cbf, "binary_id"))
-        cbf_failnez (cbf_set_integervalue     (cbf, imageno))
-        cbf_failnez (cbf_require_column       (cbf, "header_contents"))
-        headsize = 1+TIFFSNPrintDirectory(tif,buffer,0,TIFFPRINT_COLORMAP|TIFFPRINT_CURVES);
-        headstring = (char *) _TIFFmalloc(headsize);
-        if (!headstring) {
-            cbf_failnez(CBF_ALLOC);
-        }
-        nheadsize = TIFFSNPrintDirectory(tif,headstring,headsize-1,TIFFPRINT_COLORMAP|TIFFPRINT_CURVES);
-        if (nheadsize > headsize-1) {
-            _TIFFfree(headstring);
-            cbf_failnez(CBF_ALLOC);
-        }
-        cbf_onfailnez(cbf_set_value          (cbf,headstring),_TIFFfree(headstring));
-        _TIFFfree(headstring);
-
-        cbf_failnez (cbf_require_column       (cbf, "data"))
-        treturn = TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width);
-        if (treturn != 1) cbf_failnez(CBF_ARGUMENT);
-        dimfast = width;
-        treturn = TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &height);
-        if (treturn != 1) cbf_failnez(CBF_ARGUMENT);
-        dimmid = height;
-        dimslow = 1;
-        treturn = TIFFGetField(tif, TIFFTAG_SAMPLEFORMAT, &sampleformat);
-        if (treturn != 1) {
-            sampleformat = SAMPLEFORMAT_UINT;
-        }
-        treturn = TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &samplesperpixel);
-        if (treturn != 1) samplesperpixel = 1; /* cbf_failnez(CBF_ARGUMENT);*/
-        treturn = TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &bitspersample);
-        if (treturn != 1) cbf_failnez(CBF_ARGUMENT);
-        treturn = TIFFGetField(tif, TIFFTAG_PLANARCONFIG, &planarconfig);
-        if (treturn != 1) planarconfig = PLANARCONFIG_CONTIG; /* cbf_failnez(CBF_ARGUMENT); */
-        switch ( bitspersample ) {
-            case 8:                elsize = 1; break;
-            case 16:               elsize = 2; break;
-            case 32:               elsize = 4; break;
-            case 64:               elsize = 8; break;
-            default:               cbf_failnez(CBF_FORMAT);
-        }
-        switch ( sampleformat ) {
-            case SAMPLEFORMAT_UINT:         elsign = 0; real = 0; plex = 1; break;    /* !unsigned integer data */
-            case SAMPLEFORMAT_INT:	        elsign = 1; real = 0; plex = 1; break;    /* !signed integer data */
-            case SAMPLEFORMAT_IEEEFP:       elsign = 1; real = 1; plex = 1; break;    /* !IEEE floating point data */
-            case SAMPLEFORMAT_VOID:         cbf_failnez(CBF_FORMAT);                  /* !untyped data */
-            case SAMPLEFORMAT_COMPLEXINT:   elsign = 1; real = 0; plex = 2; 
-                                                               elsize /=2; break;     /* !complex signed int */
-            case SAMPLEFORMAT_COMPLEXIEEEFP:elsign = 1; real = 1; plex = 2; 
-                                                               elsize /=2; break;     /* !complex ieee floating */
-            default:                       cbf_failnez(CBF_FORMAT);
-        }
-        switch ( planarconfig ) {
-            case PLANARCONFIG_CONTIG:
-                plex *= samplesperpixel;
-                samplesperpixel = 1;
-                if (plex > 1) {
-                    dimslow = dimmid;
-                    dimmid = dimfast;
-                    dimfast = plex;
-                }
-                break;
-            case PLANARCONFIG_SEPARATE:
-                if (plex > 1 && samplesperpixel > 1) {
-                    dimfast = dimfast*plex;
-                    dimslow = samplesperpixel;
-                } else if (plex == 1 && samplesperpixel > 1 ) {
-                    dimslow = samplesperpixel;
-                } else if (plex > 1 && samplesperpixel == 1) {
-                    dimslow = dimmid;
-                    dimmid = dimfast;
-                    dimfast = plex;                    
-                }
-        }
-            
-        npixels = dimslow*dimmid*dimfast;
-        nstrips = TIFFNumberOfStrips(tif);
-        stripsize = TIFFStripSize(tif);
-        raster = (unsigned char *) _TIFFmalloc(stripsize*nstrips+stripsize-1);
-        elsize = stripsize*nstrips/npixels;
-        totread = 0;
-        for (strip = 0; strip < nstrips; strip++) {
-            totread +=TIFFReadEncodedStrip(tif, strip, raster+strip*stripsize, stripsize);
-        }
-        if(real){
-            cbf_failnez (cbf_set_realarray_wdims_fs (cbf, CBF_NONE, imageno,
-                                                        (void *)raster, elsize,
-                                                        npixels,
-                                                        "little_endian",dimfast,dimmid,dimslow,0 ))
-        } else {
-            cbf_failnez (cbf_set_integerarray_wdims_fs (cbf, CBF_NONE, imageno,
-                                                    (void *)raster, elsize, elsign,
-                                                    npixels,
-                                                    "little_endian",dimfast,dimmid,dimslow,0 ))
-        }
-        
-        _TIFFfree(raster);
-        
-    } while (TIFFReadDirectory(tif));
-        
-        
-    
-    
-    /* Write the new file */
-    
-    out = fopen (argv [2], "w+b");
-    
-    if (!out)
-    {
-        fprintf (stderr, " Couldn't open the CBF file %s\n", argv [2]);
-        
-        exit (1);
-    }
-    
-    cbf_failnez (cbf_write_file (cbf, out, 1, CBF, MSG_DIGEST | MIME_HEADERS  , 0))
-    
-    
-    
-    /* Free the cbf */
-    
-    cbf_failnez (cbf_free_handle (cbf))
-    
-    b = clock ();
-    
-    fprintf (stderr, " Time to write the CBF image: %.3fs\n", 
-             ((b - a) * 1.0) / CLOCKS_PER_SEC); 
-    
-    
-      
-    
-    /* Free the tiff images */
-            
-    TIFFClose(tif);
-    
-    
-    /* Success */
-    
-    return 0;
-}
+#endif /* CBF_MINICBF_HEADER_H */

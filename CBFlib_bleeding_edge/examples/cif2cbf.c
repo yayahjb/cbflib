@@ -15,7 +15,7 @@
  * YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE GPL *
  * WHILE YOU MAY ALTERNATIVE DISTRIBUTE THE API UNDER THE LGPL        *
  * YOU MAY ***NOT*** DISTRBUTE THIS PROGRAM UNDER THE LGPL            *
- *                                                                    *                                                                    *
+ *                                                                    *
  **********************************************************************/
 
 /*************************** GPL NOTICES ******************************
@@ -64,6 +64,7 @@
  *    [-O] \                                                          *
  *    [-5 {r|w|rw|rn|wn|rwn|n[oH5]} \                                 *
  *    [--register {manual|plugin}] \                                  *
+ *    [--add-minicbf-header] \                                        *
  *    [-U n] \                                                        *
  *    [input_cif] [output_cbf]                                        *
  *                                                                    *
@@ -169,6 +170,10 @@
  *  --register manual or plugin (default plugin)                      *
  *     controls whether to rely on the HDF5 filter plugin mechanism   *
  *     or to manually register the CBFlib compression for HDF5        *
+ *                                                                    *
+ *  --add-minicbf-header                                              *
+ *     add a minicbf header or replaces an exsiting minicbf header    *
+ *     in _array_data.header_contents                                 *
  *                                                                    *
  *  --U n                                            *
  *     test cbf_construct_detector in element_id n                    *
@@ -411,6 +416,7 @@
 #include "cbf_copy.h"
 #include "cbf_hdf5.h"
 #include "cbf_alloc.h"
+#include "cbf_minicbf_header.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -541,6 +547,7 @@ int main (int argc, char *argv [])
     int c;
     int errflg = 0;
     int opaquemode = 0;
+    int add_minicbf_header = 0;
     const char *cifin, *cbfout, *updatecif;
     const char *hdf5out;
     const char *dictionary[NUMDICTS];
@@ -607,6 +614,7 @@ int main (int argc, char *argv [])
      *    [-5 {r|w|rw|rn|wn|rwn|n[oH5]} \                                 *
      *    [-O] \                                                          *
      *    [--register {manual|plugin} \                                   *
+     *    [--add-minicbf-header       \                                   *
      *    [-U n]     \                                   *
      *    [input_cif] [output_cbf]                                        *
      *                                                                    *
@@ -664,6 +672,7 @@ int main (int argc, char *argv [])
                                  "O(opaque)" \
                                  "w(read-wide)" \
                                  "W(write-wide)" \
+                                 "\1(add-minicbf-header)" \
                                  ))
 
     if (!cbf_rewind_getopt_option(opts))
@@ -842,6 +851,11 @@ int main (int argc, char *argv [])
                     } else {
                         errflg++;
                     }
+                    break;
+                    
+                case '\1': /* add minicbf header */
+                    if (add_minicbf_header) errflg++;
+                    add_minicbf_header = 1;
                     break;
                     
                 case 'O': /* set Opaque mode */
@@ -1822,6 +1836,12 @@ int main (int argc, char *argv [])
             }
         }
 
+    }
+
+    if (add_minicbf_header) {
+        
+        cbf_failnez(cbf_set_minicbf_header(cbf, NULL));
+        
     }
 
     a = clock ();
