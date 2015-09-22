@@ -333,7 +333,7 @@ extern "C" {
     
     /* Populate or rewrite a minicbf header in _array_data.header_contents */
     
-    int cbf_set_minicbf_header(cbf_handle cbf, char ** log) {
+    int cbf_set_minicbf_header(cbf_handle cbf, cbf_handle datacbf, char ** log) {
         
         char * header;
         
@@ -423,7 +423,7 @@ extern "C" {
         
         /* check the arguments */
         
-        if (!cbf)
+        if (!cbf || !datacbf)
             
             return CBF_ARGUMENT;
         
@@ -441,23 +441,9 @@ extern "C" {
         
         cbf_failnez(cbf_rewind_datablock(cbf));
         
-        if ((!cbf_find_category(cbf, "diffrn_data_frame")
-             || !cbf_find_category(cbf,"diffrn_frame_data"))
-            && !cbf_find_column(cbf,"details")
-            && !cbf_rewind_row(cbf)
-            && !cbf_get_value(cbf,&frame_details)
-            && (frame_details) ) {
-            
             cbf_failnez(cbf_append_string(&header,&header_capacity,&header_size,
-                                          frame_details));
+                                      "\n"));
             
-            /* fprintf(stderr,"frame_details:\n%s\n",frame_details); */
-            
-        }
-        
-        cbf_failnez(cbf_append_string(&header,&header_capacity,&header_size,
-                                      "\nPilatus1.4 minicbf header:\n"));
-        
         /* fprintf(stderr,"header:\n%s\n",header); */
         
         /* Get the image dimensions */
@@ -932,6 +918,8 @@ extern "C" {
             
             size_t isnp;
             
+            /* fprintf(stderr,detector_details); */
+            
             if ((snp=strcasestr(detector_details,"thickness"))) {
                 
                 snp += 9;
@@ -1308,7 +1296,7 @@ extern "C" {
             && !cbf_find_column(cbf,"integration_time")
             && !cbf_rewind_row(cbf)
             && !cbf_get_value(cbf,&integration_time)
-            && !integration_time) {
+            && (integration_time) && (*integration_time) ) {
             
             cbf_failnez(cbf_append_string(&header,&header_capacity,&header_size,
                                           "# Exposure_time "));
@@ -1327,7 +1315,7 @@ extern "C" {
             && !cbf_find_column(cbf,"integration_period")
             && !cbf_rewind_row(cbf)
             && !cbf_get_value(cbf,&integration_period)
-            && !integration_period) {
+            && (integration_period) && (*integration_period) ) {
             
             cbf_failnez(cbf_append_string(&header,&header_capacity,&header_size,
                                           "# Exposure_period "));
@@ -1356,8 +1344,33 @@ extern "C" {
             cbf_failnez(cbf_append_string(&header,&header_capacity,&header_size,
                                           cbf_trim_left(buffer)));
             
+        } else if (!cbf_find_category(cbf,"diffrn_radiation")
+                                      && !cbf_find_column(cbf,"tau")
+                                      && !cbf_rewind_row(cbf)
+                                      && !cbf_get_doublevalue(cbf,&dtime)
+                                      && dtime >=0.) {
+            /* handle the older, misplaced tau */
+
+            cbf_failnez(cbf_append_string(&header,&header_capacity,&header_size,
+                                          "# Tau = "));
+            
+            sprintf(buffer,"%15.6g s\n",dtime/1.e6);
+            
+            cbf_failnez(cbf_append_string(&header,&header_capacity,&header_size,
+                                          cbf_trim_left(buffer)));
+        } else {
+            
+            /* Dummy in a 0 */
+            
+            /*Dummy in a Voffset of 0 */
+            
+            cbf_failnez(cbf_append_string(&header,&header_capacity,&header_size,
+                                          "# Tau = 0 s\n"));
+
         }
         
+                                      
+                   
         /* Set Count_cutoff 1048575 counts line */
         
         if (!(overload)) {
@@ -1379,7 +1392,7 @@ extern "C" {
             && !cbf_find_column(cbf,"threshold")
             && !cbf_rewind_row(cbf)
             && !cbf_get_value(cbf,&threshold)
-            && threshold && *threshold) {
+            && (threshold) && (*threshold)) {
             
             cbf_failnez(cbf_append_string(&header,&header_capacity,&header_size,
                                           "# Threshold_setting "));
@@ -1414,8 +1427,8 @@ extern "C" {
             &&!cbf_find_column(cbf,"details")
             &&!cbf_rewind_row(cbf)
             &&!cbf_get_value(cbf,&array_intensities_details)
-            &&array_intensities_details
-            &&*array_intensities_details) {
+            &&(array_intensities_details)
+            &&(*array_intensities_details)) {
             
             char * snp;
             
@@ -1512,6 +1525,12 @@ extern "C" {
                                           ") eV\n"));
             
             
+        } else {
+            
+            /*Dummy in a Energy_range (0, 0) eV\n */
+            
+            cbf_failnez(cbf_append_string(&header,&header_capacity,&header_size,
+                                          "# Energy_range (0, 0) eV\n"));
         }
         
         
@@ -1545,6 +1564,12 @@ extern "C" {
             cbf_failnez(cbf_append_string(&header,&header_capacity,&header_size,
                                           cbf_trim_left(buffer)));
             
+        } else {
+            
+            /*Dummy in a Voffset of 0 */
+             
+             cbf_failnez(cbf_append_string(&header,&header_capacity,&header_size,
+                                         "# Detector_Voffset 0.00000 m\n"));
         }
         
         /* Set Beam_xy (1231.50, 1263.50) pixels line */
@@ -1582,6 +1607,12 @@ extern "C" {
             cbf_failnez(cbf_append_string(&header,&header_capacity,&header_size,
                                           " ph/s\n"));
             
+        } else {
+            
+            /*Dummy in a Flux of 0 */
+            
+            cbf_failnez(cbf_append_string(&header,&header_capacity,&header_size,
+                                          "# Flux 0 ph/s\n"));
         }
 
         
@@ -1620,6 +1651,10 @@ extern "C" {
 
         
         /* Set Oscillation_axis  X, CW line */
+        
+        cbf_failnez(cbf_append_string(&header,&header_capacity,&header_size,
+                                      "# Oscillation_axis  X, CW\n"));
+        
         
         /* Set Angle_increment 0.0100 deg. line */
         
@@ -1665,8 +1700,15 @@ extern "C" {
             cbf_failnez(cbf_append_string(&header,&header_capacity,&header_size,
                                           "\n"));
             
+        } else {
+            /* dummy in 0.990 */
+            
+            cbf_failnez(cbf_append_string(&header,&header_capacity,&header_size,
+                                          "# Polarization 0.990\n"));
+            
         }
 
+        
         
         /* For each goniometer angle ANGLE
          set ANGLE 0.0000 deg. line
@@ -1689,38 +1731,28 @@ extern "C" {
             
             cbf_failnez(cbf_append_string(&header,&header_capacity,&header_size,
                                           "\n"));
+        } else {
+            
+            cbf_failnez(cbf_append_string(&header,&header_capacity,&header_size,
+                                          "# N_oscillations 1\n"));
         }
 
         
         /* Write the header to the CBF */
         
         
-        if ((!cbf_find_category(cbf, "diffrn_data_frame")
-             || !cbf_find_category(cbf,"diffrn_frame_data"))
-            && !cbf_find_column(cbf,"details")
-            && !cbf_rewind_row(cbf)) {
+        if ((!cbf_require_category(datacbf, "array_data"))
+            && !cbf_require_column(datacbf,"header_convention")
+            && !cbf_rewind_row(datacbf)) {
             
-            cbf_failnez(cbf_set_value(cbf,header));
+            cbf_failnez(cbf_set_value(datacbf,"PILATUS_1.4"));
+        }
             
-        } else if (!cbf_find_category(cbf, "diffrn_data_frame")) {
+        if ((!cbf_require_category(datacbf, "array_data"))
+            && !cbf_require_column(datacbf,"header_contents")
+            && !cbf_rewind_row(datacbf)) {
             
-            cbf_failnez(cbf_require_column(cbf,"details"));
-            cbf_failnez(cbf_rewind_row(cbf));
-            cbf_failnez(cbf_set_value(cbf,header));
-            
-            
-        } else if (!cbf_find_category(cbf, "diffrn_frame_date")) {
-            
-            cbf_failnez(cbf_require_column(cbf,"details"));
-            cbf_failnez(cbf_rewind_row(cbf));
-            cbf_failnez(cbf_set_value(cbf,header));
-            
-        } else {
-            
-            cbf_failnez(cbf_require_category(cbf,"diffrn_data_frame"));
-            cbf_failnez(cbf_require_column(cbf,"details"));
-            cbf_failnez(cbf_rewind_row(cbf));
-            cbf_failnez(cbf_set_value(cbf,header));
+            cbf_failnez(cbf_set_value(datacbf,header));
             
         }
         

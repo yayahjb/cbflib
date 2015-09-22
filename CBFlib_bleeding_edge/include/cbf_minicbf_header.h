@@ -266,7 +266,7 @@ extern "C" {
 #include <math.h>
 
     
-    int cbf_set_minicbf_header(cbf_handle handle, char ** log);
+    int cbf_set_minicbf_header(cbf_handle cbf, cbf_handle datacbf, char ** log);
 
 #ifdef __cplusplus
     
