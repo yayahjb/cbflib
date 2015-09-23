@@ -593,7 +593,7 @@ int	adscimg2cbf_sub2(char *header,
         thickness = strtod(thickstr,&endptr);
         if (thickness < 0. || endptr==thickstr) {
             fprintf(stderr,
-                    "adscimg2cbf_sub2: Error: invalid sensor thickness '&s'\n",
+                    "adscimg2cbf_sub2: Error: invalid sensor thickness '%s'\n",
                     thickstr);
             return(1);
         }
@@ -615,7 +615,7 @@ int	adscimg2cbf_sub2(char *header,
             || polarization_ratio > 1.0
             ||endptr==polarstr) {
             fprintf(stderr,
-                    "adscimg2cbf_sub2: Error: invalid polarization source ratio '&s'\n",
+                    "adscimg2cbf_sub2: Error: invalid polarization source ratio '%s'\n",
                     polarstr);
             return(1);
         }
