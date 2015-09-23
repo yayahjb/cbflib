@@ -770,9 +770,9 @@ int	adscimg2cbf_sub2(char *header,
         pixel_size = 0.0512;
     else if(NULL != strstr(detector_id, "315"))
         pixel_size = 0.051296;
-        else if(NULL != strcasestr(detector_id, "PILATUS"))
+        else if(NULL != strstr(detector_id, "PILATUS"))
         pixel_size = 0.172;
-        else if(NULL != strcasestr(detector_id, "EIGER"))
+        else if(NULL != strstr(detector_id, "EIGER"))
         pixel_size = 0.075;
     else	pixel_size = 0.0816;
     s1[0] = '\0';

@@ -191,7 +191,7 @@ int    main(int argc, char *argv[])
     while(argc > 1 && argv[1][0] == '-' && argv[1][1] == '-')
     {
         for(j = 0; flags[j] != NULL; j++) {
-        strstrhit = strcasestr(argv[1], flags[j]);
+        strstrhit = strstr(argv[1], flags[j]);
             if(NULL != strstrhit && strstrhit==argv[1] )
                 break;
     }
