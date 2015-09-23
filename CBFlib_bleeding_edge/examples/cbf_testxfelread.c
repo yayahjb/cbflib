@@ -388,7 +388,7 @@ extern "C" {
         if (argc > 1) {
             if (cbf_cistrcmp(argv[1],"--elongate")==0) {
                 elongate = 1;
-                fprintf(stdout,"elongate the middle pixels\n");
+                /* fprintf(stdout,"elongate the middle pixels\n"); */
             }
         }
         
@@ -538,12 +538,13 @@ extern "C" {
         prj[2][1] =    - pixel_normal_avg[2]*pixel_normal_avg[1];
         prj[2][2] = 1. - pixel_normal_avg[2]*pixel_normal_avg[2];
         
-        fprintf(stdout," prj [%g,%g,%g]\n"
+        /* fprintf(stdout," prj [%g,%g,%g]\n"
                 "     [%g,%g,%g]\n"
                 "     [%g,%g,%g]\n",
                 prj[0][0], prj[0][1], prj[0][2],
                 prj[1][0], prj[1][1], prj[1][2],
                 prj[2][0], prj[2][1], prj[2][2]);
+         */
         
         
         /* Compute the rotation matrix.  This rotation will either take
@@ -553,12 +554,13 @@ extern "C" {
         
         cbf_failnez(cbf_get_rotation_to_Z(rotmat, pixel_normal_avg));
         
-        fprintf(stdout," rotmat [%g,%g,%g]\n"
+        /* fprintf(stdout," rotmat [%g,%g,%g]\n"
                 "        [%g,%g,%g]\n"
                 "        [%g,%g,%g]\n",
                 rotmat[0][0], rotmat[0][1], rotmat[0][2],
                 rotmat[1][0], rotmat[1][1], rotmat[1][2],
                 rotmat[2][0], rotmat[2][1], rotmat[2][2]);
+         */
         
         /* check the image sizes and load the images */
         
@@ -568,7 +570,7 @@ extern "C" {
             size_t num_undef, num_overload, num_pix;
             double pixavg, pixmax, pixmin;
             
-            fprintf(stdout,"processing element %d\n",element);
+            /* fprintf(stdout,"processing element %d\n",element); */
             if(cbf_get_image_size(cbf_in, 0, element, &slowdim, &fastdim)){
                 
                 fprintf(stderr,"Failed to get image size for element %d\n",element);
@@ -585,8 +587,8 @@ extern "C" {
                 
             }
             
-            fprintf (stdout,"Confirmed element %d size %d x %d\n",
-                     element,(int)slowdim,(int)fastdim);
+            /* fprintf (stdout,"Confirmed element %d size %d x %d\n",
+                     element,(int)slowdim,(int)fastdim); */
             
             cbf_failnez(cbf_get_real_image (cbf_in, 0, element,
                                             xfel_rawdata[element],8,
@@ -693,7 +695,7 @@ extern "C" {
                     }
                 }
                 elongavg /= 2.5*((double)slowdim);
-                fprintf(stdout," element %d elongated pixel average %g\n", element, elongavg);
+                /* fprintf(stdout," element %d elongated pixel average %g\n", element, elongavg); */
             }
             
             
@@ -719,23 +721,23 @@ extern "C" {
             }
             
             if (num_pix > 0)pixavg /= (double)(num_pix);
-            fprintf(stdout,"element %d, %d good pixels, %d undefined, %d overload\n",
+            /* fprintf(stdout,"element %d, %d good pixels, %d undefined, %d overload\n",
                     element,(int)num_pix,(int)num_undef,(int)num_overload);
             fprintf(stdout,"            average %g, min %g, max %g\n",
-                    pixavg, pixmin, pixmax);
+                    pixavg, pixmin, pixmax); */
             
             
             apply_matrix(rotmat,pixel_0_0[element],pixel_mapped_0_0[element]);
             apply_matrix(rotmat,pixel_0_1[element],pixel_mapped_0_1[element]);
             apply_matrix(rotmat,pixel_1_0[element],pixel_mapped_1_0[element]);
             apply_matrix(rotmat,pixel_1_1[element],pixel_mapped_1_1[element]);
-            fprintf(stdout,"mapped corners of element %d [0,0] [%g,%g,%g], [0,1]  [%g,%g,%g]\n"
+            /* fprintf(stdout,"mapped corners of element %d [0,0] [%g,%g,%g], [0,1]  [%g,%g,%g]\n"
                     " [1,0] [%g,%g,%g], [1,1]  [%g,%g,%g]\n",
                     element,
                     pixel_mapped_0_0[element][0],pixel_mapped_0_0[element][1],pixel_mapped_0_0[element][2],
                     pixel_mapped_0_1[element][0],pixel_mapped_0_1[element][1],pixel_mapped_0_1[element][2],
                     pixel_mapped_1_0[element][0],pixel_mapped_1_0[element][1],pixel_mapped_1_1[element][2],
-                    pixel_mapped_1_1[element][0],pixel_mapped_1_1[element][1],pixel_mapped_1_1[element][2]);
+                    pixel_mapped_1_1[element][0],pixel_mapped_1_1[element][1],pixel_mapped_1_1[element][2]); */
             for (ii = 0; ii < 3; ii++) {
                 if (pixel_mapped_0_0[element][ii]
                     < pixel_low[ii]) pixel_low[ii] = pixel_mapped_0_0[element][ii];
@@ -755,8 +757,8 @@ extern "C" {
                     > pixel_high[ii]) pixel_high[ii] = pixel_mapped_1_1[element][ii];
             }
             
-            fprintf(stdout, " pixel normal [%g,%g,%g]\n",
-                    pixel_normal[element][0],pixel_normal[element][1],pixel_normal[element][2]);
+            /* fprintf(stdout, " pixel normal [%g,%g,%g]\n",
+                    pixel_normal[element][0],pixel_normal[element][1],pixel_normal[element][2]); */
             
         }
         
@@ -787,7 +789,7 @@ extern "C" {
 
 
         
-        fprintf(stdout, " pixel_normal_avg [%g,%g,%g]\n",
+        /* fprintf(stdout, " pixel_normal_avg [%g,%g,%g]\n",
                 pixel_normal_avg[0],pixel_normal[element][1],pixel_normal[element][2]);
         
         fprintf(stdout, " prj [%g,%g,%g]/[%g,%g,%g]/[%g,%g,%g] \n",
@@ -795,6 +797,7 @@ extern "C" {
         
         fprintf (stdout," pixel position ranges: [%g %g], [%g %g], [%g %g]\n",
                  pixel_low[0],pixel_high[0],pixel_low[1],pixel_high[1],pixel_low[2],pixel_high[2]);
+         */
         
         
         slowactual = (pixel_high[1]-pixel_low[1]+XFEL_PIXEL_SIZE*1.5)/XFEL_PIXEL_SIZE;
@@ -806,7 +809,7 @@ extern "C" {
             
         }
         
-        fprintf(stdout," Detector is %d x %d ", fastactual, slowactual);
+        /* fprintf(stdout," Detector is %d x %d ", fastactual, slowactual); */
         
         /* Set the entire outarray to XFEL_UNDEFINED */
         
@@ -876,12 +879,12 @@ extern "C" {
                     ypos = (pixel_slow-pixel_low[1]+.5)/XFEL_PIXEL_SIZE;
                     ypos = slowactual-1-ypos;
                     
-                    if ((ii==0 || ii==XFEL_FAST_DIM-1)&&(jj==0 || jj ==XFEL_SLOW_DIM-1)){
+                    /* if ((ii==0 || ii==XFEL_FAST_DIM-1)&&(jj==0 || jj ==XFEL_SLOW_DIM-1)){
                         fprintf(stdout,"processing element %d, pixel [%d,%d]\n",element,ii,jj);
                         fprintf(stdout,"xalpha: %g, yalpha: %g, pixel_fast: %g, pixel_slow: %g\n",
                                 xalpha, yalpha, pixel_fast, pixel_slow);
                         fprintf(stdout,"xpos: %d, ypos: %d, xcen: %g, ycen %g\n", xpos,ypos,xcen,ycen);
-                    }
+                    }*/
                     
                     if ((xpos < XFEL_DIAMETER && ypos < XFEL_DIAMETER)
                         && xpos >= 0 && ypos >= 0){

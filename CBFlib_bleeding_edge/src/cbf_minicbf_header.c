@@ -347,7 +347,7 @@ extern "C" {
         
         const char * array_intensities_details;
         
-        /* wavelength and beam center */
+        double thickness;
         
         double wavelength;
         
@@ -910,7 +910,21 @@ extern "C" {
         
         /* Set the Silicon sensor, thickness 0.000320 m line*/
         
-        if (detector_details) {
+        if (!cbf_find_category(cbf,"diffrn_detector")
+            &&!cbf_find_column(cbf,"layer_thickness")
+            &&!cbf_get_doublevalue(cbf,&thickness)
+            &&thickness > 0.) {
+            
+            cbf_failnez(cbf_append_string(&header,&header_capacity,&header_size,
+                                          "# Silicon sensor, thickness "));
+            
+            sprintf(buffer,"%12.7f m\n", thickness*1.e-3);
+            
+            cbf_failnez(cbf_append_string(&header,&header_capacity,&header_size,
+                                          cbf_trim_left(buffer)));
+
+        
+        } else if (detector_details) {
             
             const char * snp;
             
@@ -977,6 +991,11 @@ extern "C" {
                                               buffer));
             }
             
+        } else if (log) {
+         
+            cbf_failnez(cbf_append_string(log,&log_capacity,&log_size,
+                                          "cbf_set_minicbf_header: warning: "
+                                          "layer_thickness not provided\n"));
         }
         
         /* Set N_excluded_pixels = 293 line*/
@@ -1362,14 +1381,21 @@ extern "C" {
             
             /* Dummy in a 0 */
             
-            /*Dummy in a Voffset of 0 */
-            
             cbf_failnez(cbf_append_string(&header,&header_capacity,&header_size,
                                           "# Tau = 0 s\n"));
 
+            if (log){
+                
+                cbf_failnez(cbf_append_string(log,&log_capacity,&log_size,
+                                              "cbf_set_minicbf_header: warning: "
+                                              "dummy Tau = 0 s used\n"));
+                
         }
         
                                       
+        }
+                   
+        
                    
         /* Set Count_cutoff 1048575 counts line */
         
@@ -1531,6 +1557,16 @@ extern "C" {
             
             cbf_failnez(cbf_append_string(&header,&header_capacity,&header_size,
                                           "# Energy_range (0, 0) eV\n"));
+            
+            if (log){
+                
+                cbf_failnez(cbf_append_string(log,&log_capacity,&log_size,
+                                              "cbf_set_minicbf_header: warning: "
+                                              "dummy Energy_range (0, 0) eV used\n"));
+                
+        }
+        
+        
         }
         
         
@@ -1570,6 +1606,15 @@ extern "C" {
              
              cbf_failnez(cbf_append_string(&header,&header_capacity,&header_size,
                                          "# Detector_Voffset 0.00000 m\n"));
+            
+            if (log){
+                
+                cbf_failnez(cbf_append_string(log,&log_capacity,&log_size,
+                                              "cbf_set_minicbf_header: warning: "
+                                              "dummy Detector_Voffset 0 m  used\n"));
+                
+        }
+        
         }
         
         /* Set Beam_xy (1231.50, 1263.50) pixels line */
@@ -1611,8 +1656,13 @@ extern "C" {
             
             /*Dummy in a Flux of 0 */
             
-            cbf_failnez(cbf_append_string(&header,&header_capacity,&header_size,
-                                          "# Flux 0 ph/s\n"));
+            if (log){
+                
+                cbf_failnez(cbf_append_string(log,&log_capacity,&log_size,
+                                              "cbf_set_minicbf_header: warning: "
+                                              "dummy Flux 0 ph/s used\n"));
+                
+        }
         }
 
         
@@ -1701,14 +1751,23 @@ extern "C" {
                                           "\n"));
             
         } else {
-            /* dummy in 0.990 */
+            /* dummy in 0.000 */
             
             cbf_failnez(cbf_append_string(&header,&header_capacity,&header_size,
-                                          "# Polarization 0.990\n"));
+                                          "# Polarization 0.000\n"));
             
+            if (log){
+                
+                cbf_failnez(cbf_append_string(log,&log_capacity,&log_size,
+                                              "cbf_set_minicbf_header: warning: "
+                                              "dummy Polarization 0.000 used\n"));
+                
         }
 
         
+        }
+        
+
         
         /* For each goniometer angle ANGLE
          set ANGLE 0.0000 deg. line

@@ -176,6 +176,7 @@
 
 #include "cbf.h"
 #include "cbf_simple.h"
+#include "cbf_minicbf_header.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -428,7 +429,8 @@ static void	smv_date_to_cbf_date(char *smv_date, char *cbf_date)
 }
 
 int convertroi(char *roi, int fastdim, int slowdim, 
-		int * fastlow, int * fasthigh, int * slowlow, int * slowhigh) {
+               int * fastlow, int * fasthigh,
+               int * slowlow, int * slowhigh) {
     char * endptr;
     char * str;
     if (!fastlow || !fasthigh || !slowlow || !slowhigh) return CBF_ARGUMENT;
@@ -477,7 +479,10 @@ int	adscimg2cbf_sub2(char *header,
                     int pack_flags, 
                     int beam_center_convention,
                     int pad_flag,
-                    char *roi)
+                    const char *roi,
+                    const char *thickstr,
+                    int add_minicbf_header,
+                    const char * polarstr)
 {
   FILE *out;
 
@@ -514,6 +519,8 @@ int	adscimg2cbf_sub2(char *header,
   double	detector_center_x, detector_center_y;
   double	det_beam_center_to_origin_dist_x, det_beam_center_to_origin_dist_y;
   double	header_beam_x, header_beam_y;
+    double  thickness;
+    double  polarization_ratio;
 
 
     if(0 == pack_flags)
@@ -578,6 +585,44 @@ int	adscimg2cbf_sub2(char *header,
   }
   smv_size2 = atoi(s);
 
+    /* Decode the user-provided sensor thickness */
+    
+    thickness = 0.;
+    if (thickstr && *thickstr) {
+        char * endptr;
+        thickness = strtod(thickstr,&endptr);
+        if (thickness < 0. || endptr==thickstr) {
+            fprintf(stderr,
+                    "adscimg2cbf_sub2: Error: invalid sensor thickness '&s'\n",
+                    thickstr);
+            return(1);
+        }
+        /* automatically rescale thickness in um or m to mm
+         restricts the range to .01 to 99.999 mm.
+         To provide values above this range use um.
+         To provide values below this range use m.
+         */
+        if (thickness > 100.) thickness *= 1.e-3;
+        else if (thickness < .01) thickness *= 1.e3;
+        
+    }
+    
+    polarization_ratio = 0.;
+    if (polarstr && *polarstr) {
+        char * endptr;
+        polarization_ratio = strtod(polarstr,&endptr);
+        if (polarization_ratio < 0.
+            || polarization_ratio > 1.0
+            ||endptr==polarstr) {
+            fprintf(stderr,
+                    "adscimg2cbf_sub2: Error: invalid polarization source ratio '&s'\n",
+                    polarstr);
+            return(1);
+        }
+        
+    }
+
+    
   /*
    *	Decode the header items having to do with adc speed, binning, etc.
    */
@@ -684,6 +729,7 @@ int	adscimg2cbf_sub2(char *header,
     gain = 1;
     detector_center_x = -211.732;
     detector_center_y = 219.644;
+                    if (thickness == 0.) thickness = 0.000320;
   } else if (smv_size2 == 4371 && smv_size1 == 4150)
   {
     sprintf(detector_id, "EIGER16M-SN%d", detector_sn);
@@ -691,6 +737,7 @@ int	adscimg2cbf_sub2(char *header,
     gain = 1;
     detector_center_x = -155;
     detector_center_y = 163.825;
+                    if (thickness == 0.) thickness = 0.000450;
   } else
   {
     fprintf(stderr, 
@@ -723,9 +770,9 @@ int	adscimg2cbf_sub2(char *header,
         pixel_size = 0.0512;
     else if(NULL != strstr(detector_id, "315"))
         pixel_size = 0.051296;
-    else if(NULL != strstr(detector_id, "6M"))
+        else if(NULL != strcasestr(detector_id, "PILATUS"))
         pixel_size = 0.172;
-    else if(NULL != strstr(detector_id, "PILATUS"))
+        else if(NULL != strcasestr(detector_id, "EIGER"))
         pixel_size = 0.075;
     else	pixel_size = 0.0816;
     s1[0] = '\0';
@@ -907,654 +954,684 @@ int	adscimg2cbf_sub2(char *header,
 
     /* Create the cbf */
 
-  cbf_failnez (cbf_make_handle (&cbf))
+    cbf_failnez (cbf_make_handle (&cbf));
 
 
     /* Make a new data block */
 
-  cbf_failnez (cbf_new_datablock (cbf, "image_1"))
+    cbf_failnez (cbf_new_datablock (cbf, "image_1"));
 
 
     /* Make the _diffrn category */
 
-  cbf_failnez (cbf_new_category (cbf, "diffrn"))
-  cbf_failnez (cbf_new_column   (cbf, "id"))
-  cbf_failnez (cbf_set_value    (cbf, "DS1"))
+    cbf_failnez (cbf_require_category (cbf, "diffrn"));
+    cbf_failnez (cbf_require_column   (cbf, "id"));
+    cbf_failnez (cbf_set_value        (cbf, "DS1"));
 
 
     /* Make the _diffrn_source category */
 
-  cbf_failnez (cbf_new_category (cbf, "diffrn_source"))
-  cbf_failnez (cbf_new_column   (cbf, "diffrn_id"))
-  cbf_failnez (cbf_set_value    (cbf, "DS1"))
-  cbf_failnez (cbf_new_column   (cbf, "source"))
-  cbf_failnez (cbf_set_value    (cbf, "synchrotron"))
-  cbf_failnez (cbf_new_column   (cbf, "type"))
-  cbf_failnez (cbf_set_value    (cbf, facility))
+    cbf_failnez (cbf_require_category (cbf, "diffrn_source"));
+    cbf_failnez (cbf_require_column   (cbf, "diffrn_id"));
+    cbf_failnez (cbf_set_value        (cbf, "DS1"));
+    cbf_failnez (cbf_require_column   (cbf, "source"));
+    cbf_failnez (cbf_set_value        (cbf, "synchrotron"));
+    cbf_failnez (cbf_require_column   (cbf, "type"));
+    cbf_failnez (cbf_set_value        (cbf, facility));
 
 
     /* Make the _diffrn_radiation category */  
 
-  cbf_failnez (cbf_new_category (cbf, "diffrn_radiation"))
-  cbf_failnez (cbf_new_column   (cbf, "diffrn_id"))
-  cbf_failnez (cbf_set_value    (cbf, "DS1"))
-  cbf_failnez (cbf_new_column   (cbf, "wavelength_id"))
-  cbf_failnez (cbf_set_value    (cbf, "L1"))
+    cbf_failnez (cbf_require_category (cbf, "diffrn_radiation"));
+    cbf_failnez (cbf_require_column   (cbf, "diffrn_id"));
+    cbf_failnez (cbf_set_value    (cbf, "DS1"));
+    cbf_failnez (cbf_require_column   (cbf, "wavelength_id"));
+    cbf_failnez (cbf_set_value    (cbf, "L1"));
+    if (polarization_ratio) {
+      cbf_failnez (cbf_require_column   (cbf, "polarizn_source_ratio"));
+      cbf_failnez (cbf_set_doublevalue  (cbf, "%.3f",polarization_ratio));
+    }
 
 
+    
+    
     /* Make the _diffrn_radiation_wavelength category */
 
-  cbf_failnez (cbf_new_category    (cbf, "diffrn_radiation_wavelength"))
-  cbf_failnez (cbf_new_column      (cbf, "id"))
-  cbf_failnez (cbf_set_value       (cbf, "L1"))
-  cbf_failnez (cbf_new_column      (cbf, "wavelength"))
+    cbf_failnez (cbf_require_category(cbf, "diffrn_radiation_wavelength"));
+    cbf_failnez (cbf_require_column  (cbf, "id"));
+    cbf_failnez (cbf_set_value       (cbf, "L1"));
+    cbf_failnez (cbf_require_column  (cbf, "wavelength"));
 
-  if (wavelength > 0.0)
+    if (wavelength > 0.0) {
   
-    cbf_failnez (cbf_set_doublevalue (cbf, "%.6f", wavelength))
+        cbf_failnez (cbf_set_doublevalue (cbf, "%.6f", wavelength));
 
-  cbf_failnez (cbf_new_column      (cbf, "wt"))
-  cbf_failnez (cbf_set_value       (cbf, "1.0"))
+        cbf_failnez (cbf_require_column  (cbf, "wt"));
+        cbf_failnez (cbf_set_value       (cbf, "1.0"));
 
+    }
 
+    
     /* Make the _diffrn_measurement category */  
 
-  cbf_failnez (cbf_new_category     (cbf, "diffrn_measurement"))
-  cbf_failnez (cbf_new_column       (cbf, "diffrn_id"))
-  cbf_failnez (cbf_set_value        (cbf, "DS1"))
-  cbf_failnez (cbf_new_column       (cbf, "id"))
-  cbf_failnez (cbf_set_value        (cbf, "GONIOMETER"))
-  cbf_failnez (cbf_new_column       (cbf, "method"))
-  cbf_failnez (cbf_set_value        (cbf, "oscillation"))
-  cbf_failnez (cbf_new_column       (cbf, "number_of_axes"))
-  cbf_failnez (cbf_set_integervalue (cbf, 1))
-  cbf_failnez (cbf_new_column       (cbf, "sample_detector_distance"))
+    cbf_failnez (cbf_require_category (cbf, "diffrn_measurement"));
+    cbf_failnez (cbf_require_column   (cbf, "diffrn_id"));
+    cbf_failnez (cbf_set_value        (cbf, "DS1"));
+    cbf_failnez (cbf_require_column   (cbf, "id"));
+    cbf_failnez (cbf_set_value        (cbf, "GONIOMETER"));
+    cbf_failnez (cbf_require_column   (cbf, "method"));
+    cbf_failnez (cbf_set_value        (cbf, "oscillation"));
+    cbf_failnez (cbf_require_column   (cbf, "number_of_axes"));
+    cbf_failnez (cbf_set_integervalue (cbf, 1));
+    cbf_failnez (cbf_require_column   (cbf, "sample_detector_distance"));
 
-  if (distance > 0.0)
-    cbf_failnez (cbf_set_doublevalue (cbf, "%.4f", distance))
-  else
-    cbf_failnez (cbf_set_value       (cbf, "unknown"))
+    if (distance > 0.0) {
+        cbf_failnez (cbf_set_doublevalue (cbf, "%.4f", distance));
+    } else {
+        cbf_failnez (cbf_set_value       (cbf, "unknown"));
+    }
 
     /* Make the _diffrn_measurement_axis category */  
 
-  cbf_failnez (cbf_new_category     (cbf, "diffrn_measurement_axis"))
-  cbf_failnez (cbf_new_column       (cbf, "measurement_id"))
-  cbf_failnez (cbf_set_value        (cbf, "GONIOMETER"))
-  cbf_failnez (cbf_new_column       (cbf, "axis_id"))
-  cbf_failnez (cbf_set_value        (cbf, "GONIOMETER_PHI"))
+    cbf_failnez (cbf_require_category (cbf, "diffrn_measurement_axis"));
+    cbf_failnez (cbf_require_column   (cbf, "measurement_id"));
+    cbf_failnez (cbf_set_value        (cbf, "GONIOMETER"));
+    cbf_failnez (cbf_require_column   (cbf, "axis_id"));
+    cbf_failnez (cbf_set_value        (cbf, "GONIOMETER_PHI"));
 
     /* Make the _diffrn_scan category */  
 
-  cbf_failnez (cbf_new_category     (cbf, "diffrn_scan"))
-  cbf_failnez (cbf_new_column       (cbf, "id"))
-  cbf_failnez (cbf_set_value        (cbf, "SCAN1"))
-  cbf_failnez (cbf_new_column       (cbf, "frame_id_start"))
-  cbf_failnez (cbf_set_value        (cbf, "FRAME1"))
-  cbf_failnez (cbf_new_column       (cbf, "frame_id_end"))
-  cbf_failnez (cbf_set_value        (cbf, "FRAME1"))
-  cbf_failnez (cbf_new_column       (cbf, "frames"))
-  cbf_failnez (cbf_set_integervalue (cbf, 1))
+    cbf_failnez (cbf_require_category (cbf, "diffrn_scan"));
+    cbf_failnez (cbf_require_column   (cbf, "id"));
+    cbf_failnez (cbf_set_value        (cbf, "SCAN1"));
+    cbf_failnez (cbf_require_column   (cbf, "frame_id_start"));
+    cbf_failnez (cbf_set_value        (cbf, "FRAME1"));
+    cbf_failnez (cbf_require_column   (cbf, "frame_id_end"));
+    cbf_failnez (cbf_set_value        (cbf, "FRAME1"));
+    cbf_failnez (cbf_require_column   (cbf, "frames"));
+    cbf_failnez (cbf_set_integervalue (cbf, 1));
 
     /* Make the _diffrn_scan_axis category */  
 
-  cbf_failnez (cbf_new_category     (cbf, "diffrn_scan_axis"))
-  cbf_failnez (cbf_new_column       (cbf, "scan_id"))
-  cbf_failnez (cbf_set_value        (cbf, "SCAN1"))
-  cbf_failnez (cbf_new_row          (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "SCAN1"))
-  cbf_failnez (cbf_new_row          (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "SCAN1"))
-  cbf_failnez (cbf_new_row          (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "SCAN1"))
-  cbf_failnez (cbf_new_row          (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "SCAN1"))
-  cbf_failnez (cbf_new_column       (cbf, "axis_id"))
-  cbf_failnez (cbf_rewind_row       (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "GONIOMETER_PHI"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "DETECTOR_Z"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "DETECTOR_Y"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "DETECTOR_X"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "DETECTOR_PITCH"))
-  cbf_failnez (cbf_new_column       (cbf, "angle_start"))
-  cbf_failnez (cbf_rewind_row       (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", oscillation_start))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0))
-  cbf_failnez (cbf_new_column       (cbf, "angle_range"))
-  cbf_failnez (cbf_rewind_row       (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", oscillation_range))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0))
-  cbf_failnez (cbf_new_column       (cbf, "angle_increment"))
-  cbf_failnez (cbf_rewind_row       (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", oscillation_range))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0))
-  cbf_failnez (cbf_new_column       (cbf, "displacement_start"))
-  cbf_failnez (cbf_rewind_row       (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", distance))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0))
-  cbf_failnez (cbf_new_column       (cbf, "displacement_range"))
-  cbf_failnez (cbf_rewind_row       (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0))
-  cbf_failnez (cbf_new_column       (cbf, "displacement_increment"))
-  cbf_failnez (cbf_rewind_row       (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0))
+    cbf_failnez (cbf_require_category (cbf, "diffrn_scan_axis"));
+    cbf_failnez (cbf_require_column   (cbf, "scan_id"));
+    cbf_failnez (cbf_set_value        (cbf, "SCAN1"));
+    cbf_failnez (cbf_new_row          (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "SCAN1"));
+    cbf_failnez (cbf_new_row          (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "SCAN1"));
+    cbf_failnez (cbf_new_row          (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "SCAN1"));
+    cbf_failnez (cbf_new_row          (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "SCAN1"));
+    cbf_failnez (cbf_require_column   (cbf, "axis_id"));
+    cbf_failnez (cbf_rewind_row       (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "GONIOMETER_PHI"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "DETECTOR_Z"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "DETECTOR_Y"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "DETECTOR_X"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "DETECTOR_PITCH"));
+    cbf_failnez (cbf_require_column   (cbf, "angle_start"));
+    cbf_failnez (cbf_rewind_row       (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", oscillation_start));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0));
+    cbf_failnez (cbf_require_column   (cbf, "angle_range"));
+    cbf_failnez (cbf_rewind_row       (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", oscillation_range));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0));
+    cbf_failnez (cbf_require_column   (cbf, "angle_increment"));
+    cbf_failnez (cbf_rewind_row       (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", oscillation_range));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0));
+    cbf_failnez (cbf_require_column   (cbf, "displacement_start"));
+    cbf_failnez (cbf_rewind_row       (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", distance));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0));
+    cbf_failnez (cbf_require_column   (cbf, "displacement_range"));
+    cbf_failnez (cbf_rewind_row       (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0));
+    cbf_failnez (cbf_require_column   (cbf, "displacement_increment"));
+    cbf_failnez (cbf_rewind_row       (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0));
 
     /* Make the _diffrn_scan_frame category */
 
-  cbf_failnez (cbf_new_category     (cbf, "diffrn_scan_frame"))
-  cbf_failnez (cbf_new_column       (cbf, "scan_id"))
-  cbf_failnez (cbf_set_value        (cbf, "SCAN1"))
-  cbf_failnez (cbf_new_column       (cbf, "frame_id"))
-  cbf_failnez (cbf_set_value        (cbf, "FRAME1"))
-  cbf_failnez (cbf_new_column       (cbf, "frame_number"))
-  cbf_failnez (cbf_set_value        (cbf, "1"))
+    cbf_failnez (cbf_require_category (cbf, "diffrn_scan_frame"));
+    cbf_failnez (cbf_require_column   (cbf, "scan_id"));
+    cbf_failnez (cbf_set_value        (cbf, "SCAN1"));
+    cbf_failnez (cbf_require_column   (cbf, "frame_id"));
+    cbf_failnez (cbf_set_value        (cbf, "FRAME1"));
+    cbf_failnez (cbf_require_column   (cbf, "frame_number"));
+    cbf_failnez (cbf_set_value        (cbf, "1"));
   if(-1 != smv_time)
   {
-  	cbf_failnez (cbf_new_column       (cbf, "integration_time"))
-  	cbf_failnez (cbf_set_doublevalue  (cbf, "%.4f", smv_time))
+        cbf_failnez (cbf_require_column   (cbf, "integration_time"));
+        cbf_failnez (cbf_set_doublevalue  (cbf, "%.4f", smv_time));
   }
   if('\0' != cbf_date[0])
   {
-    cbf_failnez (cbf_new_column       (cbf, "date"))
-    cbf_failnez (cbf_set_value        (cbf, cbf_date))
+        cbf_failnez (cbf_require_column   (cbf, "date"));
+        cbf_failnez (cbf_set_value        (cbf, cbf_date));
   }
 
     /* Make the _diffrn_scan_frame_axis category */  
 
-  cbf_failnez (cbf_new_category     (cbf, "diffrn_scan_frame_axis"))
-  cbf_failnez (cbf_new_column       (cbf, "frame_id"))
-  cbf_failnez (cbf_set_value        (cbf, "FRAME1"))
-  cbf_failnez (cbf_new_row          (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "FRAME1"))
-  cbf_failnez (cbf_new_row          (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "FRAME1"))
-  cbf_failnez (cbf_new_row          (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "FRAME1"))
-  cbf_failnez (cbf_new_row          (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "FRAME1"))
-  cbf_failnez (cbf_new_column       (cbf, "axis_id"))
-  cbf_failnez (cbf_rewind_row       (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "GONIOMETER_PHI"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "DETECTOR_Z"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "DETECTOR_Y"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "DETECTOR_X"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "DETECTOR_PITCH"))
-  cbf_failnez (cbf_new_column       (cbf, "angle"))
-  cbf_failnez (cbf_rewind_row       (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", oscillation_start))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0))
-  cbf_failnez (cbf_new_column       (cbf, "displacement"))
-  cbf_failnez (cbf_rewind_row       (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.00))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", distance))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0))
+    cbf_failnez (cbf_require_category (cbf, "diffrn_scan_frame_axis"));
+    cbf_failnez (cbf_require_column   (cbf, "frame_id"));
+    cbf_failnez (cbf_set_value        (cbf, "FRAME1"));
+    cbf_failnez (cbf_new_row          (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "FRAME1"));
+    cbf_failnez (cbf_new_row          (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "FRAME1"));
+    cbf_failnez (cbf_new_row          (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "FRAME1"));
+    cbf_failnez (cbf_new_row          (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "FRAME1"));
+    cbf_failnez (cbf_require_column   (cbf, "axis_id"));
+    cbf_failnez (cbf_rewind_row       (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "GONIOMETER_PHI"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "DETECTOR_Z"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "DETECTOR_Y"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "DETECTOR_X"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "DETECTOR_PITCH"));
+    cbf_failnez (cbf_require_column   (cbf, "angle"));
+    cbf_failnez (cbf_rewind_row       (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", oscillation_start));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0));
+    cbf_failnez (cbf_require_column   (cbf, "displacement"));
+    cbf_failnez (cbf_rewind_row       (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.00));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", distance));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0));
 
     /* Make the _axis category */  
 
-  cbf_failnez (cbf_new_category     (cbf, "axis"))
+    cbf_failnez (cbf_require_category (cbf, "axis"));
 
-  cbf_failnez (cbf_new_column       (cbf, "id"))
-  cbf_failnez (cbf_set_value        (cbf, "GONIOMETER_PHI"))
-  cbf_failnez (cbf_new_row          (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "SOURCE"))
-  cbf_failnez (cbf_new_row          (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "GRAVITY"))
-  cbf_failnez (cbf_new_row          (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "DETECTOR_Z"))
-  cbf_failnez (cbf_new_row          (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "DETECTOR_Y"))
-  cbf_failnez (cbf_new_row          (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "DETECTOR_X"))
-  cbf_failnez (cbf_new_row          (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "DETECTOR_PITCH"))
-  cbf_failnez (cbf_new_row          (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "ELEMENT_X"))
-  cbf_failnez (cbf_new_row          (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "ELEMENT_Y"))
+    cbf_failnez (cbf_require_column   (cbf, "id"));
+    cbf_failnez (cbf_set_value        (cbf, "GONIOMETER_PHI"));
+    cbf_failnez (cbf_new_row          (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "SOURCE"));
+    cbf_failnez (cbf_new_row          (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "GRAVITY"));
+    cbf_failnez (cbf_new_row          (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "DETECTOR_Z"));
+    cbf_failnez (cbf_new_row          (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "DETECTOR_Y"));
+    cbf_failnez (cbf_new_row          (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "DETECTOR_X"));
+    cbf_failnez (cbf_new_row          (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "DETECTOR_PITCH"));
+    cbf_failnez (cbf_new_row          (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "ELEMENT_X"));
+    cbf_failnez (cbf_new_row          (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "ELEMENT_Y"));
 
-  cbf_failnez (cbf_new_column       (cbf, "type"))
-  cbf_failnez (cbf_rewind_row       (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "rotation"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "general"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "general"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "translation"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "translation"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "translation"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "rotation"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "translation"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "translation"))
+    cbf_failnez (cbf_require_column   (cbf, "type"));
+    cbf_failnez (cbf_rewind_row       (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "rotation"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "general"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "general"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "translation"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "translation"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "translation"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "rotation"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "translation"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "translation"));
 
-  cbf_failnez (cbf_new_column       (cbf, "equipment"))
-  cbf_failnez (cbf_rewind_row       (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "goniometer"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "source"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "gravity"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "detector"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "detector"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "detector"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "detector"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "detector"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "detector"))
+    cbf_failnez (cbf_require_column   (cbf, "equipment"));
+    cbf_failnez (cbf_rewind_row       (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "goniometer"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "source"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "gravity"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "detector"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "detector"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "detector"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "detector"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "detector"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "detector"));
 
-  cbf_failnez (cbf_new_column       (cbf, "depends_on"))
-  cbf_failnez (cbf_rewind_row       (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "."))
-  cbf_failnez (cbf_set_typeofvalue  (cbf, "null"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "."))
-  cbf_failnez (cbf_set_typeofvalue  (cbf, "null"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "."))
-  cbf_failnez (cbf_set_typeofvalue  (cbf, "null"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "."))
-  cbf_failnez (cbf_set_typeofvalue  (cbf, "null"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "DETECTOR_Z"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "DETECTOR_Y"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "DETECTOR_X"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "DETECTOR_PITCH"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "ELEMENT_X"))
+    cbf_failnez (cbf_require_column   (cbf, "depends_on"));
+    cbf_failnez (cbf_rewind_row       (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "."));
+    cbf_failnez (cbf_set_typeofvalue  (cbf, "null"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "."));
+    cbf_failnez (cbf_set_typeofvalue  (cbf, "null"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "."));
+    cbf_failnez (cbf_set_typeofvalue  (cbf, "null"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "."));
+    cbf_failnez (cbf_set_typeofvalue  (cbf, "null"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "DETECTOR_Z"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "DETECTOR_Y"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "DETECTOR_X"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "DETECTOR_PITCH"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "ELEMENT_X"));
 
-  cbf_failnez (cbf_new_column       (cbf, "vector[1]"))
-  cbf_failnez (cbf_rewind_row       (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "1"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "0"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "0"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "0"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "0"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "1"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "0"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "1"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "0"))
+    cbf_failnez (cbf_require_column   (cbf, "vector[1]"));
+    cbf_failnez (cbf_rewind_row       (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "1"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "0"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "0"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "0"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "0"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "1"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "0"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "1"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "0"));
 
-  cbf_failnez (cbf_new_column       (cbf, "vector[2]"))
-  cbf_failnez (cbf_rewind_row       (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "0"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "0"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "-1"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "0"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "1"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "0"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "1"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "0"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "1"))
+    cbf_failnez (cbf_require_column   (cbf, "vector[2]"));
+    cbf_failnez (cbf_rewind_row       (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "0"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "0"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "-1"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "0"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "1"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "0"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "1"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "0"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "1"));
 
-  cbf_failnez (cbf_new_column       (cbf, "vector[3]"))
-  cbf_failnez (cbf_rewind_row       (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "0"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "1"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "0"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "-1"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "0"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "0"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "0"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "0"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "0"))
+    cbf_failnez (cbf_require_column   (cbf, "vector[3]"));
+    cbf_failnez (cbf_rewind_row       (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "0"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "1"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "0"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "-1"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "0"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "0"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "0"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "0"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "0"));
 
-  cbf_failnez (cbf_new_column       (cbf, "offset[1]"))
-  cbf_failnez (cbf_rewind_row       (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "."))
-  cbf_failnez (cbf_set_typeofvalue  (cbf, "null"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "."))
-  cbf_failnez (cbf_set_typeofvalue  (cbf, "null"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "."))
-  cbf_failnez (cbf_set_typeofvalue  (cbf, "null"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "0"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "0"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "0"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "0"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.3f", det_beam_center_to_origin_dist_x))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "0"))
+    cbf_failnez (cbf_require_column   (cbf, "offset[1]"));
+    cbf_failnez (cbf_rewind_row       (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "."));
+    cbf_failnez (cbf_set_typeofvalue  (cbf, "null"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "."));
+    cbf_failnez (cbf_set_typeofvalue  (cbf, "null"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "."));
+    cbf_failnez (cbf_set_typeofvalue  (cbf, "null"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "0"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "0"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "0"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "0"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.3f", det_beam_center_to_origin_dist_x));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "0"));
 
-  cbf_failnez (cbf_new_column       (cbf, "offset[2]"))
-  cbf_failnez (cbf_rewind_row       (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "."))
-  cbf_failnez (cbf_set_typeofvalue  (cbf, "null"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "."))
-  cbf_failnez (cbf_set_typeofvalue  (cbf, "null"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "."))
-  cbf_failnez (cbf_set_typeofvalue  (cbf, "null"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "0"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "0"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "0"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "0"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.3f", det_beam_center_to_origin_dist_y))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "0"))
+    cbf_failnez (cbf_require_column   (cbf, "offset[2]"));
+    cbf_failnez (cbf_rewind_row       (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "."));
+    cbf_failnez (cbf_set_typeofvalue  (cbf, "null"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "."));
+    cbf_failnez (cbf_set_typeofvalue  (cbf, "null"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "."));
+    cbf_failnez (cbf_set_typeofvalue  (cbf, "null"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "0"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "0"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "0"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "0"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.3f", det_beam_center_to_origin_dist_y));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "0"));
 
-  cbf_failnez (cbf_new_column       (cbf, "offset[3]"))
-  cbf_failnez (cbf_rewind_row       (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "."))
-  cbf_failnez (cbf_set_typeofvalue  (cbf, "null"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "."))
-  cbf_failnez (cbf_set_typeofvalue  (cbf, "null"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "."))
-  cbf_failnez (cbf_set_typeofvalue  (cbf, "null"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "0"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "0"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "0"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "0"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "0"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "0"))
+    cbf_failnez (cbf_require_column   (cbf, "offset[3]"));
+    cbf_failnez (cbf_rewind_row       (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "."));
+    cbf_failnez (cbf_set_typeofvalue  (cbf, "null"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "."));
+    cbf_failnez (cbf_set_typeofvalue  (cbf, "null"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "."));
+    cbf_failnez (cbf_set_typeofvalue  (cbf, "null"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "0"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "0"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "0"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "0"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "0"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "0"));
 
     /* Make the _diffrn_detector category */  
 
-  cbf_failnez (cbf_new_category     (cbf, "diffrn_detector"))
-  cbf_failnez (cbf_new_column       (cbf, "id"))
-  cbf_failnez (cbf_set_value        (cbf, detector_id))
-  cbf_failnez (cbf_new_column       (cbf, "diffrn_id"))
-  cbf_failnez (cbf_set_value        (cbf, "DS1"))
-  cbf_failnez (cbf_new_column       (cbf, "type"))
-  cbf_failnez (cbf_set_value        (cbf, detector_type))
-  cbf_failnez (cbf_new_column       (cbf, "details"))
-  cbf_failnez (cbf_set_value        (cbf, detector_mode))
-  cbf_failnez (cbf_new_column       (cbf, "number_of_axes"))
-  cbf_failnez (cbf_set_integervalue (cbf, 4))
+    cbf_failnez (cbf_require_category (cbf, "diffrn_detector"));
+    cbf_failnez (cbf_require_column   (cbf, "id"));
+    cbf_failnez (cbf_set_value        (cbf, detector_id));
+    cbf_failnez (cbf_require_column   (cbf, "diffrn_id"));
+    cbf_failnez (cbf_set_value        (cbf, "DS1"));
+    cbf_failnez (cbf_require_column   (cbf, "type"));
+    cbf_failnez (cbf_set_value        (cbf, detector_type));
+    cbf_failnez (cbf_require_column   (cbf, "details"));
+    cbf_failnez (cbf_set_value        (cbf, detector_mode));
+    cbf_failnez (cbf_require_column   (cbf, "number_of_axes"));
+    cbf_failnez (cbf_set_integervalue (cbf, 4));
+    cbf_failnez (cbf_require_column   (cbf, "layer_thickness"));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%12.5f", thickness));
 
     /* Make the _diffrn_detector_axis category */  
 
-  cbf_failnez (cbf_new_category     (cbf, "diffrn_detector_axis"))
-  cbf_failnez (cbf_new_column       (cbf, "detector_id"))
-  cbf_failnez (cbf_set_value        (cbf, detector_id))
-  cbf_failnez (cbf_new_row          (cbf))
-  cbf_failnez (cbf_set_value        (cbf, detector_id))
-  cbf_failnez (cbf_new_row          (cbf))
-  cbf_failnez (cbf_set_value        (cbf, detector_id))
-  cbf_failnez (cbf_new_row          (cbf))
-  cbf_failnez (cbf_set_value        (cbf, detector_id))
-  cbf_failnez (cbf_new_column       (cbf, "axis_id"))
-  cbf_failnez (cbf_rewind_row       (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "DETECTOR_X"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "DETECTOR_Y"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "DETECTOR_Z"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "DETECTOR_PITCH"))
-  cbf_failnez (cbf_next_row         (cbf))
+    cbf_failnez (cbf_require_category (cbf, "diffrn_detector_axis"));
+    cbf_failnez (cbf_require_column   (cbf, "detector_id"));
+    cbf_failnez (cbf_set_value        (cbf, detector_id));
+    cbf_failnez (cbf_new_row          (cbf));
+    cbf_failnez (cbf_set_value        (cbf, detector_id));
+    cbf_failnez (cbf_new_row          (cbf));
+    cbf_failnez (cbf_set_value        (cbf, detector_id));
+    cbf_failnez (cbf_new_row          (cbf));
+    cbf_failnez (cbf_set_value        (cbf, detector_id));
+    cbf_failnez (cbf_require_column   (cbf, "axis_id"));
+    cbf_failnez (cbf_rewind_row       (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "DETECTOR_X"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "DETECTOR_Y"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "DETECTOR_Z"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "DETECTOR_PITCH"));
+    cbf_failnez (cbf_next_row         (cbf));
 
     /* Make the _diffrn_detector_element category */  
 
-  cbf_failnez (cbf_new_category     (cbf, "diffrn_detector_element"))
-  cbf_failnez (cbf_new_column       (cbf, "id"))
-  cbf_failnez (cbf_set_value        (cbf, "ELEMENT1"))
-  cbf_failnez (cbf_new_column       (cbf, "detector_id"))
-  cbf_failnez (cbf_set_value        (cbf, detector_id))
+    cbf_failnez (cbf_require_category (cbf, "diffrn_detector_element"));
+    cbf_failnez (cbf_require_column   (cbf, "id"));
+    cbf_failnez (cbf_set_value        (cbf, "ELEMENT1"));
+    cbf_failnez (cbf_require_column   (cbf, "detector_id"));
+    cbf_failnez (cbf_set_value        (cbf, detector_id));
 
 
     /* Make the _diffrn_frame_data category */  
 
-  cbf_failnez (cbf_new_category     (cbf, "diffrn_data_frame"))
-  cbf_failnez (cbf_new_column       (cbf, "id"))
-  cbf_failnez (cbf_set_value        (cbf, "FRAME1"))
-  cbf_failnez (cbf_new_column       (cbf, "detector_element_id"))
-  cbf_failnez (cbf_set_value        (cbf, "ELEMENT1")) 
-  cbf_failnez (cbf_new_column       (cbf, "detector_id"))
-  cbf_failnez (cbf_set_value        (cbf, detector_id))
-  cbf_failnez (cbf_new_column       (cbf, "array_id"))
-  cbf_failnez (cbf_set_value        (cbf, "image_1"))
-  cbf_failnez (cbf_new_column       (cbf, "binary_id"))
-  cbf_failnez (cbf_set_integervalue (cbf, 1))
-  cbf_failnez (cbf_new_column       (cbf, "details"))
-  cbf_failnez (cbf_set_value        (cbf, header_as_details))
-  cbf_failnez (cbf_set_typeofvalue  (cbf,"text"))
+    cbf_failnez (cbf_require_category (cbf, "diffrn_data_frame"));
+    cbf_failnez (cbf_require_column   (cbf, "id"));
+    cbf_failnez (cbf_set_value        (cbf, "FRAME1"));
+    cbf_failnez (cbf_require_column   (cbf, "detector_element_id"));
+    cbf_failnez (cbf_set_value        (cbf, "ELEMENT1"));
+    cbf_failnez (cbf_require_column   (cbf, "detector_id"));
+    cbf_failnez (cbf_set_value        (cbf, detector_id));
+    cbf_failnez (cbf_require_column   (cbf, "array_id"));
+    cbf_failnez (cbf_set_value        (cbf, "image_1"));
+    cbf_failnez (cbf_require_column   (cbf, "binary_id"));
+    cbf_failnez (cbf_set_integervalue (cbf, 1));
+    cbf_failnez (cbf_require_column   (cbf, "details"));
+    cbf_failnez (cbf_set_value        (cbf, header_as_details));
+    cbf_failnez (cbf_set_typeofvalue  (cbf,"text"));
   free(header_as_details);
 
     /* Make the _array_structure_list category */  
 
-  cbf_failnez (cbf_new_category     (cbf, "array_structure_list"))
-  cbf_failnez (cbf_new_column       (cbf, "array_id"))
-  cbf_failnez (cbf_set_value        (cbf, "image_1"))
-  cbf_failnez (cbf_new_row          (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "image_1"))
-  cbf_failnez (cbf_new_column       (cbf, "index"))
-  cbf_failnez (cbf_rewind_row       (cbf))
-  cbf_failnez (cbf_set_integervalue (cbf, 1))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_integervalue (cbf, 2))
-  cbf_failnez (cbf_new_column       (cbf, "dimension"))
-  cbf_failnez (cbf_rewind_row       (cbf))
-  cbf_failnez (cbf_set_integervalue (cbf, dimension [0]))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_integervalue (cbf, dimension [1]))
-  cbf_failnez (cbf_new_column       (cbf, "precedence"))
-  cbf_failnez (cbf_rewind_row       (cbf))
-  cbf_failnez (cbf_set_integervalue (cbf, precedence [0]))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_integervalue (cbf, precedence [1]))
-  cbf_failnez (cbf_new_column       (cbf, "direction"))
-  cbf_failnez (cbf_rewind_row       (cbf))
-  cbf_failnez (cbf_set_value        (cbf, direction [0]))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, direction [1]))
-  cbf_failnez (cbf_new_column       (cbf, "axis_set_id"))
-  cbf_failnez (cbf_rewind_row       (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "ELEMENT_X"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "ELEMENT_Y"))
+    cbf_failnez (cbf_require_category (cbf, "array_structure_list"));
+    cbf_failnez (cbf_require_column   (cbf, "array_id"));
+    cbf_failnez (cbf_set_value        (cbf, "image_1"));
+    cbf_failnez (cbf_new_row          (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "image_1"));
+    cbf_failnez (cbf_require_column   (cbf, "index"));
+    cbf_failnez (cbf_rewind_row       (cbf));
+    cbf_failnez (cbf_set_integervalue (cbf, 1));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_integervalue (cbf, 2));
+    cbf_failnez (cbf_require_column   (cbf, "dimension"));
+    cbf_failnez (cbf_rewind_row       (cbf));
+    cbf_failnez (cbf_set_integervalue (cbf, dimension [0]));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_integervalue (cbf, dimension [1]));
+    cbf_failnez (cbf_require_column   (cbf, "precedence"));
+    cbf_failnez (cbf_rewind_row       (cbf));
+    cbf_failnez (cbf_set_integervalue (cbf, precedence [0]));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_integervalue (cbf, precedence [1]));
+    cbf_failnez (cbf_require_column   (cbf, "direction"));
+    cbf_failnez (cbf_rewind_row       (cbf));
+    cbf_failnez (cbf_set_value        (cbf, direction [0]));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, direction [1]));
+    cbf_failnez (cbf_require_column   (cbf, "axis_set_id"));
+    cbf_failnez (cbf_rewind_row       (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "ELEMENT_X"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "ELEMENT_Y"));
 
     /* Make the _array_element_size category */
 
-  cbf_failnez (cbf_new_category     (cbf, "array_element_size"))
-  cbf_failnez (cbf_new_column       (cbf, "array_id"))
-  cbf_failnez (cbf_set_value        (cbf, "image_1"))
-  cbf_failnez (cbf_new_row          (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "image_1"))
-  cbf_failnez (cbf_new_column       (cbf, "index"))
-  cbf_failnez (cbf_rewind_row       (cbf))
-  cbf_failnez (cbf_set_integervalue (cbf, 1))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_integervalue (cbf, 2))
-  cbf_failnez (cbf_new_column       (cbf, "size"))
-  cbf_failnez (cbf_rewind_row       (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.3fe-6", pixel_size * 1000.))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.3fe-6", pixel_size * 1000.))
+    cbf_failnez (cbf_require_category (cbf, "array_element_size"));
+    cbf_failnez (cbf_require_column   (cbf, "array_id"));
+    cbf_failnez (cbf_set_value        (cbf, "image_1"));
+    cbf_failnez (cbf_new_row          (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "image_1"));
+    cbf_failnez (cbf_require_column   (cbf, "index"));
+    cbf_failnez (cbf_rewind_row       (cbf));
+    cbf_failnez (cbf_set_integervalue (cbf, 1));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_integervalue (cbf, 2));
+    cbf_failnez (cbf_require_column   (cbf, "size"));
+    cbf_failnez (cbf_rewind_row       (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.3fe-6", pixel_size * 1000.));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.3fe-6", pixel_size * 1000.));
 
     /* Make the _array_structure category */
     
-  cbf_failnez (cbf_new_category     (cbf, "array_structure"))
-  cbf_failnez (cbf_new_column       (cbf, "id"))
-  cbf_failnez (cbf_set_value        (cbf, "image_1"))
-  cbf_failnez (cbf_new_column       (cbf, "encoding_type"))
-  cbf_failnez (cbf_set_value        (cbf, "signed 32-bit integer"))
+    cbf_failnez (cbf_require_category (cbf, "array_structure"));
+    cbf_failnez (cbf_require_column   (cbf, "id"));
+    cbf_failnez (cbf_set_value        (cbf, "image_1"));
+    cbf_failnez (cbf_require_column   (cbf, "encoding_type"));
+    cbf_failnez (cbf_set_value        (cbf, "signed 32-bit integer"));
     
     /* Make the _array_structure_list_axis category */
 
-  cbf_failnez (cbf_new_category     (cbf, "array_structure_list_axis"))
-  cbf_failnez (cbf_new_column       (cbf, "axis_set_id"))
-  cbf_failnez (cbf_set_value        (cbf, "ELEMENT_X"))
-  cbf_failnez (cbf_new_row          (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "ELEMENT_Y"))
-  cbf_failnez (cbf_new_column       (cbf, "axis_id"))
-  cbf_failnez (cbf_rewind_row       (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "ELEMENT_X"))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_value        (cbf, "ELEMENT_Y"))
-  cbf_failnez (cbf_new_column       (cbf, "displacement"))
-  cbf_failnez (cbf_rewind_row       (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.6f", fastlow*pixel_size))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.6f", -slowlow*pixel_size))
-  cbf_failnez (cbf_new_column       (cbf, "displacement_increment"))
-  cbf_failnez (cbf_rewind_row       (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.6f", pixel_size))
-  cbf_failnez (cbf_next_row         (cbf))
-  cbf_failnez (cbf_set_doublevalue  (cbf, "%.6f", -pixel_size))
+    cbf_failnez (cbf_require_category (cbf, "array_structure_list_axis"));
+    cbf_failnez (cbf_require_column   (cbf, "axis_set_id"));
+    cbf_failnez (cbf_set_value        (cbf, "ELEMENT_X"));
+    cbf_failnez (cbf_new_row          (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "ELEMENT_Y"));
+    cbf_failnez (cbf_require_column   (cbf, "axis_id"));
+    cbf_failnez (cbf_rewind_row       (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "ELEMENT_X"));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_value        (cbf, "ELEMENT_Y"));
+    cbf_failnez (cbf_require_column   (cbf, "displacement"));
+    cbf_failnez (cbf_rewind_row       (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.6f", fastlow*pixel_size));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.6f", -slowlow*pixel_size));
+    cbf_failnez (cbf_require_column   (cbf, "displacement_increment"));
+    cbf_failnez (cbf_rewind_row       (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.6f", pixel_size));
+    cbf_failnez (cbf_next_row         (cbf));
+    cbf_failnez (cbf_set_doublevalue  (cbf, "%.6f", -pixel_size));
 
 
     /* Make the _array_intensities category */
 
-  cbf_failnez (cbf_new_category     (cbf, "array_intensities"))
-  cbf_failnez (cbf_new_column       (cbf, "array_id"))
-  cbf_failnez (cbf_set_value        (cbf, "image_1"))
-  cbf_failnez (cbf_new_column       (cbf, "binary_id"))
-  cbf_failnez (cbf_set_integervalue (cbf, 1))
-  cbf_failnez (cbf_new_column       (cbf, "linearity"))
-  cbf_failnez (cbf_set_value        (cbf, "linear"))
-  cbf_failnez (cbf_new_column       (cbf, "gain"))
+    cbf_failnez (cbf_require_category (cbf, "array_intensities"));
+    cbf_failnez (cbf_require_column   (cbf, "array_id"));
+    cbf_failnez (cbf_set_value        (cbf, "image_1"));
+    cbf_failnez (cbf_require_column   (cbf, "binary_id"));
+    cbf_failnez (cbf_set_integervalue (cbf, 1));
+    cbf_failnez (cbf_require_column   (cbf, "linearity"));
+    cbf_failnez (cbf_set_value        (cbf, "linear"));
+    cbf_failnez (cbf_require_column   (cbf, "gain"));
 
-  if (gain > 0.0)
+    if (gain > 0.0) {
   
-    cbf_failnez (cbf_set_doublevalue  (cbf, "%.3g", gain))
+        cbf_failnez (cbf_set_doublevalue  (cbf, "%.3g", gain));
     
-  cbf_failnez (cbf_new_column       (cbf, "overload"))
+    }
 
-  if (overload > 0.0)
+    cbf_failnez (cbf_require_column   (cbf, "overload"));
     
-    cbf_failnez (cbf_set_integervalue (cbf, overload))
+    if (overload > 0.0) {
     
-  cbf_failnez (cbf_new_column       (cbf, "undefined_value"))
-  cbf_failnez (cbf_set_integervalue (cbf, 0))
+        cbf_failnez (cbf_set_integervalue (cbf, overload));
 
-  cbf_failnez (cbf_new_column       (cbf, "pixel_slow_bin_size"))
-  cbf_failnez (cbf_set_integervalue (cbf, smv_bin))
-  cbf_failnez (cbf_new_column       (cbf, "pixel_fast_bin_size"))
-  cbf_failnez (cbf_set_integervalue (cbf, smv_bin))
+    }
 
+    cbf_failnez (cbf_require_column   (cbf, "undefined_value"));
+    cbf_failnez (cbf_set_integervalue (cbf, 0));
 
+    cbf_failnez (cbf_require_column   (cbf, "pixel_slow_bin_size"));
+    cbf_failnez (cbf_set_integervalue (cbf, smv_bin));
+    cbf_failnez (cbf_require_column   (cbf, "pixel_fast_bin_size"));
+    cbf_failnez (cbf_set_integervalue (cbf, smv_bin));
+    
+    
     /* Make the _array_data category */
 
-  cbf_failnez (cbf_new_category     (cbf, "array_data"))
-  cbf_failnez (cbf_new_column       (cbf, "array_id"))
-  cbf_failnez (cbf_set_value        (cbf, "image_1"))
-  cbf_failnez (cbf_new_column       (cbf, "binary_id"))
-  cbf_failnez (cbf_set_integervalue (cbf, 1))
-  cbf_failnez (cbf_new_column       (cbf, "data"))
+    cbf_failnez (cbf_require_category (cbf, "array_data"));
+    if (add_minicbf_header) {
+        cbf_failnez (cbf_require_column   (cbf, "header_convention"));
+        cbf_failnez (cbf_set_value        (cbf, "."));
+        cbf_failnez (cbf_require_column   (cbf, "header_contents"));
+        cbf_failnez (cbf_set_value        (cbf, "."));
+    }
+    cbf_failnez (cbf_require_column   (cbf, "array_id"));
+    cbf_failnez (cbf_set_value        (cbf, "image_1"));
+    cbf_failnez (cbf_require_column   (cbf, "binary_id"));
+    cbf_failnez (cbf_set_integervalue (cbf, 1));
+    if (add_minicbf_header) {
+        char * log = NULL;
+        if (cbf_set_minicbf_header(cbf,cbf,&log)) {
+            if (log) fprintf(stderr,"minicbf_header error messages: \n%s\n", log);
+            return(1);
+        };
+        if (log) fprintf(stderr,"minicbf_header messages: \n%s\n", log);
+        cbf_free_text(&log,NULL);
+    }
 
-
+    cbf_failnez (cbf_require_category (cbf, "array_data"));
+    cbf_failnez (cbf_require_column   (cbf, "data"));
     /* Save the binary data */
   if(NULL == 
 		  (data_as_int = 
@@ -1613,12 +1690,12 @@ int	adscimg2cbf_sub2(char *header,
     exit (1);
   }
 
-  cbf_failnez (cbf_write_file (cbf, out, 1, CBF, MSG_DIGEST | MIME_HEADERS | pad_flag, 0))
+    cbf_failnez (cbf_write_file (cbf, out, 1, CBF, MSG_DIGEST | MIME_HEADERS | pad_flag, 0));
   
 
     /* Free the cbf */
 
-  cbf_failnez (cbf_free_handle (cbf))
+    cbf_failnez (cbf_free_handle (cbf));
   free(data_as_int);
 
   b = clock ();
@@ -1635,6 +1712,6 @@ int     adscimg2cbf_sub(char *header,
 			 int pack_flags,
 			 int beam_center_convention,
 		         int pad_flag){
-	return adscimg2cbf_sub2(header,data,cbf_filename,pack_flags,beam_center_convention,pad_flag,NULL);
+	return adscimg2cbf_sub2(header,data,cbf_filename,pack_flags,beam_center_convention,pad_flag,NULL,NULL,0,NULL);
 }
 

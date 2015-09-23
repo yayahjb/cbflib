@@ -3105,9 +3105,10 @@ int cbf_count_rows (cbf_handle handle, unsigned int *rows)
 
     else
 
-      if (categoryrows != columnrows)
+      if (categoryrows < columnrows)
 
-        return CBF_FORMAT;
+          categoryrows = columnrows;
+ 
   }
 
   if (rows)

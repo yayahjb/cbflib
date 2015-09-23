@@ -85,8 +85,15 @@ static void usage( void )
         fprintf(stderr,"\t--beam_center_mosflm        Beam center in ADSC header: MOSFLM coordinates.\n");
         fprintf(stderr,"\t--beam_center_ulhc        Beam center in ADSC header: origin: upper left hand corner of image.(HKL mm)\n");
         fprintf(stderr,"\t--beam_center_llhc        Beam center in ADSC header: origin: lower left hand corner of image.(adxv mm)\n");
-        fprintf(stderr,"\t--region_of_interest=fastlow,fasthigh,slowlow,slowhigh\n");
+    fprintf(stderr,"\t--region-of-interest=fastlow,fasthigh,slowlow,slowhigh\n");
         fprintf(stderr,"\t                              Region of interest to map to CBF\n");
+    fprintf(stderr,"\t--sensor-thickness=0.00000000\n");
+    fprintf(stderr,"\t                          Sensor layer thickness in mm\n");
+    fprintf(stderr,"\t--add-minicbf-header      Add a minicbf header for fast_dp\n");
+    fprintf(stderr,"\t--polarization-source-ratio=ratio\n");
+    fprintf(stderr,"\t                          Polarization source ratio (Ip-In)/(Ip+In)\n");
+
+    
 }
 
 /*
@@ -102,6 +109,18 @@ char    popen_command[1080];
 #define BEAM_CENTER_MOSFLM      1
 #define BEAM_CENTER_ULHC        2
 #define BEAM_CENTER_LLHC        3
+
+int adscimg2cbf_sub2(char *header,
+                     unsigned short *data,
+                     char *cbf_filename,
+                     int pack_flags,
+                     int beam_center_convention,
+                     int pad_flag,
+                     const char *roi,
+                     const char *thickstr,
+                     int add_mini_cbf_header,
+                     const char *polarstr);
+
 
 int    main(int argc, char *argv[])
 {
@@ -120,7 +139,11 @@ int    main(int argc, char *argv[])
     int        pad_flag;
     int        status_pclose;
     int        beam_center_convention;
+    int     add_minicbf_header=0;
+    double  thickness=0.;
     const char *    roi=NULL;
+    const char *    thickstr=NULL;
+    const char *    polarstr=NULL;
     char *     strstrhit;
     static char    *endings[] = {
                     ".img",
@@ -143,17 +166,17 @@ int    main(int argc, char *argv[])
                     "--pad_4K",                     /*10 */
                     "--no_pad",                     /*11 */
                     "--cbf_nibble_offset",          /*12 */
-                    "--region_of_interest",         /*13 */
+                    "--region-of-interest",         /*13 */
+                    "--region_of_interest",         /*14 */
+                    "--sensor-thickness",           /*15 */
+                    "--sensor_thickness",           /*16 */
+                    "--add-minicbf-header",         /*17 */
+                    "--add_minicbf_header",         /*18 */
+                    "--polarization-source-ratio",  /*19 */
+                    "--polarization_source_ratio",  /*20 */
                     NULL
                    };
 
-    int            adscimg2cbf_sub2(char *header, 
-                            unsigned short *data, 
-                            char *cbf_filename, 
-                            int pack_flags, 
-                            int beam_center_convention,
-                            int pad_flag,
-		            const char *roi);
 
     if(argc < 2)
     {
@@ -168,7 +191,7 @@ int    main(int argc, char *argv[])
     while(argc > 1 && argv[1][0] == '-' && argv[1][1] == '-')
     {
         for(j = 0; flags[j] != NULL; j++) {
-        strstrhit = strstr(argv[1], flags[j]);
+        strstrhit = strcasestr(argv[1], flags[j]);
             if(NULL != strstrhit && strstrhit==argv[1] )
                 break;
     }
@@ -220,13 +243,42 @@ int    main(int argc, char *argv[])
                 pack_flags = CBF_NIBBLE_OFFSET;
                 break;
             case 13:
+            case 14:
                 roi = argv[1]+strlen(flags[j])+1;
                 if (*(roi-1)!='='||strlen(roi)<3){
-                    fprintf(stderr,"adscimg2cbf: %s should be --region_of_interest=fastlow,fasthigh,slowlow,slowhigh\n\n", argv[1]);
+                    fprintf(stderr,"adscimg2cbf: %s should be "
+                            "--region-of-interest=fastlow,fasthigh,slowlow,slowhigh\n\n", argv[1]);
                     usage();
                     exit(0);
                 }
                 break;
+            case 15:
+            case 16:
+                thickstr = argv[1]+strlen(flags[j])+1;
+                if (*(thickstr-1)!='='||strlen(thickstr)<3){
+                    fprintf(stderr,"adscimg2cbf: %s should be "
+                            "--sensor-thickness=thickness\n\n", argv[1]);
+                    usage();
+                    exit(0);
+        }
+                break;
+            case 17:
+            case 18:
+                add_minicbf_header=1;
+                break;
+            case 19:
+            case 20:
+                polarstr = argv[1]+strlen(flags[j])+1;
+                if (*(polarstr-1)!='='||strlen(polarstr)<3){
+                    fprintf(stderr,"adscimg2cbf: %s should be "
+                            "--polarization-source-ratio=polarization\n\n", argv[1]);
+                    usage();
+                    exit(0);
+                }
+                break;
+
+
+
         }
         if(j < 3 || j==12)
         {
@@ -416,7 +468,16 @@ int    main(int argc, char *argv[])
 
         uptr = ((unsigned short *) (hptr + header_size_char));
 
-        cbf_status = adscimg2cbf_sub2(hptr, uptr, out_filename, pack_flags, beam_center_convention, pad_flag, roi);
+        cbf_status = adscimg2cbf_sub2(hptr,
+                                      uptr,
+                                      out_filename,
+                                      pack_flags,
+                                      beam_center_convention,
+                                      pad_flag,
+                                      roi,
+                                      thickstr,
+                                      add_minicbf_header,
+                                      polarstr);
         free(hptr);
 
         argv++;
