@@ -276,6 +276,7 @@ int cbf_cistrncmp (const char *s1, const char *s2, size_t n);
     
     int cbf_cistrnrcmp (const char *s1, const char *s2, size_t n);
     
+    const char * cbf_cistrnstr( const char *s1, const char *s2, size_t n);
     
   /* swap bytes in an array (local copy of swab to deal with
      systems that lack swab */

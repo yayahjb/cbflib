@@ -714,13 +714,13 @@ extern "C" {
             
             size_t isnp;
             
-            if ((snp=strcasestr(detector_serial_number,"SN"))) {
+            if ((snp=cbf_cistrnstr(detector_serial_number,"SN",2))) {
                 
                 snp += 2;
                 
-            } else if ((snp=strcasestr(detector_serial_number,"S/N"))) {
+            } else if ((snp=cbf_cistrnstr(detector_serial_number,"S/N",3))) {
                 
-                snp += 2;
+                snp += 3;
                 
             } else {
                 
@@ -782,13 +782,13 @@ extern "C" {
             
             size_t isnp;
             
-            if ((snp=strcasestr(detector_details,"SN"))) {
+            if ((snp=cbf_cistrnstr(detector_details,"SN",2))) {
                 
                 snp += 2;
                 
-            } else if ((snp=strcasestr(detector_details,"S/N"))) {
+            } else if ((snp=cbf_cistrnstr(detector_details,"S/N",3))) {
                 
-                snp += 2;
+                snp += 3;
                 
             } else {
                 
@@ -934,7 +934,7 @@ extern "C" {
             
             /* fprintf(stderr,detector_details); */
             
-            if ((snp=strcasestr(detector_details,"thickness"))) {
+            if ((snp=cbf_cistrnstr(detector_details,"thickness",9))) {
                 
                 snp += 9;
                 
@@ -1008,7 +1008,7 @@ extern "C" {
             
             size_t isnp;
             
-            if ((snp=strcasestr(detector_details,"N_excluded_pixels"))) {
+            if ((snp=cbf_cistrnstr(detector_details,"N_excluded_pixels",17))) {
                 
                 snp += 15;
                 
@@ -1071,7 +1071,7 @@ extern "C" {
             
             size_t isnp;
             
-            if ((snp=strcasestr(detector_details,"Excluded_pixels:"))) {
+            if ((snp=cbf_cistrnstr(detector_details,"Excluded_pixels:",16))) {
                 
                 snp += 16;
                 
@@ -1133,7 +1133,7 @@ extern "C" {
             
             size_t isnp;
             
-            if ((snp=strcasestr(detector_details,"Flat_field"))) {
+            if ((snp=cbf_cistrnstr(detector_details,"Flat_field",10))) {
                 
                 snp += 10;
                 
@@ -1195,7 +1195,7 @@ extern "C" {
             
             size_t isnp;
             
-            if ((snp=strcasestr(detector_details,"Trim_file"))) {
+            if ((snp=cbf_cistrnstr(detector_details,"Trim_file",9))) {
                 
                 snp += 9;
                 
@@ -1257,7 +1257,7 @@ extern "C" {
             
             size_t isnp;
             
-            if ((snp=strcasestr(detector_details,"Image_path"))) {
+            if ((snp=cbf_cistrnstr(detector_details,"Image_path",10))) {
                 
                 snp += 10;
                 
@@ -1462,7 +1462,7 @@ extern "C" {
             
             size_t isnp;
             
-            if ((snp=strcasestr(detector_details,"Gain_setting"))) {
+            if ((snp=cbf_cistrnstr(detector_details,"Gain_setting",12))) {
                 
                 snp += 12;
                 

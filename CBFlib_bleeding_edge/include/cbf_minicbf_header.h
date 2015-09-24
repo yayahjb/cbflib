@@ -262,6 +262,7 @@ extern "C" {
 #include "cbf_alloc.h"
 #include "cbf_simple.h"
 #include <string.h>
+#include "cbf_string.h"
 #include <ctype.h>
 #include <math.h>
 

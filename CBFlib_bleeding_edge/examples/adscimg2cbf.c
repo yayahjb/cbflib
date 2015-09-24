@@ -11,7 +11,8 @@
 
 #include    <stdlib.h>
 #include    <string.h>
-#include    <cbf.h>
+#include    "cbf.h"
+#include    "cbf_string.h"
 
 /****************************************************************/
 
@@ -152,7 +153,7 @@ int    main(int argc, char *argv[])
                     ".img.Z",
                     NULL
                      };
-    static char    *flags[] = {
+	static char	*flags[22] = {
                     "--cbf_byte_offset",            /* 0 */
                     "--cbf_packed_v2",              /* 1 */
                     "--cbf_packed",                 /* 2 */
@@ -191,7 +192,7 @@ int    main(int argc, char *argv[])
     while(argc > 1 && argv[1][0] == '-' && argv[1][1] == '-')
     {
         for(j = 0; flags[j] != NULL; j++) {
-        strstrhit = strstr(argv[1], flags[j]);
+        strstrhit = cbf_cistrnstr(argv[1], flags[j], strlen(flags[j]));
             if(NULL != strstrhit && strstrhit==argv[1] )
                 break;
     }
@@ -282,10 +283,10 @@ int    main(int argc, char *argv[])
         }
         if(j < 3 || j==12)
         {
-            if(NULL != strstr(argv[1], ",flat"))
+			if(NULL != cbf_cistrnstr(argv[1], ",flat",5))
                 pack_flags |= CBF_FLAT_IMAGE;
             else
-            if(NULL != strstr(argv[1], ",uncorrelated"))
+			if(NULL != cbf_cistrnstr(argv[1], ",uncorrelated",13))
                 pack_flags |= CBF_UNCORRELATED_SECTIONS;
         }
         argc--;

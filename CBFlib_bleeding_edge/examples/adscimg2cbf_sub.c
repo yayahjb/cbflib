@@ -177,6 +177,7 @@
 #include "cbf.h"
 #include "cbf_simple.h"
 #include "cbf_minicbf_header.h"
+#include "cbf_string.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -648,7 +649,7 @@ int	adscimg2cbf_sub2(char *header,
     gethd("BIN_TYPE", s1, header);
     if('\0' != s1[0])
     {
-        if(NULL != strstr(s1, "SW"))
+            if(NULL != cbf_cistrnstr(s1, "SW",2))
         {
         	smv_bin = 2;
         	smv_adc = 0;
@@ -770,9 +771,9 @@ int	adscimg2cbf_sub2(char *header,
         pixel_size = 0.0512;
     else if(NULL != strstr(detector_id, "315"))
         pixel_size = 0.051296;
-        else if(NULL != strstr(detector_id, "PILATUS"))
+        else if(NULL != cbf_cistrnstr(detector_id, "PILATUS",7))
         pixel_size = 0.172;
-        else if(NULL != strstr(detector_id, "EIGER"))
+        else if(NULL != cbf_cistrnstr(detector_id, "EIGER",5))
         pixel_size = 0.075;
     else	pixel_size = 0.0816;
     s1[0] = '\0';

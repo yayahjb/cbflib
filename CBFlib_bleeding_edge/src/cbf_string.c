@@ -264,7 +264,7 @@ extern "C" {
 
 int cbf_cistrcmp (const char *s1, const char *s2)
 {
-  while (*s1 && toupper (*s1) == toupper (*s2))
+        while (*s1 && *s2 && toupper (*s1) == toupper (*s2))
   {
     s1++;
     s2++;
@@ -278,7 +278,7 @@ int cbf_cistrcmp (const char *s1, const char *s2)
 
 int cbf_cistrncmp (const char *s1, const char *s2, size_t n)
 {
-  while (n > 0 && *s1 && toupper (*s1) == toupper (*s2))
+        while (n > 0 && *s1 && *s2 && toupper (*s1) == toupper (*s2))
   {
     n--;
     s1++;
@@ -309,9 +309,13 @@ int cbf_cistrncmp (const char *s1, const char *s2, size_t n)
         
         size_t m1, m2;
         
-        for (m1 = 0; m1 < n && s1[m1]; m1++); t1 = (char *)s1+m1;
+        for (m1 = 0; m1 < n && s1[m1]; m1++)
+            ;
+        t1 = (char *)s1+m1-1;
         
-        for (m2 = 0; m2 < n && s2[m2]; m2++); t2 = (char *)s2+m2;
+        for (m2 = 0; m2 < n && s2[m2]; m2++)
+            ;
+        t2 = (char *)s2+m2-1;
         
         while (n > 0 && t1 >= s1 && t2 >=s2 && toupper (*t1) == toupper (*t2))
         {
@@ -328,6 +332,51 @@ int cbf_cistrncmp (const char *s1, const char *s2, size_t n)
 
     }
 
+    /* Case-insensitive substring search, needed to replace
+     defective strcasestr implementations */
+    
+    const char * cbf_cistrnstr( const char *s1, const char *s2, size_t n) {
+        
+        char endmarker;
+        
+        size_t m1, m2, m1_outer;
+        
+        for (m1 = 0; s1[m1]; m1++)
+            ;
+        
+        for (m2 = 0; m2 < n && s2[m2]; m2++)
+            ;
+        
+        /* control the search by locating the last character in s2 in s1
+         and then checking of the rest of s2 in in s1 working back from
+         that point */
+        
+        if (m2 == 0) {
+            
+            return s1;
+            
+        }
+        
+        endmarker = toupper(s2[m2-1]);
+        
+        for (m1_outer = m2-1; m1_outer < m1; m1_outer++) {
+            
+            if (endmarker != toupper(s1[m1_outer])) continue;
+            
+            if (m2==1) return s1+m1_outer;
+            
+            if (!cbf_cistrncmp(s1+m1_outer-(m2-1),s2,m2-1)) {
+                
+                return s1+m1_outer-(m2-1);
+                
+            }
+            
+        }
+        
+        return NULL;
+        
+    }
+    
     
   /* swap bytes in an array (local copy of swab to deal with
      systems that lack swab) */
