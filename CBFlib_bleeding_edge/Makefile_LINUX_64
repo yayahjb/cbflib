@@ -294,7 +294,7 @@ endif
 #
 # Definition to get a version of tifflib to support tiff2cbf
 #
-TIFF = tiff-3.9.4-rev-16Sep15
+TIFF = tiff-3.9.4-rev-1Oct15
 TIFFPREFIX = $(PWD)
 
 #
