@@ -469,13 +469,13 @@ extern "C" {
                     
                     const char *byteorder;
                     
-                    size_t dim1, dim2, dim3, padding;
+                    size_t dimfast, dimmid, dimslow, padding;
                     
                     cbf_failnez(cbf_get_arrayparameters_wdims_fs(
                                                                  cbfin, &cifcompression,
                                                                  &binary_id, &elsize, &elsigned, &elunsigned,
                                                                  &elements, &minelement, &maxelement, &realarray,
-                                                                 &byteorder, &dim1, &dim2, &dim3, &padding))
+                                                                 &byteorder, &dimfast, &dimmid, &dimslow, &padding))
                     
                     if ((array=malloc(elsize*elements))) {
                         
@@ -487,28 +487,28 @@ extern "C" {
                                                               cbfin, &binary_id, array, elsize, elsigned,
                                                               elements, &elements_read))
                             
-                            if (dimflag == CBF_HDR_FINDDIMS && dim1==0) {
-                                cbf_get_arraydimensions(cbfin,NULL,&dim1,&dim2,&dim3);
+                            if (dimflag == CBF_HDR_FINDDIMS && dimfast==0) {
+                                cbf_get_arraydimensions(cbfin,NULL,&dimfast,&dimmid,&dimslow);
                             }
                             
                             cbf_failnez(cbf_set_integerarray_wdims_fs(
                                                                       cbfout, compression,
                                                                       binary_id, array, elsize, elsigned, elements,
-                                                                      "little_endian", dim1, dim2, dim3, 0))
+                                                                      "little_endian", dimfast, dimmid, dimslow, 0))
                         } else {
                             
                             cbf_failnez (cbf_get_realarray(
                                                            cbfin, &binary_id, array, elsize,
                                                            elements, &elements_read))
                             
-                            if (dimflag == CBF_HDR_FINDDIMS && dim1==0) {
-                                cbf_get_arraydimensions(cbfin,NULL,&dim1,&dim2,&dim3);
+                            if (dimflag == CBF_HDR_FINDDIMS && dimfast==0) {
+                                cbf_get_arraydimensions(cbfin,NULL,&dimfast,&dimmid,&dimslow);
                             }
                             
                             cbf_failnez(cbf_set_realarray_wdims_fs(
                                                                    cbfout, compression,
                                                                    binary_id, array, elsize, elements,
-                                                                   "little_endian", dim1, dim2, dim3, 0))                 	
+                                                                   "little_endian", dimfast, dimmid, dimslow, 0))                 	
                         }
                         
                         free(array);
@@ -585,11 +585,14 @@ extern "C" {
         
     }
     
+
+    
     /* cbf_copy_value -- copy the current value from cbfin to cbfout,
        specifying the target category, column, rownum, compression, dimension details,
        element type, size and sign */
     
-    int cbf_copy_value(cbf_handle cbfout, cbf_handle cbfin, 
+    int cbf_copy_value(cbf_handle cbfout,
+                       cbf_handle cbfin,
                           const char * category_name,
                           const char * column_name,
                           const unsigned int rownum, 
@@ -600,6 +603,40 @@ extern "C" {
                           const int elsign,
                           const double cliplow,
                        const double cliphigh) {
+        
+        return cbf_copy_value_with_roi(cbfout,
+                                       cbfin,
+                                       category_name,
+                                       column_name,
+                                       rownum,
+                                       compression,
+                                       dimflag,
+                                       eltype,
+                                       elsize,
+                                       elsign,
+                                       cliplow,
+                                       cliphigh,
+                                       NULL);
+        
+    }
+    
+    /* cbf_copy_value_with_roi -- copy the current value from cbfin to cbfout,
+     specifying the target category, column, rownum, compression, dimension details,
+     element type, size and sign, with an optional roi */
+    
+    int cbf_copy_value_with_roi(cbf_handle cbfout,
+                                cbf_handle cbfin,
+                                const char * category_name,
+                                const char * column_name,
+                                const unsigned int rownum,
+                                const int compression,
+                                const int dimflag,
+                                const int eltype,
+                                const int elsize,
+                                const int elsign,
+                                const double cliplow,
+                                const double cliphigh,
+                                const char * roi) {
         
         unsigned int rows;
         
@@ -639,7 +676,7 @@ extern "C" {
             return CBF_ARGUMENT;
         
         
-        cbf_failnez(cbf_require_category(cbfout,category_name))
+        cbf_failnez(cbf_require_category(cbfout,category_name));
         
         cbf_failnez(cbf_count_rows(cbfout,&rows));
         
@@ -776,13 +813,22 @@ extern "C" {
             
             const char *byteorder;
             
-            size_t dim1, dim2, dim3, padding;
+            size_t dimfast, dimmid, dimslow, padding;
             
-            cbf_failnez(cbf_get_arrayparameters_wdims_fs(
-                                                         cbfin, &cifcompression,
-                                                         &binary_id, &oelsize, &elsigned, &elunsigned,
-                                                         &elements, &minelement, &maxelement, &realarray,
-                                                         &byteorder, &dim1, &dim2, &dim3, &padding))
+            cbf_failnez(cbf_get_arrayparameters_wdims_fs(cbfin,
+                                                         &cifcompression,
+                                                         &binary_id,
+                                                         &oelsize,
+                                                         &elsigned,
+                                                         &elunsigned,
+                                                         &elements,
+                                                         &minelement,
+                                                         &maxelement,
+                                                         &realarray,
+                                                         &byteorder,
+                                                         &dimfast,
+                                                         &dimmid,
+                                                         &dimslow, &padding))
             
             if (oelsize != sizeof (long int) &&
 #ifdef CBF_USE_LONG_LONG
@@ -824,14 +870,70 @@ extern "C" {
                 
                 if (!realarray)  {
                     
-                    cbf_onfailnez (cbf_get_integerarray(
-                                                        cbfin, &binary_id, array, oelsize, elsigned,
-                                                        elements, &elements_read), {free(array);})
+                    cbf_onfailnez (cbf_get_integerarray(cbfin,
+                                                        &binary_id,
+                                                        array,
+                                                        oelsize,
+                                                        elsigned,
+                                                        elements,
+                                                        &elements_read),
+                                   {free(array); array=NULL;})
                     
-                    if (dimflag == CBF_HDR_FINDDIMS && dim1==0) {
-                        cbf_get_arraydimensions(cbfin,NULL,&dim1,&dim2,&dim3);
+                    if (dimflag == CBF_HDR_FINDDIMS && dimfast==0) {
+                        cbf_get_arraydimensions(cbfin,NULL,&dimfast,&dimmid,&dimslow);
                     }
                     
+                    if (dimfast < 1) dimfast = 1;
+                    if (dimmid < 1) dimmid = 1;
+                    if (dimslow < 1) dimslow = 1;
+                    
+                    if (roi) {
+                        
+                        void * roi_array;
+                        
+                        size_t fastlow, fasthigh, midlow, midhigh, slowlow, slowhigh;
+                        
+                        cbf_failnez(cbf_convertroi(roi,dimfast,dimmid,dimslow,
+                                                   &fastlow,&fasthigh,
+                                                   &midlow,&midhigh,
+                                                   &slowlow,&slowhigh));
+                        
+                        roi_array=malloc(oelsize*(fasthigh-fastlow+1)*(midhigh-midlow+1)*(slowhigh-slowlow+1));
+                        
+                        if (!roi_array) {
+                            
+                            cbf_onfailnez(CBF_ALLOC,{free(array);});
+                            
+                        }
+
+                        cbf_failnez(cbf_extract_roi(array,
+                                                    roi_array,
+                                                    elsize,
+                                                    fastlow,
+                                                    fasthigh,
+                                                    midlow,
+                                                    midhigh,
+                                                    slowlow,
+                                                    slowhigh,
+                                                    dimfast,
+                                                    dimmid,
+                                                    dimslow));
+                        
+                        free(array);
+                        
+                        array = roi_array;
+                        
+                        dimfast = fasthigh- fastlow + 1;
+                        
+                        dimmid  = midhigh - midlow + 1;
+                        
+                        dimslow = slowhigh- slowlow + 1;
+                        
+                        elements = elements_read = dimfast*dimmid*dimslow;
+                        
+                        
+                    }
+
                     if (((eltype &(CBF_CPY_SETINTEGER)) || eltype == 0)
                         && (elsize == 0 || elsize==(ssize_t)oelsize)
                         && (elsign == 0 || 
@@ -842,7 +944,7 @@ extern "C" {
                         cbf_onfailnez(cbf_set_integerarray_wdims_fs(
                                                                     cbfout, compression,
                                                                     binary_id, array, oelsize, elsigned, elements,
-                                                                    "little_endian", dim1, dim2, dim3, 0),{free(array);} )
+                                                                    "little_endian", dimfast, dimmid, dimslow, 0),{free(array);} )
                         free(array);
                         
                     } else {
@@ -990,7 +1092,7 @@ extern "C" {
                                 cbf_onfailnez(cbf_set_integerarray_wdims_fs(
                                                                             cbfout, compression,
                                                                             binary_id, narray, elsize, nelsigned, elements,
-                                                                            "little_endian", dim1, dim2, dim3, 0), {free(array); free(narray);})
+                                                                            "little_endian", dimfast, dimmid, dimslow, 0), {free(array); free(narray);})
                                 free(narray);
                                 
                                 free(array);
@@ -1218,7 +1320,7 @@ extern "C" {
                                 cbf_onfailnez(cbf_set_realarray_wdims_fs(
                                                                          cbfout, compression,
                                                                          binary_id, narray, elsize, elements,
-                                                                         "little_endian", dim1, dim2, dim3, 0    ),
+                                                                         "little_endian", dimfast, dimmid, dimslow, 0    ),
                                               
                                               { free(narray); free(array);})
                                 
@@ -1241,8 +1343,59 @@ extern "C" {
                                                      cbfin, &binary_id, array, oelsize,
                                                      elements, &elements_read), {free(array);})
                     
-                    if (dimflag == CBF_HDR_FINDDIMS && dim1==0) {
-                        cbf_get_arraydimensions(cbfin,NULL,&dim1,&dim2,&dim3);
+                    if (dimflag == CBF_HDR_FINDDIMS && dimfast==0) {
+                        cbf_get_arraydimensions(cbfin,NULL,&dimfast,&dimmid,&dimslow);
+                    }
+                    
+                    if (dimfast < 1) dimfast = 1;
+                    if (dimmid < 1) dimmid = 1;
+                    if (dimslow < 1) dimslow = 1;
+                    
+                    if (roi) {
+                        
+                        void * roi_array;
+                        
+                        size_t fastlow, fasthigh, midlow, midhigh, slowlow, slowhigh;
+                        
+                        cbf_failnez(cbf_convertroi(roi,dimfast,dimmid,dimslow,
+                                                   &fastlow,&fasthigh,
+                                                   &midlow,&midhigh,
+                                                   &slowlow,&slowhigh));
+                        
+                        roi_array=malloc(oelsize*(fasthigh-fastlow+1)*(midhigh-midlow+1)*(slowhigh-slowlow+1));
+                        
+                        if (!roi_array) {
+                            
+                            cbf_onfailnez(CBF_ALLOC,{free(array);});
+                            
+                        }
+                        
+                        cbf_failnez(cbf_extract_roi(array,
+                                                    roi_array,
+                                                    elsize,
+                                                    fastlow,
+                                                    fasthigh,
+                                                    midlow,
+                                                    midhigh,
+                                                    slowlow,
+                                                    slowhigh,
+                                                    dimfast,
+                                                    dimmid,
+                                                    dimslow));
+                        
+                        free(array);
+                        
+                        array = roi_array;
+                        
+                        dimfast = fasthigh- fastlow + 1;
+                        
+                        dimmid  = midhigh - midlow + 1;
+                        
+                        dimslow = slowhigh- slowlow + 1;
+                        
+                        elements = elements_read = dimfast*dimmid*dimslow;
+                        
+                        
                     }
                     
                     if (((eltype &(CBF_CPY_SETREAL)) || eltype == 0)
@@ -1252,7 +1405,7 @@ extern "C" {
                         cbf_failnez(cbf_set_realarray_wdims_fs(
                                                                cbfout, compression,
                                                                binary_id, array, oelsize, elements,
-                                                               "little_endian", dim1, dim2, dim3, 0)) 
+                                                               "little_endian", dimfast, dimmid, dimslow, 0)) 
                         
                         free(array);
                         
@@ -1814,7 +1967,7 @@ extern "C" {
                                 cbf_failnez(cbf_set_integerarray_wdims_fs(
                                                                           cbfout, compression,
                                                                           binary_id, narray, nelsize, nelsigned, elements,
-                                                                          "little_endian", dim1, dim2, dim3, 0))
+                                                                          "little_endian", dimfast, dimmid, dimslow, 0))
                                 free(narray);
                                 
                                 free(array);
@@ -1850,7 +2003,7 @@ extern "C" {
                                 cbf_failnez(cbf_set_realarray_wdims_fs(
                                                                        cbfout, compression,
                                                                        binary_id, narray, nelsize, elements,
-                                                                       "little_endian", dim1, dim2, dim3, 0)) 
+                                                                       "little_endian", dimfast, dimmid, dimslow, 0)) 
                                 
                                 free(array);
                                 
@@ -1877,6 +2030,128 @@ extern "C" {
         return 0;
     }
     
+    
+    /* Convert an roi from a string to dimension limits */
+    
+    int cbf_convertroi(char *roi,
+                       size_t dimfast, size_t dimmid, size_t dimslow,
+                       size_t * fastlow, size_t * fasthigh,
+                       size_t * midlow,  size_t * midhigh,
+                       size_t * slowlow, size_t * slowhigh) {
+        char * endptr;
+        char * str;
+        if (!fastlow) return CBF_ARGUMENT;
+        *fastlow = 0;
+        if (midlow) *midlow = 0;
+        if (slowlow) *slowlow = 0;
+        if (fasthigh) *fasthigh = dimfast-1;
+        if (midhigh) *midhigh = dimmid-1;
+        if (slowhigh) *slowhigh = dimslow-1;
+        if (!roi) {
+            return CBF_SUCCESS;
+        }
+        str = roi;
+        *fastlow = (int)strtol(str,&endptr,0);
+        if (*fastlow > dimfast-1) *fastlow = dimfast-1;
+        if (*endptr == '\0') return CBF_SUCCESS;
+        if (*endptr != ',' && *endptr != ' ') return CBF_FORMAT;
+        if (!fasthigh) return CBF_SUCCESS;
+        
+        str = endptr+1;
+        *fasthigh = (int)strtol(str,&endptr,0);
+        if (*fasthigh < *fastlow) *fasthigh = *fastlow;
+        if (*fasthigh > dimfast-1) *fasthigh = dimfast-1;
+        if (*endptr == '\0') return CBF_SUCCESS;
+        if (*endptr != ',' && *endptr != ' ') return CBF_FORMAT;
+        str = endptr+1;
+        
+        if (!midlow) return CBF_SUCCESS;
+        *midlow = (int)strtol(str,&endptr,0);
+        if (*midlow > dimmid-1) *midlow = dimmid-1;
+        if (*endptr == '\0') return CBF_SUCCESS;
+        if (*endptr != ',' && *endptr != ' ') return CBF_FORMAT;
+        if (!midhigh) return CBF_SUCCESS;
+        
+        str = endptr+1;
+        *midhigh = (int)strtol(str,&endptr,0);
+        if (*midhigh < *midlow) *midhigh = *midlow;
+        if (*midhigh > dimmid-1) *midhigh = dimmid-1;
+        if (*endptr == '\0') return CBF_SUCCESS;
+        if (*endptr != ',' && *endptr != ' ') return CBF_FORMAT;
+        if (!slowlow) return CBF_SUCCESS;
+            str = endptr+1;
+        
+        *slowlow = (int)strtol(str,&endptr,0);
+        if (*slowlow > dimslow-1) *slowlow = dimslow-1;
+        if (*endptr == '\0') return CBF_SUCCESS;
+        if (*endptr != ',' && *endptr != ' ') return CBF_FORMAT;
+        if (!slowhigh) return CBF_SUCCESS;
+        str = endptr+1;
+        *slowhigh = (int)strtol(str,&endptr,0);
+        if (*slowhigh < *slowlow) *slowhigh = *slowlow;
+        if (*slowhigh > dimslow-1) *slowhigh = dimslow-1;
+        if (*endptr == '\0') return CBF_SUCCESS;
+        return CBF_FORMAT;
+    }
+
+    
+    /* Extract an ROI from an image array */
+    
+    int cbf_extract_roi(void        * src,
+                        void        * dst,
+                        size_t        elsize,
+                        size_t        fastlow,
+                        size_t        fasthigh,
+                        size_t        midlow,
+                        size_t        midhigh,
+                        size_t        slowlow,
+                        size_t        slowhigh,
+                        size_t        dimfast,
+                        size_t        dimmid,
+                        size_t        dimslow
+                        ) {
+        
+        size_t indexmid, indexslow, index;
+        
+        void * tdst;
+        
+        /* Is the element size valid? */
+        
+        if (elsize != sizeof (int) &&
+            elsize != 2* sizeof (int) &&
+            elsize != 4* sizeof (int) &&
+            elsize != sizeof (short) &&
+            elsize != sizeof (char))
+            
+            return CBF_ARGUMENT;
+        
+        if (fasthigh < fastlow
+            || fasthigh >= dimfast
+            || midhigh < midlow
+            || midhigh >= dimmid
+            || slowhigh > slowlow
+            || slowhigh >= dimslow )
+            
+            return CBF_ARGUMENT;
+        
+        tdst = dst;
+        
+        for (indexslow = slowlow; indexslow <= slowhigh; indexslow++) {
+            
+            for (indexmid = midlow; indexmid <= midhigh; indexmid++) {
+                
+                index = elsize*(fastlow +indexmid*dimfast+indexslow*dimfast*dimmid);
+                
+                memmove(tdst,src+index,(1+fasthigh-fastlow)*elsize);
+                
+                tdst += (1+fasthigh-fastlow)*elsize;
+                
+            }
+        }
+        
+        return CBF_SUCCESS;
+    }
+
     
 #ifdef __cplusplus
     

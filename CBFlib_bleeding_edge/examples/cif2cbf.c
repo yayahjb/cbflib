@@ -1,12 +1,12 @@
 /**********************************************************************
  *          cif2cbf -- convert a cif to a cbf file                    *
  *                                                                    *
- * Version 0.9  04 August 2009                                        *
+ * Version 0.9.5.13  13 October 2015                                  *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  *                                                                    *
- * (C) Copyright 2006, 2007 Herbert J. Bernstein                      *
+ * (C) Copyright 2006 -- 2015 Herbert J. Bernstein                    *
  *                                                                    *
  **********************************************************************/
 
@@ -67,6 +67,10 @@
  *    [--add-minicbf-header] \                                        *
  *    [--minicbf] \                                                   *
  *    [--data-last] \                                                 *
+ *    [--{eoi|elements-of-interest} element[,elementhigh] \           *
+ *    [--{foi|frames-of-interest}  frame[,framehigh] \                *
+ *    [--{roi|region-of-interest} fastlow,fasthigh\                   *
+ *                                [,midlow,midhigh[,slowlow,slowhigh]]*
  *    [-U n] \                                                        *
  *    [input_cif] [output_cbf]                                        *
  *                                                                    *
@@ -185,6 +189,24 @@
  *     move array_data to be the last category and _array_data.data   *
  *     to be the last tag in that category                            *
  *                                                                    *
+ *  --{eoi|elements-of-interest} element                              *
+ *  --{eoi|elements-of-interest} element,elementhigh                  *
+ *     delector elements of interest.  If only a single element       *
+ *     is specified, only that one element is used                    *
+ *                                                                    *
+ *  --{foi|frames-of-interest} frame                                  *
+ *  --{foi|frames-of-interest} frame,framehigh                        *
+ *     frames of interest.  If only a single frame                    *
+ *     is specified, only that one frame is used                      *
+ *                                                                    *
+ *  --roi fastlow,fasthigh                                            *
+ *  --roi fastlow,fasthigh,slowlow,slowhigh                           *
+ *  --roi fastlow,fasthigh,midlow,midhigh,slowlow,slowhigh            *
+ *     restrict data transfers to the indicated range                 *
+ *                                                                    *
+ *  --region-of-interest  ...                                         *
+ *     synonym for roi                                                *
+ *                                                                    *
  *  --U n                                            *
  *     test cbf_construct_detector in element_id n                    *
  *                                                                    *
@@ -206,17 +228,8 @@
  *  This program is a Crystallographic Binary File (CBF) application. *
  *  Please see the ImgCIF/CBF web page at                             *
  *                                                                    *
- *            http://ndbserver.rutgers.edu/mmcif/cbf                  *
+ *          http://www.bernstein-plus-sons.com/software/CBF           *
  *                                                                    *
- *  for background and references.  The CBF definition is available   *
- *  on the web page created by Andy Hammersley at                     *
- *                                                                    *
- *     http://www.ersf.fr/computing/Forum/imgCIF/cbf_definition.html  *
- *                                                                    *
- *  This program is a CBFlib application.  See "CBFLIB, An ANSI-C     *
- *  API for Crystallographic Binary Files", Version 0.1, April 1998   *
- *  by Paul J. Ellis, Stanford Synchrotron Radiation Laboratory,      *
- *  ellis@ssrl.slac.stanford.edu                                      *
  *                                                                    *
  *  This program uses routines derived from mpack/munpack version     *
  *  1.5, ftp://ftp.andrew.cmu.edu/pub/mpack by John G. Myers,         *
@@ -537,6 +550,140 @@ int outerror(int err)
 #endif
 
 
+
+/* Find row by multiple columns
+ n is the number of columns
+ column is an array of n column names
+ value is an array of values to match
+ 
+ */
+
+static int cbf_find_row_by_columns(cbf_handle handle, int n,
+                                   const char * column[],
+                                   const char * value[]){
+    
+    int icol;
+    
+    int match;
+    
+    const char *colvalue;
+    
+    if (!handle || n < 1
+        || !column || !value
+        || !column[0] || !value[0]) return CBF_ARGUMENT;
+    
+    cbf_failnez(cbf_rewind_row(handle));
+    
+    while (!cbf_find_column(handle,column[0])
+           &&!cbf_find_nextrow(handle,value[0])) {
+        
+        match = 1;
+        
+        for (icol = 1; icol < n; icol++) {
+            
+            if ( !column[icol] || !value[icol] ) return CBF_ARGUMENT;
+            
+            cbf_failnez(cbf_find_column(handle,column[icol]));
+            
+            if (cbf_get_value(handle,&colvalue)
+                || !colvalue
+                || cbf_cistrcmp(colvalue,value[icol])) {
+                
+                match = 0;
+                
+                break;
+                
+            }
+            
+        }
+        
+        if (match) return CBF_SUCCESS;
+        
+    }
+    
+    return CBF_NOTFOUND;
+    
+}
+
+
+/* Get the frame_id and frame_number for a given array_id and binary_id */
+
+int cbf_get_frame(cbf_handle handle,
+                  const char * array_id,
+                  const char * binary_id,
+                  const char * * frame_id,
+                  unsigned int * frame_number){
+    
+    const char * xframe_id;
+    
+    const char * columns[2] = {"array_id", "binary_id"};
+    
+    const char * values[2] = {array_id, binary_id};
+    
+    int xframe_number;
+    
+    if (!handle || !array_id || !binary_id ) return CBF_ARGUMENT;
+    
+    if ((!cbf_find_category(handle,"diffrn_data_frame")
+         ||!cbf_find_category(handle,"diffrn_frame_data"))
+        && !cbf_rewind_row(handle)
+        && !cbf_find_row_by_columns(handle,2,columns,values)
+        && !cbf_find_column(handle,"id")
+        && !cbf_get_value(handle,&xframe_id)){
+        
+        if (frame_id) *frame_id = xframe_id;
+        
+        if (!cbf_find_category(handle,"diffrn_scan_frame")
+            &&!cbf_rewind_row(handle)
+            &&!cbf_find_column(handle,"frame_id")
+            &&!cbf_find_row(handle,xframe_id)
+            &&!cbf_find_column(handle,"frame_number")
+            &&!cbf_get_integervalue(handle,&xframe_number)
+            &&xframe_number >= 0) {
+            
+            if (frame_number) *frame_number = (unsigned int)xframe_number;
+            return CBF_SUCCESS;
+            
+        }
+        
+        
+    }
+    
+    return CBF_NOTFOUND;
+    
+}
+
+/* Convert items of interest from a string to a range of elements or frames */
+
+int cbf_convertioi(const char *ioi, const size_t maxitems,
+                   size_t * itemlow, size_t * itemhigh) {
+    char * endptr;
+    const char * str;
+    if (!itemlow ) return CBF_ARGUMENT;
+    *itemlow = 0;
+    if (itemhigh) *itemhigh = maxitems-1;
+    if (!ioi) {
+        return CBF_SUCCESS;
+    }
+    str = ioi;
+    *itemlow = (int)strtol(str,&endptr,0);
+    if (*itemlow > maxitems-1) *itemlow = maxitems-1;
+    if (*endptr == '\0') {
+        if (itemhigh) *itemhigh = *itemlow;
+        return CBF_SUCCESS;
+    }
+    if (*endptr != ',' && *endptr != ' ') return CBF_FORMAT;
+    if (!itemhigh) return CBF_SUCCESS;
+    
+    str = endptr+1;
+    *itemhigh = (int)strtol(str,&endptr,0);
+    if (*itemhigh < *itemlow) *itemhigh = *itemlow;
+    if (*itemhigh > maxitems-1) *itemhigh = maxitems-1;
+    if (*endptr == '\0') return CBF_SUCCESS;
+    if (*endptr != ',' && *endptr != ' ') return CBF_FORMAT;
+}
+
+
 void set_MP_terms(int crterm, int nlterm);
 
 int main (int argc, char *argv [])
@@ -584,12 +731,18 @@ int main (int argc, char *argv [])
     int testconstruct;
     char buf[C2CBUFSIZ];
     unsigned int blocks, categories, blocknum, catnum, blockitems, itemnum;
+    unsigned int elements;
+    size_t elementlow, elementhigh;
+    size_t framelow, framehigh;
     CBF_NODETYPE itemtype;
     const char *datablock_name;
     const char *saveframe_name;
     const char *category_name;
     const char *column_name;
     const char *value;
+    const char *eoi;  /* elements of interest */
+    const char *foi;  /* frames of interest */
+    const char *roi;  /* region of interest */
     unsigned int colnum, rownum;
     unsigned int columns;
     unsigned int rows;
@@ -631,6 +784,9 @@ int main (int argc, char *argv [])
      *    [--add-minicbf-header] \                                        *
      *    [--minicbf] \                                                   *
      *    [--data-last] \                                                 *
+     *    [--{eoi|elements-of-interest} element[,elementhigh] \           *
+     *    [--{foi|frames-of-interest}  frame[,framehigh] \                *
+     *    [--{roi|region-of-interest]  fastlow,fasthigh,.... \            *
      *    [-U n]     \                                   *
      *    [input_cif] [output_cbf]                                        *
      *                                                                    *
@@ -658,6 +814,9 @@ int main (int argc, char *argv [])
     cbfsave = NULL;
     hdf5out = NULL;
     updatecif = NULL;
+    eoi = NULL;
+    foi = NULL;
+    roi = NULL;
     ciftmpused = 0;
     testconstruct = 0;
     cliphigh = cliplow = 0.;
@@ -692,7 +851,13 @@ int main (int argc, char *argv [])
                                  "\1(add-minicbf-header)" \
                                  "\2(minicbf)" \
                                  "\3(data-last)" \
-                                 ))
+                                 "\4(elements-of-interest):" \
+                                 "\4(eoi):" \
+                                 "\5(frames-of-interest):" \
+                                 "\5(foi):" \
+                                 "\6(region-of-interest):" \
+                                 "\6(roi):"
+                                 ));
 
     if (!cbf_rewind_getopt_option(opts))
         for(;!cbf_get_getopt_data(opts,&c,NULL,NULL,&optarg);cbf_next_getopt_option(opts)) {
@@ -887,6 +1052,21 @@ int main (int argc, char *argv [])
                 case '\3': /* place data last */
                     if (data_last) errflg++;
                     data_last = 1;
+                    break;
+
+                case '\4': /* elements of interest */
+                    if (eoi) errflg++;
+                    eoi = optarg;
+                    break;
+                    
+                case '\5': /* frames of interest */
+                    if (foi) errflg++;
+                    foi = optarg;
+                    break;
+
+                case '\6': /* region of interest */
+                    if (roi) errflg++;
+                    roi = optarg;
                     break;
 
                 case 'O': /* set Opaque mode */
@@ -1126,6 +1306,13 @@ int main (int argc, char *argv [])
         fprintf(stderr,
                 "    [--data-last] \\\n");
         fprintf(stderr,
+                "    [--{eoi|elements-of-interest} element[,elementhigh] \\\n");
+        fprintf(stderr,
+                "    [--{foi|frames-of-interest}  frame[,framehigh] \\\n");
+        fprintf(stderr,
+                "    [--{roi|region-of-interest}\n"
+                "    fastlow,fasthigh[[,midlow,midhigh[,slowlow,slowhigh]] \\\n");
+        fprintf(stderr,
                 "    [-U n] \\\n");
         fprintf(stderr,
                 "    [input_cif] [output_cbf] \n\n");
@@ -1310,6 +1497,20 @@ int main (int argc, char *argv [])
 
     cbf_failnez (cbf_count_datablocks(cif, &blocks))
 
+    if (cbf_count_elements(cif,&elements)) {
+        elements = elementlow = elementhigh = 0;
+    } else {
+        elementlow = 0; elementhigh = elements?elements-1:elements;
+        if (eoi) {
+            cbf_failnez(cbf_convertioi(eoi,elements,&elementlow,&elementhigh));
+        }
+    }
+    
+    framelow = 0; framehigh = (int)1.e8;
+    if (foi) {
+        cbf_failnez(cbf_convertioi(eoi,framehigh+1,&framelow,&framehigh));
+    }
+    
     cbfsave = cbf;
 
     for (blocknum = 0; blocknum < blocks;  blocknum++ )
@@ -1327,6 +1528,10 @@ int main (int argc, char *argv [])
             cbf_failnez (cbf_count_blockitems(cif, &blockitems))
 
             for (itemnum = 0; itemnum < blockitems;  itemnum++) {
+                const char* array_id;
+                const char* binary_id;
+                unsigned int frame_number;
+                unsigned int element_number;
                 cbf_select_blockitem(cif, itemnum, &itemtype);
                 if (itemtype == CBF_CATEGORY) {
                     cbf_category_name(cif,&category_name);
@@ -1371,6 +1576,38 @@ int main (int argc, char *argv [])
                     /* Transfer the rows from cif to cbf */
                     for (rownum = 0; rownum < rows; rownum++ ) {
                         cbf_failnez (cbf_select_row(cif, rownum))
+                        /* See if this is an array_data category row, and if, so,
+                         log the array_id, binary_id, frame number and detector
+                         element number for this row, if any
+                         
+                         Skip the row if excluded by the eoi or foi
+                         
+                         */
+                        if (foi || eoi){
+                            unsigned int element_number;
+                            unsigned int frame_number;
+
+                            if (cbf_find_column(cif,"array_id")
+                                || cbf_get_value(cif,&array_id)) array_id = NULL;
+                            if (cbf_find_column(cif,"binary_id")
+                                || cbf_get_value(cif,&binary_id)) binary_id = NULL;
+                            
+                            if (elements && foi && !cbf_get_element_number(cif,NULL,array_id,NULL,&element_number)) {
+                                if ((element_number %elements) < elementlow
+                                    || (element_number %elements) > elementhigh) continue;
+                            }
+                            
+                            if (foi && !cbf_get_frame(cif,array_id,binary_id, NULL, &frame_number)) {
+                                if (frame_number < framelow
+                                    || frame_number > framehigh) continue;
+                            }
+                            
+                            /* recover the starting position */
+                            cbf_failnez (cbf_select_blockitem(cif, itemnum, &itemtype));
+                            cbf_failnez (cbf_rewind_column(cif));
+                            cbf_failnez (cbf_select_row(cif, rownum));
+                        }
+                        
                         cbf_failnez (cbf_new_row(cbf))
                         cbf_rewind_column(cif);
                         for (colnum = 0; colnum < columns; colnum++ ) {
@@ -1459,69 +1696,53 @@ int main (int argc, char *argv [])
                                 }
                             } else {
 
-                                void * array;
                                 int binary_id, elsigned, elunsigned;
                                 size_t elements,elements_read, elsize;
                                 int minelement, maxelement;
                                 unsigned int cifcompression;
                                 int realarray;
                                 const char *byteorder;
-                                size_t dim1, dim2, dim3, padding;
+                                size_t fastdim, middim, slowdim, padding;
 
-                                cbf_failnez(cbf_get_arrayparameters_wdims_fs(
-                                                                             cif, &cifcompression,
-                                                                             &binary_id, &elsize, &elsigned, &elunsigned,
-                                                                             &elements, &minelement, &maxelement, &realarray,
-                                                                             &byteorder, &dim1, &dim2, &dim3, &padding))
-                                if ((array=malloc(elsize*elements))) {
-                                    int arrayfreed = 0;
+                                cbf_failnez(cbf_get_arrayparameters_wdims_fs(cif,
+                                                                             &cifcompression,
+                                                                             &binary_id,
+                                                                             &elsize,
+                                                                             &elsigned,
+                                                                             &elunsigned,
+                                                                             &elements,
+                                                                             &minelement,
+                                                                             &maxelement,
+                                                                             &realarray,
+                                                                             &byteorder,
+                                                                             &fastdim,
+                                                                             &middim,
+                                                                             &slowdim,
+                                                                             &padding));
+                                if (fastdim < 1) fastdim = 1;
+                                if (middim < 1) middim = 1;
+                                if (slowdim < 1) slowdim = 1;
+                                {   int arrayfreed = 0;
                                     cbf_failnez (cbf_select_column(cbf,colnum))
-                                    if (!realarray)  {
-                                        cbf_failnez (cbf_get_integerarray(
-                                                                          cif, &binary_id, array, elsize, elsigned,
-                                                                          elements, &elements_read))
-                                        if (dimflag == HDR_FINDDIMS && dim1==0) {
-                                            cbf_get_arraydimensions(cif,NULL,&dim1,&dim2,&dim3);
-                                        }
-                                        if (IorR == 0 || (IorR == CBF_CPY_SETINTEGER && (nelsize==(long)elsize||nelsize==0))) {
-                                            cbf_failnez(cbf_set_integerarray_wdims_fs(
-                                                                                      cbf, compression,
-                                                                                      binary_id, array, elsize, elsigned, elements,
-                                                                                      "little_endian", dim1, dim2, dim3, 0))
-                                        } else {
-                                            free(array); arrayfreed=1;
-                                            cbf_failnez(cbf_copy_value(cbf,cif,category_name,column_name,rownum,compression,dimflag,IorR,
-                                                                       nelsize?((size_t)nelsize):elsize,0,cliplow,cliphigh))
-                                        }
-                                    } else {
-                                        cbf_failnez (cbf_get_realarray(
-                                                                       cif, &binary_id, array, elsize,
-                                                                       elements, &elements_read))
-                                        if (dimflag == HDR_FINDDIMS && dim1==0) {
-                                            cbf_get_arraydimensions(cif,NULL,&dim1,&dim2,&dim3);
-                                        }
-                                        if (IorR == 0 || (IorR == CBF_CPY_SETREAL && ((size_t)nelsize==elsize||nelsize==0))) {
-                                            cbf_failnez(cbf_set_realarray_wdims_fs(
-                                                                                   cbf, compression,
-                                                                                   binary_id, array, elsize, elements,
-                                                                                   "little_endian", dim1, dim2, dim3, 0))
-                                        } else {
-                                            free(array); arrayfreed=1;
-                                            cbf_failnez(cbf_copy_value(cbf,cif,category_name,column_name,rownum,compression,dimflag,IorR,
-                                                                       nelsize?((size_t)nelsize):elsize,CBF_CPY_SETSIGNED,cliplow,cliphigh))
-                                        }
+                                    cbf_failnez (
+                                                 cbf_copy_value_with_roi(cbf,
+                                                                         cif,
+                                                                         category_name,
+                                                                         column_name,
+                                                                         rownum,
+                                                                         compression,
+                                                                         dimflag,
+                                                                         IorR,
+                                                                         nelsize?((size_t)nelsize):elsize,
+                                                                         realarray?CBF_CPY_SETSIGNED:0,
+                                                                         cliplow,
+                                                                         cliphigh,
+                                                                         roi))
 
                                     }
-                                    if (!arrayfreed) {free(array);arrayfreed=1;}
-                                } else {
-                                    fprintf(stderr,
-                                            "\nFailed to allocate memory %ld bytes",
-                                            (long) elsize*elements);
-                                    exit(1);
                                 }
                             }
                         }
-                    }
                 } else {
                     cbf_saveframe_name(cif,&saveframe_name);
                     cbf_force_new_saveframe(cbf, saveframe_name);
@@ -1569,13 +1790,13 @@ int main (int argc, char *argv [])
                                         unsigned int cifcompression;
                                         int realarray;
                                         const char * byteorder;
-                                        size_t dim1, dim2, dim3, padding;
+                                        size_t fastdim, middim, slowdim, padding;
 
                                         cbf_failnez(cbf_get_arrayparameters_wdims_fs(
                                                                                      cif, &cifcompression,
                                                                                      &binary_id, &elsize, &elsigned, &elunsigned,
                                                                                      &elements, &minelement, &maxelement, &realarray,
-                                                                                     &byteorder, &dim1, &dim2, &dim3, &padding))
+                                                                                     &byteorder, &fastdim, &middim, &slowdim, &padding))
                                         if ((array=malloc(elsize*elements))) {
                                             cbf_failnez (cbf_select_column(cbf,colnum))
                                             if (!realarray) {
@@ -1585,18 +1806,18 @@ int main (int argc, char *argv [])
                                                 cbf_failnez(cbf_set_integerarray_wdims_fs(
                                                                                           cbf, compression,
                                                                                           binary_id, array, elsize, elsigned, elements,
-                                                                                          byteorder, dim1, dim2, dim3, padding))
+                                                                                          byteorder, fastdim, middim, slowdim, padding))
                                             } else  {
                                                 cbf_failnez (cbf_get_realarray(
                                                                                cif, &binary_id, array, elsize,
                                                                                elements, &elements_read))
-                                                if (dimflag == HDR_FINDDIMS && dim1==0) {
-                                                    cbf_get_arraydimensions(cif,NULL,&dim1,&dim2,&dim3);
+                                                if (dimflag == HDR_FINDDIMS && fastdim==0) {
+                                                    cbf_get_arraydimensions(cif,NULL,&fastdim,&middim,&slowdim);
                                                 }
                                                 cbf_failnez(cbf_set_realarray_wdims_fs(
                                                                                        cbf, compression,
                                                                                        binary_id, array, elsize, elements,
-                                                                                       byteorder, dim1, dim2, dim3, padding))
+                                                                                       byteorder, fastdim, middim, slowdim, padding))
                                             }
                                             free(array);
                                         } else {
@@ -1796,37 +2017,59 @@ int main (int argc, char *argv [])
                                     unsigned int cifcompression;
                                     int realarray;
                                     const char *byteorder;
-                                    size_t dim1, dim2, dim3, padding;
+                                    size_t fastdim, middim, slowdim, padding;
+                                    size_t fastlow, fasthigh, midlow, midhigh, slowlow, slowhigh;
 
-                                    cbf_failnez(cbf_get_arrayparameters_wdims_fs(
-                                                                                 ucif, &cifcompression,
-                                                                                 &binary_id, &elsize, &elsigned, &elunsigned,
-                                                                                 &elements, &minelement, &maxelement, &realarray,
-                                                                                 &byteorder, &dim1, &dim2, &dim3, &padding))
+                                    cbf_failnez(cbf_get_arrayparameters_wdims_fs(ucif,
+                                                                                 &cifcompression,
+                                                                                 &binary_id,
+                                                                                 &elsize,
+                                                                                 &elsigned,
+                                                                                 &elunsigned,
+                                                                                 &elements,
+                                                                                 &minelement,
+                                                                                 &maxelement,
+                                                                                 &realarray,
+                                                                                 &byteorder,
+                                                                                 &fastdim,
+                                                                                 &middim,
+                                                                                 &slowdim,
+                                                                                 &padding));
                                     if ((array=malloc(elsize*elements))) {
                                         cbf_failnez (cbf_find_column(cbf,column_name))
                                         if (!realarray)  {
-                                            cbf_failnez (cbf_get_integerarray(
-                                                                              ucif, &binary_id, array, elsize, elsigned,
-                                                                              elements, &elements_read))
-                                            if (dimflag == HDR_FINDDIMS && dim1==0) {
-                                                cbf_get_arraydimensions(ucif,NULL,&dim1,&dim2,&dim3);
+                                            cbf_failnez (cbf_get_integerarray(ucif,
+                                                                              &binary_id,
+                                                                              array,
+                                                                              elsize,
+                                                                              elsigned,
+                                                                              elements,
+                                                                              &elements_read))
+                                            if (dimflag == HDR_FINDDIMS && fastdim==0) {
+                                                cbf_get_arraydimensions(ucif,NULL,&fastdim,&middim,&slowdim);
                                             }
                                             cbf_failnez(cbf_set_integerarray_wdims_fs(
                                                                                       cbf, compression,
                                                                                       binary_id, array, elsize, elsigned, elements,
-                                                                                      "little_endian", dim1, dim2, dim3, 0))
+                                                                                      "little_endian", fastdim, middim, slowdim, 0))
                                         } else {
                                             cbf_failnez (cbf_get_realarray(
                                                                            ucif, &binary_id, array, elsize,
                                                                            elements, &elements_read))
-                                            if (dimflag == HDR_FINDDIMS && dim1==0) {
-                                                cbf_get_arraydimensions(ucif,NULL,&dim1,&dim2,&dim3);
+                                            if (dimflag == HDR_FINDDIMS && fastdim==0) {
+                                                cbf_get_arraydimensions(ucif,NULL,&fastdim,&middim,&slowdim);
                                             }
-                                            cbf_failnez(cbf_set_realarray_wdims_fs(
-                                                                                   cbf, compression,
-                                                                                   binary_id, array, elsize, elements,
-                                                                                   "little_endian", dim1, dim2, dim3, 0))
+                                            cbf_failnez(cbf_set_realarray_wdims_fs(cbf,
+                                                                                   compression,
+                                                                                   binary_id,
+                                                                                   array,
+                                                                                   elsize,
+                                                                                   elements,
+                                                                                   "little_endian",
+                                                                                   fastdim,
+                                                                                   middim,
+                                                                                   slowdim,
+                                                                                   0))
                                         }
                                         free(array);
                                     } else {
@@ -1890,34 +2133,70 @@ int main (int argc, char *argv [])
                                             unsigned int cifcompression;
                                             int realarray;
                                             const char * byteorder;
-                                            size_t dim1, dim2, dim3, padding;
+                                            size_t fastdim, middim, slowdim, padding;
 
-                                            cbf_failnez(cbf_get_arrayparameters_wdims_fs(
-                                                                                         ucif, &cifcompression,
-                                                                                         &binary_id, &elsize, &elsigned, &elunsigned,
-                                                                                         &elements, &minelement, &maxelement, &realarray,
-                                                                                         &byteorder, &dim1, &dim2, &dim3, &padding))
+                                            cbf_failnez(cbf_get_arrayparameters_wdims_fs(ucif,
+                                                                                         &cifcompression,
+                                                                                         &binary_id,
+                                                                                         &elsize,
+                                                                                         &elsigned,
+                                                                                         &elunsigned,
+                                                                                         &elements,
+                                                                                         &minelement,
+                                                                                         &maxelement,
+                                                                                         &realarray,
+                                                                                         &byteorder,
+                                                                                         &fastdim,
+                                                                                         &middim,
+                                                                                         &slowdim,
+                                                                                         &padding))
                                             if ((array=malloc(elsize*elements))) {
                                                 cbf_failnez (cbf_find_column(cbf,column_name))
                                                 if (!realarray) {
-                                                    cbf_failnez (cbf_get_integerarray(
-                                                                                      ucif, &binary_id, array, elsize, elsigned,
-                                                                                      elements, &elements_read))
-                                                    cbf_failnez(cbf_set_integerarray_wdims_fs(
-                                                                                              cbf, compression,
-                                                                                              binary_id, array, elsize, elsigned, elements,
-                                                                                              byteorder, dim1, dim2, dim3, padding))
+                                                    cbf_failnez (cbf_get_integerarray(ucif,
+                                                                                      &binary_id,
+                                                                                      array,
+                                                                                      elsize,
+                                                                                      elsigned,
+                                                                                      elements,
+                                                                                      &elements_read))
+                                                    cbf_failnez(cbf_set_integerarray_wdims_fs(cbf,
+                                                                                              compression,
+                                                                                              binary_id,
+                                                                                              array,
+                                                                                              elsize,
+                                                                                              elsigned,
+                                                                                              elements,
+                                                                                              byteorder,
+                                                                                              fastdim,
+                                                                                              middim,
+                                                                                              slowdim,
+                                                                                              padding))
                                                 } else  {
-                                                    cbf_failnez (cbf_get_realarray(
-                                                                                   ucif, &binary_id, array, elsize,
-                                                                                   elements, &elements_read))
-                                                    if (dimflag == HDR_FINDDIMS && dim1==0) {
-                                                        cbf_get_arraydimensions(ucif,NULL,&dim1,&dim2,&dim3);
+                                                    cbf_failnez (cbf_get_realarray(ucif,
+                                                                                   &binary_id,
+                                                                                   array,
+                                                                                   elsize,
+                                                                                   elements,
+                                                                                   &elements_read))
+                                                    if (dimflag == HDR_FINDDIMS && fastdim==0) {
+                                                        cbf_get_arraydimensions(ucif,
+                                                                                NULL,
+                                                                                &fastdim,
+                                                                                &middim,
+                                                                                &slowdim);
                                                     }
-                                                    cbf_failnez(cbf_set_realarray_wdims_fs(
-                                                                                           cbf, compression,
-                                                                                           binary_id, array, elsize, elements,
-                                                                                           byteorder, dim1, dim2, dim3, padding))
+                                                    cbf_failnez(cbf_set_realarray_wdims_fs(cbf,
+                                                                                           compression,
+                                                                                           binary_id,
+                                                                                           array,
+                                                                                           elsize,
+                                                                                           elements,
+                                                                                           byteorder,
+                                                                                           fastdim,
+                                                                                           middim,
+                                                                                           slowdim,
+                                                                                           padding))
                                                 }
                                                 free(array);
                                             } else {
@@ -2105,37 +2384,37 @@ int main (int argc, char *argv [])
                                     unsigned int cifcompression;
                                     int realarray;
                                     const char *byteorder;
-                                    size_t dim1, dim2, dim3, padding;
+                                    size_t fastdim, middim, slowdim, padding;
                                     
                                     cbf_failnez(cbf_get_arrayparameters_wdims_fs(
                                                                                  ucif, &cifcompression,
                                                                                  &binary_id, &elsize, &elsigned, &elunsigned,
                                                                                  &elements, &minelement, &maxelement, &realarray,
-                                                                                 &byteorder, &dim1, &dim2, &dim3, &padding))
+                                                                                 &byteorder, &fastdim, &middim, &slowdim, &padding))
                                     if ((array=malloc(elsize*elements))) {
                                         cbf_failnez (cbf_find_column(cbf,column_name))
                                         if (!realarray)  {
                                             cbf_failnez (cbf_get_integerarray(
                                                                               ucif, &binary_id, array, elsize, elsigned,
                                                                               elements, &elements_read))
-                                            if (dimflag == HDR_FINDDIMS && dim1==0) {
-                                                cbf_get_arraydimensions(ucif,NULL,&dim1,&dim2,&dim3);
+                                            if (dimflag == HDR_FINDDIMS && fastdim==0) {
+                                                cbf_get_arraydimensions(ucif,NULL,&fastdim,&middim,&slowdim);
                                             }
                                             cbf_failnez(cbf_set_integerarray_wdims_fs(
                                                                                       cbf, compression,
                                                                                       binary_id, array, elsize, elsigned, elements,
-                                                                                      "little_endian", dim1, dim2, dim3, 0))
+                                                                                      "little_endian", fastdim, middim, slowdim, 0))
                                         } else {
                                             cbf_failnez (cbf_get_realarray(
                                                                            ucif, &binary_id, array, elsize,
                                                                            elements, &elements_read))
-                                            if (dimflag == HDR_FINDDIMS && dim1==0) {
-                                                cbf_get_arraydimensions(ucif,NULL,&dim1,&dim2,&dim3);
+                                            if (dimflag == HDR_FINDDIMS && fastdim==0) {
+                                                cbf_get_arraydimensions(ucif,NULL,&fastdim,&middim,&slowdim);
                                             }
                                             cbf_failnez(cbf_set_realarray_wdims_fs(
                                                                                    cbf, compression,
                                                                                    binary_id, array, elsize, elements,
-                                                                                   "little_endian", dim1, dim2, dim3, 0))
+                                                                                   "little_endian", fastdim, middim, slowdim, 0))
                                         }
                                         free(array);
                                     } else {
@@ -2199,34 +2478,70 @@ int main (int argc, char *argv [])
                                             unsigned int cifcompression;
                                             int realarray;
                                             const char * byteorder;
-                                            size_t dim1, dim2, dim3, padding;
+                                            size_t fastdim, middim, slowdim, padding;
                                             
-                                            cbf_failnez(cbf_get_arrayparameters_wdims_fs(
-                                                                                         ucif, &cifcompression,
-                                                                                         &binary_id, &elsize, &elsigned, &elunsigned,
-                                                                                         &elements, &minelement, &maxelement, &realarray,
-                                                                                         &byteorder, &dim1, &dim2, &dim3, &padding))
+                                            cbf_failnez(cbf_get_arrayparameters_wdims_fs(ucif,
+                                                                                         &cifcompression,
+                                                                                         &binary_id,
+                                                                                         &elsize,
+                                                                                         &elsigned,
+                                                                                         &elunsigned,
+                                                                                         &elements,
+                                                                                         &minelement,
+                                                                                         &maxelement,
+                                                                                         &realarray,
+                                                                                         &byteorder,
+                                                                                         &fastdim,
+                                                                                         &middim,
+                                                                                         &slowdim,
+                                                                                         &padding))
                                             if ((array=malloc(elsize*elements))) {
                                                 cbf_failnez (cbf_find_column(cbf,column_name))
                                                 if (!realarray) {
-                                                    cbf_failnez (cbf_get_integerarray(
-                                                                                      ucif, &binary_id, array, elsize, elsigned,
-                                                                                      elements, &elements_read))
-                                                    cbf_failnez(cbf_set_integerarray_wdims_fs(
-                                                                                              cbf, compression,
-                                                                                              binary_id, array, elsize, elsigned, elements,
-                                                                                              byteorder, dim1, dim2, dim3, padding))
+                                                    cbf_failnez (cbf_get_integerarray(ucif,
+                                                                                      &binary_id,
+                                                                                      array,
+                                                                                      elsize,
+                                                                                      elsigned,
+                                                                                      elements,
+                                                                                      &elements_read))
+                                                    cbf_failnez(cbf_set_integerarray_wdims_fs(cbf,
+                                                                                              compression,
+                                                                                              binary_id,
+                                                                                              array,
+                                                                                              elsize,
+                                                                                              elsigned,
+                                                                                              elements,
+                                                                                              byteorder,
+                                                                                              fastdim,
+                                                                                              middim,
+                                                                                              slowdim,
+                                                                                              padding))
                                                 } else  {
-                                                    cbf_failnez (cbf_get_realarray(
-                                                                                   ucif, &binary_id, array, elsize,
-                                                                                   elements, &elements_read))
-                                                    if (dimflag == HDR_FINDDIMS && dim1==0) {
-                                                        cbf_get_arraydimensions(ucif,NULL,&dim1,&dim2,&dim3);
+                                                    cbf_failnez (cbf_get_realarray(ucif,
+                                                                                   &binary_id,
+                                                                                   array,
+                                                                                   elsize,
+                                                                                   elements,
+                                                                                   &elements_read))
+                                                    if (dimflag == HDR_FINDDIMS && fastdim==0) {
+                                                        cbf_get_arraydimensions(ucif,
+                                                                                NULL,
+                                                                                &fastdim,
+                                                                                &middim,
+                                                                                &slowdim);
                                                     }
-                                                    cbf_failnez(cbf_set_realarray_wdims_fs(
-                                                                                           cbf, compression,
-                                                                                           binary_id, array, elsize, elements,
-                                                                                           byteorder, dim1, dim2, dim3, padding))
+                                                    cbf_failnez(cbf_set_realarray_wdims_fs(cbf,
+                                                                                           compression,
+                                                                                           binary_id,
+                                                                                           array,
+                                                                                           elsize,
+                                                                                           elements,
+                                                                                           byteorder,
+                                                                                           fastdim,
+                                                                                           middim,
+                                                                                           slowdim,
+                                                                                           padding))
                                                 }
                                                 free(array);
                                             } else {

@@ -295,7 +295,8 @@ extern "C" {
      specifying the target category, column, rownum, compression, dimension details,
      element type, size and sign */
     
-    int cbf_copy_value(cbf_handle cbfout, cbf_handle cbfin, 
+    int cbf_copy_value(cbf_handle cbfout,
+                       cbf_handle cbfin,
                        const char * category_name,
                        const char * column_name,
                        const unsigned int rownum, 
@@ -306,6 +307,50 @@ extern "C" {
                        const int elsign,
                        const double cliplow,
                        const double cliphigh);
+    
+    /* cbf_copy_value_with_roi -- copy the current value from cbfin to cbfout,
+     specifying the target category, column, rownum, compression, dimension details,
+     element type, size and sign, with an optional roi */
+    
+    int cbf_copy_value_with_roi(cbf_handle cbfout,
+                                cbf_handle cbfin,
+                                const char * category_name,
+                                const char * column_name,
+                                const unsigned int rownum,
+                                const int compression,
+                                const int dimflag,
+                                const int eltype,
+                                const int elsize,
+                                const int elsign,
+                                const double cliplow,
+                                const double cliphigh,
+                                const char * roi);
+    
+    /* Convert an roi from a string to dimension limits */
+    
+    int cbf_convertroi(char *roi,
+                       size_t fastdim, size_t middim, size_t slowdim,
+                       size_t * fastlow, size_t * fasthigh,
+                       size_t * midlow,  size_t * midhigh,
+                       size_t * slowlow, size_t * slowhigh);
+    
+    /* Extract an ROI from an image array */
+    
+    int cbf_extract_roi(void        * src,
+                        void        * dst,
+                        size_t        elsize,
+                        size_t        fastlow,
+                        size_t        fasthigh,
+                        size_t        midlow,
+                        size_t        midhigh,
+                        size_t        slowlow,
+                        size_t        slowhigh,
+                        size_t        dimfast,
+                        size_t        dimmid,
+                        size_t        dimslow
+                        );
+
+
     
     
 #ifdef __cplusplus
