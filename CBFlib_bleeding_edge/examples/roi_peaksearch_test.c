@@ -402,7 +402,7 @@ int     main (int argc, char **argv)
             for(i = fastlow; i <= fasthigh; i++) {
                 *ip = 0x0000ffff &
                 (int)ushort_data[j*xsize   +i];
-                if (i < mask_dim1 && j < mask_dim2 && (pmaskData[j*mask_dim1+i]&0xFFFC)==0xFFFC)
+                if (hCBFmask && i < mask_dim1 && j < mask_dim2 && (pmaskData[j*mask_dim1+i]&0xFFFC)==0xFFFC)
                     *ip = 0xFFFF;
                 ip++;
             }
