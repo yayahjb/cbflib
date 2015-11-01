@@ -71,6 +71,8 @@ typedef struct {
     double x;
     double y;
     double isigma;
+    int peakfw;  /* the full width of the peak */
+    int peakfh;  /* the full height of the peak */
 } DPS_Peak;
 
 int dps_peaksearch(unsigned short *data,
@@ -83,7 +85,9 @@ int dps_peaksearch(unsigned short *data,
 int	near_edge(unsigned short *data,
               int width, int height,
               int xpos, int ypos,
-              double back,
-              int stepx, int stepy);
+              double back, int peak,
+              int bmax, int bmin,
+              int stepx, int stepy,
+              int *peakfw, int *peakfh);
 
 #endif

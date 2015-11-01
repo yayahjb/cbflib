@@ -40,7 +40,8 @@
  * floats and, reject peaks with background points below half the background
  * and clean up the comments to reflect the current subroutinized version
  * built on the Chris Neilson, John Skinner version of 2015, which was
- * built on the Andy Arvai version.
+ * built on the Andy Arvai version.  Further extended 10/31/2015 by HJB to allow
+ * for large fuzzy spots
  */
 
 /* dps_peaksearch
@@ -202,18 +203,23 @@ static	DPS_Peak *dps_peaks = NULL;
 
 static	int	ccd_image_saturation = 0;
 
-int dps_peaksearch(unsigned short *data, int nx, int ny, int npeaks_out, double min_isigma, int min_spacing, DPS_Peak *pptr)
+int dps_peaksearch(unsigned short *data, int nx, int ny,
+                   int npeaks_out, double min_isigma,
+                   int min_spacing, DPS_Peak *pptr)
 {
     
-    int stepx = 3;	/* Initial stepsize for scanning through the image */
-    int stepy = 3;	/* Initial stepsize for scanning through the image */
-    double back_count = 4*stepx+4*stepy; /* Number of background pixels */
-    double spot_count = (2*stepx-1)*(2*stepy-1); /* Number of spot pixels (see below) */
+    int stepx;
+    int stepy;
+    int small_stepx;
+    int small_stepy;
+    double back_count;
+    double spot_count;
     double cm_x, cm_y;
     int i, j; /* counter */
     int y, dy; /* more counter */
     int value; /* variable to store an actual od_value */
     int maxval;
+    int bmax, bmin;
     int k, l; /* many more counter... */
     int x_max, y_max;
     int bma_x, bmi_x, bma_y, bmi_y;
@@ -227,6 +233,20 @@ int dps_peaksearch(unsigned short *data, int nx, int ny, int npeaks_out, double 
     int nover;
     int	nxfer;
     DPS_Peak dps_temp;
+    int peakfw, peakfh;
+    int next_good_y[nx];
+    int collide;
+    
+    stepx = (min_spacing+1)/2;  /* Initial stepsize for scanning through the image */
+    if (stepx < 1) stepx = 1;
+    stepy = stepx;
+    small_stepx = stepx;
+    if (small_stepx > 3) small_stepx = 3;
+    small_stepy = stepy;
+    if (small_stepy > 3) small_stepy = 3;
+    
+    back_count = 4*stepx+4*stepy; /* Number of background pixels */
+    spot_count = (2*stepx-1)*(2*stepy-1); /* Number of spot pixels (see below) */
     
     
     if (min_isigma > 0)
@@ -245,11 +265,26 @@ int dps_peaksearch(unsigned short *data, int nx, int ny, int npeaks_out, double 
         return 0;
     }
     
+    /* Initialize the next_good_y  array to 0 */
+    for (i=0; i < nx; i++) next_good_y[i]= 0;
+    
     /* The next two loops go over the whole frame with stepsize
-     * stepx and stepy.
+     * small_stepx and small_stepy, but looking at boxes 2*stepx by 2*stepy.
      */
-    for(j=2*stepy;j<ny-2*stepy;j=j+stepy) {
-        for(i=2*stepx;i<nx-2*stepx;i=i+stepx) {
+    for(j=2*stepy;j<ny-2*stepy;j=j+small_stepy) {
+        for(i=2*stepx;i<nx-2*stepx;i=i+small_stepx) {
+            
+            /* Skip this pixel if too close to prior spots */
+            
+            collide = 0;
+            
+            for (l=i-stepx; l<=i+stepx; l++) {
+                if (next_good_y[l] > j-stepy-1 ) {
+                    collide = 1;
+                    break;
+                }
+            }
+            if (collide) continue;
             
             /* y hold the index of the pixel at i,j */
             y = j*nx+i;
@@ -271,7 +306,7 @@ int dps_peaksearch(unsigned short *data, int nx, int ny, int npeaks_out, double 
                 (value > data[y-stepy-dy])        ) {
                 
                 /* If we have a maximum, try to find the maximum
-                 * in a box around i, j with size 2stepy * 2stepx
+                 * in a box around i, j with size 2*stepy x 2*stepx
                  * and stepsize 1. */
                 maxval=data[y];
                 
@@ -304,10 +339,11 @@ int dps_peaksearch(unsigned short *data, int nx, int ny, int npeaks_out, double 
                 /* Now we calculate the average background and
                  * spot values for this position. The box goes
                  * from i-stepy to i+stepy and j-stepx to
-                 * i+stepx. The backgroiund pixels are the pixels
+                 * i+stepx. The background pixels are the pixels
                  * of a one pixel frame at the border of the box,
                  * the rest are spot pixels. For stepy=stepy=3 this
-                 * gives 25 spot pixels and 24 background pixels */
+                 * gives 25 spot pixels and 24 background pixels
+                 */
                 
                 /* Borders of the box */
                 bma_y = y_max+stepy;
@@ -321,6 +357,8 @@ int dps_peaksearch(unsigned short *data, int nx, int ny, int npeaks_out, double 
                 if (bmi_x < 0) bmi_x = 0;
                 
                 back = 0;
+                bmax = -1;
+                bmin = 999999;
                 spot = 0;
                 
                 nover=0;
@@ -330,6 +368,7 @@ int dps_peaksearch(unsigned short *data, int nx, int ny, int npeaks_out, double 
                         /* see above */
                         y = k*nx+l;
                         value=data[y];
+                        value &= 0xFFFF;
                         
                         if (value >= overload) {
                             nover++;
@@ -343,6 +382,8 @@ int dps_peaksearch(unsigned short *data, int nx, int ny, int npeaks_out, double 
                             (l == bma_x) ||
                             (l == bmi_x)    ) {
                             back = back + value;
+                            if (value > bmax) bmax = value;
+                            if (value < bmin) bmin = value;
                         }
                         else {
                             spot = spot + value;
@@ -359,20 +400,37 @@ int dps_peaksearch(unsigned short *data, int nx, int ny, int npeaks_out, double 
                 I = A - B;
                 sigmaI = sqrt(A + B);
                 if ((sigmaI > 0.0) && (I/sigmaI > noise_thresh) && (nover <= 4)
-                    &&!near_edge(data, nx, ny, x_max, y_max, B/(2.*back_count), stepx, stepy)) {
-                    dps_peaks[npeaks].x = cm_y;
-                    dps_peaks[npeaks].y = cm_x;
+                    &&!near_edge(data, nx, ny, x_max, y_max,
+                                 ((double)back)/((double)(back_count)),
+                                 maxval, bmax, bmin, stepx, stepy,
+                                 &peakfw, &peakfh)) {
+                    dps_peaks[npeaks].x = cm_x;
+                    dps_peaks[npeaks].y = cm_y;
                     dps_peaks[npeaks].isigma = I/sigmaI;
+                    dps_peaks[npeaks].peakfw = peakfw;
+                    dps_peaks[npeaks].peakfh = peakfh;
                     npeaks++;
                     
+                    /* Update next_good_y for this peak */
+
+                        for (l=x_max-peakfw/2; l<=x_max+peakfw/2; l++) {
+                        if (next_good_y[l] < y_max+stepy+1 ) {
+                            next_good_y[l] = y_max+stepy+1;
+                        }
+                    }
+
+
+                    if (x_max+peakfw/2-small_stepx > i) i = x_max+peakfw/2-small_stepx;
+                        
                     if (npeaks >= maxpeaks) {
-                        maxpeaks += 1024;
+                        maxpeaks *= 2;
                         dps_peaks = (DPS_Peak *)realloc(dps_peaks, sizeof(DPS_Peak)*maxpeaks);
                         if (dps_peaks == NULL) {
                             fprintf(stderr,"error: not enough memory for dps_peaksearch (%d spots).\n",npeaks);
                             return 0;
                         }
                     }
+                        
                 }
             }
         }
@@ -381,8 +439,8 @@ int dps_peaksearch(unsigned short *data, int nx, int ny, int npeaks_out, double 
     if (min_spacing > 0) {
         for(i=0;i<npeaks;i++)
             for(j=i+1;j<npeaks;j++) {
-                if ((fabs(dps_peaks[i].x - dps_peaks[j].x) < min_spacing) &&
-                    (fabs(dps_peaks[i].y - dps_peaks[j].y) < min_spacing)) {
+                if ((fabs(dps_peaks[i].x - dps_peaks[j].x) < (dps_peaks[i].peakfw + dps_peaks[j].peakfw)/2) &&
+                    (fabs(dps_peaks[i].y - dps_peaks[j].y) < (dps_peaks[i].peakfh + dps_peaks[j].peakfh)/2)) {
                     
                     if (dps_peaks[i].isigma > dps_peaks[j].isigma)
                         dps_peaks[j].isigma = dps_peaks[j].x = dps_peaks[j].y = -9999;
@@ -402,9 +460,11 @@ int dps_peaksearch(unsigned short *data, int nx, int ny, int npeaks_out, double 
     {
         if(dps_peaks[i].x < 0 || dps_peaks[i].y < 0)
             continue;
-        dps_temp.x = dps_peaks[i].y;
-        dps_temp.y = dps_peaks[i].x;
+        dps_temp.x = dps_peaks[i].x;
+        dps_temp.y = dps_peaks[i].y;
         dps_temp.isigma = dps_peaks[i].isigma;
+        dps_temp.peakfw = dps_peaks[i].peakfw;
+        dps_temp.peakfh = dps_peaks[i].peakfh;
         *pptr++ = dps_temp;
         nxfer++;
     }
@@ -428,16 +488,19 @@ DPS_Peak *pk1, *pk2;
             return 0;
 }
 
-/* Test if there is a "0" pixel within the spot or the spot overlaps the edge
+/* Test if there are more than stepx+stepy pixels within the spot or the spot overlaps the edge
  */
 int	near_edge(unsigned short *data,
               int width, int height,
               int xpos, int ypos,
-              double back,
-              int stepx, int stepy)
+              double back, int peak, int bmax, int bmin,
+              int stepx, int stepy, int* peakfw, int* peakfh)
 {
-    int i,j,x,y;
+    int x,y, is, it;
+    int minstep, maxstep;
     int value;
+    int smin, smax;
+    double bavg;
     
     x = xpos;
     y = ypos;
@@ -450,25 +513,138 @@ int	near_edge(unsigned short *data,
         return 1;
     if (y >= height-stepy)
         return 1;
+    if (bmax >= peak)
+        return 1;
     
-    for(i = -stepx; i<= stepx; i++) {
-        for(j = -stepy; j<= stepy; j++) {
-            x = xpos + i;
-            y = ypos + j;
-            if ((x >= 0) && (x <= width) &&
-                (y >= 0) && (y <= height)) {
-                value = data[width * y + x];
+    minstep = maxstep = stepx;
+    if (stepy > maxstep) maxstep = stepy;
+    if (stepy < minstep) minstep = stepy;
+    
+    
+    /* Loop through bounding boxes 
+       When we are is from the peak, we have 
+       2*(2*is+1)+2*(2*is-1) = 8*is points */
+    for (is = 1; is <= minstep; is++) {
+        smax = -1;
+        smin = 999999;
+        bavg = 0;
+        for (it = -is; it <= is; it ++) {
+            value = data[width*(ypos -is)+xpos+it];
                 value &=0xFFFF;
-                if ((value&0XFFFC) == 0xFFFC || value < (int)back ) {
-                    return 1;
+            if (value !=0xFFFF && (value & 0XFFFC) == 0xFFFC) return 1;
+            if (value > smax) smax = value;
+            if (value < smin) smin = value;
+            bavg += (double)value;
+            value = data[width*(ypos +is)+xpos+it];
+            value &= 0xFFFF;
+            if (value !=0xFFFF && (value & 0XFFFC) == 0xFFFC) return 1;
+            if (value > smax) smax = value;
+            if (value < smin) smin = value;
+            bavg += (double)value;
                 }
+        for (it = -is+1; it <= is-1; it ++) {
+            value = data[width*(ypos +it)+xpos-is];
+            value &= 0xFFFF;
+            if (value !=0xFFFF && (value & 0XFFFC) == 0xFFFC) return 1;
+            if (value > smax) smax = value;
+            if (value < smin) smin = value;
+            bavg += (double)value;
+            value = data[width*(ypos +it)+xpos+is];
+            value &= 0xFFFF;
+            if (value !=0xFFFF && (value & 0XFFFC) == 0xFFFC) return 1;
+            if (value > smax) smax = value;
+            if (value < smin) smin = value;
+            bavg += (double)value;
             }
-            else {
-                return 1;
+        bavg /= (double)(8*is);
+        if ((double)smin < back/2. && smin < bmin) return 1;
+        if ((double)bavg >= back*1.1 ) continue;
+        if (smax <= bmax) {
+            *peakfw = *peakfh = is*2-1;
+            return 0;
+            }
+    }
+    for (is = minstep+1; is <= maxstep; is++) {
+        smax = -1;
+        smin = 999999;
+        bavg = 0;
+        if (stepy > stepx) {
+            for (it = -minstep; it <= minstep; it ++) {
+                value = data[width*(ypos -is)+xpos+it];
+                value &= 0xFFFF;
+                if (value !=0xFFFF && (value & 0XFFFC) == 0xFFFC) return 1;
+                if (value > smax) smax = value;
+                if (value < smin) smin = value;
+                bavg += (double)value;
+                value = data[width*(ypos +is)+xpos+it];
+                value &= 0xFFFF;
+                if (value !=0xFFFF && (value & 0XFFFC) == 0xFFFC) return 1;
+                if (value > smax) smax = value;
+                if (value < smin) smin = value;
+                bavg += (double)value;
+            }
+            for (it = -is+1; it <= is-1; it ++) {
+                value = data[width*(ypos +it)+xpos-minstep];
+                value &= 0xFFFF;
+                if (value !=0xFFFF && (value & 0XFFFC) == 0xFFFC) return 1;
+                if (value > smax) smax = value;
+                if (value < smin) smin = value;
+                bavg += (double)value;
+                value = data[width*(ypos +it)+xpos+minstep];
+                value &= 0xFFFF;
+                if (value !=0xFFFF && (value & 0XFFFC) == 0xFFFC) return 1;
+                if (value > smax) smax = value;
+                if (value < smin) smin = value;
+                bavg += (double)value;
             }
             
+        } else if (stepx < stepy) {
+            
+            for (it = -is; it <= is; it ++) {
+                value = data[width*(ypos -minstep)+xpos+it];
+                value &= 0xFFFF;
+                if (value !=0xFFFF && (value & 0XFFFC) == 0xFFFC) return 1;
+                if (value > smax) smax = value;
+                if (value < smin) smin = value;
+                bavg += (double)value;
+                value = data[width*(ypos +minstep)+xpos+it];
+                value &= 0xFFFF;
+                if (value !=0xFFFF && (value & 0XFFFC) == 0xFFFC) return 1;
+                if (value > smax) smax = value;
+                if (value < smin) smin = value;
+                bavg += (double)value;
         }
+            for (it = -minstep+1; it <= minstep-1; it ++) {
+                value = data[width*(ypos +it)+xpos-is];
+                value &= 0xFFFF;
+                if (value !=0xFFFF && (value & 0XFFFC) == 0xFFFC) return 1;
+                if (value > smax) smax = value;
+                if (value < smin) smin = value;
+                bavg += (double)value;
+                value = data[width*(ypos +it)+xpos+is];
+                value &= 0xFFFF;
+                if (value !=0xFFFF && (value & 0XFFFC) == 0xFFFC) return 1;
+                if (value > smax) smax = value;
+                if (value < smin) smin = value;
+                bavg += (double)value;
     }
-    
+        }
+        bavg /= (double)(4*is+4*minstep);
+        if ((double)smin < back/2. && smin < bmin) return 1;
+        if ((double)bavg >= back*1.1 ) continue;
+        if (smax <= bmax) {
+            if (stepx < stepy) {
+                *peakfh = 2*minstep-1;
+                *peakfw = 2*is-1;
+            } else {
+                *peakfw = 2*minstep-1;
+                *peakfh = 2*is-1;
+            }
     return 0;
 }
+    }
+    *peakfh = 2*stepy+1;
+    *peakfw = 2*stepx+1;
+    return 0;
+    
+ }

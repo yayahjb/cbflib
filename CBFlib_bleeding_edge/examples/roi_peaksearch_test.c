@@ -64,14 +64,13 @@ static void gethd ( char* field, char* value, char* header )
 DPS_Peak    peaks[MAX_PEAKS];
 
 int        max_peaks = MAX_PEAKS;
-int        min_spacing = 6;
-double     ioversig = 2.;
 
 void    usage()
 {
-    fprintf(stderr,"Usage: roi_peaksearch [--binagain] [--min-i-over-sigma ioversig] \\\n"
+    fprintf(stderr,"Usage: roi_peaksearch [--binagain] [--min-peak ioversig] \\\n"
             "        [--region_of_interest fastlow,fasthigh,slowlow,showhigh] \\\n"
             "        [--overlay overlay_file.cbf] [--mask mask_file.cbf] \\\n"
+            "        [--min-spacing min_spacing] \\\n"
             "        file.cbf peaklist \n");
 }
 
@@ -83,6 +82,8 @@ int     main (int argc, char **argv)
     char * hp;
     char * maskname = NULL;  /* An optional mask file (e.g. BKGINIT.cbf) */
     char * overlayname = NULL; /* An optional peak/roi overlay file */
+    int        min_spacing = 6;  /* Minimum spacing in pixels between spots */
+    double     ioversig = 2.;    /* Minimum peak height in I/sigma(I) */
     int    dim, size[10], type;
     int    xsize, ysize;
     int    istat, lhead;
@@ -216,6 +217,13 @@ int     main (int argc, char **argv)
         if (argc > 4 && (0 == cbf_cistrcmp("--min-i-over-sigma",argv[1])
                          || (0 == cbf_cistrcmp("--min-peak",argv[1])))) {
             ioversig = atof(argv[2]);
+            argv+=2;
+            argc-=2;
+            continue;
+        }
+        if (argc > 4 && (0 == cbf_cistrcmp("--min-spacing",argv[1]))) {
+            min_spacing = (int)(0.5+atof(argv[2]));
+            if (min_spacing < 1) min_spacing = 1;
             argv+=2;
             argc-=2;
             continue;
@@ -428,24 +436,28 @@ int     main (int argc, char **argv)
     }
     for(i = 0; i < n_peaks; i++) {
         int xlow, xhigh, ylow, yhigh, xcen, ycen, ix, iy;
-        int heat;
+        int heat, min_crossw, min_crossh;
         fprintf(fp, "%7.2f %7.2f  %9.2f\n", peaks[i].x+fastlow, peaks[i].y+slowlow, peaks[i].isigma);
         if (overlayname) {
+            min_crossw = (peaks[i].peakfw+1)/2-1;
+            min_crossh = (peaks[i].peakfh+1)/2-1;
+            if (min_crossw<1) min_crossw=1;
+            if (min_crossh<1) min_crossh=1;
             xcen = peaks[i].x+fastlow+0.5;
             ycen = peaks[i].y+slowlow+0.5;
-            xlow = xcen - 6;
+            xlow = xcen - peaks[i].peakfw;
             if (xlow < 0) xlow = 0;
-            xhigh = xcen + 6;
+            xhigh = xcen + peaks[i].peakfw;
             if (xhigh >= nDim0) xhigh = nDim0-1;
-            ylow = ycen - 6;
+            ylow = ycen - peaks[i].peakfh;
             if (ylow < 0) ylow = 0;
-            yhigh = ycen +6;
+            yhigh = ycen + peaks[i].peakfh;
             if (yhigh >= nDim1) yhigh = nDim1-1;
-            heat = (int)(peaks[i].isigma/2.5+0.5);
-            if (heat < 1) heat = 1;
+            heat = (int)(peaks[i].isigma/10.0+0.5);
+            if (heat < 7) heat = 7;
             if (heat > 65520) heat = 65520;
             for (ix = xlow; ix <=xhigh; ix++) {
-                if (ix < xcen-2 || ix > xcen+2) {
+                if (ix < xcen-min_crossw || ix > xcen+min_crossw) {
                     pnData[ix+nDim0*ycen] ^= heat;
                 }
                 if (ix == xlow+1 || ix == xhigh-1) {
@@ -453,7 +465,7 @@ int     main (int argc, char **argv)
                 }
             }
             for (iy = ylow; iy <=yhigh; iy++) {
-                if (iy < ycen-2 || iy > ycen+2) {
+                if (iy < ycen-min_crossh || iy > ycen+min_crossh) {
                     pnData[xcen+nDim0*iy] ^= heat;
                 }
                 if (iy == ylow+1 || iy == yhigh-1) {
