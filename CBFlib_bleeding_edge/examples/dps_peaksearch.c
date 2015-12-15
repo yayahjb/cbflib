@@ -205,7 +205,7 @@ static	int	ccd_image_saturation = 0;
 
 int dps_peaksearch(unsigned short *data, int nx, int ny,
                    int npeaks_out, double min_isigma,
-                   int min_spacing, DPS_Peak *pptr)
+                   int min_spacing, DPS_Peak *pptr, int min_value)
 {
     
     int stepx;
@@ -231,6 +231,7 @@ int dps_peaksearch(unsigned short *data, int nx, int ny,
     int maxpeaks=20480;
     int sortfunc();
     int nover;
+    int nunder;
     int	nxfer;
     DPS_Peak dps_temp;
     int peakfw, peakfh;
@@ -362,6 +363,7 @@ int dps_peaksearch(unsigned short *data, int nx, int ny,
                 spot = 0;
                 
                 nover=0;
+                nunder=0;
                 for(k=bmi_y;k<=bma_y;k++) {
                     for(l=bmi_x;l<=bma_x;l++) {
                         
@@ -372,6 +374,10 @@ int dps_peaksearch(unsigned short *data, int nx, int ny,
                         
                         if (value >= overload) {
                             nover++;
+                        }
+                        
+                        if (value < min_value) {
+                            nunder++;
                         }
                         
                         /* if counter at border of box, the pixel
@@ -399,11 +405,14 @@ int dps_peaksearch(unsigned short *data, int nx, int ny,
                 B = (double)back*spot_count/back_count;
                 I = A - B;
                 sigmaI = sqrt(A + B);
-                if ((sigmaI > 0.0) && (I/sigmaI > noise_thresh) && (nover <= 4)
+                if ((sigmaI > 0.0)
+                    && (I/sigmaI > noise_thresh)
+                    && (nover <= 4)
+                    && (nunder < 1)
                     &&!near_edge(data, nx, ny, x_max, y_max,
                                  ((double)back)/((double)(back_count)),
                                  maxval, bmax, bmin, stepx, stepy,
-                                 &peakfw, &peakfh)) {
+                                 &peakfw, &peakfh, min_value)) {
                     dps_peaks[npeaks].x = cm_x;
                     dps_peaks[npeaks].y = cm_y;
                     dps_peaks[npeaks].isigma = I/sigmaI;
@@ -494,7 +503,7 @@ int	near_edge(unsigned short *data,
               int width, int height,
               int xpos, int ypos,
               double back, int peak, int bmax, int bmin,
-              int stepx, int stepy, int* peakfw, int* peakfh)
+              int stepx, int stepy, int* peakfw, int* peakfh, int min_value)
 {
     int x,y, is, it;
     int minstep, maxstep;
@@ -532,6 +541,7 @@ int	near_edge(unsigned short *data,
             value = data[width*(ypos -is)+xpos+it];
                 value &=0xFFFF;
             if (value !=0xFFFF && (value & 0XFFFC) == 0xFFFC) return 1;
+            if (value < min_value) return 1;
             if (value > smax) smax = value;
             if (value < smin) smin = value;
             bavg += (double)value;

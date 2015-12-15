@@ -301,6 +301,9 @@ extern "C" {
     #ifdef CBF_H5Z_USE_LZ4
         extern const H5Z_class2_t H5Z_LZ4[1];
     #endif
+    #ifdef CBF_H5Z_USE_BSHUF
+    extern const H5Z_class2_t bshuf_H5Filter[1];
+#endif
 #endif
 
 #ifdef CBF_H5Z_USE_LZ4
@@ -321,7 +324,30 @@ extern "C" {
 
 #endif
 
+#ifdef CBF_H5Z_USE_BSHUF
 
+    /* HDF5 BSHUF Filter number */
+    
+#ifndef CBF_H5Z_FILTER_BSHUF
+#ifndef H5Z_FILTER_BSHUF
+#define CBF_H5Z_FILTER_BSHUF    32008
+#else
+#define CBF_H5Z_FILTER_BSHUF H5Z_FILTER_BSHUF
+#endif
+#endif
+    
+    
+#define CBF_H5Z_FILTER_BSHUF_NELMTS         5
+#define CBF_H5Z_FILTER_BSHUF_LZ4_BLOCKSIZE  0
+#define CBF_H5Z_FILTER_BSHUF_LZ4_THREADS    1
+#define CBF_H5Z_FILTER_BSHUF_ELEM_SIZE      2
+#define CBF_H5Z_FILTER_BSHUF_BLOCKSIZE      3
+#define CBF_H5Z_FILTER_BSHUF_COMPRESSION    4
+#define CBF_H5Z_FILTER_BSHUF_LZ4            2
+    
+#endif
+
+    
 #ifdef __cplusplus
     
 }

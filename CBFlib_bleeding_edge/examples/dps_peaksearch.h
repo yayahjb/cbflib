@@ -55,7 +55,8 @@
                        int npeaks_out,       // The maximum number of peaks
                        double min_isigma,    // The minimum I/sigma to accept
                        int min_spacing,      // The minimum spacing in pixels
-                       DPS_Peak *pptr);      // The array of peaks
+                       DPS_Peak *pptr,       // The array of peaks
+                       int min_value);       // The minimum valid value
  
  */
 
@@ -80,7 +81,8 @@ int dps_peaksearch(unsigned short *data,
                       int npeaks_out,
                       double min_isigma,
                       int min_spacing,
-                      DPS_Peak *pptr);
+                      DPS_Peak *pptr,
+                      int min_value);
 
 int	near_edge(unsigned short *data,
               int width, int height,
@@ -88,6 +90,6 @@ int	near_edge(unsigned short *data,
               double back, int peak,
               int bmax, int bmin,
               int stepx, int stepy,
-              int *peakfw, int *peakfh);
+              int *peakfw, int *peakfh, int min_value);
 
 #endif

@@ -71,6 +71,7 @@ void    usage()
             "        [--region_of_interest fastlow,fasthigh,slowlow,showhigh] \\\n"
             "        [--overlay overlay_file.cbf] [--mask mask_file.cbf] \\\n"
             "        [--min-spacing min_spacing] \\\n"
+            "        [--min-value min_value] \\\n"
             "        file.cbf peaklist \n");
 }
 
@@ -83,6 +84,7 @@ int     main (int argc, char **argv)
     char * maskname = NULL;  /* An optional mask file (e.g. BKGINIT.cbf) */
     char * overlayname = NULL; /* An optional peak/roi overlay file */
     int        min_spacing = 6;  /* Minimum spacing in pixels between spots */
+    int        min_value = 0;    /* Minimum valid value */
     double     ioversig = 2.;    /* Minimum peak height in I/sigma(I) */
     int    dim, size[10], type;
     int    xsize, ysize;
@@ -224,6 +226,12 @@ int     main (int argc, char **argv)
         if (argc > 4 && (0 == cbf_cistrcmp("--min-spacing",argv[1]))) {
             min_spacing = (int)(0.5+atof(argv[2]));
             if (min_spacing < 1) min_spacing = 1;
+            argv+=2;
+            argc-=2;
+            continue;
+        }
+        if (argc > 4 && (0 == cbf_cistrcmp("--min-value",argv[1]))) {
+            min_value = (int)(atof(argv[2]));
             argv+=2;
             argc-=2;
             continue;
@@ -385,7 +393,7 @@ int     main (int argc, char **argv)
     k = nDim0*nDim1;
     for(i = 0; i < k; i++) {
         if ((0xFFFF0000 &*ip) != 0) {
-            *up++ = 0xFFFF;
+            *up++ = 0xFFFD;
             ip++; }
         else  {
             lastgood = *ip++;
@@ -420,7 +428,12 @@ int     main (int argc, char **argv)
         
     }
     
-    n_peaks = dps_peaksearch(out, fasthigh-fastlow+1, slowhigh-slowlow+1, max_peaks, ioversig, min_spacing, peaks);
+    n_peaks = dps_peaksearch(out,
+                             fasthigh-fastlow+1, slowhigh-slowlow+1,
+                             max_peaks, ioversig,
+                             min_spacing,
+                             peaks,
+                             min_value);
     //        n_peaks = dps_peaksearch_cn(raw, xsize, ysize, max_peaks, ioversig, min_spacing, peaks);
     
     fprintf(stdout, "Number of peaks found with I/sigma > %.2f is %d\n", ioversig, n_peaks);

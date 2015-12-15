@@ -93,7 +93,12 @@ static void usage( void )
     fprintf(stderr,"\t--add-minicbf-header      Add a minicbf header for fast_dp\n");
     fprintf(stderr,"\t--polarization-source-ratio=ratio\n");
     fprintf(stderr,"\t                          Polarization source ratio (Ip-In)/(Ip+In)\n");
+    fprintf(stderr,"\t--scale=1.0              Scale the data\n");
+    fprintf(stderr,"\t--offset=0.0             Offset the data\n");
+    fprintf(stderr,"\t--cliplow=0.0            Clip the scaled and offset data below\n");
+    fprintf(stderr,"\t--cliphigh=16384.0       Clip the scaled and offset deata above\n");
 
+    
     
 }
 
@@ -120,7 +125,12 @@ int adscimg2cbf_sub2(char *header,
                      const char *roi,
                      const char *thickstr,
                      int add_mini_cbf_header,
-                     const char *polarstr);
+                     const char *polarstr,
+                     int bin,
+                     const char *scalestr,
+                     const char *offsetstr,
+                     const char *cliplowstr,
+                     const char *cliphighstr);
 
 
 int    main(int argc, char *argv[])
@@ -141,10 +151,15 @@ int    main(int argc, char *argv[])
     int        status_pclose;
     int        beam_center_convention;
     int     add_minicbf_header=0;
+    int     bin=0;
     double  thickness=0.;
     const char *    roi=NULL;
     const char *    thickstr=NULL;
     const char *    polarstr=NULL;
+    const char *    scalestr=NULL;
+    const char *    offsetstr=NULL;
+    const char *    cliplowstr=NULL;
+    const char *    cliphighstr=NULL;
     char *     strstrhit;
     static char    *endings[] = {
                     ".img",
@@ -153,7 +168,7 @@ int    main(int argc, char *argv[])
                     ".img.Z",
                     NULL
                      };
-	static char	*flags[22] = {
+	static char	*flags[27] = {
                     "--cbf_byte_offset",            /* 0 */
                     "--cbf_packed_v2",              /* 1 */
                     "--cbf_packed",                 /* 2 */
@@ -175,6 +190,11 @@ int    main(int argc, char *argv[])
                     "--add_minicbf_header",         /*18 */
                     "--polarization-source-ratio",  /*19 */
                     "--polarization_source_ratio",  /*20 */
+                    "--bin",                        /*21 */
+                    "--scale",                      /*22 */
+                    "--offset",                     /*23 */
+                    "--cliplow",                    /*24 */
+                    "--cliphigh",                   /*25 */
                     NULL
                    };
 
@@ -277,8 +297,21 @@ int    main(int argc, char *argv[])
                     exit(0);
                 }
                 break;
-
-
+            case 21:
+                bin = 1;
+                break;
+            case 22:
+                scalestr = argv[1]+strlen(flags[j])+1;
+                break;
+            case 23:
+                offsetstr = argv[1]+strlen(flags[j])+1;
+                break;
+            case 24:
+                cliplowstr = argv[1]+strlen(flags[j])+1;
+                break;
+            case 25:
+                cliphighstr = argv[1]+strlen(flags[j])+1;
+                break;
 
         }
         if(j < 3 || j==12)
@@ -478,7 +511,12 @@ int    main(int argc, char *argv[])
                                       roi,
                                       thickstr,
                                       add_minicbf_header,
-                                      polarstr);
+                                      polarstr,
+                                      bin,
+                                      scalestr,
+                                      offsetstr,
+                                      cliplowstr,
+                                      cliphighstr);
         free(hptr);
 
         argv++;

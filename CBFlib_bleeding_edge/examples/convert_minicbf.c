@@ -2969,7 +2969,7 @@ int main (int argc, char *argv [])
         
         cbf_failnez(cbf_get_doublevalue(minicbf,&distance))
         
-        if (distance == 0.) {
+        if (distance == 0. && distancestr) {
             
             distance = atof (distancestr);
             
@@ -2995,7 +2995,11 @@ int main (int argc, char *argv [])
         
         cbf_failnez(cbf_get_doublevalue(minicbf,&voffset))
         
-        cbf_failnez (cbf_set_axis_setting (cbf, 0, "DETECTOR_Y", voffset, 0))
+        if ( cbf_set_axis_setting (cbf, 0, "DETECTOR_Y", voffset, 0) && voffset !=0.) {
+        
+            fprintf(stderr,"\n convert_minicbf: No DETECTOR_Y to accept voffset\n" );
+
+        }
         
         cbf_failnez(cbf_require_category(cbf,"diffrn_measurement"))
         
@@ -3063,7 +3067,7 @@ int main (int argc, char *argv [])
         
         if (!cbf_cistrcmp(units,"pixels")) {
             
-            cbf_failnez(cbf_construct_detector (cbf, &detector, 0))
+            if(!cbf_construct_detector (cbf, &detector, 0)){
             
             cbf_failnez(cbf_set_beam_center(detector, &bcy, &bcx, NULL, NULL))
             
@@ -3077,6 +3081,7 @@ int main (int argc, char *argv [])
                 
                 cbf_failnez(cbf_free_detector(detector))
                 
+            }
             }
             
         } else if (!cbf_cistrcmp(units,"mm")) {

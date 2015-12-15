@@ -275,8 +275,8 @@ extern "C" {
 _CBF_STR(CBF_VERS_MINOR) "." \
 _CBF_STR(CBF_VERS_RELEASE) CBF_VERS_SUBRELEASE
 
-#define CBF_SVN_REVISION_STRING "$Rev$"
-#define CBF_SVN_DATE_STRING "$Date$"
+#define CBF_SVN_REVISION_STRING "$Rev: 543 $"
+#define CBF_SVN_DATE_STRING "$Date: 2015-02-05 07:28:08 -0500 (Thu, 05 Feb 2015) $"
 #include "cbf_tree.h"
 #include "hdf5.h"
 
@@ -381,7 +381,80 @@ _CBF_STR(CBF_VERS_RELEASE) CBF_VERS_SUBRELEASE
 #define CBF_H5DIFFERENT      0x00100000  /* 1048576 */
 #define CBF_SIZE             0x00200000  /* 2097152 */
     
-  /* HDF5 CBF Filter number */
+  /* HDF5 LZO Filter number */
+
+#ifndef CBF_H5Z_FILTER_LZO
+#ifndef H5Z_FILTER_LZO
+#define CBF_H5Z_FILTER_LZO    305
+#else
+#define CBF_H5Z_FILTER_LZO H5Z_FILTER_LZO
+#endif
+#endif
+
+    /* HDF5 BZIP2 Filter number */
+    
+#ifndef CBF_H5Z_FILTER_BZIP2
+#ifndef H5Z_FILTER_BZIP2
+#define CBF_H5Z_FILTER_BZIP2  307
+#else
+#define CBF_H5Z_FILTER_BZIP2 H5Z_FILTER_BZIP2
+#endif
+#endif
+
+    /* HDF5 LZF Filter number */
+    
+#ifndef CBF_H5Z_FILTER_LZF
+#ifndef H5Z_FILTER_LZF
+#define CBF_H5Z_FILTER_LZF    32000
+#else
+#define CBF_H5Z_FILTER_LZF H5Z_FILTER_LZF
+#endif
+#endif
+
+    
+    /* HDF5 BLOSC Filter number */
+    
+#ifndef CBF_H5Z_FILTER_BLOSC
+#ifndef H5Z_FILTER_BLOSC
+#define CBF_H5Z_FILTER_BLOSC   32001
+#else
+#define CBF_H5Z_FILTER_BLOSC  H5Z_FILTER_BLOSC
+#endif
+#endif
+    
+    /* HDF5 MAFISC Filter number */
+    
+#ifndef CBF_H5Z_FILTER_MAFISC
+#ifndef H5Z_FILTER_MAFISC
+#define CBF_H5Z_FILTER_MAFISC   32002
+#else
+#define CBF_H5Z_FILTER_MAFISC  H5Z_FILTER_MAFISC
+#endif
+#endif
+
+    /* HDF5 SNAPPY Filter number */
+    
+#ifndef CBF_H5Z_FILTER_SNAPPY
+#ifndef H5Z_FILTER_SNAPPY
+#define CBF_H5Z_FILTER_SNAPPY   32003
+#else
+#define CBF_H5Z_FILTER_SNAPPY  H5Z_FILTER_SNAPPY
+#endif
+#endif
+
+    
+  /* HDF5 LZ4 Filter number */
+
+#ifndef CBF_H5Z_FILTER_LZ4
+#ifndef H5Z_FILTER_LZ4
+#define CBF_H5Z_FILTER_LZ4    32004
+#else
+#define CBF_H5Z_FILTER_LZ4 H5Z_FILTER_LZ4
+#endif
+#endif
+
+
+    /* HDF5 CBF Filter number */
 
 #ifndef CBF_H5Z_FILTER_CBF
 #ifndef H5Z_FILTER_CBF
@@ -390,14 +463,36 @@ _CBF_STR(CBF_VERS_RELEASE) CBF_VERS_SUBRELEASE
 #define CBF_H5Z_FILTER_CBF H5Z_FILTER_CBF
 #endif
 #endif
-
-  /* HDF5 LZ4 Filter number */
-
-#ifndef CBF_H5Z_FILTER_LZ4
-#ifndef H5Z_FILTER_LZ4
-#define CBF_H5Z_FILTER_LZ4    32004
+    
+    /* HDF5 JPEG_XR Filter number */
+    
+#ifndef CBF_H5Z_FILTER_JPEG_XR
+#ifndef H5Z_FILTER_JPEG_XR
+#define CBF_H5Z_FILTER_JPEG_XR    32007
 #else
-#define CBF_H5Z_FILTER_LZ4 H5Z_FILTER_LZ4
+#define CBF_H5Z_FILTER_JPEG_XR H5Z_FILTER_JPEG_XR
+#endif
+#endif
+
+
+    /* HDF5 BSHUF Filter number */
+    
+#ifndef CBF_H5Z_FILTER_BSHUF
+#ifndef H5Z_FILTER_BSHUF
+#define CBF_H5Z_FILTER_BSHUF    32008
+#else
+#define CBF_H5Z_FILTER_BSHUF H5Z_FILTER_BSHUF
+#endif
+#endif
+    
+    
+    /* HDF5 SPDP Filter number */
+    
+#ifndef CBF_H5Z_FILTER_SPDP
+#ifndef H5Z_FILTER_SPDP
+#define CBF_H5Z_FILTER_SPDP    32009
+#else
+#define CBF_H5Z_FILTER_SPDP H5Z_FILTER_SPDP
 #endif
 #endif
 
@@ -466,7 +561,7 @@ _CBF_STR(CBF_VERS_RELEASE) CBF_VERS_SUBRELEASE
                         0x0800  /* Flag to turn on HDF compression in CBF write*/
 #define	CBF_H5COMPRESSION_CBF  \
                         0x0800  /* Flag to turn on CBF compression for the 
-                                   a binary dataset within a HDF5 file 
+                                   a binary dataset within an HDF5 file 
                                    Note this overloads the CBF_H5COMPRESSION
                                    flag */
 #define	CBF_H5COMPRESSION_ZLIB   0x00B0
@@ -475,6 +570,8 @@ _CBF_STR(CBF_VERS_RELEASE) CBF_VERS_SUBRELEASE
     /* Flag to turn on LZ4 compression for the main dataset within a HDF5 file */
 #define	CBF_H5COMPRESSION_LZ4_2  0x00D0
     /* Flag to turn on LZ4**2 compression for the main dataset within a HDF5 file */
+#define	CBF_H5COMPRESSION_BSLZ4  0x00E0
+    /* Flag to turn on BSLZ4 compression for the main dataset within a HDF5 file */
 
     
     
