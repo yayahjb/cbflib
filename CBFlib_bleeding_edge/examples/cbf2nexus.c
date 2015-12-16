@@ -308,15 +308,26 @@ int main (int argc, char *argv [])
             switch (c) {
 				case 'c': { /* compression */
 					if (!cbf_cistrcmp("zlib",optarg?optarg:"")) {
+                        h5_write_flags &= ~(CBF_COMPRESSION_MASK|CBF_FLAG_MASK);
 						h5_write_flags |= CBF_H5COMPRESSION_ZLIB;
-						h5_write_flags &= ~CBF_H5COMPRESSION_CBF;
 					} else if (!cbf_cistrcmp("cbf",optarg?optarg:"")) {
-						h5_write_flags &= ~CBF_H5COMPRESSION_ZLIB;
-						h5_write_flags |= CBF_H5COMPRESSION_CBF;
+                        h5_write_flags &= ~(CBF_COMPRESSION_MASK|CBF_FLAG_MASK);
+						h5_write_flags |= CBF_H5COMPRESSION_CBF|CBF_NIBBLE_OFFSET;
+                    } else if (!cbf_cistrcmp("cbf_byte_offset",optarg?optarg:"")) {
+                        h5_write_flags &= ~(CBF_COMPRESSION_MASK|CBF_FLAG_MASK);
+                        h5_write_flags |= CBF_H5COMPRESSION_CBF|CBF_BYTE_OFFSET;
+                    } else if (!cbf_cistrcmp("lz4",optarg?optarg:"")) {
+                        h5_write_flags &= ~(CBF_COMPRESSION_MASK|CBF_FLAG_MASK);
+                        h5_write_flags |= CBF_H5COMPRESSION_LZ4;
+                    } else if (!cbf_cistrcmp("lz4**2",optarg?optarg:"")) {
+                        h5_write_flags &= ~(CBF_COMPRESSION_MASK|CBF_FLAG_MASK);
+                        h5_write_flags |= CBF_H5COMPRESSION_LZ4_2;
+                    } else if (!cbf_cistrcmp("bslz4",optarg?optarg:"")) {
+                        h5_write_flags &= ~(CBF_COMPRESSION_MASK|CBF_FLAG_MASK);
+                        h5_write_flags |= CBF_H5COMPRESSION_BSLZ4;
 					} else if (!cbf_cistrcmp("none",optarg?optarg:"")) {
 						/* remove any previously set (system default?) compressions */
-						h5_write_flags &= ~CBF_H5COMPRESSION_ZLIB;
-						h5_write_flags &= ~CBF_H5COMPRESSION_CBF;
+						h5_write_flags &= ~(CBF_COMPRESSION_MASK|CBF_FLAG_MASK);
 					}
 					else ++errflg;
 					break;

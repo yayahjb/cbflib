@@ -1163,6 +1163,7 @@ build_BSHUF:	$(M4)/Makefile.m4  $(SOLIB)
 $(BSHUF): $(HDF5)	build_BSHUF
 	-rm -rf $(BSHUF)
 	-rm -rf $(BSHUF).tar.gz
+	-rm -rf *.o
 	$(DOWNLOAD) $(BSHUFURL)
 	tar -xvf $(BSHUF).tar.gz
 	touch $(BSHUF)
@@ -1172,7 +1173,7 @@ $(BSHUF): $(HDF5)	build_BSHUF
 	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(BSHUFsrc)/bshuf_h5filter.c -o bshuf_h5filter.o; \
 	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(BSHUFsrc)/bitshuffle.c -o bitshuffle.o; \
 	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(BSHUFsrc)/../lz4/lz4.c  -o lz4.o; \
-	$(CC) -shared bshuf_h5filter.o bitshuffle.o lz4.o -o $(SOLIB)/bshuf_h5filter.so; \
+	$(CC) -shared bshuf_h5filter.o bitshuffle.o lz4.o $(HDF5SOLIBS) -o $(SOLIB)/bshuf_h5filter.so; \
 	rm bshuf_h5filter.o bitshuffle.o lz4.o)
 endif
 
@@ -1224,6 +1225,8 @@ $(SRC)/cbf_stx.c: $(SRC)/cbf.stx.y
 # CBF library
 #
 $(LIB)/libcbf.a: $(SOURCE) $(HEADERS) $(COMMONDEP) $(LIB) $(HDF5)
+	-rm -f $@
+	-rm -f *.o
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) \
 	-DCBF_FILTER_STATIC $(LZ4FLAG) $(BSHUFFLAG)  $(PYCIFRWFLAG) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
 ifneq ($(CBFLIB_DONT_USE_LZ4),yes)
@@ -1245,6 +1248,7 @@ endif
 
 $(SOLIB)/libcbf.so: $(SOURCE) $(HEADERS) $(COMMONDEP) $(SOLIB) $(HDF5)
 	-rm -f $@
+	-rm -f *.o
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(LZ4FLAG) $(BSHUFFLAG) $(PYCIFRWFLAG) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
 ifneq ($(CBFLIB_DONT_USE_LZ4),yes)
 ifeq ($(CBFLIB_DONT_USE_BSHUF),yes)
@@ -1259,7 +1263,7 @@ ifneq ($(CBFLIB_DONT_USE_BSHUF),yes)
 endif
 
 	$(CC) -o $@ *.o $(SOLDFLAGS) $(EXTRALIBS) $(HDF5SOLIBS)
-	rm *.o
+	-rm -f *.o
 
 #
 # IMG library
