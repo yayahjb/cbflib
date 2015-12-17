@@ -6417,10 +6417,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                         
                         else if ((h5handle->flags & CBF_COMPRESSION_MASK) == CBF_H5COMPRESSION_BSLZ4 ) {
                             unsigned int cd_values[CBF_H5Z_FILTER_BSHUF_NELMTS];
-                            cd_values[CBF_H5Z_FILTER_BSHUF_LZ4_BLOCKSIZE] = 8192;
                             cd_values[CBF_H5Z_FILTER_BSHUF_BLOCKSIZE] = 8192;
-                            cd_values[CBF_H5Z_FILTER_BSHUF_LZ4_THREADS] = 1;
-                            cd_values[CBF_H5Z_FILTER_BSHUF_ELEM_SIZE] = elsize;
                             cd_values[CBF_H5Z_FILTER_BSHUF_COMPRESSION] =
                             CBF_H5Z_FILTER_BSHUF_LZ4;
                             
@@ -6440,8 +6437,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                 }
                                 
                             }
-#endif
                         }
+#endif
                         
                     }
                     /* create the dataset */
@@ -14070,6 +14067,33 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     
                 }
 #endif
+#ifdef CBF_H5Z_USE_BSHUF
+                
+                else if ((h5handle->flags & CBF_COMPRESSION_MASK) == CBF_H5COMPRESSION_BSLZ4 ) {
+                    unsigned int cd_values[CBF_H5Z_FILTER_BSHUF_NELMTS];
+                    cd_values[CBF_H5Z_FILTER_BSHUF_BLOCKSIZE] = 8192;
+                    cd_values[CBF_H5Z_FILTER_BSHUF_COMPRESSION] =
+                    CBF_H5Z_FILTER_BSHUF_LZ4;
+                    
+                    if (h5handle->flags & CBF_H5_REGISTER_COMPRESSIONS) {
+                        if (!H5Zfilter_avail(CBF_H5Z_FILTER_BSHUF)) {
+                            cbf_h5reportneg(H5Zregister(bshuf_H5Filter),CBF_H5ERROR ,errorcode);
+                            if (errorcode) {
+                                CBF_PRINT_WARNING("Failed to load CBF_H5Z_FILTER_BSHUF (32008) compression filter "
+                                                  "Check value of HDF5_PLUGIN_PATH environment variable");
+                                
+            }
+                        }
+            
+                        cbf_h5reportneg(H5Pset_filter(valprop, CBF_H5Z_FILTER_BSHUF, /* H5Z_FLAG_OPTIONAL*/0, CBF_H5Z_FILTER_BSHUF_NELMTS, cd_values),CBF_H5ERROR,errorcode);
+                        if (errorcode) {
+                            cbf_debug_print2("error on setting filter CBF_H5Z_FILTER_BSHUF %d\n",errorcode);
+                        }
+                        
+                    }
+                }
+#endif
+
             }
             
             valid = H5Dcreatex(h5handle->colid,rownum,
@@ -21589,6 +21613,33 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                             
                         }
 #endif
+#ifdef CBF_H5Z_USE_BSHUF
+                        
+                        else if ((h5handle->flags & CBF_COMPRESSION_MASK) == CBF_H5COMPRESSION_BSLZ4 ) {
+                            unsigned int cd_values[CBF_H5Z_FILTER_BSHUF_NELMTS];
+                            cd_values[CBF_H5Z_FILTER_BSHUF_BLOCKSIZE] = 8192;
+                            cd_values[CBF_H5Z_FILTER_BSHUF_COMPRESSION] =
+                            CBF_H5Z_FILTER_BSHUF_LZ4;
+                            
+                            if (h5handle->flags & CBF_H5_REGISTER_COMPRESSIONS) {
+                                if (!H5Zfilter_avail(CBF_H5Z_FILTER_BSHUF)) {
+                                    cbf_h5reportneg(H5Zregister(bshuf_H5Filter),CBF_H5ERROR ,error);
+                                    if (error) {
+                                        CBF_PRINT_WARNING("Failed to load CBF_H5Z_FILTER_BSHUF (32008) compression filter "
+                                                          "Check value of HDF5_PLUGIN_PATH environment variable");
+                                        
+                    }
+                                }
+                    
+                                cbf_h5reportneg(H5Pset_filter(valprop, CBF_H5Z_FILTER_BSHUF, /* H5Z_FLAG_OPTIONAL*/0, CBF_H5Z_FILTER_BSHUF_NELMTS, cd_values),CBF_H5ERROR,error);
+                                if (error) {
+                                    cbf_debug_print2("error on setting filter CBF_H5Z_FILTER_BSHUF %d\n",error);
+                                }
+                                
+                            }
+                        }
+#endif
+
                     }
                     
                     /* create the dataset */
