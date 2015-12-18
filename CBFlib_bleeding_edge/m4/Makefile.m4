@@ -329,7 +329,7 @@ ifneq ($(CBFLIB_DONT_USE_BSHUF),yes)
 #
 # Definitions to get a version of HDF5Plugin for BSHUFFLE WITH LZ4
 #
-BSHUF =bitshuffle-0.2.1_16Jun15
+BSHUF = bitshuffle-0.2.1.1_17Dec15
 BSHUFsrc = $(BSHUF)/src
 BSHUFinclude = $(BSHUF)/src
 BSHUFSOLIBS = -L$(SOLIB) -lh5zbshuf
