@@ -1,5 +1,5 @@
 m4_define(`cbf_version',`0.9.5')m4_dnl
-m4_define(`cbf_date',`06 Nov 2015')m4_dnl
+m4_define(`cbf_date',`17 Dec 2015')m4_dnl
 m4_ifelse(cbf_system,`',`m4_define(`cbf_system',`LINUX')')
 `######################################################################
 #  Makefile - command file for make to create CBFlib                 #
@@ -332,7 +332,8 @@ ifneq ($(CBFLIB_DONT_USE_BSHUF),yes)
 BSHUF =bitshuffle-0.2.1_16Jun15
 BSHUFsrc = $(BSHUF)/src
 BSHUFinclude = $(BSHUF)/src
-BSHUFSOLIBS = -L$(SOLIB) -lbshuf_h5filter
+BSHUFSOLIBS = -L$(SOLIB) -lh5zbshuf
+BSHUFFILTER = libbshuf_h5filter
 else
 BSHUFSOLIBS =
 endif
@@ -1402,9 +1403,11 @@ $(BSHUF): $(HDF5)	build_BSHUF
 	    $(BSHUFinclude)/bshuf_h5filter.h $(BSHUFinclude)/iochain.h   $(INCLUDE); \
 	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(BSHUFsrc)/bshuf_h5filter.c -o bshuf_h5filter.o; \
 	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(BSHUFsrc)/bitshuffle.c -o bitshuffle.o; \
+	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(BSHUFsrc)/bshuf_h5plugin.c  -o bshuf_h5plugin.o; \
 	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(BSHUFsrc)/../lz4/lz4.c  -o lz4.o; \
-	$(CC) -shared bshuf_h5filter.o bitshuffle.o lz4.o $(HDF5SOLIBS) -o $(SOLIB)/bshuf_h5filter.so; \
-	rm bshuf_h5filter.o bitshuffle.o lz4.o)
+	$(CC) -shared bshuf_h5filter.o bitshuffle.o lz4.o $(HDF5SOLIBS) -o $(SOLIB)/libh5zbshuf.so; \
+	$(CC) -shared bshuf_h5filter.o bitshuffle.o lz4.o bshuf_h5plugin.o $(HDF5SOLIBS) -o $(SOLIB)/$(BSHUFFILTER).so; \
+	rm bshuf_h5filter.o bitshuffle.o lz4.o bshuf_h5plugin.o)
 endif
 
 

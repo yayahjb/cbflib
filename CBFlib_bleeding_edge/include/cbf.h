@@ -275,8 +275,8 @@ extern "C" {
 _CBF_STR(CBF_VERS_MINOR) "." \
 _CBF_STR(CBF_VERS_RELEASE) CBF_VERS_SUBRELEASE
 
-#define CBF_SVN_REVISION_STRING "$Rev: 543 $"
-#define CBF_SVN_DATE_STRING "$Date: 2015-02-05 07:28:08 -0500 (Thu, 05 Feb 2015) $"
+#define CBF_SVN_REVISION_STRING "$Rev: 588 $"
+#define CBF_SVN_DATE_STRING "$Date: 2015-12-15 18:48:12 -0500 (Tue, 15 Dec 2015) $"
 #include "cbf_tree.h"
 #include "hdf5.h"
 

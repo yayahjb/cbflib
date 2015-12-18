@@ -20067,6 +20067,37 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             const char wavelength_id[] = "wavelength_1";
             cbf_nx2cbf_key_t table[1];
             
+            /* Register compression filters if requested */
+            if (nx->flags & CBF_H5_REGISTER_COMPRESSIONS) {
+                if (!H5Zfilter_avail(CBF_H5Z_FILTER_CBF)) {
+                    cbf_h5reportneg(H5Zregister(CBF_H5Z_CBF),CBF_H5ERROR ,error);
+                    if (error) {
+                        CBF_PRINT_WARNING("Failed to load CBF_H5Z_FILTER_CBF (32006) compression filter "
+                                          "Check value of HDF5_PLUGIN_PATH environment variable");
+                    }
+                }
+#ifdef CBF_H5Z_USE_LZ4
+                if (!H5Zfilter_avail(CBF_H5Z_FILTER_LZ4)) {
+                    error = 0;
+                    cbf_h5reportneg(H5Zregister(H5Z_LZ4),CBF_H5ERROR ,error);
+                    if (error) {
+                        CBF_PRINT_WARNING("Failed to load CBF_H5Z_FILTER_LZ4 (32004) compression filter "
+                                          "Check value of HDF5_PLUGIN_PATH environment variable");
+                    }
+                }
+#endif
+#ifdef CBF_H5Z_USE_BSHUF
+                if (!H5Zfilter_avail(CBF_H5Z_FILTER_BSHUF)) {
+                    error = 0;
+                    cbf_h5reportneg(H5Zregister(bshuf_H5Filter),CBF_H5ERROR ,error);
+                    if (error) {
+                        CBF_PRINT_WARNING("Failed to load CBF_H5Z_FILTER_BSHUF (32008) compression filter "
+                                          "Check value of HDF5_PLUGIN_PATH environment variable");
+                    }
+                }
+#endif
+            }
+            
             /* initialise & populate the key */
             if (CBF_SUCCESS!=(error|=_cbf_create_nx2cbf_key(table))) {
                 cbf_debug_print(cbf_strerror(error));
@@ -28786,7 +28817,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                 
                 if (errorcode) {
                     
-                    CBF_PRINT_WARNING("Failed to load H5Z_LZ4 (32004) compression filter "
+                    CBF_PRINT_WARNING("Failed to load CBF_H5Z_FILTER_LZ4 (32004) compression filter "
                                       "Check value of HDF5_PLUGIN_PATH environment variable");
                     
                 }
@@ -28794,6 +28825,24 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                 
             }
 #endif
+#ifdef CBF_H5Z_USE_BSHUF
+            if (!H5Zfilter_avail(CBF_H5Z_FILTER_BSHUF)) {
+            
+                errorcode = 0;
+                
+                cbf_h5reportneg(H5Zregister(bshuf_H5Filter),CBF_H5ERROR ,errorcode);
+                
+                if (errorcode) {
+                    
+                    CBF_PRINT_WARNING("Failed to load CBF_H5Z_FILTER_BSHUF (32008) compression filter "
+                                      "Check value of HDF5_PLUGIN_PATH environment variable");
+                    
+        }
+
+                
+            }
+#endif
+
             
         }
 
