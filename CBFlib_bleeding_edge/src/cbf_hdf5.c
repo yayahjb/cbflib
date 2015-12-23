@@ -6095,6 +6095,13 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                      cbf_debug_print(" Found row ");
                      foundrow = row;
                      
+                    if (typeofvalue)
+                        if(!(!cbf_find_column(handle,"data") &&
+                             !cbf_get_typeofvalue(handle,typeofvalue) &&
+                             (*typeofvalue)))
+                            *typeofvalue = "null";
+
+                    
                     if (!(!cbf_find_column(handle,"nxdata_field_name") &&
                           !cbf_get_value(handle,&nxdata_field_name) &&
                           nxdata_field_name && nxdata_field_name[0] &&
@@ -6128,11 +6135,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                           cbf_cistrcmp(*nxdata_field_link_target_path,".") &&
                           cbf_cistrcmp(*nxdata_field_link_target_path,"?")))
                         *nxdata_field_link_target_path = NULL;
-                    if (typeofvalue)
-                        if(!(!cbf_find_column(handle,"data") &&
-                             !cbf_get_typeofvalue(handle,typeofvalue) &&
-                             (*typeofvalue)))
-                            *typeofvalue = "null";
                             
                     break;
                 } else {
@@ -6157,8 +6159,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 *nxdata_field_link_target_file = NULL;
             if (nxdata_field_link_target_path)
                 *nxdata_field_link_target_path = NULL;
-            if (typeofvalue)
-                *typeofvalue = "null";
             if (foundrow >= 0) {
             *datasetname = _cbf_str_join(datasetname_parts,'_');
             } else {
@@ -6239,14 +6239,14 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         const char * typeofvalue;
         
-        hsize_t h5offset[3];
+        hsize_t h5offset[4];
         const int sig[] = {1};
         int sigbuf[] = {0};
         
         int ii;
         
         h5offset[0] = h5handle->slice;
-        h5offset[1] = h5offset[2] = 0;
+        h5offset[1] = h5offset[2] = h5offset[3] = 0;
         
         node = handle->node;
         
@@ -6358,9 +6358,17 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                             cd_values[CBF_H5Z_FILTER_CBF_ELSIZE]      = elsize;
                             cd_values[CBF_H5Z_FILTER_CBF_ELSIGN]      = sign;
                             cd_values[CBF_H5Z_FILTER_CBF_REAL]        = real;
-                            cd_values[CBF_H5Z_FILTER_CBF_DIMFAST]     = *(h5chunk+2);
+                            cd_values[CBF_H5Z_FILTER_CBF_DIMFAST]     = *(h5chunk+rank);
+                            if (rank == 3) {
+                                cd_values[CBF_H5Z_FILTER_CBF_DIMMID]      = *(h5chunk+2);
+                                cd_values[CBF_H5Z_FILTER_CBF_DIMSLOW]     = *(h5chunk+1);
+                            } else if (rank == 2) {
                             cd_values[CBF_H5Z_FILTER_CBF_DIMMID]      = *(h5chunk+1);
-                            cd_values[CBF_H5Z_FILTER_CBF_DIMSLOW]     = *(h5chunk+0);
+                                cd_values[CBF_H5Z_FILTER_CBF_DIMSLOW]     = 1;
+                            } else if (rank == 2) {
+                                cd_values[CBF_H5Z_FILTER_CBF_DIMMID]      = 1;
+                                cd_values[CBF_H5Z_FILTER_CBF_DIMSLOW]     = 1;
+                            }
                             
                             if (h5handle->flags & CBF_H5_REGISTER_COMPRESSIONS) {
                                 if (!H5Zfilter_avail(CBF_H5Z_FILTER_CBF)) {
@@ -6501,7 +6509,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 
                 buf[0] = 0;
                 h5chunk[0] = 1;
-                h5dim[0] = 0;
+                h5dim[0] = 1;
                 h5max[0] = H5S_UNLIMITED;
                
                 
@@ -6567,9 +6575,17 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                 cd_values[CBF_H5Z_FILTER_CBF_ELSIZE]      = elsize;
                                 cd_values[CBF_H5Z_FILTER_CBF_ELSIGN]      = sign;
                                 cd_values[CBF_H5Z_FILTER_CBF_REAL]        = real;
-                                cd_values[CBF_H5Z_FILTER_CBF_DIMFAST]     = *(h5chunk+2);
+                                cd_values[CBF_H5Z_FILTER_CBF_DIMFAST]     = *(h5chunk+rank);
+                                if (rank == 3) {
+                                    cd_values[CBF_H5Z_FILTER_CBF_DIMMID]      = *(h5chunk+2);
+                                    cd_values[CBF_H5Z_FILTER_CBF_DIMSLOW]     = *(h5chunk+1);
+                                } else if (rank == 2) {
                                 cd_values[CBF_H5Z_FILTER_CBF_DIMMID]      = *(h5chunk+1);
-                                cd_values[CBF_H5Z_FILTER_CBF_DIMSLOW]     = *(h5chunk+0);
+                                    cd_values[CBF_H5Z_FILTER_CBF_DIMSLOW]     = 1;
+                                } else if (rank == 2) {
+                                    cd_values[CBF_H5Z_FILTER_CBF_DIMMID]      = 1;
+                                    cd_values[CBF_H5Z_FILTER_CBF_DIMSLOW]     = 1;
+                                }
                                 
                                 if (h5handle->flags & CBF_H5_REGISTER_COMPRESSIONS) {
                                     if (!H5Zfilter_avail(CBF_H5Z_FILTER_CBF)) {
@@ -6620,6 +6636,33 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                 
                             }
 #endif
+#ifdef CBF_H5Z_USE_BSHUF
+                            
+                            else if ((h5handle->flags & CBF_COMPRESSION_MASK) == CBF_H5COMPRESSION_BSLZ4 ) {
+                                unsigned int cd_values[CBF_H5Z_FILTER_BSHUF_NELMTS];
+                                cd_values[CBF_H5Z_FILTER_BSHUF_BLOCKSIZE] = 8192;
+                                cd_values[CBF_H5Z_FILTER_BSHUF_COMPRESSION] =
+                                CBF_H5Z_FILTER_BSHUF_LZ4;
+                                
+                                if (h5handle->flags & CBF_H5_REGISTER_COMPRESSIONS) {
+                                    if (!H5Zfilter_avail(CBF_H5Z_FILTER_BSHUF)) {
+                                        cbf_h5reportneg(H5Zregister(bshuf_H5Filter),CBF_H5ERROR ,error);
+                                        if (error) {
+                                            CBF_PRINT_WARNING("Failed to load CBF_H5Z_FILTER_BSHUF (32008) compression filter "
+                                                              "Check value of HDF5_PLUGIN_PATH environment variable");
+                                            
+                        }
+                                    }
+
+                                    cbf_h5reportneg(H5Pset_filter(valprop, CBF_H5Z_FILTER_BSHUF, /* H5Z_FLAG_OPTIONAL*/0, CBF_H5Z_FILTER_BSHUF_NELMTS, cd_values),CBF_H5ERROR,error);
+                                    if (error) {
+                                        cbf_debug_print2("error on setting filter CBF_H5Z_FILTER_BSHUF %d\n",error);
+                                    }
+                                    
+                                }
+                            }
+#endif
+
                             
                         }
 

@@ -97,6 +97,7 @@ static void usage( void )
     fprintf(stderr,"\t--offset=0.0             Offset the data\n");
     fprintf(stderr,"\t--cliplow=0.0            Clip the scaled and offset data below\n");
     fprintf(stderr,"\t--cliphigh=16384.0       Clip the scaled and offset deata above\n");
+    fprintf(stderr,"\t--radial-smooth=nn       Radially smooth over nn pixels\n");
 
     
     
@@ -130,7 +131,8 @@ int adscimg2cbf_sub2(char *header,
                      const char *scalestr,
                      const char *offsetstr,
                      const char *cliplowstr,
-                     const char *cliphighstr);
+                     const char *cliphighstr,
+                     const char *rad_smoothstr);
 
 
 int    main(int argc, char *argv[])
@@ -160,6 +162,7 @@ int    main(int argc, char *argv[])
     const char *    offsetstr=NULL;
     const char *    cliplowstr=NULL;
     const char *    cliphighstr=NULL;
+    const char *    rad_smoothstr=NULL;
     char *     strstrhit;
     static char    *endings[] = {
                     ".img",
@@ -168,7 +171,7 @@ int    main(int argc, char *argv[])
                     ".img.Z",
                     NULL
                      };
-	static char	*flags[27] = {
+	static char	*flags[28] = {
                     "--cbf_byte_offset",            /* 0 */
                     "--cbf_packed_v2",              /* 1 */
                     "--cbf_packed",                 /* 2 */
@@ -195,6 +198,7 @@ int    main(int argc, char *argv[])
                     "--offset",                     /*23 */
                     "--cliplow",                    /*24 */
                     "--cliphigh",                   /*25 */
+                    "--radial-smooth",              /*26 */
                     NULL
                    };
 
@@ -312,6 +316,8 @@ int    main(int argc, char *argv[])
             case 25:
                 cliphighstr = argv[1]+strlen(flags[j])+1;
                 break;
+            case 26:
+                rad_smoothstr = argv[1]+strlen(flags[j])+1;
 
         }
         if(j < 3 || j==12)
@@ -516,7 +522,8 @@ int    main(int argc, char *argv[])
                                       scalestr,
                                       offsetstr,
                                       cliplowstr,
-                                      cliphighstr);
+                                      cliphighstr,
+                                      rad_smoothstr);
         free(hptr);
 
         argv++;

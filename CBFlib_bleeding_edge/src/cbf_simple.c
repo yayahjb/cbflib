@@ -1197,6 +1197,8 @@ extern "C" {
         
         const char * xarray_id;
         
+        const char * xarray_section_id;
+        
         if (rank < 1 || rank > 100 || !dims)
             
             return CBF_ARGUMENT;
@@ -1330,12 +1332,31 @@ extern "C" {
         
         cbf_onfailnez (cbf_find_category (handle, "array_structure_list"),
                        {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);});
-        cbf_onfailnez (cbf_find_column   (handle, "array_id"),
+        if (!(!cbf_find_column(handle,"array_id") ||
+              !cbf_find_column(handle,"array_section"))) {
+        
+            cbf_onfailnez (CBF_NOTFOUND,
                        {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);});
         
+        }
         while (cbf_find_nextrow (handle, array_id) == 0)
         {
             long xdim;
+            
+            int process;
+            
+            process = 1;
+            
+            if (!cbf_find_column(handle, "array_section_id")
+                && !cbf_get_value(handle,&xarray_section_id)
+                && !(!(cbf_cistrcmp(xarray_section_id,".")
+                       ||!cbf_cistrcmp(xarray_section_id,array_id)))) {
+                
+                process = 0;
+                
+            }
+
+            if (process) {
             
             cbf_onfailnez (cbf_find_column      (handle, "precedence"),
                            {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);})
@@ -1358,8 +1379,14 @@ extern "C" {
             
             done [precedence-1] = 1;
             
+            }
+            
+            if (!(!cbf_find_column (handle, "array_id")
+                  || !cbf_find_column (handle, "array_section"))) {
+            
             cbf_onfailnez (cbf_find_column (handle, "array_id"),
                            {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);})
+        }
         }
         
         for (ii=0; ii < (ssize_t)rank; ii++) {
@@ -1768,11 +1795,46 @@ extern "C" {
                                                  array_id,
                                                  &element_number),error);
             
+            if (error && !cbf_cistrcmp(array_id,xarray_id)) {
+
+                /* there was no element number for this array_id and
+                   array_section_id and this section is actually
+                   an array.  Try to find an array_section that is
+                   not the entire array and might have an element number */
+                
+                const char * xarray_section;
+                
+                oerror |= error;
+                
+                error = 0;
+                
+                cbf_reportnez(cbf_find_category(handle,"array_structure_list_section"),error);
+                
+                cbf_reportnez(cbf_find_column(handle,"array_id"),error);
+                
+                cbf_reportnez(cbf_rewind_row(handle),error);
+                
+                cbf_reportnez(cbf_find_row(handle,xarray_id),error);
+                
+                cbf_reportnez(cbf_find_column(handle,"id"),error);
+                
+                cbf_reportnez(cbf_get_value(handle,&xarray_section),error);
+                
+                if (error || !xarray_section ) return error;
+                
+                
+                cbf_reportnez(cbf_get_element_number(handle,NULL,
+                                                     xarray_id,
+                                                     xarray_section,
+                                                     &element_number),error);
+                
+            }
+            
             cbf_reportnez(cbf_construct_detector(handle,
                                                  &detector,
                                                  element_number),error);
             
-            for (ii=0; ii < rank && ii < (ssize_t)(detector-> axes); ii++) {
+            for (ii=0; ii < rank && ii < (ssize_t)(detector-> axes) && !error; ii++) {
                 
                 cbf_reportnez(cbf_get_inferred_pixel_size(detector,ii+1,&(psizes[ii])),error);
                 
@@ -1831,7 +1893,8 @@ extern "C" {
             && !cbf_cistrcmp(array_section_id,array_id)) {
             
             if (!cbf_find_category(handle,"array_structure_list")
-                && !cbf_find_column(handle,"array_id")
+                && (!cbf_find_column(handle,"array_id")
+                    || !cbf_find_column(handle,"array_section"))
                 && !cbf_rewind_row(handle)
                 && !cbf_find_row(handle,array_id)) {
                 
@@ -1847,7 +1910,10 @@ extern "C" {
                         
                     }
         
-                    cbf_failnez(cbf_find_column(handle,"array_id"));
+                    if(!cbf_find_column(handle,"array_id")
+                       ||!cbf_find_column(handle,"array_section")) continue;
+                    
+                    cbf_failnez(CBF_NOTFOUND);
                 }
                 
                 while (!cbf_find_nextrow(handle,array_id));
@@ -2250,7 +2316,8 @@ extern "C" {
             &&!cbf_find_column(handle,"id")
             &&!cbf_rewind_row(handle)
             &&!cbf_find_row(handle,array_section_id)
-            &&!cbf_find_column(handle,"array_id")
+            &&(!cbf_find_column(handle,"array_id")
+               ||!cbf_find_column(handle,"array_section"))
             &&!cbf_get_value(handle,array_id)
             &&*array_id)  return CBF_SUCCESS;
         
@@ -2290,7 +2357,8 @@ extern "C" {
         }
     
         if ((!cbf_find_category(handle,"array_structure_list"))
-            &&(!cbf_find_column(handle,"array_id"))
+            &&((!cbf_find_column(handle,"array_id")
+                || !cbf_find_column(handle,"array_section")))
             &&(!cbf_rewind_row(handle))
             &&(!cbf_find_row(handle,xarray_id))
             &&(!cbf_get_value(handle,array_id))
@@ -2398,7 +2466,9 @@ extern "C" {
 
         cbf_failnez (cbf_find_category (handle, "array_structure_list"))
         if (cbf_find_column(handle,"array_section_id")) {
-          cbf_failnez (cbf_find_column   (handle, "array_id"))
+            if (cbf_find_column   (handle, "array_id")) {
+                cbf_failnez(cbf_find_column (handle, "array_section"));
+        }
         }
 
         precedence = max_precedence = axis_index = 0;
@@ -2478,7 +2548,9 @@ extern "C" {
 
         cbf_failnez (cbf_find_category (handle, "array_structure_list"))
         if (cbf_find_column(handle,"array_section_id")) {
-            cbf_failnez (cbf_find_column   (handle, "array_id"));
+            if (cbf_find_column   (handle, "array_id")) {
+                cbf_failnez(cbf_find_column (handle, "array_section"));
+        }
         }
 
         precedence = max_precedence = axis_index = 0;
@@ -4068,7 +4140,9 @@ extern "C" {
         dimension [1] = dimension [2] = dimension [3] = 1;
 
         cbf_failnez (cbf_find_category (handle, "array_structure_list"))
-        cbf_failnez (cbf_find_column   (handle, "array_id"))
+        if (cbf_find_column   (handle, "array_id")) {
+                cbf_failnez(cbf_find_column (handle, "array_section"));
+        }
 
         while (cbf_find_nextrow (handle, array_id) == 0)
         {
@@ -4088,7 +4162,9 @@ extern "C" {
 
             done [precedence] = 1;
 
-            cbf_failnez (cbf_find_column (handle, "array_id"))
+            if (cbf_find_column   (handle, "array_id")) {
+                cbf_failnez(cbf_find_column (handle, "array_section"));
+        }
         }
 
         if (!done [1])
@@ -4322,7 +4398,9 @@ extern "C" {
         if (array_id) {
 
         cbf_failnez (cbf_find_category (handle, "array_structure_list"))
-        cbf_failnez (cbf_find_column   (handle, "array_id"))
+        if (cbf_find_column   (handle, "array_id")) {
+            cbf_failnez(cbf_find_column (handle, "array_section"));
+        }
 
         while (cbf_find_nextrow (handle, array_id) == 0)
         {
@@ -4355,7 +4433,9 @@ extern "C" {
 
             done [precedence] = 1;
 
-            cbf_failnez (cbf_find_column (handle, "array_id"))
+            if (cbf_find_column   (handle, "array_id")) {
+                cbf_failnez(cbf_find_column (handle, "array_section"));
+        }
         }
 
         if (!done [1])
@@ -4722,7 +4802,9 @@ extern "C" {
         }
 
         cbf_failnez (cbf_find_category (handle, "array_structure_list"))
-        cbf_failnez (cbf_find_column   (handle, "array_id"))
+        if (cbf_find_column   (handle, "array_id")) {
+            cbf_failnez(cbf_find_column (handle, "array_section"));
+        }
 
         while (cbf_find_nextrow (handle, array_id) == 0)
         {
@@ -6917,6 +6999,11 @@ extern "C" {
         if (cbf_find_column(handle,array_colname)) {
             array_colname = "array_id";
             cbf_failnez (cbf_find_category (handle, "array_structure_list"))
+            if (cbf_find_column   (handle, "array_id")) {
+                array_colname = "array_section";
+            cbf_failnez (cbf_find_column   (handle, array_colname));
+        }
+
             cbf_failnez (cbf_find_column   (handle, array_colname));
         }
 
@@ -7259,7 +7346,9 @@ extern "C" {
         cbf_failnez (cbf_get_array_section_id  (handle, element_number, &array_section_id))
         cbf_failnez (cbf_require_category (handle, "array_structure_list"))
         if (cbf_find_column(handle,"array_section_id")) {
-            cbf_failnez (cbf_find_column   (handle, "array_id"));
+            if (cbf_find_column(handle,"array_id")) {
+                cbf_failnez (cbf_find_column   (handle, "array_section"));
+        }
         }
 
         surface_axis [0] = surface_axis [1] = NULL;
@@ -7280,8 +7369,10 @@ extern "C" {
             cbf_failnez (cbf_find_column (handle, "axis_set_id"))
             cbf_failnez (cbf_get_value   (handle, &surface_axis [precedence - 1]))
             if (cbf_find_column(handle,"array_section_id")) {
-                cbf_failnez (cbf_find_column   (handle, "array_id"));
+                if (cbf_find_column(handle,"array_id")) {
+                    cbf_failnez (cbf_find_column   (handle, "array_section"));
             }
+        }
         }
 
         if (!surface_axis[0]) {
@@ -7623,7 +7714,9 @@ extern "C" {
         cbf_failnez (cbf_get_array_section_id( handle,element_number,&array_section_id));
         cbf_failnez (cbf_find_category (handle, "array_structure_list"));
         if (cbf_find_column(handle,"array_section_id")) {
-            cbf_failnez (cbf_find_column   (handle, "array_id"));
+            if (cbf_find_column(handle,"array_id")) {
+                cbf_failnez (cbf_find_column   (handle, "array_section"));
+        }
         }
 
         surface_axis [0] = surface_axis [1] = NULL;
@@ -7957,7 +8050,9 @@ extern "C" {
         cbf_failnez (cbf_get_array_section_id  (handle, element_number, &array_section_id))
         cbf_failnez (cbf_require_category (handle, "array_structure_list"))
         if (cbf_find_column(handle,"array_section_id")) {
-            cbf_failnez (cbf_require_column   (handle, "array_id"))
+            if (cbf_find_column(handle,"array_id")) {
+                cbf_failnez (cbf_find_column   (handle, "array_section"));
+        }
         }
 
         surface_axis [0] = surface_axis [1] = NULL;
@@ -7979,8 +8074,10 @@ extern "C" {
             cbf_failnez (cbf_find_column (handle, "axis_set_id"))
             cbf_failnez (cbf_get_value   (handle, &surface_axis [precedence - 1]))
             if (cbf_find_column(handle,"array_section_id")) {
-                cbf_failnez (cbf_require_column   (handle, "array_id"))
+                if (cbf_find_column(handle,"array_id")) {
+                    cbf_failnez (cbf_find_column   (handle, "array_section"));
             }
+        }
         }
 
         if (!surface_axis[0]) {
@@ -10255,7 +10352,9 @@ extern "C" {
         cbf_failnez (cbf_get_array_section_id  (handle, element_number, &array_section_id))
         cbf_failnez (cbf_find_category (handle, "array_structure_list"))
         if (cbf_find_column(handle,"array_section_id")) {
-            cbf_failnez (cbf_find_column   (handle, "array_id"));
+            if (cbf_find_column(handle,"array_id")) {
+                cbf_failnez (cbf_find_column   (handle, "array_section"));
+        }
         }
 
         surface_axis [0] = surface_axis [1] = NULL;

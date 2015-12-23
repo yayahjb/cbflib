@@ -184,6 +184,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
+#include <math.h>
 
 int local_exit(int status);
 
@@ -488,7 +489,8 @@ int	adscimg2cbf_sub2(char *header,
                      const char * scalestr,
                      const char * offsetstr,
                      const char * cliplowstr,
-                     const char * cliphighstr)
+                     const char * cliphighstr,
+                     const char * rad_smoothstr)
 {
   FILE *out;
 
@@ -515,9 +517,12 @@ int	adscimg2cbf_sub2(char *header,
   double	smv_time;
   int		detector_sn;
   int		*data_as_int;
+    int     *smooth_data_as_int;
   int		*ip;
   unsigned short *up;
   int		i, j;
+    int     ki, kj, kicm, kjcm;
+    double  cmi, cmj, cmv;
   char          *local_bo;
   int		this_bo, smv_bo;
   char		*header_as_details;
@@ -531,6 +536,7 @@ int	adscimg2cbf_sub2(char *header,
     double  scale;
     double  offset;
     double  cliplow, cliphigh;
+    int     rad_smooth;
 
 
     if(0 == pack_flags)
@@ -632,6 +638,17 @@ int	adscimg2cbf_sub2(char *header,
         
     }
 
+    rad_smooth = 0;
+    if (rad_smoothstr && *rad_smoothstr) {
+        rad_smooth = atoi(rad_smoothstr);
+        if (rad_smooth < 1 || rad_smooth > 100) {
+            fprintf(stderr,
+                    "adscimg2cbf_sub2: Error: invalid radial smoothing pixel range '%s'\n",
+                    polarstr);
+            return(1);
+        }
+    }
+    
     
   /*
    *	Decode the header items having to do with adc speed, binning, etc.
@@ -954,7 +971,8 @@ int	adscimg2cbf_sub2(char *header,
     
     if (!strcmp(detector_type, "DECTRIS Eiger 16M")
         && fastlow == 0 && fasthigh == 3999
-        && slowlow == 0 && slowhigh == 3999) {
+        && slowlow == 0 && slowhigh == 3999
+        && !roi) {
         
         fastpadlow = fastpadhigh = 75;
         slowpadlow = 186;
@@ -1754,11 +1772,31 @@ int	adscimg2cbf_sub2(char *header,
         }
     }
 
+    cmi = 0.;
+    cmj = 0.;
+    cmv = 1.e-12;
+    
+    if (rad_smooth) {
+        if(NULL ==
+           (smooth_data_as_int =
+            (int *) malloc((1+fasthigh-fastlow+fastpadlow+fastpadhigh)
+                           *(1+slowhigh-slowlow+slowpadlow+slowpadhigh)*sizeof(int)/(bin+1)/(bin+1))))
+        {
+            fprintf(stderr, "Error mallocing %d bytes of temporary memory for image conversion\n",
+                    (int) ((1+fasthigh-fastlow+fastpadlow+fastpadhigh)
+                           *(1+slowhigh-slowlow+slowpadlow+slowpadhigh)*sizeof(int)/(bin+1)/(bin+1)));
+            return(1);
+        }
+    }
+    
     for(i = slowlow-slowpadlow; i <= slowhigh+slowpadhigh-bin; i+= (bin+1)) {
         for(j = fastlow-fastpadlow; j <= fasthigh+fastpadhigh-bin; j+= (bin+1)) {
             if (i >= slowlow && i <= slowhigh-bin && j >=fastlow && j <= fasthigh-bin) {
+                ki = (i-slowlow+slowpadlow+bin)/(bin+1);
+                kj = (j-fastlow+fastpadlow+bin)/(bin+1);
                 *ip = 0x0000ffff &
          (int)up[i*smv_size1+j];	
+                if ((*ip & 0x0000fff0) == 0x0000fff0) *ip |= 0xffff0000;
                 if (bin) {
                     *ip = *ip+(0x0000ffff &
                             (int)up[i*smv_size1+j+1])
@@ -1767,17 +1805,107 @@ int	adscimg2cbf_sub2(char *header,
                             +(0x0000ffff &
                               (int)up[(i+1)*smv_size1+j+1]);
                 };
+                 /* If radial smoothing is specified, accumulate a smoothed image in smooth_data_as_int */
+                if (rad_smooth) {
+                    int sv;
+                    sv = *ip;
+                    if ((sv & 0x0000fff0) == 0x0000fff0) sv = 0;
+                    if (kj > 0 && smooth_data_as_int[ki*(1+fasthigh-fastlow+fastpadlow+fastpadhigh)/(bin+1)+kj-1]
+                        > 0 ) {
+                        smooth_data_as_int[ki*(1+fasthigh-fastlow+fastpadlow+fastpadhigh)/(bin+1)+kj]
+                        = (smooth_data_as_int[ki*(1+fasthigh-fastlow+fastpadlow+fastpadhigh)/(bin+1)+kj-1] +sv)/2;
+                    } else {
+                        smooth_data_as_int[ki*(1+fasthigh-fastlow+fastpadlow+fastpadhigh)/(bin+1)+kj] =sv;
+                    }
+                    if (ki > 0 && smooth_data_as_int[(ki-1)*(1+fasthigh-fastlow+fastpadlow+fastpadhigh)/(bin+1)+kj] > 0) {
+                        smooth_data_as_int[ki*(1+fasthigh-fastlow+fastpadlow+fastpadhigh)/(bin+1)+kj]
+                        = ( smooth_data_as_int[ki*(1+fasthigh-fastlow+fastpadlow+fastpadhigh)/(bin+1)+kj]+
+                           smooth_data_as_int[(ki-1)*(1+fasthigh-fastlow+fastpadlow+fastpadhigh)/(bin+1)+kj])/2.;
+                    }
+                }
                 if (scalestr || offsetstr) *ip = scale*((double)(*ip))+offset;
                 if (cliplowstr && (*ip) < (int)cliplow ) *ip = (int) cliplow;
                 if (cliphighstr && (*ip) > (int)cliphigh ) *ip = (int) cliphigh;
+                cmi += ((double)ki)*((double)(*ip));
+                cmj += ((double)kj)*((double)(*ip));
+                cmv += (double)(*ip);
                 ip++;
                 
             } else {
-                *ip++ = 0xfffffffc;
+                *ip++ = 0xfffffffd;
     }
   }
     }
 
+    if (rad_smooth) {
+        double smoothval;
+        double valnew,valmin,valmax;
+        double vec2cm[2];
+        int ivec2cm[2];
+        double dist2cm;
+        int id,ir;
+        
+        cmi = rint(cmi/cmv);
+        cmj = rint(cmj/cmv);
+        fprintf(stderr,"cmj, cmj %g %g\n", cmj, cmi);
+        for (ki = 0; ki < (1+slowhigh-slowlow+slowpadlow+slowpadhigh)/(bin+1); ki++) {
+            if (ki*(bin+1) < slowpadlow || ki*(bin+1) + slowlow-slowpadlow > slowhigh+slowpadhigh-bin ) continue;
+            for (kj = 0; kj < (1+fasthigh-fastlow+fastpadlow+fastpadhigh)/(bin+1); kj++) {
+                if (kj*(bin+1) < fastpadlow || ki*(bin+1) + fastlow-fastpadlow >= fasthigh-bin ) continue;
+                smoothval = (double)(smooth_data_as_int[ki*(fasthigh-fastlow+1)/(bin+1)+kj]);
+                if (smoothval < 0.) continue;
+                if (smoothval > smooth_data_as_int[ki*(1+fasthigh-fastlow+fastpadlow+fastpadhigh)/(bin+1)+kj])
+                    smoothval = smooth_data_as_int[ki*(1+fasthigh-fastlow+fastpadlow+fastpadhigh)/(bin+1)+kj];
+                valmax = valmin = smoothval;
+                vec2cm[0] = (double)kj - cmj;
+                vec2cm[1] = (double)ki - cmi;
+                dist2cm = sqrt(vec2cm[0]*vec2cm[0]+vec2cm[1]*vec2cm[1]);
+                if (dist2cm > 1) {
+                    double rat, rrat;
+                    int ptcount;
+                    vec2cm[0] /= dist2cm;
+                    vec2cm[1] /= dist2cm;
+                    if (ki%100==0 && kj%100==0)
+                        fprintf(stderr,"kj, ki, %d %d vec2cm %g %g\n", kj, ki, vec2cm[0], vec2cm[1]);
+                    ptcount = 1;
+                    for (id = 1; id <= rad_smooth; id ++ ){
+                        for (ir = -id; ir <= id; ir+=2) {
+                            rat = (double)id;
+                            rrat = ((double)ir)/2.;
+                            ivec2cm[0] = (int)rint(kj + vec2cm[0]*rat - vec2cm[1]*rrat);
+                            ivec2cm[1] = (int)rint(ki + vec2cm[1]*rat + vec2cm[0]*rrat);
+                            if (ivec2cm[1]*(bin+1) >= slowpadlow
+                                && ivec2cm[1]*(bin+1) + slowlow-slowpadlow <= slowhigh+slowpadhigh-bin
+                                && ivec2cm[0]*(bin+1) >= fastpadlow
+                                && ivec2cm[0]*(bin+1) + fastlow-fastpadlow <= fasthigh+fastpadhigh-bin) {
+                                if (smooth_data_as_int[ki*(1+fasthigh-fastlow+fastpadlow+fastpadhigh)/(bin+1)+kj] != 0xfffffffd) {
+                                    valnew = (double)(smooth_data_as_int[ivec2cm[1]*(1+fasthigh-fastlow+fastpadlow+fastpadhigh)/(bin+1)+ivec2cm[0]]);
+                                    /*if (valnew > valmax) valmax = valnew;
+                                    if (valnew < valmin) valmin = valnew;
+                                    if ((valmax - valmin) > sqrt(smoothval) && valnew < smoothval ) {
+                                        smoothval = valnew + .05*(smoothval-valnew);
+                                        valmax = valmin = smoothval;
+                                    } */
+                                    smoothval=(smoothval*((double)ptcount)+
+                                               (double)(smooth_data_as_int[ivec2cm[1]*(1+fasthigh-fastlow+fastpadlow+fastpadhigh)/(bin+1)+ivec2cm[0]]))/(((double)ptcount+1));
+                                    /* if (smoothval > valmax) valmax = smoothval;
+                                    if (smoothval < valmin) valmin = smoothval; */
+                                    ptcount++;
+                                }
+                                
+                            }
+                        }
+                    }
+                }
+                data_as_int[ki*(1+fasthigh-fastlow+fastpadlow+fastpadhigh)/(bin+1)+kj]= (int)rint(smoothval);
+                
+            }
+        }
+        free (smooth_data_as_int);
+        
+    }
+    
+    
 /*
  int cbf_set_integerarray_wdims_fs (cbf_handle    handle,
                           unsigned int  compression,
@@ -1855,6 +1983,7 @@ int     adscimg2cbf_sub(char *header,
                             0,
                             NULL,
                             0,
+                            NULL,
                             NULL,
                             NULL,
                             NULL,
