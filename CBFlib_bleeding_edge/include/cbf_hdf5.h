@@ -1387,6 +1387,7 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
     
     
     
+    
     /* Get a nexus detector name */
     
     int cbf_get_NX_detector_name(cbf_h5handle h5handle,
@@ -1424,6 +1425,17 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
     /* Set the parent path of an axis */
     
     int cbf_set_NX_parent_path(cbf_h5handle h5handle, const char * axis_id, const char * parent_path);
+    
+    /* Get the flag that this is an array_axis to the value given */
+    
+    int cbf_get_NX_axis_array_axis(cbf_h5handle h5handle,
+                                   const char * axis_id, int *flag);
+
+    /* Set the flag that this is an array_axis to the value given */
+    
+    int cbf_set_NX_axis_array_axis(cbf_h5handle h5handle,
+                                   const char * axis_id, const int flag);
+        
     
     /* increment the count of axes dependent on this axis */
     
@@ -1576,6 +1588,24 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
                                       const double datasetvalue,
                                       const hsize_t slab,
                                       int errorcode);
+    
+    
+    /* add a double vector dataset slab to a group
+     
+     places the specified dataset vector in the specified slab of the
+     specified datasetname for group hid.  The dataset is created
+     if it does not already exist.
+     
+     The slabs are indexed from 0 in the slowest dimension
+     
+     */
+    
+    int cbf_add_h5double_vector_dataset_slab(hid_t hid,
+                                             const char* datasetname,
+                                             const double* datasetvalue,
+                                             const size_t dimension,
+                                             const hsize_t slab,
+                                             int errorcode);
     
     /* Count the number of links in an HDF5 group */
     
@@ -1831,6 +1861,19 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
 			 const char * const datablock,
 			 const char * const scan,
 			 const int list);
+
+    
+	/**
+     \brief Extract the data from a CBF file & put it into a NeXus metadata file data file.
+     \ingroup section_H5Handle
+     */
+    int cbf_write_cbf2nx2
+    (cbf_handle handle,
+     cbf_h5handle h5handle,
+     cbf_h5handle h5datahandle,
+     const char * const datablock,
+     const char * const scan,
+     const int list);
 
 	/**
 	\brief Extract the data from a miniCBF file & put it into a NeXus file.

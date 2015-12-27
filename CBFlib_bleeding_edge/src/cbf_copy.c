@@ -893,7 +893,7 @@ extern "C" {
                         
                         size_t fastlow, fasthigh, midlow, midhigh, slowlow, slowhigh;
                         
-                        cbf_failnez(cbf_convertroi(roi,dimfast,dimmid,dimslow,
+                        cbf_failnez(cbf_convertroi((char *)roi,dimfast,dimmid,dimslow,
                                                    &fastlow,&fasthigh,
                                                    &midlow,&midhigh,
                                                    &slowlow,&slowhigh));
@@ -1357,7 +1357,7 @@ extern "C" {
                         
                         size_t fastlow, fasthigh, midlow, midhigh, slowlow, slowhigh;
                         
-                        cbf_failnez(cbf_convertroi(roi,dimfast,dimmid,dimslow,
+                        cbf_failnez(cbf_convertroi((char *)roi,dimfast,dimmid,dimslow,
                                                    &fastlow,&fasthigh,
                                                    &midlow,&midhigh,
                                                    &slowlow,&slowhigh));

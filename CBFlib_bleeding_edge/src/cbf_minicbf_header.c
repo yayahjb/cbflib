@@ -375,15 +375,9 @@ extern "C" {
         
         size_t rank;
         
-        const char * array_element_size_x;
-        
-        const char * array_element_size_y;
-        
         const char * integration_time;
         
         const char * integration_period;
-        
-        const char * frame_details;
         
         double dtime;
         
@@ -393,31 +387,17 @@ extern "C" {
         
         const char * gain;
         
-        const char * diffrn_radiation_wavelength;
-        
         const char * energy_range_low;
         
         const char * energy_range_high;
         
         double sample_detector_voffset;
         
-        const char * reference_center_fast;
-        
-        const char * reference_center_slow;
-        
-        const char * reference_center_units;
-        
         const char * flux;
         
         const char * filter_transmission;
         
         const char * polarizn_source_ratio;
-        
-        const char * oscillation_axis;
-        
-        const char * axis[100];
-        
-        const char * axis_increment[100];
         
         const char * oscillations;
         
@@ -1462,7 +1442,7 @@ extern "C" {
             
             size_t isnp;
             
-            if ((snp=cbf_cistrnstr(detector_details,"Gain_setting",12))) {
+            if ((snp=(char *)cbf_cistrnstr(detector_details,"Gain_setting",12))) {
                 
                 snp += 12;
                 
@@ -1815,7 +1795,7 @@ extern "C" {
             
         }
         
-        cbf_failnez(cbf_free_text(&header,NULL));
+        cbf_failnez(cbf_free_text((const char * *)&header,NULL));
         
         return CBF_SUCCESS;
         

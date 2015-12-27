@@ -278,10 +278,17 @@ int main (int argc, char *argv [])
 	int list = 0;
     int noCBFnames = 0;
     int update = 0;
+    int splitdata = 0;
+    long imageno = 0;
+    long imageinblock = 0;
+    long blockno = 0;
 	const char ** const cifin = memset(malloc(argc*sizeof(char*)),0,argc*sizeof(char*));
 	const char * scan_id = NULL;
 	const char * sample_id = NULL;
 	const char *hdf5out = NULL;
+    char *hdf5master = NULL;
+    char *hdf5data = NULL;
+    const char * extension = NULL;
 	const char *group = NULL;
 	const char * datablock = NULL;
 	const char * scan = NULL;
@@ -289,7 +296,7 @@ int main (int argc, char *argv [])
 	/* Attempt to read the arguments */
 	if (CBF_SUCCESS != (error |= cbf_make_getopt_handle(&opts))) {
 		fprintf(stderr,"Could not create a 'cbf_getopt' handle.\n");
-	} else if (CBF_SUCCESS != (error |= cbf_getopt_parse(opts, argc, argv, "c(compression):g(group):o(output):u(update):Z(register):\x03(experiment_id):\x04(sample_id):\x05(datablock):\x06(scan):\x01(list)\x02(no-list)\x07(CBFnames)\0x08(noCBFnames)" ))) {
+	} else if (CBF_SUCCESS != (error |= cbf_getopt_parse(opts, argc, argv, "c(compression):g(group):o(output):u(update):Z(register):\x09(splitdata):\x03(experiment_id):\x04(sample_id):\x05(datablock):\x06(scan):\x01(list)\x02(no-list)\x07(CBFnames)\0x08(no-CBFnames)" ))) {
 		fprintf(stderr,"Could not parse arguments.\n");
 	} else {
     	int errflg = 0;
@@ -310,10 +317,13 @@ int main (int argc, char *argv [])
 					if (!cbf_cistrcmp("zlib",optarg?optarg:"")) {
                         h5_write_flags &= ~(CBF_COMPRESSION_MASK|CBF_FLAG_MASK);
 						h5_write_flags |= CBF_H5COMPRESSION_ZLIB;
-					} else if (!cbf_cistrcmp("cbf",optarg?optarg:"")) {
+					} else if (!cbf_cistrcmp("cbf",optarg?optarg:"")
+                               ||!cbf_cistrcmp("cbf_nibble_offset",optarg?optarg:"")
+                               ||!cbf_cistrcmp("cbf-nibble-offset",optarg?optarg:"")) {
                         h5_write_flags &= ~(CBF_COMPRESSION_MASK|CBF_FLAG_MASK);
 						h5_write_flags |= CBF_H5COMPRESSION_CBF|CBF_NIBBLE_OFFSET;
-                    } else if (!cbf_cistrcmp("cbf_byte_offset",optarg?optarg:"")) {
+                    } else if (!cbf_cistrcmp("cbf_byte_offset",optarg?optarg:"")
+                               ||!cbf_cistrcmp("cbf-byte-offset",optarg?optarg:"")) {
                         h5_write_flags &= ~(CBF_COMPRESSION_MASK|CBF_FLAG_MASK);
                         h5_write_flags |= CBF_H5COMPRESSION_CBF|CBF_BYTE_OFFSET;
                     } else if (!cbf_cistrcmp("lz4",optarg?optarg:"")) {
@@ -395,6 +405,13 @@ int main (int argc, char *argv [])
                     noCBFnames = 1;
                     break;
                 }
+                case '\x09': {
+                    if (splitdata) ++errflg;
+                    splitdata = atoi(optarg);
+                    if (splitdata <= 0) ++errflg;
+                    break;
+                }
+
 
                 case 0: {
 							/* input file */
@@ -422,7 +439,7 @@ int main (int argc, char *argv [])
 			fprintf(stderr, "Usage:\n\t%s [options] "
                     "[-o|--output]|[-u|--update] output_nexus input_cbf_files...\n"
 				"Options:\n"
-						"\t-c|--compression cbf|none|zlib (default: none)\n"
+						"\t-c|--compression cbf|cbf-byte-offset|lz4**2|bslz4|zlib|none (default: none)\n"
 						"\t-g|--group output_group (default: 'entry')\n"
 						"\t-Z|--register manual|plugin (default: plugin)\n"
 							"\t--datablock datablock_name\n"
@@ -430,11 +447,17 @@ int main (int argc, char *argv [])
 							"\t--experiment_id unique_experiment_id\n"
 							"\t--sample_id unique_sample_id\n"
 							"\t--[no-]list\n"
+                            "\t--[no-]CBFnames\n"
+                            "\t--splitdata blocksize\n"
+                            "\t"
 							"'datablock' should be the name of the datablock to use, or omitted to use all.\n"
 							"'scan' should be the name of the scan to convert, or may be omitted if there is only one scan.\n"
 							"'experiment_id' should be a unique identifier for the scan.\n"
 							"'sample_id' should be a unique identifier for the sample.\n"
-							"'list' and 'no-list' will determine whether the list of items that have been recognised during conversion is printed or not.\n",
+							"'list' and 'no-list' will determine whether the list of items that have been recognised during conversion is printed or not.\n"
+                            "'blocksize' is the number of images to put in each data file.\n"
+                            "  in which case the output nexus will have 'master' before the\n"
+                            "  h5 extension for the metadata file and a six digit number for the data.\n",
 				argv[0]);
 			error |= CBF_ARGUMENT;
     }
@@ -443,18 +466,72 @@ int main (int argc, char *argv [])
 	/* If I could read the arguments then attempt to use them */
 	if (CBF_SUCCESS == error) {
 		cbf_h5handle h5out = NULL;
+        cbf_h5handle h5data = NULL;
 		size_t f = 0;
+        size_t hdf5outlen = 0;
+        size_t ii;
+        size_t datanumber = 0;
+        imageno = 0;
+        extension = NULL;
+        
+        
+        /* Prepare the file names */
+        
+        hdf5outlen = datanumber = strlen(hdf5out);
+        hdf5master = hdf5out;
+        if (splitdata) {
+            cbf_failnez(cbf_alloc(((void **) &hdf5master),NULL,1,hdf5outlen+7));
+            cbf_failnez(cbf_alloc(((void **) &hdf5data),NULL,1,hdf5outlen+7));
+            strcpy(hdf5master,hdf5out);
+            strcpy(hdf5data,hdf5out);
+
+        }
+
+    
+        for (ii=0; ii < hdf5outlen; ii++) {
+            if (hdf5out[hdf5outlen-1-ii] == '.')  {
+                extension = hdf5out+hdf5outlen-1-ii;
+                if (splitdata) {
+                    datanumber = hdf5outlen-1-ii;
+                    hdf5master[datanumber] = '\0';
+                    hdf5data[datanumber] = '\0';
+                    strcpy(hdf5master+datanumber,"_master");
+                    strcpy(hdf5data+datanumber,"_000001");
+                    strcat(hdf5master+datanumber,extension);
+                    strcat(hdf5data+datanumber,extension);
+                }
+                break;
+            }
+        }
+        if (extension==NULL && splitdata) {
+            strcpy(hdf5master+datanumber,"_master");
+            strcpy(hdf5data+datanumber,"_000001");
+        }
+        
         
 		/* prepare the output file */
         if( (update &&
-             CBF_SUCCESS != (error |= cbf_create_h5handle2u(&h5out,hdf5out)))
+             CBF_SUCCESS != (error |= cbf_create_h5handle2u(&h5out,hdf5master)))
            ||((!update) &&
-              CBF_SUCCESS != (error |= cbf_create_h5handle2(&h5out,hdf5out)))
+              CBF_SUCCESS != (error |= cbf_create_h5handle2(&h5out,hdf5master)))
            ) {
-			fprintf(stderr,"Couldn't open the HDF5 file '%s'.\n", hdf5out);
+			fprintf(stderr,"Couldn't open the HDF5 file '%s'.\n", hdf5master);
 		} else if (CBF_SUCCESS != (error |= cbf_h5handle_require_entry_definition(h5out,0,group,"NXmx","1.2",0))) {
 			fprintf(stderr,"Couldn't create an NXentry group in the HDF5 file '%s'.\n", hdf5out);
 		} else {
+            if (splitdata) {
+                if( (update &&
+                     CBF_SUCCESS != (error |= cbf_create_h5handle2u(&h5data,hdf5data)))
+                   ||((!update) &&
+                      CBF_SUCCESS != (error |= cbf_create_h5handle2(&h5data,hdf5data)))
+                   ) {
+                    fprintf(stderr,"Couldn't open the HDF5 file '%s'.\n", hdf5data);
+                } else if (CBF_SUCCESS != (error |= cbf_h5handle_require_entry_definition(h5data,0,group,"NXmx","1.2",0))) {
+                    fprintf(stderr,"Couldn't create an NXentry group in the HDF5 file '%s'.\n", hdf5data);
+                }
+                
+            }
+            
             if (list > 0) {
                 h5out->logfile = stdout;
             } else {
@@ -466,6 +543,7 @@ int main (int argc, char *argv [])
             } else {
                 h5out->flags &= ~CBF_H5_CBFNONAMES;
             }
+            if (splitdata) h5data->flags = h5out->flags;
 			h5out->scan_id = _cbf_strdup(scan_id);
 			h5out->sample_id = _cbf_strdup(sample_id);
 #ifdef CBF_USE_ULP
@@ -477,6 +555,10 @@ int main (int argc, char *argv [])
 #endif
 #endif
 		}
+        
+        imageno = 0;
+        imageinblock = 0;
+        blockno = 1;
         
         for (f = 0; CBF_SUCCESS == error && f != cifid; ++f) {
 			cbf_handle cif = NULL;
@@ -560,10 +642,31 @@ int main (int argc, char *argv [])
 			if (CBF_SUCCESS == error) {
 				/* start timing */
 				clock_t a = clock(), b;
-				error |= cbf_write_cbf2nx(cif, h5out, datablock, scan, list);
+                if (splitdata) h5data->slice = imageinblock;
+                h5out->slice = imageno;
+                if (splitdata) h5data->flags = h5out->flags;
+				error |= cbf_write_cbf2nx2(cif, h5out, h5data, datablock, scan, list);
 				/* stop timing */
                 b = clock ();
 				printf("Time to convert '%s': %.3fs\n", cifin[f], ((float)(b - a))/CLOCKS_PER_SEC);
+                imageinblock++;
+                if (f != cifid-1 && splitdata && imageinblock >= splitdata) {
+                    imageinblock = 0;
+                    blockno++;
+                    hdf5data[datanumber] = '\0';
+                    sprintf(hdf5data+datanumber,"_%.6ld%s",blockno,extension);
+                    error |= cbf_free_h5handle(h5data);
+                    if( (update &&
+                         CBF_SUCCESS != (error |= cbf_create_h5handle2u(&h5data,hdf5data)))
+                       ||((!update) &&
+                          CBF_SUCCESS != (error |= cbf_create_h5handle2(&h5data,hdf5data)))
+                       ) {
+                        fprintf(stderr,"Couldn't open the HDF5 file '%s'.\n", hdf5data);
+                    } else if (CBF_SUCCESS != (error |= cbf_h5handle_require_entry_definition(h5data,0,group,"NXmx","1.2",0))) {
+                        fprintf(stderr,"Couldn't create an NXentry group in the HDF5 file '%s'.\n", hdf5data);
+			}
+            
+                }
 			}
             
 			/* Clean up */

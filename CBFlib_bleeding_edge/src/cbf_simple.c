@@ -11595,7 +11595,7 @@ extern "C" {
                 
                 const char * frame_id;
                 
-                double newstart;
+                double newstart = 0.0;
                 
                 int frame_no;
                 
@@ -11652,7 +11652,7 @@ extern "C" {
                             
                         }
                         
-                        if (frame_no > 0 && frame_no <= scanpoints) {
+                        if (frame_no > 0 && frame_no <= (ssize_t)scanpoints) {
                             
                             scanarray[frame_no-1] = newstart;
                             

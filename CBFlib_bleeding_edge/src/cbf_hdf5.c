@@ -6425,7 +6425,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                         
                         else if ((h5handle->flags & CBF_COMPRESSION_MASK) == CBF_H5COMPRESSION_BSLZ4 ) {
                             unsigned int cd_values[CBF_H5Z_FILTER_BSHUF_NELMTS];
-                            cd_values[CBF_H5Z_FILTER_BSHUF_BLOCKSIZE] = 8192;
+                            cd_values[CBF_H5Z_FILTER_BSHUF_BLOCKSIZE] = 8192/elsize;
                             cd_values[CBF_H5Z_FILTER_BSHUF_COMPRESSION] =
                             CBF_H5Z_FILTER_BSHUF_LZ4;
                             
@@ -6640,7 +6640,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                             
                             else if ((h5handle->flags & CBF_COMPRESSION_MASK) == CBF_H5COMPRESSION_BSLZ4 ) {
                                 unsigned int cd_values[CBF_H5Z_FILTER_BSHUF_NELMTS];
-                                cd_values[CBF_H5Z_FILTER_BSHUF_BLOCKSIZE] = 8192;
+                                cd_values[CBF_H5Z_FILTER_BSHUF_BLOCKSIZE] = 8192/elsize;
                                 cd_values[CBF_H5Z_FILTER_BSHUF_COMPRESSION] =
                                 CBF_H5Z_FILTER_BSHUF_LZ4;
                                 
@@ -7473,7 +7473,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
            
             
         if (cbf_H5Ivalid(nxdata) && !cbf_find_category(handle,"array_structure_list")
-            && !cbf_find_column(handle,"array_id")
+            && (!cbf_find_column(handle,"array_id")||!cbf_find_column(handle,"array_section"))
             && !cbf_count_rows(handle,&rows)) {
             
             for (row = 0; row < rows; row++) {
@@ -7484,7 +7484,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 
                 cbf_failnez(cbf_find_category(handle,"array_structure_list"));
                 
-                if (cbf_find_column(handle,"array_id")) {
+                if (!(!cbf_find_column(handle,"array_id")||!cbf_find_column(handle,"array_section"))) {
                     
                     cbf_failnez(cbf_find_column(handle,"array_section_id"));
                     
@@ -7497,7 +7497,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 arank = 0;
                 asrank = 0;
                 
-                if (!cbf_find_column(handle,"array_id")
+                if ((!cbf_find_column(handle,"array_id")
+                    ||!cbf_find_column(handle,"array_section"))
                     && !cbf_get_value(handle,&xarray_id)
                     && xarray_id
                     && (!cbf_cistrcmp(xarray_id,array_id))){
@@ -7526,7 +7527,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 
                 cbf_failnez(cbf_find_category(handle,"array_structure_list"));
                 
-                if (cbf_find_column(handle,"array_id")) {
+                if (!(!cbf_find_column(handle,"array_id")||!cbf_find_column(handle,"array_section"))) {
                     
                     cbf_failnez(cbf_find_column(handle,"array_section_id"));
                     
@@ -8200,8 +8201,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                         
                         if (cbf_H5Ivalid(master_detectorid) && cbf_H5Ivalid(master_dataid)) {
                             
-                            const char * datasetname=NULL;
-                            
                             char * dataname=NULL;
                             
                             char * masterdataname = NULL;
@@ -8211,9 +8210,9 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                             cbf_reportnez(cbf_get_nx_object_path(data_dataid,nxdataname,&dataname),error);
                             
                             
-                            if (H5Lexists(master_detectorid,datasetname,H5P_DEFAULT) == 0) {
+                            if (!error && H5Lexists(master_detectorid,nxdataname,H5P_DEFAULT) == 0) {
                             
-                                cbf_h5reportneg(H5Lcreate_soft(masterdataname,master_detectorid,nxdataname,H5P_DEFAULT,H5P_DEFAULT),CBF_H5ERROR,error);
+                                cbf_h5reportneg(H5Lcreate_soft(masterdataname,master_detectorid,dataname,H5P_DEFAULT,H5P_DEFAULT),CBF_H5ERROR,error);
 
                             }
                             
@@ -8452,7 +8451,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         
     
-    
     /* process a CBF looking for all detector elements
        and process them to produce NXdetector groups in the h5handle.
      
@@ -8463,10 +8461,14 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
        In addition, create a NXdetector_group from each CBF DIFFRN_DETECTOR
        row, linking the detectors to the detector elements
      
+       If h5datahandle is given, the metadata goes to h5handle,
+         the data to h5datahandle
+     
     */
     
-    static int cbf_require_nxdetectors(const cbf_handle handle,
-                                const cbf_h5handle h5handle){
+    static int cbf_require_nxdetectors2(const cbf_handle handle,
+                                const cbf_h5handle h5handle,
+                                const cbf_h5handle h5datahandle){
         
         const char * detmodname;
         const char * detname;
@@ -8705,9 +8707,16 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 
                 cbf_reportnez(cbf_get_NX_detector_name(h5handle,curdet,&detmodname),error);
                 
+                if (!h5datahandle) {
+                
                 cbf_reportnez(cbf_require_nxdata(handle, h5handle, NULL,
                                                  detmodname, 0),error);
+                } else {
                 
+                    cbf_reportnez(cbf_require_nxdata(handle, h5datahandle, h5handle,
+                                                     detmodname, 1),error);
+            }
+            
             }
             
             return error;
@@ -8717,6 +8726,26 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
     }
     
+    /* process a CBF looking for all detector elements
+     and process them to produce NXdetector groups in the h5handle.
+    
+     Under each NXdetector group place at least one NXdetector_module
+     group with the array indexing and axis information for that
+     module.
+     
+     In addition, create a NXdetector_group from each CBF DIFFRN_DETECTOR
+     row, linking the detectors to the detector elements
+     
+     */
+    
+    static int cbf_require_nxdetectors(const cbf_handle handle,
+                                       const cbf_h5handle h5handle){
+        return cbf_require_nxdetectors2(handle,
+                                        h5handle,
+                                        NULL);
+        
+    }
+
     
     /**
     Check the handle for the presence of an goniometer group and its name,
@@ -10214,8 +10243,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
     int cbf_get_NX_axis_array_axis(cbf_h5handle h5handle,
                                    const char * axis_id, int *flag) {
         
-        int ii;
-        
         int errorcode = 0;
         
         if (!h5handle || !axis_id ) return CBF_ARGUMENT;
@@ -10253,8 +10280,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
     
     int cbf_set_NX_axis_array_axis(cbf_h5handle h5handle,
                                    const char * axis_id, const int flag) {
-        
-        int ii;
         
         int errorcode = 0;
         
@@ -10773,6 +10798,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 
                 if (scanpoints > 0) {
                     
+                    
                     hsize_t scanpointsfound = 0;
                     
                     hid_t mtype = CBF_H5FAIL;
@@ -10863,6 +10889,29 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     
                     if (sscanpointsfound==0) scanpointsfound=1;
                     
+                    if (scanpointsfound == 1) {
+                        
+                        cbf_reportnez(cbf_add_h5double_dataset_slab(h5handle->hfile,
+                                                                  axispath,
+                                                                  scanarray[0],
+                                                                  h5handle->slice,
+                                                                  errorcode),errorcode);
+                    } else {
+
+                        cbf_reportnez(cbf_add_h5double_vector_dataset_slab(h5handle->hfile,
+                                                                  axispath,
+                                                                  scanarray,
+                                                                  scanpointsfound,
+                                                                  h5handle->slice,
+                                                                  errorcode),errorcode);
+
+                        
+                    }
+                    
+                    cbf_h5reportneg(nxaxisid = H5Dopen(h5handle->hfile,
+                                                      axispath,H5P_DEFAULT),CBF_H5ERROR,errorcode);
+                    
+                    /*
                     cbf_h5reportneg(dspace = H5Screate_simple(1,&scanpointsfound,maxsize),CBF_ALLOC,errorcode);
                     
                     cbf_h5reportneg(dtype = H5Tcopy(H5T_IEEE_F64LE),CBF_ALLOC,errorcode);
@@ -10876,22 +10925,59 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     cbf_h5reportneg(nxaxisid = H5Dcreatex(h5handle->hfile,axispath,dtype,dspace,dprop),CBF_ALLOC,errorcode);
                                         
                     cbf_h5reportneg(H5Dwrite(nxaxisid, mtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, (void *)scanarray),CBF_ALLOC,errorcode);
+                     */
                     
                     if (!isarrayaxis) {
                         
+                        if (scanpointsfound == 1) {
+                            
+                            cbf_reportnez(cbf_add_h5double_dataset_slab(h5handle->hfile,
+                                                                      axisendpointpath,
+                                                                      scanendpointarray[0],
+                                                                      h5handle->slice,
+                                                                      errorcode),errorcode);
+                        } else {
+                            
+                            cbf_reportnez(cbf_add_h5double_vector_dataset_slab(h5handle->hfile,
+                                                                             axisendpointpath,
+                                                                             scanendpointarray,
+                                                                             scanpointsfound,
+                                                                             h5handle->slice,
+                                                                             errorcode),errorcode);
+                            
+                            
+                        }
+                        
+                        /*
                         cbf_h5reportneg(nxaxisendpointid = H5Dcreatex(h5handle->hfile,axisendpointpath,dtype,dspace,dprop),CBF_ALLOC,errorcode);
                     
                         cbf_h5reportneg(H5Dwrite(nxaxisendpointid, mtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, (void *)scanendpointarray),CBF_ALLOC,errorcode);
+                         */
                         
                         
                         if (scan_range_total[0] <= scan_range_total[1]) {
                             
+                            
+                            cbf_reportnez(cbf_add_h5double_dataset_slab(h5handle->hfile,
+                                                                      axisrangeavg,
+                                                                      scan_range_average,
+                                                                      h5handle->slice,
+                                                                      errorcode),errorcode);
+                            cbf_reportnez(cbf_add_h5double_vector_dataset_slab(h5handle->hfile,
+                                                                             axisrangetot,
+                                                                             scan_range_total,
+                                                                             2,
+                                                                             h5handle->slice,
+                                                                             errorcode),errorcode);
+                            
+                            /*
                             cbf_h5reportneg(dspaceavg = H5Screate_simple(1,&one,&one),CBF_ALLOC,errorcode);
                             
                             cbf_h5reportneg(nxaxisrangeavgid = H5Dcreatex(h5handle->hfile,axisrangeavg,dtype,dspaceavg,dprop),CBF_ALLOC,errorcode);
                             
                             cbf_h5reportneg(H5Dwrite(nxaxisrangeavgid, mtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, (void *)&scan_range_average),CBF_ALLOC,errorcode);
                             
+                             
                             cbf_h5reportneg(dspacetot = H5Screate_simple(1,&two,&two),CBF_ALLOC,errorcode);
                             
                             cbf_h5reportneg(nxaxisrangetotid = H5Dcreatex(h5handle->hfile,axisrangetot,dtype,dspacetot,dprop),CBF_ALLOC,errorcode);
@@ -10905,6 +10991,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                             cbf_h5reportneg(H5Dclose(nxaxisrangeavgid),CBF_ALLOC,errorcode);
                             
                             cbf_h5reportneg(H5Dclose(nxaxisrangetotid),CBF_ALLOC,errorcode);
+                             */
                             
                             
                         }
@@ -10927,13 +11014,11 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     
                     cbf_reportnez(cbf_free((void **)(&scanendpointarray),NULL),errorcode);
                     
-                    cbf_h5reportneg(H5Sclose(dspace),CBF_ALLOC,errorcode);
-                    
                     if (cbf_H5Ivalid(dspace)) { cbf_h5reportneg(H5Sclose(dspace),CBF_ALLOC,errorcode); }
                     
                     dspace = dspaceavg = dspacetot = CBF_H5FAIL;
                     
-                    cbf_h5reportneg(H5Tclose(dtype),CBF_ALLOC,errorcode);
+                    /* cbf_h5reportneg(H5Tclose(dtype),CBF_ALLOC,errorcode);
                     
                     cbf_h5reportneg(H5Tclose(mtype),CBF_ALLOC,errorcode);
                     
@@ -10945,6 +11030,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                         
                     }
                     
+                    */
+                    
                     if (units) {
                         
                         errorcode |= cbf_apply_h5text_attribute(nxaxisid,
@@ -10952,7 +11039,15 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     }
                 } else {
                     
-                    const double zeropoint[1] = {0.};
+                    cbf_reportnez(cbf_add_h5double_dataset_slab(poiseid,
+                                                                axis_id,
+                                                                0.,
+                                                                h5handle->slice,
+                                                                errorcode),errorcode);
+                    
+                    cbf_h5reportneg(nxaxisid = H5Dopen2(poiseid,axis_id, H5P_DEFAULT),CBF_NOTFOUND,errorcode);
+                    
+                    /* const double zeropoint[1] = {0.};
                     
                     const hsize_t scanpointsfound[1] = {1};
                     
@@ -10975,6 +11070,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     cbf_h5reportneg(nxaxisid = H5Dcreatex(poiseid,axis_id,dtype,dspace,dprop),CBF_ALLOC,errorcode);
                     
                     cbf_h5reportneg(H5Dwrite(nxaxisid, mtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, (void *)zeropoint),CBF_ALLOC,errorcode);
+                     */
                     
                     /* if (!errorcode) {
                         
@@ -10982,7 +11078,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     } */
                     
                     
-                    
+                    /*
                     cbf_h5reportneg(H5Sclose(dspace),CBF_ALLOC,errorcode);
                     
                     cbf_h5reportneg(H5Tclose(dtype),CBF_ALLOC,errorcode);
@@ -10990,7 +11086,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     cbf_h5reportneg(H5Tclose(mtype),CBF_ALLOC,errorcode);
                     
                     cbf_h5reportneg(H5Pclose(dprop),CBF_ALLOC,errorcode);
-                    
+                    */
                     
                 }
                 
@@ -11279,6 +11375,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                      int errorcode)
     {
 
+        htri_t attribexists;
+        
         hid_t attribspace, attribtype, attribid;
 
         hid_t attribmemtype;
@@ -11290,6 +11388,63 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         /* ensure arguments all given */
 
         if (hid < 0 || !attribname|| !attribvec || dimension < 1 ) return CBF_ARGUMENT;
+
+        /* if the attribute exists, check the value is the same */
+        
+        attribexists = H5Aexists(hid,attribname);
+        
+        if (attribexists > 0) {
+            
+            hsize_t attribsize = CBF_H5ERROR;
+            
+            hsize_t memtype = CBF_H5ERROR;
+            
+            size_t ii, rank, adim;
+            
+            double oldvec[dimension];
+            
+            for (ii = 0; ii < dimension; ii++) oldvec[ii] = -1.e38;
+            
+            cbf_h5failneg(attribid = H5Aopen(hid, attribname, H5P_DEFAULT),CBF_H5ERROR);
+            
+            cbf_h5reportneg(attribspace=H5Aget_space(attribid),CBF_H5ERROR,errorcode);
+            
+            cbf_h5reportneg(attribtype = H5Aget_type(attribid),CBF_H5ERROR,errorcode);
+            
+            cbf_h5reportneg(memtype = H5Tget_native_type(attribtype,H5T_DIR_ASCEND),CBF_H5ERROR,errorcode);
+            
+            if (errorcode ==0 && H5Tequal(memtype,H5T_NATIVE_DOUBLE) <= 0) errorcode |=  CBF_H5DIFFERENT;
+            
+            if (errorcode == 0 )rank = H5Sget_simple_extent_ndims(attribspace);
+            
+            cbf_h5reportneg(H5Sget_simple_extent_dims(attribspace, dims, NULL),CBF_H5ERROR,errorcode);
+            
+            if (errorcode== 0 && (rank != 1 || dims[0] != dimension )) errorcode |= CBF_H5DIFFERENT;
+            
+            cbf_h5reportneg(H5Aread(attribid,attribtype,oldvec),CBF_H5ERROR,errorcode);
+            
+            for (ii=0; ii < dimension && errorcode == 0; ii++) {
+                
+                if (fabs(oldvec[ii]-attribvec[ii]) > 1.e-38) errorcode |= CBF_H5DIFFERENT;
+                
+            }
+            
+            
+            if (cbf_H5Ivalid(memtype)) H5Tclose(memtype);
+            
+            if (cbf_H5Ivalid(memtype)) H5Tclose(memtype);
+            
+            if (cbf_H5Ivalid(attribspace)) H5Sclose(attribspace);
+
+            if (cbf_H5Ivalid(attribtype)) H5Tclose(attribtype);
+            
+            if (cbf_H5Ivalid(attribid)) H5Aclose(attribid);
+            
+            return errorcode;
+            
+        }
+
+        
 
         cbf_h5reportneg(attribspace = H5Screate(H5S_SIMPLE),CBF_ALLOC,errorcode);
 
@@ -11422,11 +11577,53 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
         hid_t attribspace, attribtype, attribid;
 
+        htri_t attribexists;
+
         attribspace = attribtype = attribid = CBF_H5FAIL;
 
         /* ensure arguments all given */
 
         if (hid < 0 || !attribname ) return CBF_ARGUMENT;
+
+        /* if the attribute exists, check the value is the same */
+        
+        attribexists = H5Aexists(hid,attribname);
+        
+        if (attribexists > 0) {
+            
+            hsize_t attribsize = 0;
+            
+            hsize_t memtype = 0;
+            
+            int oldattribint;
+            
+            int errorcode = 0;
+            
+            cbf_h5reportneg(attribid = H5Aopen(hid, attribname, H5P_DEFAULT),CBF_H5ERROR,errorcode);
+            
+            cbf_h5reportneg(attribtype = H5Aget_type(attribid),CBF_H5ERROR,errorcode);
+            
+            cbf_h5reportneg(attribsize = H5Tget_size(attribtype),CBF_H5ERROR,errorcode);
+            
+            cbf_h5reportneg(memtype = H5Tget_native_type(attribtype,H5T_DIR_ASCEND),CBF_H5ERROR,errorcode);
+            
+            if (errorcode || attribsize != 1 || !H5Tequal(attribtype,H5T_NATIVE_INT)) errorcode |= CBF_H5DIFFERENT;
+            
+            cbf_h5reportneg(H5Aread(attribid,memtype,&oldattribint),CBF_H5ERROR,errorcode);
+
+            if (errorcode || oldattribint != attribint) errorcode |= CBF_H5DIFFERENT;
+            
+            
+            if (cbf_H5Ivalid(memtype)) H5Tclose(memtype);
+            
+            if (cbf_H5Ivalid(attribtype)) H5Tclose(attribtype);
+            
+            if (cbf_H5Ivalid(attribid)) H5Aclose(attribid);
+            
+            return errorcode;
+            
+            
+        }
 
         cbf_h5reportneg(attribspace = H5Screate(H5S_SCALAR),CBF_ALLOC,errorcode);
 
@@ -11500,7 +11697,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
             cbf_h5reportneg(memtype = H5Tget_native_type(attribtype,H5T_DIR_ASCEND),CBF_H5ERROR,errorcode);
 
-            cbf_h5reportneg(H5Aread(attribid,memtype,&attribtextbuffer),CBF_H5ERROR,errorcode);
+            cbf_h5reportneg(H5Aread(attribid,memtype,attribtextbuffer),CBF_H5ERROR,errorcode);
 
             if (cbf_cistrcmp(attribtext,attribtextbuffer)) errorcode |= CBF_H5DIFFERENT;
 
@@ -12578,6 +12775,124 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
     }
 
+
+
+    /* add a double vector dataset slab to a group
+     
+     places the specified dataset vector in the specified slab of the
+     specified datasetname for group hid.  The dataset is created
+     if it does not already exist.
+     
+     The slabs are indexed from 0 in the slowest dimension
+     
+     */
+    
+    int cbf_add_h5double_vector_dataset_slab(hid_t hid,
+                                      const char* datasetname,
+                                      const double* datasetvalue,
+                                      const size_t dimension,
+                                      const hsize_t slab,
+                                      int errorcode)
+    {
+        hid_t datasetspace, datasettype, datasetid;
+        
+        hid_t memspace, memtype;
+        
+        hid_t ndatasettype;
+        
+        hid_t ndatasetspace;
+        
+        hid_t nmemtype;
+        
+        int ndims = 0;
+        
+        hsize_t offset[2] = {0,0};
+        
+        hsize_t stride[2] = {1,1};
+        
+        hsize_t count[2]  = {1,1};
+        
+        hsize_t chunk[2] = {1,0};
+        
+        hsize_t curdim[2] = {1,1};
+        
+        hsize_t memsize[2] = {1,1};
+        
+        htri_t dsexists;
+        
+        hsize_t dssize[2];
+        
+        hsize_t maxdssize[2]= {H5S_UNLIMITED,0};
+        
+        hsize_t dsdims[2];
+        
+        hsize_t dsmaxdims[2];
+        
+        datasetspace = datasettype = memspace = memtype = CBF_H5FAIL;
+        
+        ndatasetspace = ndatasettype = nmemtype = CBF_H5FAIL;
+        
+        datasetid = CBF_H5FAIL;
+        
+        memsize[0] = 1;
+        
+        dssize[0] = 1;
+        
+        chunk[0] = 1;
+        
+        /* ensure arguments all given */
+        
+        if (hid < 0 || !datasetname ||
+            errorcode) return CBF_ARGUMENT;
+        
+        maxdssize[1] = chunk[1] = dimension;
+        
+        cbf_failnez(errorcode |= cbf_H5Drequire(hid,&datasetid,
+                                                datasetname,
+                                                2,
+                                                maxdssize,
+                                                chunk,
+                                                curdim,
+                                                H5T_IEEE_F64LE));
+        
+        cbf_h5reportneg(datasetspace = H5Dget_space(datasetid),CBF_FORMAT,errorcode);
+        
+        cbf_h5reportneg(H5Sget_simple_extent_dims(datasetspace,
+                                                   dsdims,dsmaxdims),CBF_FORMAT,errorcode);
+        
+        if (slab == H5S_UNLIMITED) {
+            
+            offset[0] = dsdims[0];
+            
+            curdim[0] = dsdims[0]+1;
+            
+        } else {
+            
+            offset[0] = slab;
+            
+            curdim[0] = slab+1;
+            
+        }
+        
+        offset[1] = 0;
+        
+        curdim[1] = dimension;
+        
+        memsize[1] = dimension;
+        
+        cbf_reportnez(cbf_H5Dinsert(datasetid,offset,0,memsize,curdim,datasetvalue,H5T_NATIVE_DOUBLE),errorcode);
+        
+        if (datasetspace >= 0)  H5Sclose(datasetspace);
+        
+        if (datasettype >= 0)   H5Tclose(datasettype);
+        
+        if (datasetid >= 0)     H5Dclose(datasetid);
+        
+        if (memtype >= 0)       H5Tclose(memtype);
+        
+        return errorcode;
+        
+    }
 
 
     /* add a double dataset slab to a group
@@ -14113,8 +14428,9 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 #ifdef CBF_H5Z_USE_BSHUF
                 
                 else if ((h5handle->flags & CBF_COMPRESSION_MASK) == CBF_H5COMPRESSION_BSLZ4 ) {
+                    int elsize = (bits+7)/8;
                     unsigned int cd_values[CBF_H5Z_FILTER_BSHUF_NELMTS];
-                    cd_values[CBF_H5Z_FILTER_BSHUF_BLOCKSIZE] = 8192;
+                    cd_values[CBF_H5Z_FILTER_BSHUF_BLOCKSIZE] = 8192/elsize;
                     cd_values[CBF_H5Z_FILTER_BSHUF_COMPRESSION] =
                     CBF_H5Z_FILTER_BSHUF_LZ4;
                     
@@ -21691,7 +22007,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                         
                         else if ((h5handle->flags & CBF_COMPRESSION_MASK) == CBF_H5COMPRESSION_BSLZ4 ) {
                             unsigned int cd_values[CBF_H5Z_FILTER_BSHUF_NELMTS];
-                            cd_values[CBF_H5Z_FILTER_BSHUF_BLOCKSIZE] = 8192;
+                            cd_values[CBF_H5Z_FILTER_BSHUF_BLOCKSIZE] = 8192/elsize;
                             cd_values[CBF_H5Z_FILTER_BSHUF_COMPRESSION] =
                             CBF_H5Z_FILTER_BSHUF_LZ4;
                             
@@ -25719,6 +26035,44 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
              const char * const scan /**< The name of the scan to convert, or NULL if there is only one scan in the datablock. */,
              const int list /**< Boolean flag to determine if a list of processed items is printed. */)
     {
+        return cbf_write_cbf2nx2(handle,h5handle,0,datablock,scan,list);
+
+    }
+    
+    /**
+     Extracts data from <code>handle</code> and generates a NeXus file in <code>h5handle</code>. This will attempt
+     to extract metadata and image data from each scan (or the named scan) within each datablock (or the the named
+     datablock) and insert it into a given index into the NXentry group specified in <code>h5handle</code>.
+     
+     If h5datahandle is specified, the data is written to that file and h5handle is used
+     
+     Each scan in the CBF file corresponds to one NXentry in NeXus, so a CBF datablock with multiple scans must be
+     converted by calling this function with the appropriate value of <code>scan</code> once for each scan in the
+     datablock.
+     
+     The flags (within <code>h5handle</code>) determine:
+     
+     - Compression algorithm: zlib/CBF/none
+     - Plugin registration method: automatic/manual
+     
+     The strings given by <code>h5handle->scan_id</code> and <code>h5handle->sample_id</code> define:
+     
+     - The presence and value of an identifier for the scan, stored in <code>/\*:NXentry/entry_identifier</code>.
+     - The presence and value of an identifier for the sample, stored in <code>/\*:NXentry/\*:NXsample/sample_identifier</code>.
+     
+     \sa cbf_write_cbf_h5file
+     \sa cbf_write_minicbf_h5file
+     \sa cbf_write_nx2cbf
+     \return An error code.
+     */
+    int cbf_write_cbf2nx2
+            (cbf_handle handle /**< The CBF file to extract data from. */,
+             cbf_h5handle h5handle /**< The NeXuS file to write metadata to. */,
+             cbf_h5handle h5datahandle /**< The NeXuS file to write data to. */,
+             const char * const datablock /**< The name of the datablock to convert, or NULL to convert all datablocks. */,
+             const char * const scan /**< The name of the scan to convert, or NULL if there is only one scan in the datablock. */,
+             const int list /**< Boolean flag to determine if a list of processed items is printed. */)
+    {
         int error = CBF_SUCCESS;
         int found = CBF_SUCCESS;
         cbf_cbf2nx_key_t key[1];
@@ -25738,7 +26092,7 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
         if (h5handle->flags & CBF_H5_CBFNONAMES) {
             CBF_CALL(cbf_h5handle_require_detector(h5handle,&detector,0));
         } else {
-            CBF_CALL(cbf_require_nxdetectors(handle,h5handle));
+            CBF_CALL(cbf_require_nxdetectors2(handle,h5handle,h5datahandle));
             detector = h5handle->nxdetectors[h5handle->cur_detector];
         }
 
@@ -25889,15 +26243,20 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
                     CBF_CALL(cbf2nx_convert_category(db, h5handle, "diffrn_data_frame", key, list, 1));
                     }
                     /* convert the metadata */
+                    if (h5handle->flags & CBF_H5_CBFNONAMES) {
                     CBF_CALL(cbf2nx_convert_category(db, h5handle, "diffrn_detector_element", key, list, 1));
                     CBF_CALL(cbf2nx_convert_category(db, h5handle, "diffrn_detector", key, list, 1));
                     CBF_CALL(cbf2nx_convert_category(db, h5handle, "diffrn_detector_axis", key, list, 1));
+                    }
                     CBF_CALL(cbf2nx_convert_category(db, h5handle, "diffrn", key, list, 1));
                     CBF_CALL(cbf2nx_convert_category(db, h5handle, "diffrn_source", key, list, 1));
+                    if (h5handle->flags & CBF_H5_CBFNONAMES) {
                     CBF_CALL(cbf2nx_convert_category(db, h5handle, "diffrn_measurement", key, list, 1));
                     CBF_CALL(cbf2nx_convert_category(db, h5handle, "diffrn_measurement_axis", key, list, 1));
+                        
                     CBF_CALL(cbf2nx_convert_category(db, h5handle, "diffrn_radiation", key, list, 1));
                     CBF_CALL(cbf2nx_convert_category(db, h5handle, "diffrn_radiation_wavelength", key, list, 1));
+                    }
                     CBF_CALL(cbf2nx_convert_category(db, h5handle, "diffrn_refln", key, list, 0));
                     if (h5handle->flags & CBF_H5_CBFNONAMES) {
                         CBF_CALL(cbf_write_cbf2nx__axis(handle, h5handle, key, list));

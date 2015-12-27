@@ -510,7 +510,7 @@ extern "C" {
         return cutpoint+1. - ((double)(bin+20))/20.;
     }
     
-    static const double partvol_1D(int ii) {
+    static double partvol_1D(int ii) {
         if (ii <= 0 ) return 0.;
         if (ii > 20) return 1.;
         return cbf_airy_unit_disk_partvol_1D[ii-1];

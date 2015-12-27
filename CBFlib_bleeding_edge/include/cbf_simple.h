@@ -650,7 +650,11 @@ cbf_set_pixel_size((handle),(element_number),(axis_number),(psize))
     int cbf_set_current_timestamp (cbf_handle handle, unsigned int reserved,
                                    int timezone);
     
+    /* Count the number of images available in the CBF */
     
+    int cbf_count_images (cbf_handle handle, unsigned int * nrows);
+
+        
     /* Get the image size */
     
     int cbf_get_image_size (cbf_handle    handle,
