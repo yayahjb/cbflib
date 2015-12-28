@@ -623,7 +623,7 @@ int main (int argc, char *argv [])
 					if (CBF_SUCCESS != (error |= cbf_make_handle(&cif))) {
                         fprintf(stderr,"Failed to create handle for input_cif\n");
 						error |= CBF_ALLOC;
-					} else if (CBF_SUCCESS != (error |= cbf_read_file(cif, in, MSG_DIGEST))) {
+					} else if (CBF_SUCCESS != (error |= cbf_read_widefile(cif, in, MSG_DIGEST))) {
 						fprintf(stderr,"Couldn't read the input CIF file '%s': %s\n", cifin[f], cbf_strerror(error));
 						error |= CBF_FILEREAD;
 					} else {

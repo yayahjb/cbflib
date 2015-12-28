@@ -6026,7 +6026,11 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
        array_id and binary_id, or to use the value associated with the
        optional _array_data.nxdata_field_name tag, if provided.
      
-       The value provided is always a new copy that will need to be freed.
+       The value provided in dataset name is always a new copy that will need to be 
+       freed.
+     
+       A similar link target path will be provided in nxdata_field_link_target_path,
+       which also will need to be freed.
      
        Similarly, either the group name "data" is generated
        the value associated with the optional _array_data.nxdata_group_name
@@ -6178,7 +6182,21 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             }
         }
         
+        if (*datasetname && nxdata_field_link_target_path && !(*nxdata_field_link_target_path)) {
+            const char * target_path_parts[5] = {
+                "",
+                "entry",
+                "data",
+                *datasetname,
+                NULL
+            };
+            *nxdata_field_link_target_path = _cbf_str_join(target_path_parts,'/');
+        }
+        
         cbf_debug_print2("datasetname = '%s'\n", *datasetname);
+
+        cbf_debug_print2("link_target_path = '%s'\n", *nxdata_field_link_target_path);
+
 
         handle->node = node;
         
@@ -6260,6 +6278,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                   &nxdata_field_link_target_path,
                                   &typeofvalue);
         
+        cbf_debug_print2("cbf_write_array_h5file2 nxdata_field_link_target_file = %s",nxdata_field_link_target_file);
+        cbf_debug_print2("cbf_write_array_h5file2 nxdata_field_link_target_path = %s",nxdata_field_link_target_path);
         cbf_debug_print2("cbf_write_array_h5file2 typeofvalue = %s",typeofvalue);
         
         if (!node) {
@@ -7875,6 +7895,36 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         is given, the data h5handle NXdata or NXdetector that does not
         have the data will not be created here.
      
+       data_h5handle must always be valid.
+       master_h5handle may be NULL.
+     
+       If store_in_NXdata is true:
+         data stored in data_h5handle:NXentry/data:NXdata/data_...
+         If master_h5handle is valid:
+           create an external link
+             from master_h5handle:NXentry/data:NXdata/data_...
+               to data_h5handle:NXentry/data:NXdata/data_...
+           create a soft link
+             from master_h5handle:NXentry/.../NX_detector/data_...
+               to master_h5handle:NXentry/data:NXdata/data_...
+         If master_h5 handle is NULL
+           create a soft link
+             from data_h5handle:NXentry/.../NX_detector/data ...
+               to data_h5handle:NXentry/data:NXdata/data_...
+       If store_in_NXdata is false:
+         data stored in data_h5handle:NXentry/.../NX_detector/data_...
+         create a soft link
+           from data_h5handle:NXentry/data:NXdata/data_...
+             to data_h5handle:NXentry/.../NX_detector/data ...
+         create an external link
+           from master_h5handle:NXentry/data:NXdata/data_...
+             to data_h5handle:NXentry/.../NX_detector/data ...
+         create an external link
+           from master_h5handle:NXentry/.../NX_detector/data ...
+             to data_h5handle:NXentry/.../NX_detector/data ...
+     
+
+     
        If a we are dealing with a template, only a data_h5handle will
        be given.  master_h5handle will be NULL.
      
@@ -7971,6 +8021,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         dsetid = CBF_H5FAIL;
         
+        cbf_failnez(cbf_h5handle_require_entry(data_h5handle,0,0));
+        
         if (master_h5handle) {
             
             /* require an NXinstrument group and an NXdetector*/
@@ -7984,13 +8036,14 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             
             master_detectorid = master_h5handle->nxdetectors[master_h5handle->cur_detector];
  
+            cbf_debug_print2("created master_detectorid for '%s'\n",detector_element);
+            
         }
         
         if (!master_h5handle || !store_in_NXdata) {
             
             /* require an NXinstrument group and an NXdetector in the data hdf5*/
             
-            cbf_failnez(cbf_h5handle_require_entry(data_h5handle,0,0));
             cbf_failnez(cbf_h5handle_require_instrument(data_h5handle,
                                                         &data_instrumentid,0));
             
@@ -7998,6 +8051,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                         
             data_detectorid = data_h5handle->nxdetectors[data_h5handle->cur_detector];
             
+            cbf_debug_print2("created data_detectorid for '%s'\n",detector_element);
             
             
         }
@@ -8095,7 +8149,15 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                           &nxdata_field_link_target_file,
                                           &nxdata_field_link_target_path,
                                           &typeofvalue);
+            cbf_debug_print2("cbf_require_nxdata arrayid = %s",arrayid);
+            cbf_debug_print2("cbf_require_nxdata binaryid = %s",binaryid);
+            cbf_debug_print2("cbf_require_nxdata nxdataname = %s",nxdataname);
+            cbf_debug_print2("cbf_require_nxdata groupname = %s",groupname);
+            cbf_debug_print2("cbf_require_nxdata nxdata_field_link_target_file = %s",nxdata_field_link_target_file);
+            cbf_debug_print2("cbf_require_nxdata nxdata_field_link_target_path = %s",nxdata_field_link_target_path);
+            cbf_debug_print2("cbf_require_nxdata typeofvalue = %s",typeofvalue);
                 
+            
                 if (!cbf_find_category(handle,"array_intensities")
                     &&!cbf_find_row_by_columns(handle,2,searchcols,values)){
                     
@@ -8138,9 +8200,14 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     
                 }
                 
-                /* If master_h5handle is given, the data will be in data-h5handle
-                   and the metadata in master_h5handle */
+            /*  In all cases, data will be in data_h5handle.
+            If master_h5handle is given, the metadata will be in master_h5handle */
                 
+            cbf_reportnez(cbf_H5Grequire(data_h5handle->nxid,&data_dataid,groupname),error);
+            cbf_reportnez(cbf_H5Arequire_string(data_dataid,"NX_class","NXdata"),error);
+            
+            data_h5handle->nxdata = data_dataid;
+            
                 if (master_h5handle) {
                     
                     cbf_reportnez(cbf_H5Grequire(master_h5handle->nxid,&master_dataid,groupname),error);
@@ -8149,12 +8216,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     master_h5handle->nxdata = master_dataid;
                     
                     if (store_in_NXdata) {
-                        
-                        cbf_reportnez(cbf_H5Grequire(data_h5handle->nxid,&data_dataid,groupname),error);
-                            
-                        cbf_reportnez(cbf_H5Arequire_string(data_dataid,"NX_class","NXdata"),error);
-                        
-                        data_h5handle->nxdata = data_dataid;
                         
                         /* If we are storing the data in NXdata in the data file,
                            we need to put a link to this data in master file
@@ -8179,18 +8240,25 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                                          scaling,
                                                          data_dataid);
                         
+                    if (cbf_H5Ivalid(data_dataid)) {
+                    
                         error|= cbf_require_nxarrayid(handle,data_h5handle,
                                                       arrayid,
                                                       binaryid,
                                                       data_dataid,
                                                       CBF_H5FAIL);
                         
+                    }
+                    
+                    if (cbf_H5Ivalid(master_detectorid)) {
+
                         error|= cbf_require_nxarrayid(handle,master_h5handle,
                                                       arrayid,
                                                       binaryid,
                                                       CBF_H5FAIL,
                                                       master_detectorid);
 
+                    }
                         
                         /* need to set up links
                          master_h5handle/entry/instrument/detector/data_...
@@ -8201,18 +8269,65 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                         
                         if (cbf_H5Ivalid(master_detectorid) && cbf_H5Ivalid(master_dataid)) {
                             
+                        int oerror = error;
+                        
+#ifdef CBFDEBUG
+                        
+                        hid_t master_detectorid_file_id, master_dataid_file_id, data_dataid_file_id;
+                        
+                        char master_detectorid_name[128];
+
+                        char master_dataid_name[128];
+
+                        char data_dataid_name[128];
+                        
+                        ssize_t master_detectorid_name_len;
+
+                        ssize_t master_dataid_name_len;
+
+                        ssize_t data_dataid_name_len;
+
+                        
+#endif
+                        
                             char * dataname=NULL;
                             
                             char * masterdataname = NULL;
                             
+                        error = 0;
+                        
                             cbf_reportnez(cbf_get_nx_object_path(master_dataid,nxdataname,&masterdataname),error);
                             
                             cbf_reportnez(cbf_get_nx_object_path(data_dataid,nxdataname,&dataname),error);
                             
+                        cbf_debug_print2("nxdataname '%s'\n", nxdataname);
                             
+                        cbf_debug_print2("masterdataname '%s'\n", masterdataname);
+                        
+                        cbf_debug_print2("dataname '%s'\n", dataname);
+                        
+#ifdef CBFDEBUG
+                        
+                        master_detectorid_file_id = H5Iget_file_id(master_detectorid);
+                        master_dataid_file_id = H5Iget_file_id(master_dataid);
+                        data_dataid_file_id = H5Iget_file_id(data_dataid);
+                        master_detectorid_name_len = H5Iget_name(master_detectorid,master_detectorid_name,127);
+                        master_dataid_name_len = H5Iget_name(master_dataid,master_dataid_name,127);
+                        data_dataid_name_len = H5Iget_name(data_dataid,data_dataid_name,127);
+                        master_detectorid_name[127]
+                        = master_dataid_name[127]
+                        = data_dataid_name[127] = '\0';
+                        cbf_debug_print3("master_detectorid_name '%s', file %x\n", master_detectorid_name,master_detectorid_file_id);
+                        cbf_debug_print3("master_dataid_name '%s', file %x\n", master_dataid_name,master_dataid_file_id );
+                        cbf_debug_print3("data_dataid_name '%s', file %x\n", data_dataid_name,data_dataid_file_id );
+                        
+#endif
+                       
+                        
+                        
                             if (!error && H5Lexists(master_detectorid,nxdataname,H5P_DEFAULT) == 0) {
                             
-                                cbf_h5reportneg(H5Lcreate_soft(masterdataname,master_detectorid,dataname,H5P_DEFAULT,H5P_DEFAULT),CBF_H5ERROR,error);
+                            cbf_h5reportneg(H5Lcreate_soft(masterdataname,master_detectorid,nxdataname,H5P_DEFAULT,H5P_DEFAULT),CBF_H5ERROR,error);
 
                             }
                             
@@ -8223,6 +8338,9 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                 
                                 if (!nxdata_field_link_target_path)
                                     nxdata_field_link_target_path = "/entry/data/data";
+                            
+                            cbf_debug_print2("nxdata_field_link_target_file '%s'\n", nxdata_field_link_target_file);
+                            cbf_debug_print2("nxdata_field_link_target_path '%s'\n", nxdata_field_link_target_path);
                             
                                 cbf_h5reportneg(H5Lcreate_external( nxdata_field_link_target_file,
                                     nxdata_field_link_target_path,
@@ -8235,8 +8353,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                             
                             if (masterdataname) cbf_free((void **)&masterdataname,NULL);
 
+                        error |= oerror;
                             
                             
+                        
                         }
 
                         /* We will store in NXdetector */
@@ -8283,10 +8403,14 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                         
                         if (cbf_H5Ivalid(master_detectorid)&&cbf_H5Ivalid(master_dataid)) {
                             
+                        int oerror = error;
+                        
                             char * dataname=NULL;
                             
                             char * masterdataname = NULL;
                             
+                        error = 0;
+                        
                             cbf_reportnez(cbf_get_nx_object_path(master_detectorid,nxdataname,&masterdataname),error);
                             
                             cbf_reportnez(cbf_get_nx_object_path(data_detectorid,nxdataname,&dataname),error);
@@ -8317,7 +8441,9 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                             
                             if (masterdataname) cbf_free((void **)&masterdataname,NULL);
                             
+                        error |= oerror;
                             
+                        
                         }
 
                     }
@@ -8389,10 +8515,14 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     
                     } else {
                         
+                    int oerror = error;
+                    
                         handle->node = (cbf_node *)node;
                         
                         handle->row = row;
                         
+                    error = 0;
+                    
                         cbf_reportnez(cbf_write_array_h5file2(handle,data_h5handle,
                                                          arrayid,
                                                          binaryid,
@@ -8432,7 +8562,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                                         binaryid,
                                                         data_dataid,
                                                         data_detectorid),error);
-                        
+                    error |= oerror;
                     }
                     
                                         
@@ -16641,7 +16771,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             
             cbf_failnez(cbf_free(((void **) &filename),NULL));
             
-            /* cbf_debug_print2("h5 filename '%s'\n",h5handle -> nxfilename); */
+            cbf_debug_print2("h5 filename '%s'\n",h5handle -> nxfilename);
             
             return CBF_SUCCESS;
         }
