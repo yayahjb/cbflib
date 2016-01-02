@@ -20849,14 +20849,14 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                             if (rank < 0) {
                                 cbf_debug_print("error: problem getting the rank of a dataset");
                                 error |= CBF_H5ERROR;
-                            } else if (1==rank) {
-                                hsize_t dims[1];
+                            } else if (rank > 0) {
+                                hsize_t dims[rank];
                                 if (rank != H5Sget_simple_extent_dims(data_space,dims,0)) {
                                     cbf_debug_print("error: problem getting the dimensions of a dataset");
                                     error |= CBF_H5ERROR;
-                                } else if (dims[0] != pixel_offset_dim[i]) {
+                                } else if (dims[rank-1] != pixel_offset_dim[i]) {
                                     cbf_debug_print3("error: dimensions of pixel offset %ld don't match dimensions of data %ld",
-                                                     (long)pixel_offset_dim[i], (long)dims[0]);
+                                                     (long)pixel_offset_dim[i], (long)dims[rank-1]);
                                     error |= CBF_H5DIFFERENT;
                                 } else {
                                     /*
@@ -20865,10 +20865,12 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                      - assume that it's a uniformly spaced array of pixels in 3D space, so ignore subsequent values
                                      - store it (and dependency chain) in the key, to be converted along with other axes
                                      */
-                                    const hsize_t off[] = {0};
-                                    const hsize_t cnt[] = {2};
+                                    hsize_t off[rank];
+                                    hsize_t cnt[rank];
+                                    size_t ir;
                                     double disp2[] = {0.,0.};
                                     double factor = 0./0.;
+                                    for (ir = 0; ir < rank; ir++) { off[ir] = 0; cnt[ir] = (ir<rank-1)?1:2;}
                                     /* extract data */
                                     CBF_CALL(cbf_H5Dread2(pixel_data,off,NULL,cnt,disp2,H5T_NATIVE_DOUBLE));
                                     if (CBF_SUCCESS==error) {

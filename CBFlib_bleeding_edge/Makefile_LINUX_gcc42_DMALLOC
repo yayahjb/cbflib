@@ -824,6 +824,7 @@ all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) $(HDF5) $(LZ4DEPS) $(BSHUFDEPS) $
 	$(BIN)/cbf2nexus      \
 	$(BIN)/cif2c          \
 	$(BIN)/cif2cbf        \
+	$(BIN)/cbf_standardize_numbers \
 	$(BIN)/convert_image  \
 	$(BIN)/convert_minicbf\
 	$(BIN)/img2cif        \
@@ -975,6 +976,9 @@ baseinstall:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
 	cp $(BIN)/adscimg2cbf $(INSTALLDIR)/bin/adscimg2cbf
 	-cp $(INSTALLDIR)/bin/cbf2adscimg $(INSTALLDIR)/bin/cbf2adscimg_old
 	cp $(BIN)/cbf2adscimg $(INSTALLDIR)/bin/cbf2adscimg
+	-cp $(INSTALLDIR)/bin/cbf_standardize_numbers \
+		$(INSTALLDIR)/bin/cbf_standardize_numbers_old
+	cp $(BIN)/cbf_standardize_numbers $(INSTALLDIR)/bin/cbf_standardize_numbers
 	-cp $(INSTALLDIR)/bin/convert_image $(INSTALLDIR)/bin/convert_image_old
 	cp $(BIN)/convert_image $(INSTALLDIR)/bin/convert_image
 	-cp $(INSTALLDIR)/bin/convert_minicbf $(INSTALLDIR)/bin/convert_minicbf_old
@@ -1038,6 +1042,7 @@ endif
 	chmod 755 $(INSTALLDIR)/lib/libfcb.so
 	chmod 755 $(INSTALLDIR)/bin/arvai_test
 	chmod 755 $(INSTALLDIR)/bin/cbf2nexus
+	chmod 755 $(INSTALLDIR)/bin/cbf_standardize_numbers
 	chmod 755 $(INSTALLDIR)/bin/cif2c
 	chmod 755 $(INSTALLDIR)/bin/cif2cbf
 	chmod 755 $(INSTALLDIR)/bin/convert_image
@@ -1437,6 +1442,13 @@ $(BIN)/cbf2adscimg: $(LIB)/libcbf.a $(EXAMPLES)/cbf2adscimg.c $(EXAMPLES)/cbf2ad
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) -D_SVID_SOURCE $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/cbf2adscimg.c $(EXAMPLES)/cbf2adscimg_sub.c  -L$(LIB) \
 	-lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
+
+#
+# cbf_standardize_numbers example program
+#
+$(BIN)/cbf_standardize_numbers: $(EXAMPLES)/cbf_standardize_numbers.c $(EXAMPLES)/cbf_standardize_numbers.h
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) -D_SVID_SOURCE $(INCLUDES) $(WARNINGS) \
+	$(EXAMPLES)/cbf_standardize_numbers.c $(EXTRALIBS) -o $@
 
 #
 # changtestcompression example program
@@ -2148,17 +2160,23 @@ endif
 
 
 	
-pycbftests:  $(PYCBF)/_pycbf.$(PYCBFEXT) 
+pycbftests:  $(PYCBF)/_pycbf.$(PYCBFEXT) $(BIN)/cbf_standardize_numbers
 	($(RTLPEXPORTS) cd $(PYCBF); python pycbf_test1.py)
 	($(RTLPEXPORTS) cd $(PYCBF); python pycbf_test2.py)
 	($(RTLPEXPORTS) cd $(PYCBF); python pycbf_test3.py)
 	($(RTLPEXPORTS) cd $(PYCBF); python pycbf_test4.py)
-	($(RTLPEXPORTS) cd $(PYCBF); python pycbf_testfelaxes.py fel_test1.cbf > fel_test1.out)
-	($(RTLPEXPORTS) cd $(PYCBF); python pycbf_testfelaxes.py fel_test2.cbf > fel_test2.out)
-	($(RTLPEXPORTS) cd $(PYCBF); python pycbf_testfelaxes.py ../hit-20140306005258847.cbf > fel_test3.out)
-	-$(DIFF) $(PYCBF)/fel_test1.out $(PYCBF)/fel_test1_orig.out
-	-$(DIFF) $(PYCBF)/fel_test2.out $(PYCBF)/fel_test2_orig.out 
-	-$(DIFF) $(PYCBF)/fel_test3.out $(PYCBF)/fel_test3_orig.out
+	($(RTLPEXPORTS) cd $(PYCBF); python pycbf_testfelaxes.py fel_test1.cbf |\
+		../$(BIN)/cbf_standardize_numbers - 4 > fel_test1.out)
+	($(RTLPEXPORTS) cd $(PYCBF); python pycbf_testfelaxes.py fel_test2.cbf |\
+		../$(BIN)/cbf_standardize_numbers - 4 > fel_test2.out)
+	($(RTLPEXPORTS) cd $(PYCBF); python pycbf_testfelaxes.py ../hit-20140306005258847.cbf |\
+		../$(BIN)/cbf_standardize_numbers - 4 > fel_test3.out)
+	-$(BIN)/cbf_standardize_numbers $(PYCBF)/fel_test1_orig.out 4 | \
+		$(DIFF) $(PYCBF)/fel_test1.out -
+	-$(BIN)/cbf_standardize_numbers $(PYCBF)/fel_test2_orig.out 4 | \
+		$(DIFF) $(PYCBF)/fel_test2.out -
+	-$(BIN)/cbf_standardize_numbers $(PYCBF)/fel_test3_orig.out 4 | \
+		$(DIFF) $(PYCBF)/fel_test3.out -
 
 pycbfinstall: $(PYCBF)/_pycbf.$(PYCBFEXT) $(PYCBF)/pycbfinstall
 
