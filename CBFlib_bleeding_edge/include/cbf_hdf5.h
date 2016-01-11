@@ -1863,7 +1863,7 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
 			 const int list);
 
     
-	/**
+    /**
      \brief Extract the data from a CBF file & put it into a NeXus metadata file data file.
      \ingroup section_H5Handle
      */

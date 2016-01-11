@@ -257,6 +257,7 @@ extern "C" {
 #endif
     
 #include "cbf_minicbf_header.h"
+#include <time.h>
     
 /* cbf_set_minicbf_header -- format a minicbf header conforming both
  to DECTRIS "PILATUS CBF Header Specification" version 1.4 and to the
@@ -401,6 +402,8 @@ extern "C" {
         
         const char * oscillations;
         
+        int result;
+        
         /* check the arguments */
         
         if (!cbf || !datacbf)
@@ -537,8 +540,23 @@ extern "C" {
         
         /*  Pick up goniometer start and increment */
         
-        cbf_failnez(cbf_get_rotation_range(goniometer_handle, reserved,
-                                           &goniometer_start, &goniometer_increment));
+        result = cbf_get_rotation_range(goniometer_handle, reserved,
+                                           &goniometer_start, &goniometer_increment);
+        
+        if (result) {
+            
+            goniometer_start = 0.0;
+            
+            goniometer_increment = 0.0;
+            
+            if (log) {
+                
+                cbf_failnez(cbf_append_string(log,&log_capacity,&log_size,
+                                              "cbf_set_minicbf_header: warning: "
+                                              "unable to get goniometer start and increment \n"));
+            }
+            
+        }
         
         cbf_failnez(cbf_free_goniometer(goniometer_handle));
         
@@ -839,15 +857,31 @@ extern "C" {
             
         } else {
             
+
+            time_t time_t_time;
+            
+            struct tm * tm_time;
+            
+            size_t strftlen;
+            
+            tm_time = localtime (&time_t_time);
+            
+            strftlen = strftime(buffer,MAX_SRCLEN,"# %Y-%m-%dT%H:%M:%S",tm_time);
+            
+            buffer[MAX_SRCLEN] = '\0';
+            
             if (log){
                 
                 cbf_failnez(cbf_append_string(log,&log_capacity,&log_size,
-                                              "cbf_set_minicbf_header: error: "
+                                              "cbf_set_minicbf_header: warning: "
                                               "unable to find date and time\n"));
                 
             }
             
-            return CBF_FORMAT;
+            cbf_failnez(cbf_append_string(&header,&header_capacity,&header_size,
+                                          buffer));
+            
+            if (!strftlen) return CBF_FORMAT;
             
         }
         

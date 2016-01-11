@@ -856,7 +856,8 @@ int main (int argc, char *argv [])
                                  "\5(frames-of-interest):" \
                                  "\5(foi):" \
                                  "\6(region-of-interest):" \
-                                 "\6(roi):"
+                                 "\6(roi):" \
+                                 "\7(help)"
                                  ));
 
     if (!cbf_rewind_getopt_option(opts))
@@ -1068,6 +1069,11 @@ int main (int argc, char *argv [])
                     if (roi) errflg++;
                     roi = optarg;
                     break;
+                    
+                case '\7': /* help */
+                    errflg++;
+                    break;
+
 
                 case 'O': /* set Opaque mode */
                     if (opaquemode) errflg++;

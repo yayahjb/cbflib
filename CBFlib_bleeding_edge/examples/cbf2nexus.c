@@ -664,8 +664,8 @@ int main (int argc, char *argv [])
                         fprintf(stderr,"Couldn't open the HDF5 file '%s'.\n", hdf5data);
                     } else if (CBF_SUCCESS != (error |= cbf_h5handle_require_entry_definition(h5data,0,group,"NXmx","1.2",0))) {
                         fprintf(stderr,"Couldn't create an NXentry group in the HDF5 file '%s'.\n", hdf5data);
-			}
-            
+                    }
+                    
                 }
 			}
             

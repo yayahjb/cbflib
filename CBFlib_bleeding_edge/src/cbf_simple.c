@@ -1378,15 +1378,15 @@ extern "C" {
                 return CBF_FORMAT;
             
             done [precedence-1] = 1;
-            
+                
             }
             
             if (!(!cbf_find_column (handle, "array_id")
                   || !cbf_find_column (handle, "array_section"))) {
             
-            cbf_onfailnez (cbf_find_column (handle, "array_id"),
+                cbf_onfailnez (cbf_find_column (handle, "array_id"),
                            {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);})
-        }
+            }
         }
         
         for (ii=0; ii < (ssize_t)rank; ii++) {
@@ -2468,7 +2468,7 @@ extern "C" {
         if (cbf_find_column(handle,"array_section_id")) {
             if (cbf_find_column   (handle, "array_id")) {
                 cbf_failnez(cbf_find_column (handle, "array_section"));
-        }
+            }
         }
 
         precedence = max_precedence = axis_index = 0;
@@ -2550,7 +2550,7 @@ extern "C" {
         if (cbf_find_column(handle,"array_section_id")) {
             if (cbf_find_column   (handle, "array_id")) {
                 cbf_failnez(cbf_find_column (handle, "array_section"));
-        }
+            }
         }
 
         precedence = max_precedence = axis_index = 0;
@@ -4164,7 +4164,7 @@ extern "C" {
 
             if (cbf_find_column   (handle, "array_id")) {
                 cbf_failnez(cbf_find_column (handle, "array_section"));
-        }
+            }
         }
 
         if (!done [1])
@@ -4435,7 +4435,7 @@ extern "C" {
 
             if (cbf_find_column   (handle, "array_id")) {
                 cbf_failnez(cbf_find_column (handle, "array_section"));
-        }
+            }
         }
 
         if (!done [1])
@@ -7001,8 +7001,8 @@ extern "C" {
             cbf_failnez (cbf_find_category (handle, "array_structure_list"))
             if (cbf_find_column   (handle, "array_id")) {
                 array_colname = "array_section";
-            cbf_failnez (cbf_find_column   (handle, array_colname));
-        }
+                cbf_failnez(cbf_find_column (handle, array_colname));
+            }
 
             cbf_failnez (cbf_find_column   (handle, array_colname));
         }
@@ -7348,7 +7348,7 @@ extern "C" {
         if (cbf_find_column(handle,"array_section_id")) {
             if (cbf_find_column(handle,"array_id")) {
                 cbf_failnez (cbf_find_column   (handle, "array_section"));
-        }
+            }
         }
 
         surface_axis [0] = surface_axis [1] = NULL;
@@ -7371,8 +7371,8 @@ extern "C" {
             if (cbf_find_column(handle,"array_section_id")) {
                 if (cbf_find_column(handle,"array_id")) {
                     cbf_failnez (cbf_find_column   (handle, "array_section"));
+                }
             }
-        }
         }
 
         if (!surface_axis[0]) {
@@ -7716,7 +7716,7 @@ extern "C" {
         if (cbf_find_column(handle,"array_section_id")) {
             if (cbf_find_column(handle,"array_id")) {
                 cbf_failnez (cbf_find_column   (handle, "array_section"));
-        }
+            }
         }
 
         surface_axis [0] = surface_axis [1] = NULL;
@@ -8052,7 +8052,7 @@ extern "C" {
         if (cbf_find_column(handle,"array_section_id")) {
             if (cbf_find_column(handle,"array_id")) {
                 cbf_failnez (cbf_find_column   (handle, "array_section"));
-        }
+            }
         }
 
         surface_axis [0] = surface_axis [1] = NULL;
@@ -8076,8 +8076,8 @@ extern "C" {
             if (cbf_find_column(handle,"array_section_id")) {
                 if (cbf_find_column(handle,"array_id")) {
                     cbf_failnez (cbf_find_column   (handle, "array_section"));
+                }
             }
-        }
         }
 
         if (!surface_axis[0]) {
@@ -10354,7 +10354,7 @@ extern "C" {
         if (cbf_find_column(handle,"array_section_id")) {
             if (cbf_find_column(handle,"array_id")) {
                 cbf_failnez (cbf_find_column   (handle, "array_section"));
-        }
+            }
         }
 
         surface_axis [0] = surface_axis [1] = NULL;

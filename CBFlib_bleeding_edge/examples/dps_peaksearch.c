@@ -419,7 +419,7 @@ int dps_peaksearch(unsigned short *data, int nx, int ny,
                     dps_peaks[npeaks].peakfw = peakfw;
                     dps_peaks[npeaks].peakfh = peakfh;
                     npeaks++;
-                    
+                        
                     /* Update next_good_y for this peak */
 
                         for (l=x_max-peakfw/2; l<=x_max+peakfw/2; l++) {
@@ -539,7 +539,7 @@ int	near_edge(unsigned short *data,
         bavg = 0;
         for (it = -is; it <= is; it ++) {
             value = data[width*(ypos -is)+xpos+it];
-                value &=0xFFFF;
+            value &= 0xFFFF;
             if (value !=0xFFFF && (value & 0XFFFC) == 0xFFFC) return 1;
             if (value < min_value) return 1;
             if (value > smax) smax = value;
@@ -551,7 +551,7 @@ int	near_edge(unsigned short *data,
             if (value > smax) smax = value;
             if (value < smin) smin = value;
             bavg += (double)value;
-                }
+        }
         for (it = -is+1; it <= is-1; it ++) {
             value = data[width*(ypos +it)+xpos-is];
             value &= 0xFFFF;
@@ -565,14 +565,14 @@ int	near_edge(unsigned short *data,
             if (value > smax) smax = value;
             if (value < smin) smin = value;
             bavg += (double)value;
-            }
+        }
         bavg /= (double)(8*is);
         if ((double)smin < back/2. && smin < bmin) return 1;
         if ((double)bavg >= back*1.1 ) continue;
         if (smax <= bmax) {
             *peakfw = *peakfh = is*2-1;
             return 0;
-            }
+        }
     }
     for (is = minstep+1; is <= maxstep; is++) {
         smax = -1;
@@ -623,7 +623,7 @@ int	near_edge(unsigned short *data,
                 if (value > smax) smax = value;
                 if (value < smin) smin = value;
                 bavg += (double)value;
-        }
+            }
             for (it = -minstep+1; it <= minstep-1; it ++) {
                 value = data[width*(ypos +it)+xpos-is];
                 value &= 0xFFFF;
@@ -637,7 +637,7 @@ int	near_edge(unsigned short *data,
                 if (value > smax) smax = value;
                 if (value < smin) smin = value;
                 bavg += (double)value;
-    }
+            }
         }
         bavg /= (double)(4*is+4*minstep);
         if ((double)smin < back/2. && smin < bmin) return 1;
@@ -650,8 +650,8 @@ int	near_edge(unsigned short *data,
                 *peakfw = 2*minstep-1;
                 *peakfh = 2*is-1;
             }
-    return 0;
-}
+            return 0;
+        }
     }
     *peakfh = 2*stepy+1;
     *peakfw = 2*stepx+1;

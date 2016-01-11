@@ -79,10 +79,10 @@ int     main (int argc, char **argv)
 {
     unsigned short *raw;
     unsigned short *out;
-    char * filename = NULL;  /* The input file name */
+    char * filename = NULL;      /* The input file name */
     char * hp;
-    char * maskname = NULL;  /* An optional mask file (e.g. BKGINIT.cbf) */
-    char * overlayname = NULL; /* An optional peak/roi overlay file */
+    char * maskname = NULL;      /* An optional mask file (e.g. BKGINIT.cbf) */
+    char * overlayname = NULL;   /* An optional peak/roi overlay file */
     int        min_spacing = 6;  /* Minimum spacing in pixels between spots */
     int        min_value = 0;    /* Minimum valid value */
     double     ioversig = 2.;    /* Minimum peak height in I/sigma(I) */

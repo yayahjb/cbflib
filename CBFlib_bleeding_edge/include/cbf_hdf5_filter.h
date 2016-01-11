@@ -305,7 +305,7 @@ extern "C" {
     extern const H5Z_class2_t bshuf_H5Filter[1];
 #endif
 #endif
-
+    
 #ifdef CBF_H5Z_USE_LZ4
 
 /* HDF5 LZ4 Filter number */
@@ -325,7 +325,7 @@ extern "C" {
 #endif
 
 #ifdef CBF_H5Z_USE_BSHUF
-
+    
     /* HDF5 BSHUF Filter number */
     
 #ifndef CBF_H5Z_FILTER_BSHUF

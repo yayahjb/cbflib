@@ -321,7 +321,7 @@ int main (int argc, char *argv [])
                         } else if (!cbf_cistrcmp("bslz4",optarg?optarg:"")) {
                             h5_write_flags &= ~(CBF_COMPRESSION_MASK|CBF_FLAG_MASK);
                             h5_write_flags |= CBF_H5COMPRESSION_BSLZ4;
-                        }else if (!cbf_cistrcmp("none",optarg?optarg:"")) {
+                        } else if (!cbf_cistrcmp("none",optarg?optarg:"")) {
                             /* remove any previously set (system default?) compressions */
                             h5_write_flags &= ~(CBF_COMPRESSION_MASK|CBF_FLAG_MASK);
                         }
