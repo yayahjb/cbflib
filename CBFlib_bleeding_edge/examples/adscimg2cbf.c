@@ -140,7 +140,9 @@ int adscimg2cbf_sub2(char *header,
                      const char *offsetstr,
                      const char *cliplowstr,
                      const char *cliphighstr,
-                     const char *rad_smoothstr);
+                     const char *rad_smoothstr,
+                     int transpose,
+                     int interleave);
 
 
 int	main(int argc, char *argv[])
@@ -167,6 +169,8 @@ int	main(int argc, char *argv[])
 	int		beam_center_convention;
 	int     add_minicbf_header=0;
     int     bin=0;
+    int     transpose=0;
+    int     interleave=0;
     int     *new_int_data, *old_int_data;
     size_t  new_int_data_size, old_int_data_size;
 	double  thickness=0.;
@@ -190,7 +194,7 @@ int	main(int argc, char *argv[])
 					".img.Z",
 					NULL
 				     };
-	static char	*flags[30] = {
+	static char	*flags[32] = {
 					"--cbf_byte_offset",            /* 0 */
 					"--cbf_packed_v2",              /* 1 */
 					"--cbf_packed",                 /* 2 */
@@ -220,6 +224,8 @@ int	main(int argc, char *argv[])
                     "--radial-smooth",              /*26 */
                     "--input",                      /*27 */
                     "--output",                     /*28 */
+                    "--transpose",                  /*29 */
+                    "--interleave",                 /*30 */
 					NULL
 				   };
 
@@ -353,7 +359,21 @@ int	main(int argc, char *argv[])
                 case 28:
                     ofile = argval[1];
                     break;
-                    
+                case 29:
+                    if (argval[1][0] == '\0') {
+                        transpose = 1;
+                    } else {
+                        transpose = atoi(argval[1]);
+                    }
+                    break;
+                case 30:
+                    if (argval[1][0] == '\0') {
+                        interleave = 1;
+                    } else {
+                        interleave = atoi(argval[1]);
+                    }
+                    break;
+
             }
             if(j < 3 || j==12)
             {
@@ -604,7 +624,9 @@ int	main(int argc, char *argv[])
                                           offsetstr,
                                           cliplowstr,
                                           cliphighstr,
-                                          rad_smoothstr);
+                                          rad_smoothstr,
+                                          transpose,
+                                          interleave);
             free(hptr);
             if (old_int_data && old_int_data_size) free(old_int_data);
             old_int_data = new_int_data;

@@ -494,7 +494,9 @@ int	adscimg2cbf_sub2(char *header,
                      const char * offsetstr,
                      const char * cliplowstr,
                      const char * cliphighstr,
-                     const char * rad_smoothstr)
+                     const char * rad_smoothstr,
+                     int transpose,
+                     int interleave)
 {
     FILE *out;
     
@@ -529,7 +531,7 @@ int	adscimg2cbf_sub2(char *header,
     double  cmi, cmj, cmv;
     char *  local_bo;
     int		this_bo, smv_bo;
-    char		*header_as_details;
+    char *  header_as_details;
     int		header_size;
     double	oscillation_start, oscillation_range;
     double	detector_center_x, detector_center_y;
@@ -1937,43 +1939,100 @@ int	adscimg2cbf_sub2(char *header,
     }
     
     if (!cbf_filename) return 0;
-    
-    /*
-     int cbf_set_integerarray_wdims_fs (cbf_handle    handle,
-     unsigned int  compression,
-     int           id,
-     void         *value,
-     size_t        elsize,
-     int           elsign,
-     size_t        nelem,
-     const char   *byteorder,
-     size_t        dimfast,
-     size_t        dimmid,
-     size_t        dimslow,
-     size_t        padding)
-     */
-    cbf_failnez( cbf_set_integerarray_wdims_fs ((cbf_handle)    cbf,
-                                                (unsigned int) pack_flags,
-                                                (int)          1,
-                                                data_as_int-old_int_data_size/sizeof(int),
-                                                (size_t)        4,
-                                                (int)           1,
-                                                (size_t)        old_int_data_size/sizeof(int)
-                                                                 +(1+fasthigh-fastlow
-                                                                 +fastpadlow+fastpadhigh)
-                                                                 * (1+slowhigh-slowlow
-                                                                    +slowpadlow+slowpadhigh)
-                                                /(bin+1)/(bin+1),
-                                                "little_endian",
-                                                (size_t)        (1+fasthigh-fastlow
-                                                                 +fastpadlow+fastpadhigh)/(bin+1),
-                                                (size_t)        (1+slowhigh-slowlow
-                                                                 +slowpadlow+slowpadhigh)/(bin+1)
-                                                                + old_int_data_size/sizeof(int)/
-                                                                ((1+fasthigh-fastlow
-                                                                +fastpadlow+fastpadhigh)/(bin+1)),
-                                                (size_t)        0,
-                                                (size_t)        0))
+    {
+        size_t dim_fast = (size_t)(1+fasthigh-fastlow+fastpadlow+fastpadhigh)/(bin+1);
+        size_t dim_slow = old_int_data_size/sizeof(int)/(1+fasthigh-fastlow +fastpadlow+fastpadhigh)
+        + (1+slowhigh-slowlow+slowpadlow+slowpadhigh)/(bin+1);
+        size_t dim_total = dim_fast*dim_slow;
+        size_t big_step = dim_fast*(1+slowhigh-slowlow+slowpadlow+slowpadhigh)/(bin+1);
+        size_t repeat = dim_total/big_step;
+        int * data_to_write;
+        
+        data_to_write = data_as_int-old_int_data_size/sizeof(int);
+        
+        if (transpose) {
+            size_t ifast;
+            size_t islow;
+            size_t oindex;
+            size_t nindex;
+            int * transposed_data;
+            if(NULL ==
+               (transposed_data =
+                (int *) malloc(old_int_data_size+((1+fasthigh-fastlow+fastpadlow+fastpadhigh)
+                                                  *(1+slowhigh-slowlow+slowpadlow+slowpadhigh)*sizeof(int)/(bin+1)/(bin+1)))))
+            {
+                fprintf(stderr, "Error mallocing %d bytes of temporary memory for image transpose\n",
+                        (int) (old_int_data_size+((1+fasthigh-fastlow+fastpadlow+fastpadhigh)
+                                                  *(1+slowhigh-slowlow+slowpadlow+slowpadhigh)*sizeof(int)/(bin+1)/(bin+1))));
+                return(1);
+            }
+            for (islow = 0; islow < dim_slow; islow ++) {
+                for (ifast = 0; ifast < dim_fast; ifast ++) {
+                    oindex = ifast + islow*dim_fast;
+                    nindex = islow + ifast*dim_slow;
+                    transposed_data[nindex] = data_to_write[oindex];
+                }
+            }
+            free (data_to_write);
+            data_to_write = transposed_data;
+            dim_fast = dim_slow;
+            dim_slow = (size_t)(1+fasthigh-fastlow+fastpadlow+fastpadhigh)/(bin+1);
+            big_step = (1+slowhigh-slowlow+slowpadlow+slowpadhigh)/(bin+1);
+        }
+        
+        if (interleave) {
+            size_t ifast;
+            size_t islow;
+            size_t iblock;
+            size_t oindex;
+            size_t nindex;
+            size_t offsets[4];
+            int * interleaved_data;
+            if (repeat < 2) big_step = (big_step+1)/2;
+            if(NULL ==
+               (interleaved_data =
+                (int *) malloc(old_int_data_size+((1+fasthigh-fastlow+fastpadlow+fastpadhigh)
+                                                  *(1+slowhigh-slowlow+slowpadlow+slowpadhigh)*sizeof(int)/(bin+1)/(bin+1)))))
+            {
+                fprintf(stderr, "Error mallocing %d bytes of temporary memory for image interleave\n",
+                        (int) (old_int_data_size+((1+fasthigh-fastlow+fastpadlow+fastpadhigh)
+                                                  *(1+slowhigh-slowlow+slowpadlow+slowpadhigh)*sizeof(int)/(bin+1)/(bin+1))));
+                return(1);
+            }
+            
+            offsets[0] = offsets[2] = 0;
+            offsets[1] = big_step;
+            offsets[3] = dim_total-big_step;
+            for (islow = 0; islow < dim_slow; islow ++) {
+                for (ifast = 0; ifast < dim_fast; ifast ++) {
+                    oindex = nindex = ifast + islow*dim_fast;
+                    iblock = nindex/(interleave);
+                    oindex += offsets[iblock%4];
+                    oindex %= dim_total;
+                    interleaved_data[nindex] = data_to_write[oindex];
+                }
+            }
+            free (data_to_write);
+            data_to_write = interleaved_data;
+            
+        }
+        
+        cbf_failnez( cbf_set_integerarray_wdims_fs ((cbf_handle)    cbf,
+                                                    (unsigned int) pack_flags,
+                                                    (int)          1,
+                                                    data_to_write,
+                                                    sizeof(int),
+                                                    (int)           1,
+                                                    dim_total,
+                                                    "little_endian",
+                                                    dim_fast,
+                                                    dim_slow,
+                                                    (size_t)        0,
+                                                    (size_t)        0));
+        
+        data_as_int = data_to_write + old_int_data_size/sizeof(int);
+        
+    }
     
     /* Write the new file */
     
@@ -2027,6 +2086,8 @@ int     adscimg2cbf_sub(char *header,
                             NULL,
                             NULL,
                             NULL,
-                            NULL);
+                            NULL,
+                            0,
+                            0);
 }
 
