@@ -76,7 +76,7 @@ int main (int argc, char ** argv) {
                 }
                 continue;
             }
-            if (isnumber(c) || c == '.' || c == '-' || c == '+') {
+            if (isdigit(c) || c == '.' || c == '-' || c == '+') {
                 char text[lineln+1];
                 char * endptr;
                 for (ii=0; ii < lineln; ii++) text[ii] = line[ii];
