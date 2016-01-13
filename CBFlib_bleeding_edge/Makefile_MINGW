@@ -281,6 +281,14 @@ INSTALLDIR  ?= $(HOME)
 #
 CLEANTESTS = yes
 
+CBFLIB_DONT_HAVE_FGETLN ?= no
+ifeq ($(CBFLIB_DONT_HAVE_FGETLN),yes)
+SRC_FGETLN = $(SRC)/fgetln.c
+else
+SRC_FGETLN =
+endif
+
+
 CBFLIB_DONT_USE_PYCIFRW ?= no
 ifneq ($(CBFLIB_DONT_USE_PYCIFRW),yes)
 #
@@ -468,6 +476,7 @@ BSHUFFLAG =
 endif
 
 
+
 MISCFLAG = $(NOLLFLAG) $(ULPFLAG)
 
 #
@@ -630,7 +639,8 @@ SOURCE   =  $(SRC)/cbf.c               \
 	$(SRC)/cbf_ws.c            \
 	$(SRC)/cbff.c              \
 	$(SRC)/md5c.c              \
-	$(SRC)/img.c
+	$(SRC)/img.c               \
+    $(SRC_FGETLN)
 
 ifneq ($(CBFLIB_DONT_USE_PYCIFRW),yes)
 PYSOURCE  = $(SRC)/drel_lex.py		   \
@@ -1465,7 +1475,7 @@ $(BIN)/cbf2adscimg: $(LIB)/libcbf.a $(EXAMPLES)/cbf2adscimg.c $(EXAMPLES)/cbf2ad
 #
 $(BIN)/cbf_standardize_numbers: $(EXAMPLES)/cbf_standardize_numbers.c $(EXAMPLES)/cbf_standardize_numbers.h
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) -D_SVID_SOURCE $(INCLUDES) $(WARNINGS) \
-	$(EXAMPLES)/cbf_standardize_numbers.c $(EXTRALIBS) -o $@
+	$(EXAMPLES)/cbf_standardize_numbers.c $(SRC_FGETLN) $(EXTRALIBS) -o $@
 
 #
 # changtestcompression example program
