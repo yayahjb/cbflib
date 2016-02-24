@@ -260,7 +260,17 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
-    
+#include <unistd.h>
+#include <fcntl.h>
+#ifdef _WIN32
+  #include <direct.h>
+  #define MKDIR(x) _mkdir(x)
+#else
+  #include <errno.h>
+  #include <sys/stat.h>
+  #include <sys/types.h>
+  #define MKDIR(x) mkdir(x,CBF_TMP_DIR_PERM)
+#endif
     
     /* Create and initialise a context */
     
@@ -373,6 +383,354 @@ extern "C" {
     }
     
     
+    /* Convert string that may contain enviroment variables delimited
+       by ${...} or by %...% to a string in which those variables have
+       be replaced by their values.  This is a non-recursive call.
+     
+       len is the limit on the size of the destination string dst
+     
+       returns the length of the destination string unless an evironment
+       variable requires more than 1024 characters for its value, in
+       which case -1 is returned.
+ 
+     */
+    
+    static size_t cbf_convert_env(char * dst, char * src, size_t len) {
+        
+        char envbuf[1025];
+        
+        char c, e;
+        
+        char * envval;
+        
+        size_t isrc, idst, ienv, klen;
+        
+        isrc = idst = klen = 0;
+        
+        while ((c=src[isrc++])) {
+            
+            if (c=='$' && src[isrc]=='{') {
+                
+                isrc++;
+                
+                ienv = 0;
+                
+                while ((e=src[isrc++])) {
+                    
+                    if (ienv >= 1024) return -1;
+                    
+                    if (e != '}') {
+                    
+                        envbuf[ienv++] = e;
+                        
+                        continue;
+                        
+                    } else {
+                        
+                        envbuf[ienv] = '\0';
+                        
+                        envval = getenv(envbuf);
+                        
+                        if (!envval) break;
+                        
+                        if (len > klen) strncpy(dst+idst,envval,len-klen);
+                        
+                        klen += strlen(envval);
+                        
+                        if (klen > len) {
+                            
+                            idst = len;
+                            
+                        } else {
+                            
+                            idst = klen;
+                            
+                        }
+                    
+                        break;
+                        
+                    }
+                    
+                }
+                
+            } else if (c=='%') {
+                
+                ienv = 0;
+                
+                while ((e=src[isrc++])) {
+                    
+                    if (ienv >= 1024) return -1;
+                    
+                    if (e != '%') {
+                        
+                        envbuf[ienv++] = e;
+                        
+                        continue;
+                        
+                    } else {
+                        
+                        envbuf[ienv] = '\0';
+                        
+                        envval = getenv(envbuf);
+                        
+                        if (!envval) break;
+                        
+                        if (len > klen) strncpy(dst+idst,envval,len-idst);
+                        
+                        klen += strlen(envval);
+                        
+                        if (klen > len) {
+                            
+                            idst = len;
+                            
+                        } else {
+                            
+                            idst = klen;
+                            
+                        }
+                        
+                        break;
+                        
+                    }
+                    
+                }
+                
+            } else {
+                
+                if (idst < len) dst[idst++] = c;
+                
+                klen++;
+                
+            }
+            
+            
+        }
+        
+        return klen;
+        
+    }
+    
+    /* Create the directories specified by the given path */
+    
+    static int cbf_mkdir(char * path) {
+        
+        ssize_t ip, kp;
+
+        char c, csave;
+        
+        struct stat buffer;
+        
+        if ( MKDIR(path) && errno != EEXIST ) {
+            
+            ip = 0;
+            
+            while ((c=path[ip])) {
+                
+                if (c==CBF_PATH_DIR_SEP) {
+                    
+                    ip++;
+                    
+                    continue;
+                
+                }
+            
+                kp = ip++;
+                
+                while ((csave=path[kp])) {
+                    
+                    if (csave==CBF_PATH_DIR_SEP) {
+                        
+                        path[kp] = '\0';
+                        
+                        if (MKDIR(path) == 0 || errno == EEXIST || errno == EISDIR) {
+                            
+                            path[kp] = csave;
+                            
+                            ip = kp+1;
+                            
+                            break;
+                            
+                        }
+                        
+                        path[kp]= csave;
+                        
+                        return CBF_NOTFOUND;
+                        
+                    }
+                    
+                    kp++;
+                    
+                }
+                
+             }
+
+        }
+        
+        
+        if ( MKDIR(path) && errno == ENOENT ) return CBF_NOTFOUND;
+        
+        if ( stat(path, &buffer) < 0 ) return CBF_NOTFOUND;
+        
+        if (buffer.st_mode && S_IFDIR == 0) return CBF_NOTFOUND;
+
+        return CBF_SUCCESS;
+        
+        
+    }
+    
+    /* Service routine for cbf_tmpfile
+     
+       assumes one argument which is a character buffer containing
+       a directory path followed by 38 empty character positions.
+       The directory path is assumed to have been created already.
+     
+     */
+
+    static FILE* cbf_mktmpfile(char * tmpdir, size_t tmpdir_len) {
+
+        char base62[62]={
+            '0','1','2','3','4','5','6','7','8','9',
+            'a','b','c','d','e','f','g','h','i','j',
+            'k','l','m','n','o','p','q','r','s','t',
+            'u','v','w','x','y','z',
+            'A','B','C','D','E','F','G','H','I','J',
+            'K','L','M','N','O','P','Q','R','S','T',
+            'U','V','W','X','Y','Z'};
+        
+        unsigned char last_string[7];
+        
+        FILE *fp;
+        
+        int pid;
+        
+        int fd;
+        
+        int pass;
+        
+        size_t ii;
+        
+        FILE * control_file, temp_file;
+        
+        if (tmpdir[tmpdir_len-1] != CBF_PATH_DIR_SEP) {
+            
+            tmpdir[tmpdir_len++] = CBF_PATH_DIR_SEP;
+
+        }
+    
+        pid = getpid();
+        
+        pass = -1;
+        
+        fd = -1;
+        
+        do {
+            
+            sprintf(tmpdir+tmpdir_len,"CBF_TMP_%06d",0x3F&pid);
+            
+            pass++;
+            
+            if (!(control_file = fopen(tmpdir,"w+"))) return NULL;
+            
+            if (fread(last_string,1,6,control_file) < 6) {
+                
+                last_string[0] = last_string[1] = last_string[2]
+                = last_string[3] = last_string[4] = last_string[5] = 0;
+                
+                
+            }
+            
+            for (ii=0; ii < 6; ii++) {
+                
+                if (last_string[ii] > 61) last_string[ii] = 61;
+            }
+            
+            for (ii=0; ii < 6; ii++) {
+                
+                last_string[ii]++;
+                
+                if (last_string[ii] < 62) break;
+                
+                last_string[ii] = 0;
+                
+            }
+            
+            fseek(control_file,0,SEEK_SET);
+            
+            fwrite(last_string,1,6,control_file);
+            
+            fclose(control_file);
+            
+            for (ii=0; ii < 6; ii++) {
+                
+                last_string[ii] = base62[last_string[ii]];
+                
+            }
+            
+            sprintf(tmpdir+tmpdir_len,"CBF_TMP_%06d_%c%c%c%c%c%c",
+                    pid,
+                    last_string[5],last_string[4],last_string[3],
+                    last_string[2],last_string[1],last_string[0]);
+        }
+        
+        while ((fd = open(tmpdir,O_RDWR|O_CREAT|O_EXCL,0600)) < 0 && pass < 100);
+        
+        if (fd < 0) return NULL;
+
+        unlink(tmpdir);
+        
+        fp = fdopen(fd, "w+");
+        
+        if (fp == NULL) close(fd);
+        
+        return fp;
+        
+    }
+    
+    /* Create a temporary file.  If there is a non empty CBF_ENV_TMP_DIR,
+     use that.  If not, use CBF_TMP_DIR
+     
+     In that directory, create a file named CBF_TMP_nnnnnn_aaaaaa
+     where nnnnnn is the PID and aaaaaa is a unique character string
+     base 62, using 0-9,a-z,A-Z, managed by a file named CBF_TMP_mmmmmm
+     containing the last aaaaaa string used, where mmmmmm is the PID%64.
+     
+     */
+    static FILE * cbf_tmpfile( void ) {
+        
+        
+        char * cbf_tmp_dir;
+        size_t cbf_tmp_dir_len;
+        
+        /* Locate and, if necessary, create the temporary files directory */
+        
+        if ((cbf_tmp_dir = getenv("CBF_TMP_DIR"))
+            && (cbf_tmp_dir_len=cbf_convert_env(NULL,cbf_tmp_dir,0)) > 0) {
+            
+            char cbf_tmp_dir_conv[cbf_tmp_dir_len+39];
+            
+            cbf_tmp_dir_len = cbf_convert_env(cbf_tmp_dir_conv,cbf_tmp_dir,cbf_tmp_dir_len+1);
+            
+            if (cbf_mkdir(cbf_tmp_dir_conv)) return NULL;
+            
+            return cbf_mktmpfile(cbf_tmp_dir_conv, cbf_tmp_dir_len);
+            
+        } else if ((cbf_tmp_dir_len=cbf_convert_env(NULL,CBF_TMP_DIR,0)) > 0) {
+
+            char cbf_tmp_dir_conv[cbf_tmp_dir_len+39];
+            
+            cbf_tmp_dir_len = cbf_convert_env(cbf_tmp_dir_conv,CBF_TMP_DIR,cbf_tmp_dir_len+1);
+            
+            if (cbf_mkdir(cbf_tmp_dir_conv)) return NULL;
+            
+            return cbf_mktmpfile(cbf_tmp_dir_conv, cbf_tmp_dir_len);
+        
+        }
+        
+        return NULL;
+        
+    }
+    
+    
     /* Open a temporary file connection */
     
     int cbf_open_temporary (cbf_context *context, cbf_file **temporary)
@@ -403,7 +761,7 @@ extern "C" {
         
         /* Create the temporary file */
         
-        stream = tmpfile ();
+        stream = cbf_tmpfile ();
         
         if (!stream)
             

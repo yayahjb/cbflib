@@ -71,6 +71,10 @@
  *    [--{foi|frames-of-interest}  frame[,framehigh] \                *
  *    [--{roi|region-of-interest} fastlow,fasthigh\                   *
  *                                [,midlow,midhigh[,slowlow,slowhigh]]*
+ *    [--add-update-data]                                             *
+ *    [--subtract-update-data]                                        *
+ *    [--merge-datablocks-by-number]                                  *
+ *    [--merge-datablocks-by-name]                                    *
  *    [-U n] \                                                        *
  *    [input_cif] [output_cbf]                                        *
  *                                                                    *
@@ -207,7 +211,23 @@
  *  --region-of-interest  ...                                         *
  *     synonym for roi                                                *
  *                                                                    *
- *  --U n                                            *
+ *  --add-update-data                                                 *
+ *  --subtract-update-data                                            *
+ *     if an update cbf with data is provided via the -u option       *
+ *     the add-update-data option causes the updated data to be added *
+ *     pixel-by-pixel to the input cbf data, and                      *
+ *     the subtract-update-data option causes the updated date to be  *
+ *     subtracted pixe;-by-pixel from the input cbf data              *
+ *     In both operations, ~0 in either file overrides the operation  *
+ *                                                                    *
+ *  --merge-datablocks-by-number                                      *
+ *     when merging an update cif, align datablocks by their ordinal  *
+ *     rather than by their names                                     *
+ *  --merge-datablocks-by-name                                        *
+ *     when merging an update cif, align datablocks by their names    *
+ *     rather than by their ordinals                                  *
+ *                                                                    *
+ *  --U n                                                             *
  *     test cbf_construct_detector in element_id n                    *
  *                                                                    *
  *  -O when in -5 w (hdf5 write) mode, -O forces the use of opaque    *
@@ -608,7 +628,7 @@ static int cbf_find_row_by_columns(cbf_handle handle, int n,
 
 /* Get the frame_id and frame_number for a given array_id and binary_id */
 
-int cbf_get_frame(cbf_handle handle,
+static int cbf_get_frame(cbf_handle handle,
                   const char * array_id,
                   const char * binary_id,
                   const char * * frame_id,
@@ -655,7 +675,7 @@ int cbf_get_frame(cbf_handle handle,
 
 /* Convert items of interest from a string to a range of elements or frames */
 
-int cbf_convertioi(const char *ioi, const size_t maxitems,
+static int cbf_convertioi(const char *ioi, const size_t maxitems,
                    size_t * itemlow, size_t * itemhigh) {
     char * endptr;
     const char * str;
@@ -681,6 +701,7 @@ int cbf_convertioi(const char *ioi, const size_t maxitems,
     if (*itemhigh > maxitems-1) *itemhigh = maxitems-1;
     if (*endptr == '\0') return CBF_SUCCESS;
     if (*endptr != ',' && *endptr != ' ') return CBF_FORMAT;
+    return CBF_SUCCESS;
 }
 
 
@@ -746,6 +767,9 @@ int main (int argc, char *argv [])
     unsigned int colnum, rownum;
     unsigned int columns;
     unsigned int rows;
+    int add_update_data=0;
+    int subtract_update_data=0;
+    int merge_datablocks_by_number=-1;
     double cliphigh, cliplow;
 
     int mime, digest, encoding, compression, h5compression, bytedir, cbforcif, term;
@@ -786,8 +810,12 @@ int main (int argc, char *argv [])
      *    [--data-last] \                                                 *
      *    [--{eoi|elements-of-interest} element[,elementhigh] \           *
      *    [--{foi|frames-of-interest}  frame[,framehigh] \                *
-     *    [--{roi|region-of-interest]  fastlow,fasthigh,.... \            *
-     *    [-U n]     \                                   *
+     *    [--{roi|region-of-interest}  fastlow,fasthigh,.... \            *
+     *    [--add-update-data] \                                           *
+     *    [--subtract-update-data] \                                      *
+     *    [--merge-datablocks-by-number \                                 *
+     *    [--merge-datablocks-by-name \                                  *
+     *    [-U n] \                                                        *
      *    [input_cif] [output_cbf]                                        *
      *                                                                    *
      **********************************************************************/
@@ -820,6 +848,8 @@ int main (int argc, char *argv [])
     ciftmpused = 0;
     testconstruct = 0;
     cliphigh = cliplow = 0.;
+    add_update_data = 0;
+    subtract_update_data = 0;
 
     cbf_failnez(cbf_make_getopt_handle(&opts))
 
@@ -857,7 +887,11 @@ int main (int argc, char *argv [])
                                  "\5(foi):" \
                                  "\6(region-of-interest):" \
                                  "\6(roi):" \
-                                 "\7(help)"
+                                 "\7(help)" \
+                                 "\x8(add-update-data)" \
+                                 "\x9(subtract-update-data)" \
+                                 "\xa(merge-datablocks-by-number)" \
+                                 "\xb(merge-datablocks-by-name)"
                                  ));
 
     if (!cbf_rewind_getopt_option(opts))
@@ -868,19 +902,19 @@ int main (int argc, char *argv [])
                     if (cifin) errflg++;
                     else cifin = optarg;
                     break;
-
+                    
                 case 'o':     /* output file */
                     if (cbfout) errflg++;
                     else {
                         cbfout = optarg;
-      		        }
+                    }
                     break;
-
+                    
                 case 'u':     /* update file */
                     if (updatecif) errflg++;
                     else updatecif = optarg;
                     break;
-
+                    
                 case 'b':     /* byte order */
                     if (bytedir) errflg++;
                     if (optarg[0] == 'f' || optarg[0] == 'F') {
@@ -893,7 +927,7 @@ int main (int argc, char *argv [])
                         }
                     }
                     break;
-
+                    
                 case 'B':
                     if (!strcmp(optarg,"cif20read")) {
                         qrflags &= ~CBF_PARSE_BRACKETS;
@@ -915,8 +949,8 @@ int main (int argc, char *argv [])
                         qwflags  &= ~CBF_PARSE_BRACKETS;
                     } else errflg++;
                     break;
-
-
+                    
+                    
                 case 'c':
                     if (compression) errflg++;
                     if (optarg[0] == 'p' || optarg[0] == 'P') {
@@ -970,11 +1004,11 @@ int main (int argc, char *argv [])
                         }
                     }
                     break;
-
+                    
                 case 'C':
                     cliphigh = atof(optarg);
                     break;
-
+                    
                 case 'd':
                     if (digest) errflg++;
                     if (optarg[0] == 'd' || optarg[0] == 'H' ) {
@@ -991,20 +1025,20 @@ int main (int argc, char *argv [])
                         }
                     }
                     break;
-
+                    
                 case 'D':  /* test construct_detector */
                     if (testconstruct) errflg++;
                     else testconstruct = 1;
                     elno = 0;
                     break;
-
+                    
                 case 'U': /* test construct detector on element number n */
                     if (testconstruct) errflg++;
                     else testconstruct = 1;
                     elno = atoi(optarg);
                     break;
                     
-
+                    
                 case '5': /* set hdf5 flags */
                     if (hdf5mode || hdf5noH5){
                         errflg++;
@@ -1026,7 +1060,7 @@ int main (int argc, char *argv [])
                         }
                     }
                     break;
-
+                    
                 case 'Z': /* register compressions */
                     if (hdf5register) errflg++;
                     if (cbf_cistrcmp(optarg,"manual")== 0) {
@@ -1054,7 +1088,7 @@ int main (int argc, char *argv [])
                     if (data_last) errflg++;
                     data_last = 1;
                     break;
-
+                    
                 case '\4': /* elements of interest */
                     if (eoi) errflg++;
                     eoi = optarg;
@@ -1064,7 +1098,7 @@ int main (int argc, char *argv [])
                     if (foi) errflg++;
                     foi = optarg;
                     break;
-
+                    
                 case '\6': /* region of interest */
                     if (roi) errflg++;
                     roi = optarg;
@@ -1073,13 +1107,32 @@ int main (int argc, char *argv [])
                 case '\7': /* help */
                     errflg++;
                     break;
-
-
+                    
+                case '\x8': /* add-update-data */
+                    if (add_update_data || subtract_update_data) errflg++;
+                    add_update_data = 1;
+                    break;
+                    
+                case '\x9': /* subtract-update-data */
+                    if (add_update_data || subtract_update_data) errflg++;
+                    subtract_update_data = 1;
+                    break;
+                    
+                case '\xa': /* merge-datablocks-by-number */
+                    if (merge_datablocks_by_number >= 0) errflg++;
+                    merge_datablocks_by_number = 1;
+                    break;
+                    
+                case '\xb': /* merge-datablocks-by-name */
+                    if (merge_datablocks_by_number >= 0) errflg++;
+                    merge_datablocks_by_number = 0;
+                    break;
+                    
                 case 'O': /* set Opaque mode */
                     if (opaquemode) errflg++;
                     opaquemode = 1;
                     break;
-
+                    
                 case 'e':
                     if (encoding) errflg++;
                     if (optarg[0] == 'b' || optarg[0] == 'B' ) {
@@ -1112,19 +1165,19 @@ int main (int argc, char *argv [])
                         }
                     }
                     break;
-
+                    
                 case 'I':
                     if (IorR) errflg++;
                     IorR = CBF_CPY_SETINTEGER;
                     nelsize = atoi(optarg);
                     if (nelsize != 0 && nelsize != 1 && nelsize !=2 && nelsize !=4 && nelsize != 8) errflg++;
                     break;
-
+                    
                 case 'L':
                     cliplow = atof(optarg);
                     break;
-
-
+                    
+                    
                 case 'm':
                     if (optarg[0] == 'h' || optarg[0] == 'H' ) {
                         if (mime) errflg++;
@@ -1146,8 +1199,8 @@ int main (int argc, char *argv [])
                         errflg++;
                     }
                     break;
-
-
+                    
+                    
                 case 'p':
                     if (padflag) errflg++;
                     if (optarg[0] == '1') {
@@ -1158,8 +1211,8 @@ int main (int argc, char *argv [])
                         padflag = PAD_4K;
                     } else errflg++;
                     break;
-
-
+                    
+                    
                 case 'P':    /* Parse level */
                     if (!strcmp(optarg,"cif20read")) {
                         qrflags &= ~(CBF_PARSE_BRACKETS|CBF_PARSE_TQ|CBF_PARSE_CIF2_DELIMS|CBF_PARSE_WIDE|CBF_PARSE_UTF8);
@@ -1185,14 +1238,14 @@ int main (int argc, char *argv [])
                         qwflags &= ~(CBF_PARSE_BRACKETS|CBF_PARSE_TQ|CBF_PARSE_CIF2_DELIMS|CBF_PARSE_WIDE|CBF_PARSE_UTF8);
                     } else errflg++;
                     break;
-
+                    
                 case 'R':
                     if (IorR) errflg++;
                     IorR = CBF_CPY_SETREAL;
                     nelsize = atoi(optarg);
                     if (nelsize != 0 && nelsize !=4 && nelsize != 8) errflg++;
                     break;
-
+                    
                 case 'S':  /* Parse whitespace */
                     if (!strcmp(optarg,"read")) {
                         qrflags |= CBF_PARSE_WS;
@@ -1204,7 +1257,7 @@ int main (int argc, char *argv [])
                         qwflags &= CBF_PARSE_WS;
                     } else errflg++;
                     break;
-
+                    
                 case 'T':  /* Parse treble quotes */
                     if (!strcmp(optarg,"read")) {
                         qrflags |= CBF_PARSE_TQ;
@@ -1216,7 +1269,7 @@ int main (int argc, char *argv [])
                         qwflags &= ~CBF_PARSE_TQ;
                     } else errflg++;
                     break;
-
+                    
                 case 'v':  /* validate against dictionary */
                     if (ndict < NUMDICTS) {
                         dqrflags[ndict] = qrflags;
@@ -1227,17 +1280,17 @@ int main (int argc, char *argv [])
                         fprintf(stderr, " Too many dictionaries, increase NUMDICTS");
                     }
                     break;
-
+                    
                 case 'w': /* read wide files */
                     if (wide) errflg++;
                     else wide = 1;
                     break;
-
+                    
                 case 'W': /* write wide files */
                     if (Wide) errflg++;
                     else Wide = 1;
                     break;
-
+                    
                 default:
                     errflg++;
                     break;
@@ -1255,6 +1308,7 @@ int main (int argc, char *argv [])
             }
         }
     }
+    if ((roi||!updatecif) && (add_update_data || subtract_update_data)) errflg++;
     if (errflg) {
         fprintf(stderr,"cif2cbf:  Usage: \n");
         fprintf(stderr,
@@ -1318,6 +1372,10 @@ int main (int argc, char *argv [])
         fprintf(stderr,
                 "    [--{roi|region-of-interest}\n"
                 "    fastlow,fasthigh[[,midlow,midhigh[,slowlow,slowhigh]] \\\n");
+        fprintf(stderr,
+                "    [--{add-data-array} \\\n");
+        fprintf(stderr,
+                "    [--{subtract-data-array} \\\n");
         fprintf(stderr,
                 "    [-U n] \\\n");
         fprintf(stderr,
@@ -1536,8 +1594,6 @@ int main (int argc, char *argv [])
             for (itemnum = 0; itemnum < blockitems;  itemnum++) {
                 const char* array_id;
                 const char* binary_id;
-                unsigned int frame_number;
-                unsigned int element_number;
                 cbf_select_blockitem(cif, itemnum, &itemtype);
                 if (itemtype == CBF_CATEGORY) {
                     cbf_category_name(cif,&category_name);
@@ -1703,7 +1759,7 @@ int main (int argc, char *argv [])
                             } else {
 
                                 int binary_id, elsigned, elunsigned;
-                                size_t elements,elements_read, elsize;
+                                size_t elements, elsize;
                                 int minelement, maxelement;
                                 unsigned int cifcompression;
                                 int realarray;
@@ -1728,8 +1784,7 @@ int main (int argc, char *argv [])
                                 if (fastdim < 1) fastdim = 1;
                                 if (middim < 1) middim = 1;
                                 if (slowdim < 1) slowdim = 1;
-                                {   int arrayfreed = 0;
-                                    cbf_failnez (cbf_select_column(cbf,colnum))
+                                {   cbf_failnez (cbf_select_column(cbf,colnum))
                                     cbf_failnez (
                                                  cbf_copy_value_with_roi(cbf,
                                                                          cif,
@@ -1875,10 +1930,55 @@ int main (int argc, char *argv [])
             /* either this is a new datablock, in which case we copy it
              or it has the same name as an existing datablock, in which
              case we merge it */
-
-            cbf_failnez (cbf_require_datablock(cbf, datablock_name))
-            if (altcbf) {
-                cbf_failnez (cbf_require_datablock(altcbf, datablock_name))
+            
+            if (merge_datablocks_by_number) {
+                const char * odatablock_name;
+                if (cbf_select_datablock(cbf,blocknum)){
+                    cbf_failnez (cbf_force_new_datablock(cbf, datablock_name))
+                }
+                cbf_failnez (cbf_datablock_name(cbf, &odatablock_name));
+                if (cbf_cistrcmp(datablock_name,odatablock_name)) {
+                    char ndatablock_name[76];
+                    const char * db = datablock_name;
+                    const char * odb = odatablock_name;
+                    size_t dbsz = strlen(datablock_name);
+                    size_t odbsz = strlen(odatablock_name);
+                    size_t ndbsz;
+                    size_t idb, kdb;
+                    for (idb = 0; idb < dbsz && idb < odbsz && idb < 69; idb++) {
+                        if (toupper(db[idb]) == toupper(odb[idb])) continue;
+                        break;
+                    }
+                    strncpy(ndatablock_name,odatablock_name,69);
+                    ndatablock_name[69] = '\0';
+                    strcat(ndatablock_name,"_");
+                    
+                    dbsz = strlen(datablock_name+idb);
+                    ndbsz = strlen(ndatablock_name)+dbsz;
+                    if (ndbsz <= 75) {
+                        strncpy(ndatablock_name+ndbsz-dbsz,db+idb,dbsz);
+                        ndatablock_name[ndbsz] = '\0';
+                    } else {
+                        /* The new length is too long truncate, keeping all of odatablock
+                           if it is less then 49 characters long, take the last
+                           25 from datablock_name*/
+                        if (ndbsz - dbsz < 50) {
+                            strncpy(ndatablock_name+ndbsz-dbsz,db+idb-(dbsz-25),25);
+                            ndatablock_name[ndbsz-dbsz+25]='\0';
+                        } else {
+                            ndatablock_name[49] = '_';
+                            strncpy(ndatablock_name+50,db+idb-(dbsz-25),25);
+                            ndatablock_name[75] = '\0';
+                        }
+                    }
+                    /* Don't report errors in changing this name */
+                    cbf_set_datablockname(cbf,ndatablock_name);
+                }
+            } else {
+                cbf_failnez (cbf_require_datablock(cbf, datablock_name))
+                if (altcbf) {
+                    cbf_failnez (cbf_require_datablock(altcbf, datablock_name))
+                }
             }
 
             if ( !cbf_rewind_blockitem(ucif, &itemtype) ) {
@@ -1923,6 +2023,8 @@ int main (int argc, char *argv [])
                             } while ( ! cbf_next_column(ucif) );
                             cbf_rewind_column(ucif);
                             cbf_rewind_row(ucif);
+                            cbf_rewind_column(cbf);
+                            cbf_rewind_row(cbf);
                         }
                         }
                         /* Transfer the rows from ucif to cbf */
@@ -1932,15 +2034,16 @@ int main (int argc, char *argv [])
                                 cbf_failnez (cbf_new_row(cbf))
                             }
                             cbf_rewind_column(ucif);
+                            cbf_rewind_column(cbf);
                             for (colnum = 0; colnum < columns; colnum++ ) {
                                 const char *typeofvalue;
 
-                                cbf_failnez (cbf_select_column(ucif, colnum))
-                                cbf_failnez (cbf_column_name(ucif, &column_name))
+                                cbf_failnez (cbf_select_column(ucif, colnum));
+                                cbf_failnez (cbf_column_name(ucif, &column_name));
+                                cbf_failnez (cbf_find_column(cbf,column_name));
 
                                 if ( ! cbf_get_value(ucif, &value) ) {
                                     if (compression && value && column_name && !cbf_cistrcmp("compression_type",column_name)) {
-                                        cbf_failnez (cbf_find_column(cbf, column_name))
                                         switch (compression&CBF_COMPRESSION_MASK) {
                                             case (CBF_NONE):
                                                 cbf_failnez (cbf_set_value      (cbf,"none"))
@@ -2015,8 +2118,9 @@ int main (int argc, char *argv [])
                                         cbf_failnez (cbf_set_typeofvalue(cbf, typeofvalue))
                                     }
                                 } else {
-
+                                    
                                     void * array;
+                                    void * oarray;
                                     int binary_id, elsigned, elunsigned;
                                     size_t elements,elements_read, elsize;
                                     int minelement, maxelement;
@@ -2024,8 +2128,19 @@ int main (int argc, char *argv [])
                                     int realarray;
                                     const char *byteorder;
                                     size_t fastdim, middim, slowdim, padding;
-                                    size_t fastlow, fasthigh, midlow, midhigh, slowlow, slowhigh;
-
+                                    
+                                    int obinary_id, oelsigned, oelunsigned;
+                                    size_t oelements,oelements_read, oelsize;
+                                    int ominelement, omaxelement;
+                                    unsigned int ocifcompression;
+                                    int orealarray;
+                                    const char *obyteorder;
+                                    size_t ofastdim, omiddim, oslowdim, opadding;
+                                    
+                                    double doval, odoval;
+                                    
+                                    oarray = NULL;
+                                    
                                     cbf_failnez(cbf_get_arrayparameters_wdims_fs(ucif,
                                                                                  &cifcompression,
                                                                                  &binary_id,
@@ -2041,6 +2156,55 @@ int main (int argc, char *argv [])
                                                                                  &middim,
                                                                                  &slowdim,
                                                                                  &padding));
+                                    
+                                    
+                                    if ((add_update_data || subtract_update_data)
+                                        && !cbf_require_column(cbf, column_name)
+                                        && cbf_get_value(cbf, &value)
+                                        && !cbf_get_arrayparameters_wdims_fs(cbf,
+                                                                            &ocifcompression,
+                                                                            &obinary_id,
+                                                                            &oelsize,
+                                                                            &oelsigned,
+                                                                            &oelunsigned,
+                                                                            &oelements,
+                                                                            &ominelement,
+                                                                            &omaxelement,
+                                                                            &orealarray,
+                                                                            &obyteorder,
+                                                                            &ofastdim,
+                                                                            &omiddim,
+                                                                            &oslowdim,
+                                                                            &opadding)
+                                        && binary_id == obinary_id
+                                        && elsize == oelsize
+                                        && elsigned == oelsigned
+                                        && elunsigned == oelunsigned
+                                        && realarray == orealarray
+                                        && elements == oelements) {
+                                        oarray = malloc(oelsize*oelements);
+                                        if (!orealarray) {
+                                            cbf_failnez (cbf_get_integerarray(cbf,
+                                                                              &obinary_id,
+                                                                              oarray,
+                                                                              oelsize,
+                                                                              oelsigned,
+                                                                              oelements,
+                                                                              &oelements_read));
+                                        } else {
+                                            cbf_failnez (cbf_get_realarray(cbf,
+                                                                           &obinary_id,
+                                                                           oarray,
+                                                                           oelsize,
+                                                                           oelements,
+                                                                           &oelements_read));
+                                        }
+                                        
+                                        
+                                        
+                                    }
+                                    
+                                    
                                     if ((array=malloc(elsize*elements))) {
                                         cbf_failnez (cbf_find_column(cbf,column_name))
                                         if (!realarray)  {
@@ -2054,16 +2218,202 @@ int main (int argc, char *argv [])
                                             if (dimflag == HDR_FINDDIMS && fastdim==0) {
                                                 cbf_get_arraydimensions(ucif,NULL,&fastdim,&middim,&slowdim);
                                             }
+                                            if (oarray) {
+                                                size_t elno;
+                                                if (elsize == sizeof(char)) {
+                                                    if (add_update_data) {
+                                                        for (elno= 0; elno < elements_read &&elno < oelements_read; elno++) {
+                                                            doval = ((char *)array)[elno];
+                                                            odoval = ((char *)oarray)[elno];
+                                                            if (((char *)array)[elno] != (char)(~0) && ((char *)oarray)[elno] != (char)(~0)) {
+                                                                doval += odoval;
+                                                                if (cliplow < cliphigh) {
+                                                                    if (doval < cliplow) doval = cliplow;
+                                                                    if (doval > cliphigh) doval = cliphigh;
+                                                                }
+                                                                ((char *)array)[elno] = (char) doval;
+                                                            }
+                                                        }
+                                                    } else {
+                                                        for (elno= 0; elno < elements_read &&elno < oelements_read; elno++) {
+                                                            doval = ((char *)array)[elno];
+                                                            odoval = ((char *)oarray)[elno];
+                                                            if (((char *)array)[elno] != (char)(~0) && ((char *)oarray)[elno] != (char)(~0)) {
+                                                                doval -= odoval;
+                                                                if (cliplow < cliphigh) {
+                                                                    if (doval < cliplow) doval = cliplow;
+                                                                    if (doval > cliphigh) doval = cliphigh;
+                                                                }
+                                                                ((char *)array)[elno] = (char) doval;
+                                                            }
+                                                        }
+                                                    }
+                                                } else if (elsize == sizeof(short int)) {
+                                                    if (add_update_data) {
+                                                        for (elno= 0; elno < elements_read &&elno < oelements_read; elno++) {
+                                                            doval = ((short int *)array)[elno];
+                                                            odoval = ((short int *)oarray)[elno];
+                                                            if ( ( (((short int *)array)[elno] < -7) ||(((short int *)array)[elno] > -1) )
+                                                                &&  ( (((short int *)oarray)[elno] < -7)||(((short int *)oarray)[elno] > -1))) {
+                                                                doval += odoval;
+                                                                if (cliplow < cliphigh) {
+                                                                    if (doval < cliplow) doval = cliplow;
+                                                                    if (doval > cliphigh) doval = cliphigh;
+                                                                }
+                                                                ((short int *)array)[elno] = (short int) doval;
+                                                            }
+                                                        }
+                                                    } else {
+                                                        for (elno= 0; elno < elements_read &&elno < oelements_read; elno++) {
+                                                            doval = ((short int *)array)[elno];
+                                                            odoval = ((short int *)oarray)[elno];
+                                                            if ( ( (((short int *)array)[elno] < -7) ||(((short int *)array)[elno] > -1) )
+                                                                &&  ( (((short int *)oarray)[elno] < -7)||(((short int *)oarray)[elno] > -1))) {
+                                                                doval -= odoval;
+                                                                if (cliplow < cliphigh) {
+                                                                    if (doval < cliplow) doval = cliplow;
+                                                                    if (doval > cliphigh) doval = cliphigh;
+                                                                }
+                                                                ((short int *)array)[elno] = (short int) doval;
+                                                            }
+                                                        }
+                                                    }
+                                                } else if (elsize == sizeof(int)) {
+                                                    if (add_update_data) {
+                                                        for (elno= 0; elno < elements_read &&elno < oelements_read; elno++) {
+                                                            doval = ((int *)array)[elno];
+                                                            odoval = ((int *)oarray)[elno];
+                                                            if ( ( (((int *)array)[elno] < -7) ||(((int *)array)[elno] > -1) )
+                                                                &&  ( (((int *)oarray)[elno] < -7)||(((int *)oarray)[elno] > -1))) {
+                                                                doval += odoval;
+                                                                if (cliplow < cliphigh) {
+                                                                    if (doval < cliplow) doval = cliplow;
+                                                                    if (doval > cliphigh) doval = cliphigh;
+                                                                }
+                                                                ((int *)array)[elno] = (int) doval;
+                                                            }
+                                                        }
+                                                    } else {
+                                                        for (elno= 0; elno < elements_read &&elno < oelements_read; elno++) {
+                                                            doval = ((int *)array)[elno];
+                                                            odoval = ((int *)oarray)[elno];
+                                                            if ( ( (((int *)array)[elno] < -7) ||(((int *)array)[elno] > -1) )
+                                                                &&  ( (((int *)oarray)[elno] < -7)||(((int *)oarray)[elno] > -1))) {
+                                                                doval -= odoval;
+                                                                if (cliplow < cliphigh) {
+                                                                    if (doval < cliplow) doval = cliplow;
+                                                                    if (doval > cliphigh) doval = cliphigh;
+                                                                }
+                                                                ((int *)array)[elno] = (int) doval;
+                                                            }
+                                                        }
+                                                    }
+                                                    
+                                                } else if (elsize == sizeof(long int)) {
+                                                    if (add_update_data) {
+                                                        for (elno= 0; elno < elements_read &&elno < oelements_read; elno++) {
+                                                            doval = ((long int *)array)[elno];
+                                                            odoval = ((long int *)oarray)[elno];
+                                                            if ( ( (((long int *)array)[elno] < -7) ||(((long int *)array)[elno] > -1) )
+                                                                &&  ( (((long int *)oarray)[elno] < -7)||(((long int *)oarray)[elno] > -1))) {
+                                                                doval += odoval;
+                                                                if (cliplow < cliphigh) {
+                                                                    if (doval < cliplow) doval = cliplow;
+                                                                    if (doval > cliphigh) doval = cliphigh;
+                                                                }
+                                                                ((int *)array)[elno] = (long int) doval;
+                                                            }
+                                                        }
+                                                    } else {
+                                                        for (elno= 0; elno < elements_read &&elno < oelements_read; elno++) {
+                                                            doval = ((long int *)array)[elno];
+                                                            odoval = ((long int *)oarray)[elno];
+                                                            if ( ( (((long int *)array)[elno] < -7) ||(((long int *)array)[elno] > -1) )
+                                                                &&  ( (((long int *)oarray)[elno] < -7)||(((long int *)oarray)[elno] > -1))) {
+                                                                doval -= odoval;
+                                                                if (cliplow < cliphigh) {
+                                                                    if (doval < cliplow) doval = cliplow;
+                                                                    if (doval > cliphigh) doval = cliphigh;
+                                                                }
+                                                                ((int *)array)[elno] = (long int) doval;
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
                                             cbf_failnez(cbf_set_integerarray_wdims_fs(
                                                                                       cbf, compression,
                                                                                       binary_id, array, elsize, elsigned, elements,
                                                                                       "little_endian", fastdim, middim, slowdim, 0))
                                         } else {
-                                            cbf_failnez (cbf_get_realarray(
-                                                                           ucif, &binary_id, array, elsize,
-                                                                           elements, &elements_read))
+                                            cbf_failnez (cbf_get_realarray(ucif,
+                                                                           &binary_id,
+                                                                           array,
+                                                                           elsize,
+                                                                           elements,
+                                                                           &elements_read))
                                             if (dimflag == HDR_FINDDIMS && fastdim==0) {
                                                 cbf_get_arraydimensions(ucif,NULL,&fastdim,&middim,&slowdim);
+                                            }
+                                            if (oarray) {
+                                                size_t elno;
+                                                if (elsize == sizeof(float)) {
+                                                    if (add_update_data) {
+                                                        for (elno= 0; elno < elements_read &&elno < oelements_read; elno++) {
+                                                            doval = ((float *)array)[elno];
+                                                            odoval = ((float *)oarray)[elno];
+                                                            if (((float *)array)[elno] != (float)(~0) && ((float *)oarray)[elno] != (float)(~0)) {
+                                                                doval += odoval;
+                                                                if (cliplow < cliphigh) {
+                                                                    if (doval < cliplow) doval = cliplow;
+                                                                    if (doval > cliphigh) doval = cliphigh;
+                                                                }
+                                                                ((float *)array)[elno] = (float)doval;
+                                                            }
+                                                        }
+                                                    } else {
+                                                        for (elno= 0; elno < elements_read &&elno < oelements_read; elno++) {
+                                                            doval = ((float *)array)[elno];
+                                                            odoval = ((float *)oarray)[elno];
+                                                            if (((float *)array)[elno] != (float)(~0) && ((char *)oarray)[elno] != (char)(~0)) {
+                                                                doval -= odoval;
+                                                                if (cliplow < cliphigh) {
+                                                                    if (doval < cliplow) doval = cliplow;
+                                                                    if (doval > cliphigh) doval = cliphigh;
+                                                                }
+                                                                ((float *)array)[elno] = (float)doval;
+                                                            }
+                                                        }
+                                                    }
+                                                } else if (elsize == sizeof(double)) {
+                                                    if (add_update_data) {
+                                                        for (elno= 0; elno < elements_read &&elno < oelements_read; elno++) {
+                                                            doval = ((double *)array)[elno];
+                                                            odoval = ((double *)oarray)[elno];
+                                                            if (((double *)array)[elno] != (double)(~0) && ((double *)oarray)[elno] != (double)(~0)) {
+                                                                doval += odoval;
+                                                                if (cliplow < cliphigh) {
+                                                                    if (doval < cliplow) doval = cliplow;
+                                                                    if (doval > cliphigh) doval = cliphigh;
+                                                                }
+                                                                ((double *)array)[elno] = doval;
+                                                            }
+                                                        }
+                                                    } else {
+                                                        for (elno= 0; elno < elements_read &&elno < oelements_read; elno++) {
+                                                            doval = ((double *)array)[elno];
+                                                            odoval = ((double *)oarray)[elno];
+                                                            if (((double *)array)[elno] != (double)(~0) && ((double *)oarray)[elno] != (double)(~0)) {
+                                                                doval -= odoval;
+                                                                if (cliplow < cliphigh) {
+                                                                    if (doval < cliplow) doval = cliplow;
+                                                                    if (doval > cliphigh) doval = cliphigh;
+                                                                }
+                                                                ((double *)array)[elno] = doval;
+                                                            }
+                                                        }
+                                                    }
+                                                }
                                             }
                                             cbf_failnez(cbf_set_realarray_wdims_fs(cbf,
                                                                                    compression,
