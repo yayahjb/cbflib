@@ -5140,10 +5140,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                         if (matchgroup && (!matchdefinition)) {
                             if (CBF_SUCCESS==cbf_H5Dfind2(test_group,&dataset,"definition",0,0,0,type)){
                                 const hid_t currType = H5Dget_type(dataset);
-                                const char * buf = 0;
+                                char * buf = malloc(H5Tget_size(currType));
                                 hid_t currMemType = CBF_H5FAIL;
                                 cbf_H5Tcreate_string(&currMemType,H5T_VARIABLE);
-                                cbf_H5Dread2(dataset,0,0,0,&buf,currMemType);
+                                cbf_H5Dread2(dataset,0,0,0,(void * const)buf,currMemType);
                                 cbf_H5Tfree(currMemType);
                                 /* then compare them */
                                 if (cbf_cistrcmp(definition,buf) != 0) {
@@ -26572,10 +26572,10 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
                                     /* time is in YYYY-MM-DDThh:mm:ss.s* format, should be able to use strcmp to order them */
                                     /* first read the existing timestamp */
                                     const hid_t currType = H5Dget_type(dataset);
-                                    const char * buf = 0;
+                                    char * buf = malloc(H5Tget_size(currType));
                                     hid_t currMemType = CBF_H5FAIL;
                                     cbf_H5Tcreate_string(&currMemType,H5T_VARIABLE);
-                                    cbf_H5Dread2(dataset,0,0,0,&buf,currMemType);
+                                    cbf_H5Dread2(dataset,0,0,0,(void * const)buf,currMemType);
                                     cbf_H5Tfree(currMemType);
                                     /* then compare them */
                                     if (strcmp(token,buf) < 0) {
@@ -26599,10 +26599,10 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
                                     /* time is in YYYY-MM-DDThh:mm:ss.s* format, should be able to use strcmp to order them */
                                     /* first read the existing timestamp */
                                     const hid_t currType = H5Dget_type(dataset);
-                                    const char * buf = 0;
+                                    char * buf = malloc(H5Tget_size(currType));
                                     hid_t currMemType = CBF_H5FAIL;
                                     cbf_H5Tcreate_string(&currMemType,H5T_VARIABLE);
-                                    cbf_H5Dread2(dataset,0,0,0,&buf,currMemType);
+                                    cbf_H5Dread2(dataset,0,0,0,(void * const)buf,currMemType);
                                     cbf_H5Tfree(currMemType);
                                     /* then compare them */
                                     if (strcmp(token,buf) > 0) {
