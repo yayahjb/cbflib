@@ -3750,7 +3750,7 @@ if (CBF_SUCCESS==found) {
                     if (!cbf_H5Ivalid(currType)) {
                         error |= CBF_H5ERROR;
                     } else {
-            char * data = malloc(H5Tget_size(currType));
+            char * data = malloc(1+ H5Tget_size(currType));
                         if (!data) {
                             error |= CBF_ALLOC;
                         } else if (CBF_SUCCESS!=(error|=cbf_H5Dread2(*dset,0,0,0,(void * const)(data),dataType))) {
@@ -5140,13 +5140,13 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                         if (matchgroup && (!matchdefinition)) {
                             if (CBF_SUCCESS==cbf_H5Dfind2(test_group,&dataset,"definition",0,0,0,type)){
                                 const hid_t currType = H5Dget_type(dataset);
-                                char * buf = malloc(H5Tget_size(currType));
+                                char * * buf = malloc(H5Tget_size(currType));
                                 hid_t currMemType = CBF_H5FAIL;
                                 cbf_H5Tcreate_string(&currMemType,H5T_VARIABLE);
                                 cbf_H5Dread2(dataset,0,0,0,(void * const)buf,currMemType);
                                 cbf_H5Tfree(currMemType);
                                 /* then compare them */
-                                if (cbf_cistrcmp(definition,buf) != 0) {
+                                if (buf[0] && cbf_cistrcmp(definition,buf[0]) != 0) {
                                     CBF_CALL2(cbf_H5Dwrite2(dataset,0,0,0,&definition,type),error);
                                 }
                                 free((void*)buf);
@@ -17837,6 +17837,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         return error;
     }
     
+    
+    
         /*
      Function to read a scalar string from a dataset
         */
@@ -17860,32 +17862,40 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 error |= CBF_H5DIFFERENT;
             } else {
                 const htri_t vlstr = H5Tis_variable_str(data_type);
-                char * lvalue = NULL;
+                char * * lvalue = NULL;
+                int freelvalue = 0;
                 if (vlstr<0) {
                     cbf_debug_print("Couldn't check for a variable-length string");
                     error |= CBF_H5ERROR;
                 } else if (vlstr) {
                     /* I have a variable-length string */
-                    if (H5Dread(data,data_type,H5S_ALL,H5S_ALL,H5P_DEFAULT,&lvalue)<0) {
-                        cbf_debug_print("Couldn't read string");
-                        error |= CBF_H5ERROR;
-                    }
-                } else {
-                    /* I have a fixed-length string */
-                    const size_t len = H5Tget_size(data_type);
-                    if (!len) {
-                        cbf_debug_print("Couldn't get length of string");
-                        error |= CBF_H5ERROR;
-                    } else if (!(lvalue=malloc(len+1))) {
+                    if (!(lvalue=(char * *)malloc(sizeof(char *)))) {
                         cbf_debug_print(cbf_strerror(CBF_ALLOC));
                         error |= CBF_ALLOC;
                     } else if (H5Dread(data,data_type,H5S_ALL,H5S_ALL,H5P_DEFAULT,lvalue)<0) {
                         cbf_debug_print("Couldn't read string");
                         error |= CBF_H5ERROR;
+                        freelvalue = 1;
                     }
-                    if (CBF_SUCCESS==error) lvalue[len] = '\0';
+                } else {
+                    /* I have a fixed-length string */
+                    const size_t len = H5Tget_size(data_type);
+                    char * llvalue = NULL;
+                    if (!len) {
+                        cbf_debug_print("Couldn't get length of string");
+                        error |= CBF_H5ERROR;
+                    } else if (!(llvalue=(char *)malloc(len+1))) {
+                        cbf_debug_print(cbf_strerror(CBF_ALLOC));
+                        error |= CBF_ALLOC;
+                    } else if (H5Dread(data,data_type,H5S_ALL,H5S_ALL,H5P_DEFAULT,llvalue)<0) {
+                        cbf_debug_print("Couldn't read string");
+                        error |= CBF_H5ERROR;
+                    }
+                    if (CBF_SUCCESS==error) llvalue[len] = '\0';
+                    lvalue = &llvalue;
                 }
-                if (CBF_SUCCESS==error) *value = lvalue;
+                if (CBF_SUCCESS==error) *value = *lvalue;
+                if (freelvalue && lvalue) free(lvalue);
             }
             cbf_H5Tfree(data_type);
         }
@@ -18089,8 +18099,9 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                     hsize_t offset[1];
                                     hsize_t count[] = {1};
                                     offset[0] = dim[0]>1 ? nx->slice : 0;
+                                    value = (char * *)malloc(dim[0]*sizeof (char *));
                                     CBF_CALL(cbf_H5Tcreate_string(&vlstr,H5T_VARIABLE));
-                                    CBF_CALL(cbf_H5Dread2(object,offset,0,count,&value,vlstr));
+                                    CBF_CALL(cbf_H5Dread2(object,offset,0,count,value,vlstr));
                                     cbf_H5Tfree(vlstr);
                                 }
                             } else {
@@ -18102,7 +18113,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                             CBF_CALL(_cbf_nx2cbf_table__diffrn_data_frame(cbf,nx,table));
                             CBF_CALL(cbf_require_column(cbf,"details"));
                             /* write the data */
-                            CBF_CALL(cbf_set_value(cbf,value));
+                            CBF_CALL(cbf_set_value(cbf,value[0]));
                             free((void*)value);
                         }
                         cbf_H5Sfree(data_space);
@@ -18368,16 +18379,20 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                     hid_t vlstr = CBF_H5FAIL;
                                     hsize_t offset[1];
                                     hsize_t count[] = {1};
-                                    const char * value = NULL;
+                                    const hid_t currType = H5Dget_type(object);
+                                    char * *  value = (char * *)malloc(dim[0]*sizeof(char *));
                                     offset[0] = nx->slice;
                                     CBF_CALL(cbf_H5Tcreate_string(&vlstr,H5T_VARIABLE));
-                                    CBF_CALL(cbf_H5Dread2(object,offset,0,count,&value,vlstr));
+                                    CBF_CALL(cbf_H5Dread2(object,offset,0,count,(void * const)value,vlstr));
                                     /* ensure I have suitable structure within the CBF file */
                                     CBF_CALL(_cbf_nx2cbf_table__diffrn_scan_frame(cbf,nx,table));
                                     CBF_CALL(cbf_require_column(cbf,"date"));
                                     /* write the data */
-                                    CBF_CALL(cbf_set_value(cbf,value));
-                                    free((void*)value);
+                                    if (value[0]) {
+                                       CBF_CALL(cbf_set_value(cbf,value[0]));
+                                    }
+                                    H5Dvlen_reclaim(currType, data_space, H5P_DEFAULT, value);
+                                    if (value) free((void*)value);
                                     cbf_H5Tfree(vlstr);
                                 }
                             } else {
@@ -26572,18 +26587,35 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
                                     /* time is in YYYY-MM-DDThh:mm:ss.s* format, should be able to use strcmp to order them */
                                     /* first read the existing timestamp */
                                     const hid_t currType = H5Dget_type(dataset);
-                                    char * buf = malloc(H5Tget_size(currType));
                                     hid_t currMemType = CBF_H5FAIL;
-                                    cbf_H5Tcreate_string(&currMemType,H5T_VARIABLE);
-                                    cbf_H5Dread2(dataset,0,0,0,(void * const)buf,currMemType);
-                                    cbf_H5Tfree(currMemType);
-                                    /* then compare them */
-                                    if (strcmp(token,buf) < 0) {
-                                        /* store the oldest timestamp */
-                                        CBF_CALL(cbf_H5Dwrite2(dataset,0,0,0,&token,type));
+                                    hid_t space = H5Dget_space(dataset);
+                                    hsize_t ndims,dims[H5S_MAX_RANK];
+                                    ndims = H5Sget_simple_extent_dims(space,dims,0);
+                                    if (ndims < 0) error |= CBF_FORMAT;
+                                    if (ndims == 0) dims[0] = 1;
+                                    if (H5Tis_variable_str(currType)) {
+                                        char * * buf = malloc(dims[0]*sizeof(char *));
+                                        cbf_H5Tcreate_string(&currMemType,H5T_VARIABLE);
+                                        cbf_H5Dread2(dataset,0,0,0,(void * const)buf,currMemType);
+                                        cbf_H5Tfree(currMemType);
+                                        /* then compare them */
+                                        if (buf[0] && strcmp(token,buf[0]) < 0) {
+                                            /* store the oldest timestamp */
+                                            CBF_CALL(cbf_H5Dwrite2(dataset,0,0,0,&token,type));
+                                        }
+                                        H5Dvlen_reclaim(currType, space, H5P_DEFAULT, buf);
+                                        free((void*)buf);
+                                        cbf_H5Tfree(currType);
+                                    } else if (H5Tget_class(currType)==H5T_STRING){
+                                        char * buf = (char *)malloc(dims[0]*(H5Tget_size(currType)+1));
+                                        cbf_H5Dread2(dataset,0,0,0,(void * const)buf,currType);
+                                        if (strcmp(token,buf) < 0) {
+                                            /* store the oldest timestamp */
+                                            CBF_CALL(cbf_H5Dwrite2(dataset,0,0,0,&token,type));
+                                        }
                                     }
-                                    free((void*)buf);
-                                    cbf_H5Tfree(currType);
+                                    CBF_CALL(cbf_H5Sfree(space));
+                                        
                                 } else if (CBF_NOTFOUND==found) {
                                     /* create the dataset & write the data */
                                     CBF_CALL(cbf_H5Dcreate(h5handle->nxid,&dataset,"start_time",0,0,0,0,type));
@@ -26599,18 +26631,34 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
                                     /* time is in YYYY-MM-DDThh:mm:ss.s* format, should be able to use strcmp to order them */
                                     /* first read the existing timestamp */
                                     const hid_t currType = H5Dget_type(dataset);
-                                    char * buf = malloc(H5Tget_size(currType));
+                                    char * buf = malloc(1+ H5Tget_size(currType));
                                     hid_t currMemType = CBF_H5FAIL;
-                                    cbf_H5Tcreate_string(&currMemType,H5T_VARIABLE);
-                                    cbf_H5Dread2(dataset,0,0,0,(void * const)buf,currMemType);
-                                    cbf_H5Tfree(currMemType);
-                                    /* then compare them */
-                                    if (strcmp(token,buf) > 0) {
-                                        /* store the oldest timestamp */
-                                        CBF_CALL(cbf_H5Dwrite2(dataset,0,0,0,&token,type));
+                                    hid_t space = H5Dget_space(dataset);
+                                    hsize_t ndims,dims[H5S_MAX_RANK];
+                                    ndims = H5Sget_simple_extent_dims(space,dims,0);
+                                    if (ndims < 0) error |= CBF_FORMAT;
+                                    if (ndims == 0) dims[0] = 1;
+                                    if (H5Tis_variable_str(currType)) {
+                                        char * * buf = malloc(dims[0]*sizeof(char *));
+                                        cbf_H5Tcreate_string(&currMemType,H5T_VARIABLE);
+                                        cbf_H5Dread2(dataset,0,0,0,(void * const)buf,currMemType);
+                                        cbf_H5Tfree(currMemType);
+                                        /* then compare them */
+                                        if (buf[0] && strcmp(token,buf[0]) > 0) {
+                                            /* store the oldest timestamp */
+                                            CBF_CALL(cbf_H5Dwrite2(dataset,0,0,0,&token,type));
+                                        }
+                                        H5Dvlen_reclaim(currType, space, H5P_DEFAULT, buf);
+                                        free((void*)buf);
+                                        cbf_H5Tfree(currType);
+                                    } else if (H5Tget_class(currType)==H5T_STRING){
+                                        char * buf = (char *)malloc(dims[0]*(H5Tget_size(currType)+1));
+                                        cbf_H5Dread2(dataset,0,0,0,(void * const)buf,currType);
+                                        if (strcmp(token,buf) < 0) {
+                                            /* store the oldest timestamp */
+                                            CBF_CALL(cbf_H5Dwrite2(dataset,0,0,0,&token,type));
+                                        }
                                     }
-                                    free((void*)buf);
-                                    cbf_H5Tfree(currType);
                                 } else if (CBF_NOTFOUND==found) {
                                     /* create the dataset & write the data */
                                     CBF_CALL(cbf_H5Dcreate(h5handle->nxid,&dataset,"end_time",0,0,0,0,type));
