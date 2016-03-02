@@ -17875,8 +17875,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     } else if (H5Dread(data,data_type,H5S_ALL,H5S_ALL,H5P_DEFAULT,lvalue)<0) {
                         cbf_debug_print("Couldn't read string");
                         error |= CBF_H5ERROR;
-                        freelvalue = 1;
                     }
+                    freelvalue = 1;
                 } else {
                     /* I have a fixed-length string */
                     const size_t len = H5Tget_size(data_type);
@@ -17894,7 +17894,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     if (CBF_SUCCESS==error) llvalue[len] = '\0';
                     lvalue = &llvalue;
                 }
-                if (CBF_SUCCESS==error) *value = *lvalue;
+                if (CBF_SUCCESS==error) {
+                    *value = _cbf_strdup(*lvalue);
+                    if (!freelvalue) free(*lvalue);
+                }
                 if (freelvalue && lvalue) free(lvalue);
             }
             cbf_H5Tfree(data_type);
@@ -18095,13 +18098,16 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                     cbf_debug_print("invalid dimensions of dataset");
                                     error |= CBF_SIZE;
                                 } else {
+                                    const char * lvalue;
                                     hid_t vlstr = CBF_H5FAIL;
+                                    const hid_t currType = H5Dget_type(object);
                                     hsize_t offset[1];
                                     hsize_t count[] = {1};
                                     offset[0] = dim[0]>1 ? nx->slice : 0;
-                                    value = (char * *)malloc(dim[0]*sizeof (char *));
                                     CBF_CALL(cbf_H5Tcreate_string(&vlstr,H5T_VARIABLE));
-                                    CBF_CALL(cbf_H5Dread2(object,offset,0,count,value,vlstr));
+                                    CBF_CALL(cbf_H5Dread2(object,offset,0,count,&lvalue,vlstr));
+                                    value = _cbf_strdup(lvalue);
+                                    H5Dvlen_reclaim(currType, data_space, H5P_DEFAULT, &lvalue);
                                     cbf_H5Tfree(vlstr);
                                 }
                             } else {
@@ -18114,6 +18120,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                             CBF_CALL(cbf_require_column(cbf,"details"));
                             /* write the data */
                             CBF_CALL(cbf_set_value(cbf,value[0]));
+                            
                             free((void*)value);
                         }
                         cbf_H5Sfree(data_space);
