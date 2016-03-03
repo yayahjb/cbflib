@@ -554,7 +554,7 @@ BSHUFURL    = http://downloads.sf.net/cbflib/$(BSHUF).tar.gz
 #
 # Include directories
 #
-INCLUDES = -I$(INCLUDE) -I$(SRC)
+INCLUDES = -I$(INCLUDE) -I$(SRC) -I$(HDF5_PREFIX)/include
 
 #
 # runtime library path export commands
@@ -1145,13 +1145,14 @@ endif
 #
 build_tiff:	$(M4)/Makefile.m4
 	touch build_tiff
-$(TIFF):	build_tiff
+$(TIFF):	build_tiff config.guess config.sub
 	-rm -rf $(TIFF)
 	-rm -rf $(TIFF).tar.gz
 	$(DOWNLOAD) $(TIFFURL)
 	tar -xvf $(TIFF).tar.gz
 	touch $(TIFF)
 	-rm $(TIFF).tar.gz
+	cp config.guess config.sub $(TIFF)/config/
 	(cd $(TIFF); ./configure --prefix=$(TIFF_PREFIX); make install)
 
 ifneq ($(CBFLIB_DONT_USE_LOCAL_HDF5),yes)
