@@ -318,6 +318,7 @@ extern "C" {
         size_t binary_size_pos;
         long binid;
         void *vcharacters;
+        size_t onbytes;
         
         if (flags & H5Z_FLAG_REVERSE) {
             /* decompression */
@@ -348,9 +349,9 @@ extern "C" {
             errorcode = 0;
             tempfile = NULL;
             cbf_reportnez(cbf_make_file(&tempfile,NULL),errorcode);
+            vcharacters = NULL;
+            onbytes = tempfile->characters_size;
             if (tempfile->characters_base) vcharacters = (void *)(tempfile->characters_base);
-            errorcode |= cbf_free ((void **) &vcharacters,
-                                   &(tempfile->characters_size));
             tempfile->characters_base = tempfile->characters = *buf;
             tempfile->characters_used = tempfile->characters_size = nbytes;
 #ifdef CBFDEBUG
@@ -566,7 +567,11 @@ extern "C" {
             
             *buf=destination;
             
-            vcharacters = (void *)(tempfile->characters_base);
+            tempfile->characters_base = tempfile->characters_base = vcharacters;
+            
+            tempfile->characters_size = onbytes;
+            
+            tempfile->characters_used = 0;
             
             cbf_free_file(&tempfile);
             

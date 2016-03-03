@@ -276,7 +276,7 @@ SEE ALSO
 %feature("autodoc", "
 Returns : Float volumeout
 *args   : double xlo,double ylo,double xhi,double yhi,double cenx,double ceny,
-          double volume,double fwhm
+          double volumein,double fwhm
 
 C prototype: int cbf_airy_disk_volume(double xlo, double ylo, double xhi,
                  double yhi,      double cenx, double ceny, double volume,

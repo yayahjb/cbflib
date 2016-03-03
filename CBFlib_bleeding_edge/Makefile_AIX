@@ -2,7 +2,7 @@
 ######################################################################
 #  Makefile - command file for make to create CBFlib                 #
 #                                                                    #
-# Version 0.9.5 24 Feb 2016                                          #
+# Version 0.9.5 02 Mar 2016                                          #
 #                                                                    #
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
@@ -303,30 +303,30 @@ endif
 # Definition to get a version of tifflib to support tiff2cbf
 #
 TIFF = tiff-3.9.4-rev-1Oct15
-TIFFPREFIX = $(PWD)
+TIFF_PREFIX ?= $(PWD)
 
 
-CBFLIB_DONT_USE_LOCAL_HDF5 ?=  yes
+#
+# Definitions to get a version of HDF5
+#
+HDF5_PREFIX ?= $(PWD)
+ifneq ($(HDF5_PREFIX),$(PWD))
+  CBFLIB_DONT_USE_LOCAL_HDF5 ?=  yes
+endif
+
 ifneq ($(CBFLIB_DONT_USE_LOCAL_HDF5),yes)
-#
-# Definition to get a version of HDF5
-#
-#HDF5 = hdf5-1.8.10
-#HDF5 = hdf5-1.8.11-pre2
-#HDF5 = hdf5-1.8.11
 HDF5 = hdf5-1.8.14
-HDF5PREFIX = $(PWD)
 HDF5LIBS = $(LIB)/libhdf5.a -lz -ldl
 HDF5SOLIBS = -L$(LIB) -lhdf5 -lz
 HDF5REGISTER ?= --register plugin
-H5DUMP = $(PWD)/$(BIN)/h5dump
 else
 HDF5 =
-HDF5LIBS = -L/mingw64/lib -lhdf5 -lz -ldl
-HDF5SOLIBS = -L/mingw64/lib -lhdf5 -lz
+HDF5LIBS = -L$(HDF5_PREFIX)/lib -lhdf5 -lz -ldl
+HDF5SOLIBS = -L$(HDF5_PREFIX)/lib -lhdf5 -lz
 HDF5REGISTER ?= --register manual
-H5DUMP = h5dump
 endif
+H5DUMP = $(HDF5_PREFIX)/bin/h5dump
+
 
 CBFLIB_DONT_USE_LZ4 ?= no
 ifneq ($(CBFLIB_DONT_USE_LZ4),yes)
@@ -1150,7 +1150,7 @@ $(TIFF):	build_tiff
 	tar -xvf $(TIFF).tar.gz
 	touch $(TIFF)
 	-rm $(TIFF).tar.gz
-	(cd $(TIFF); ./configure --prefix=$(TIFFPREFIX); make install)
+	(cd $(TIFF); ./configure --prefix=$(TIFF_PREFIX); make install)
 
 ifneq ($(CBFLIB_DONT_USE_LOCAL_HDF5),yes)
 #
@@ -1167,7 +1167,7 @@ $(HDF5):	build_hdf5
 	cp config.sub $(HDF5)/bin/config.sub
 	touch $(HDF5)
 	-rm $(HDF5).tar.gz
-	(cd $(HDF5); ./configure --enable-using-memchecker  --prefix=$(HDF5PREFIX)  ; make install)
+	(cd $(HDF5); ./configure --enable-using-memchecker  --prefix=$(HDF5_PREFIX)  ; make install)
 endif
 
 
@@ -1586,7 +1586,7 @@ $(BIN)/tiff2cbf: $(LIB)/libcbf.a $(EXAMPLES)/tiff2cbf.c \
 	$(GOPTLIB)	$(GOPTINC) $(TIFF)
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	-I$(TIFF)/libtiff $(EXAMPLES)/tiff2cbf.c $(GOPTLIB) -L$(LIB) \
-	-lcbf -L$(TIFFPREFIX)/lib -ltiff $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
+	-lcbf -L$(TIFF_PREFIX)/lib -ltiff $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
 
 #
 # Andy Arvai's buffered read test program

@@ -7272,9 +7272,9 @@ The element_id will be valid as long as the item exists and has not
 been set to a new value.
 The element_id must not be modified by the program in any way.
 ARGUMENTS
-handle           CBF handle. element_number   The number of the 
+handle             CBF handle. element_number     The number of the 
 detector element counting from 0 by order of appearance in the  
-\"diffrn_data_frame \" category. element_id       Pointer to the 
+\"diffrn_data_frame \" category. element_id         Pointer to the 
 destination string for cbf_get_element_id, but the string itself for 
 cbf_get_element_number. array_id           The optional array id or 
 NULL. array_section_id   The optional array_section_id or NULL.
