@@ -1375,10 +1375,10 @@ $(PYCBF)/pycbfuserinstall:
 	(cd $(PYCBF); $(PYTHON) $(INSTALLSETUP_PY) install $(PYCBFIOPT) --user)
 
 $(PYCBF)/setup.py: $(M4)/setup_py.m4
-	(m4 -P -Dregexlib=REGEXLIB -Dregexlibdir=REGEXLIBDIR $(M4)/setup_py.m4 > $@)
+	(m4 -P -Dregexlib=$(REGEXLIB) -Dregexlibdir=$(REGEXLIBDIR) -Dhdf5_prefix=$(HDF5_PREFIX) $(M4)/setup_py.m4 > $@)
 
 $(PYCBF)/setup_MINGW.py: m4/setup_py.m4
-	(m4 -P -Dregexlib=regex -Dregexlibdir=$(REGEXDIR) $(M4)/setup_py.m4 > $@)
+	(m4 -P -Dregexlib=regex -Dregexlibdir=$(REGEXDIR) -Dhdf5_prefix=$(HDF5_PREFIX)  $(M4)/setup_py.m4 > $@)
 
 $(LIB)/_pycbf.$(PYCBFEXT): $(PYCBF)/_pycbf.$(PYCBFEXT)
 	cp $(PYCBF)/_pycbf.$(PYCBFEXT) $(LIB)/_pycbf.$(PYCBFEXT)
