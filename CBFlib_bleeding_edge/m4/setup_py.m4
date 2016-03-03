@@ -13,7 +13,7 @@ e = Extension(''`_pycbf''`,
          extra_compile_args=["-g"],
          'm4_ifelse(regexlibdir,`NOREGEXLIBDIR',`library_dirs=["../lib/"],',`library_dirs=["../lib/","'regexlibdir`"],')`
          'm4_ifelse(regexlib,`NOREGEXLIB',`libraries=["cbf"],',`libraries=["cbf","'regexlib`"],')`
-         include_dirs = ["../include"] )
+         include_dirs = ["../include","'hdf5_prefix`/include"] )
             
 # Build it
 setup(name="_pycbf",ext_modules=[e],)'
