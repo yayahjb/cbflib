@@ -2,7 +2,7 @@
 ######################################################################
 #  Makefile - command file for make to create CBFlib                 #
 #                                                                    #
-# Version 0.9.5 02 Mar 2016                                          #
+# Version 0.9.5 13 Mar 2016                                          #
 #                                                                    #
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
@@ -248,6 +248,7 @@
 # Crystallography                                                    #
 ######################################################################
 
+.DELETE_ON_ERROR:
 
 # Version string
 VERSION = 0.9.5
@@ -274,7 +275,7 @@ GRAPHICS = $(ROOT)/html_graphics
 DATADIRI  = $(ROOT)/../CBFlib_$(VERSION)_Data_Files_Input
 DATADIRO  = $(ROOT)/../CBFlib_$(VERSION)_Data_Files_Output
 DATADIRS  = $(ROOT)/../CBFlib_$(VERSION)_Data_Files_Output_Sigs_Only
-INSTALLDIR  ?= $(HOME)
+CBF_PREFIX  ?= $(HOME)
 
 #
 # Comment out the next line if scratch test files should be retained
@@ -304,6 +305,7 @@ endif
 #
 TIFF = tiff-3.9.4-rev-1Oct15
 TIFF_PREFIX ?= $(PWD)
+TIFF_INSTALL = $(TIFF)_INSTALL
 
 
 #
@@ -311,16 +313,18 @@ TIFF_PREFIX ?= $(PWD)
 #
 HDF5_PREFIX ?= $(PWD)
 ifneq ($(HDF5_PREFIX),$(PWD))
-  CBFLIB_DONT_USE_LOCAL_HDF5 ?=  yes
+	CBFLIB_DONT_USE_LOCAL_HDF5 ?=  yes
 endif
 
 ifneq ($(CBFLIB_DONT_USE_LOCAL_HDF5),yes)
 HDF5 = hdf5-1.8.14
+HDF5_INSTALL = $(HDF5)_INSTALL
 HDF5LIBS = $(LIB)/libhdf5.a -lz -ldl
 HDF5SOLIBS = -L$(LIB) -lhdf5 -lz
 HDF5REGISTER ?= --register plugin
 else
 HDF5 =
+HDF5_INSTALL =
 HDF5LIBS = -L$(HDF5_PREFIX)/lib -lhdf5 -lz -ldl
 HDF5SOLIBS = -L$(HDF5_PREFIX)/lib -lhdf5 -lz
 HDF5REGISTER ?= --register manual
@@ -364,14 +368,32 @@ PYTHON = python
 #
 # Definitions to get a stable version of regex
 #
-REGEX = regex-20090805
-REGEXDIR = /usr/lib
-REGEXDEP = 
-CBF_REGEXLIB_REGEX ?= regex.h
+REGEX_PREFIX ?= $(PWD)
+ifneq ($(REGEX_PREFIX),$(PWD))
+CBFLIB_DONT_USE_LOCAL_REGEX ?=  yes
+endif
+
+REGEX_LIBDIR ?= $(REGEX_PREFIX)/lib
+ifneq ($(CBFLIB_DONT_USE_LOCAL_REGEX),yes)
+REGEX = pcre-8.38
+REGEXDEP = $(REGEX)
+REGEX_INSTALL = $(REGEX)_INSTALL
+REGEX_LIB ?= pcreposix
+REGEX_LIBS ?= -L $(REGEX_LIBDIR) -l$(REGEX_LIB)
+REGEX_INCLUDES ?= -I $(REGEX_PREFIX)
+else
+REGEX =
+REGEXDEP =
+REGEX_INSTALL =
+REGEX_LIB ?=
+REGEX_LIBS ?=
+REGEX_INCLUDES ?=
+endif
 
 # Program to use to retrieve a URL
 
-DOWNLOAD = wget -N
+#DOWNLOAD = wget -N
+DOWNLOAD   ?= curl -O -L
 
 # Flag to control symlinks versus copying
 
@@ -532,7 +554,7 @@ endif
 #
 # URLs from which to retrieve the data directories
 #
-DATAURLBASE	= http://downloads.sf.net/cbflib
+DATAURLBASE	= http://downloads.sf.net/cbflib/
 DATAURLI	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Input.tar.gz
 DATAURLO	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Output.tar.gz
 DATAURLS	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Output_Sigs_Only.tar.gz
@@ -544,10 +566,10 @@ ifneq ($(CBFLIB_DONT_USE_PYCIFRW),yes)
 PYCIFRWURL	= http://downloads.sf.net/cbflib/$(PYCIFRW).tar.gz
 PLYURL		= http://www.dabeaz.com/ply/$(PLY).tar.gz
 endif
-REGEXURL	= http://downloads.sf.net/cbflib/$(REGEX).tar.gz
-TIFFURL		= http://downloads.sf.net/cbflib/$(TIFF).tar.gz
-HDF5URL		= http://downloads.sf.net/cbflib/$(HDF5).tar.gz
-LZ4URL      = http://downloads.sf.net/cbflib/$(LZ4).tar.gz
+REGEX_URL	?= http://downloads.sf.net/cbflib/$(REGEX).tar.gz
+TIFF_URL	?= http://downloads.sf.net/cbflib/$(TIFF).tar.gz
+HDF5_URL	?= http://downloads.sf.net/cbflib/$(HDF5).tar.gz
+LZ4_URL      = http://downloads.sf.net/cbflib/$(LZ4).tar.gz
 BSHUFURL    = http://downloads.sf.net/cbflib/$(BSHUF).tar.gz
 
 
@@ -761,7 +783,7 @@ default:
 	@echo ' '
 	@echo ' The current value :'
 	@echo ' '
-	@echo '   $(INSTALLDIR) '	
+	@echo '   $(CBF_PREFIX) '	
 	@echo ' '
 	@echo ' To compile the CBF library and example programs type:'
 	@echo ' '
@@ -835,7 +857,11 @@ BSHUFDEPS =
 endif
 
 
-all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) $(HDF5) $(LZ4DEPS) $(BSHUFDEPS) $(PYCIFRWDEPS) \
+all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) \
+	$(HDF5)               \
+	$(LZ4DEPS)            \
+	$(BSHUFDEPS)          \
+	$(PYCIFRWDEPS)        \
 	symlinksdone          \
 	$(REGEXDEP)           \
 	$(LIB)/libcbf.a       \
@@ -971,129 +997,135 @@ symlinksdone:
 	./.symlinks $(SLFLAGS)
 	touch symlinksdone
 
-install:  baseinstall pycbfinstall
+install:  baseinstall pycbfinstall \
+	$(HDF5_INSTALL) \
+	$(TIFF_INSTALL) \
+	$(REGEX_INSTALL)
 
-userinstall: baseinstall pycbfuserinstall
+userinstall: baseinstall pycbfuserinstall \
+	$(HDF5_INSTALL) \
+	$(TIFF_INSTALL) \
+	$(REGEX_INSTALL)
 
-baseinstall:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
-	$(INSTALLDIR)/include $(INSTALLDIR)/include/cbflib \
+baseinstall:  all $(CBF_PREFIX) $(CBF_PREFIX)/lib $(CBF_PREFIX)/bin \
+	$(CBF_PREFIX)/include $(CBF_PREFIX)/include/cbflib \
 	$(PYSOURCE) shared $(EXAMPLES)/batch_convert_minicbf.sh \
 	$(LIB)/libcbf.a $(LIB)/libimg.a $(LIB)/libfcb.a \
 	$(SOLIB)/libcbf.so $(SOLIB)/libimg.so $(SOLIB)/libfcb.so
-	-chmod -R 755 $(INSTALLDIR)/include/cbflib
-	-chmod 755 $(INSTALLDIR)/lib/libcbf.a
-	-cp $(INSTALLDIR)/lib/libcbf.a $(INSTALLDIR)/lib/libcbf_old.a
-	cp $(LIB)/libcbf.a $(INSTALLDIR)/lib/libcbf.a
-	-chmod 755 $(INSTALLDIR)/lib/libimg.a
-	-cp $(INSTALLDIR)/lib/libimg.a $(INSTALLDIR)/lib/libimg_old.a
-	cp $(LIB)/libimg.a $(INSTALLDIR)/lib/libimg.a
-	-chmod 755 $(INSTALLDIR)/lib/libfcb.a
-	-cp $(INSTALLDIR)/lib/libfcb.a $(INSTALLDIR)/lib/libfcb_old.a
-	cp $(LIB)/libfcb.a $(INSTALLDIR)/lib/libfcb.a
-	-chmod 755 $(INSTALLDIR)/lib/libcbf.so
-	-cp $(INSTALLDIR)/lib/libcbf.so $(INSTALLDIR)/lib/libcbf_old.so
-	cp $(SOLIB)/libcbf.so $(INSTALLDIR)/lib/libcbf.so
-	$(LN) $(INSTALLDIR)/lib/libcbf.so $(INSTALLDIR)/lib/lib_cbf.so
-	-chmod 755 $(INSTALLDIR)/lib/libimg.so
-	-cp $(INSTALLDIR)/lib/libimg.so $(INSTALLDIR)/lib/libimg_old.so
-	cp $(SOLIB)/libimg.so $(INSTALLDIR)/lib/libimg.so
-	$(LN) $(INSTALLDIR)/lib/libimg.so $(INSTALLDIR)/lib/lib_img.so
-	-chmod 755 $(INSTALLDIR)/lib/libfcb.so
-	-cp $(INSTALLDIR)/lib/libfcb.so $(INSTALLDIR)/lib/libfcb_old.so
-	cp $(SOLIB)/libfcb.so $(INSTALLDIR)/lib/libfcb.so
-	$(LN) $(INSTALLDIR)/lib/libfcb.so $(INSTALLDIR)/lib/lib_fcb.so
-	-cp $(INSTALLDIR)/bin/adscimg2cbf $(INSTALLDIR)/bin/adscimg2cbf_old
-	cp $(BIN)/adscimg2cbf $(INSTALLDIR)/bin/adscimg2cbf
-	-cp $(INSTALLDIR)/bin/cbf2adscimg $(INSTALLDIR)/bin/cbf2adscimg_old
-	cp $(BIN)/cbf2adscimg $(INSTALLDIR)/bin/cbf2adscimg
-	-cp $(INSTALLDIR)/bin/cbf_standardize_numbers \
-		$(INSTALLDIR)/bin/cbf_standardize_numbers_old
-	cp $(BIN)/cbf_standardize_numbers $(INSTALLDIR)/bin/cbf_standardize_numbers
-	-cp $(INSTALLDIR)/bin/convert_image $(INSTALLDIR)/bin/convert_image_old
-	cp $(BIN)/convert_image $(INSTALLDIR)/bin/convert_image
-	-cp $(INSTALLDIR)/bin/convert_minicbf $(INSTALLDIR)/bin/convert_minicbf_old
-	cp $(BIN)/convert_minicbf $(INSTALLDIR)/bin/convert_minicbf
-	-cp $(INSTALLDIR)/bin/makecbf $(INSTALLDIR)/bin/makecbf_old
-	cp $(BIN)/makecbf $(INSTALLDIR)/bin/makecbf
-	-cp $(INSTALLDIR)/bin/img2cif $(INSTALLDIR)/bin/img2cif_old
-	cp $(BIN)/img2cif $(INSTALLDIR)/bin/img2cif
-	-cp $(INSTALLDIR)/bin/cif2cbf $(INSTALLDIR)/bin/cif2cbf_old
-	cp $(BIN)/cif2cbf $(INSTALLDIR)/bin/cif2cbf
-	-cp $(INSTALLDIR)/bin/minicbf2nexus $(INSTALLDIR)/bin/minicbf2nexus_old
-	cp $(BIN)/minicbf2nexus $(INSTALLDIR)/bin/minicbf2nexus
-	-cp $(INSTALLDIR)/bin/cbf2nexus $(INSTALLDIR)/bin/cbf2nexus_old
-	cp $(BIN)/cbf2nexus $(INSTALLDIR)/bin/cbf2nexus
-	-cp $(INSTALLDIR)/bin/nexus2cbf $(INSTALLDIR)/bin/nexus2cbf_old
-	cp $(BIN)/nexus2cbf $(INSTALLDIR)/bin/nexus2cbf
-	-cp $(INSTALLDIR)/bin/sequence_match $(INSTALLDIR)/bin/sequence_match_old
-	cp $(BIN)/sequence_match $(INSTALLDIR)/bin/sequence_match
-	-cp $(INSTALLDIR)/bin/testalloc $(INSTALLDIR)/bin/testalloc_old
-	cp $(BIN)/testalloc $(INSTALLDIR)/bin/testalloc
-	-cp $(INSTALLDIR)/bin/arvai_test $(INSTALLDIR)/bin/arvai_test_old
-	cp $(BIN)/arvai_test $(INSTALLDIR)/bin/arvai_test
-	-cp $(INSTALLDIR)/bin/cif2c $(INSTALLDIR)/bin/cif2c_old
-	cp $(BIN)/cif2c $(INSTALLDIR)/bin/cif2c
-	-cp $(INSTALLDIR)/bin/testreals $(INSTALLDIR)/bin/testreals_old
-	cp $(BIN)/testreals $(INSTALLDIR)/bin/testreals
-	-cp $(INSTALLDIR)/bin/testflat $(INSTALLDIR)/bin/testflat_old
-	cp $(BIN)/testflat $(INSTALLDIR)/bin/testflat
-	-cp $(INSTALLDIR)/bin/testflatpacked $(INSTALLDIR)/bin/testflatpacked_old
-	cp $(BIN)/testflatpacked $(INSTALLDIR)/bin/testflatpacked
-	-cp $(INSTALLDIR)/bin/tiff2cbf $(INSTALLDIR)/bin/tiff2cbf_old
-	cp $(BIN)/tiff2cbf $(INSTALLDIR)/bin/tiff2cbf
-	-cp $(INSTALLDIR)/bin/test_cbf_airy_disk $(INSTALLDIR)/bin/test_cbf_airy_disk_old
-	cp $(BIN)/test_cbf_airy_disk $(INSTALLDIR)/bin/test_cbf_airy_disk
-	-cp $(INSTALLDIR)/bin/test_cbf_airy_disk $(INSTALLDIR)/bin/test_cbf_airy_disk_old
-	cp $(BIN)/test_cbf_airy_disk $(INSTALLDIR)/bin/test_cbf_airy_disk
-	-cp $(INSTALLDIR)/bin/testhdf5 $(INSTALLDIR)/bin/testhdf5_old
-	cp $(BIN)/testhdf5 $(INSTALLDIR)/bin/testhdf5
+	-chmod -R 755 $(CBF_PREFIX)/include/cbflib
+	-chmod 755 $(CBF_PREFIX)/lib/libcbf.a
+	-cp $(CBF_PREFIX)/lib/libcbf.a $(CBF_PREFIX)/lib/libcbf_old.a
+	cp $(LIB)/libcbf.a $(CBF_PREFIX)/lib/libcbf.a
+	-chmod 755 $(CBF_PREFIX)/lib/libimg.a
+	-cp $(CBF_PREFIX)/lib/libimg.a $(CBF_PREFIX)/lib/libimg_old.a
+	cp $(LIB)/libimg.a $(CBF_PREFIX)/lib/libimg.a
+	-chmod 755 $(CBF_PREFIX)/lib/libfcb.a
+	-cp $(CBF_PREFIX)/lib/libfcb.a $(CBF_PREFIX)/lib/libfcb_old.a
+	cp $(LIB)/libfcb.a $(CBF_PREFIX)/lib/libfcb.a
+	-chmod 755 $(CBF_PREFIX)/lib/libcbf.so
+	-cp $(CBF_PREFIX)/lib/libcbf.so $(CBF_PREFIX)/lib/libcbf_old.so
+	cp $(SOLIB)/libcbf.so $(CBF_PREFIX)/lib/libcbf.so
+	$(LN) $(CBF_PREFIX)/lib/libcbf.so $(CBF_PREFIX)/lib/lib_cbf.so
+	-chmod 755 $(CBF_PREFIX)/lib/libimg.so
+	-cp $(CBF_PREFIX)/lib/libimg.so $(CBF_PREFIX)/lib/libimg_old.so
+	cp $(SOLIB)/libimg.so $(CBF_PREFIX)/lib/libimg.so
+	$(LN) $(CBF_PREFIX)/lib/libimg.so $(CBF_PREFIX)/lib/lib_img.so
+	-chmod 755 $(CBF_PREFIX)/lib/libfcb.so
+	-cp $(CBF_PREFIX)/lib/libfcb.so $(CBF_PREFIX)/lib/libfcb_old.so
+	cp $(SOLIB)/libfcb.so $(CBF_PREFIX)/lib/libfcb.so
+	$(LN) $(CBF_PREFIX)/lib/libfcb.so $(CBF_PREFIX)/lib/lib_fcb.so
+	-cp $(CBF_PREFIX)/bin/adscimg2cbf $(CBF_PREFIX)/bin/adscimg2cbf_old
+	cp $(BIN)/adscimg2cbf $(CBF_PREFIX)/bin/adscimg2cbf
+	-cp $(CBF_PREFIX)/bin/cbf2adscimg $(CBF_PREFIX)/bin/cbf2adscimg_old
+	cp $(BIN)/cbf2adscimg $(CBF_PREFIX)/bin/cbf2adscimg
+	-cp $(CBF_PREFIX)/bin/cbf_standardize_numbers \
+		$(CBF_PREFIX)/bin/cbf_standardize_numbers_old
+	cp $(BIN)/cbf_standardize_numbers $(CBF_PREFIX)/bin/cbf_standardize_numbers
+	-cp $(CBF_PREFIX)/bin/convert_image $(CBF_PREFIX)/bin/convert_image_old
+	cp $(BIN)/convert_image $(CBF_PREFIX)/bin/convert_image
+	-cp $(CBF_PREFIX)/bin/convert_minicbf $(CBF_PREFIX)/bin/convert_minicbf_old
+	cp $(BIN)/convert_minicbf $(CBF_PREFIX)/bin/convert_minicbf
+	-cp $(CBF_PREFIX)/bin/makecbf $(CBF_PREFIX)/bin/makecbf_old
+	cp $(BIN)/makecbf $(CBF_PREFIX)/bin/makecbf
+	-cp $(CBF_PREFIX)/bin/img2cif $(CBF_PREFIX)/bin/img2cif_old
+	cp $(BIN)/img2cif $(CBF_PREFIX)/bin/img2cif
+	-cp $(CBF_PREFIX)/bin/cif2cbf $(CBF_PREFIX)/bin/cif2cbf_old
+	cp $(BIN)/cif2cbf $(CBF_PREFIX)/bin/cif2cbf
+	-cp $(CBF_PREFIX)/bin/minicbf2nexus $(CBF_PREFIX)/bin/minicbf2nexus_old
+	cp $(BIN)/minicbf2nexus $(CBF_PREFIX)/bin/minicbf2nexus
+	-cp $(CBF_PREFIX)/bin/cbf2nexus $(CBF_PREFIX)/bin/cbf2nexus_old
+	cp $(BIN)/cbf2nexus $(CBF_PREFIX)/bin/cbf2nexus
+	-cp $(CBF_PREFIX)/bin/nexus2cbf $(CBF_PREFIX)/bin/nexus2cbf_old
+	cp $(BIN)/nexus2cbf $(CBF_PREFIX)/bin/nexus2cbf
+	-cp $(CBF_PREFIX)/bin/sequence_match $(CBF_PREFIX)/bin/sequence_match_old
+	cp $(BIN)/sequence_match $(CBF_PREFIX)/bin/sequence_match
+	-cp $(CBF_PREFIX)/bin/testalloc $(CBF_PREFIX)/bin/testalloc_old
+	cp $(BIN)/testalloc $(CBF_PREFIX)/bin/testalloc
+	-cp $(CBF_PREFIX)/bin/arvai_test $(CBF_PREFIX)/bin/arvai_test_old
+	cp $(BIN)/arvai_test $(CBF_PREFIX)/bin/arvai_test
+	-cp $(CBF_PREFIX)/bin/cif2c $(CBF_PREFIX)/bin/cif2c_old
+	cp $(BIN)/cif2c $(CBF_PREFIX)/bin/cif2c
+	-cp $(CBF_PREFIX)/bin/testreals $(CBF_PREFIX)/bin/testreals_old
+	cp $(BIN)/testreals $(CBF_PREFIX)/bin/testreals
+	-cp $(CBF_PREFIX)/bin/testflat $(CBF_PREFIX)/bin/testflat_old
+	cp $(BIN)/testflat $(CBF_PREFIX)/bin/testflat
+	-cp $(CBF_PREFIX)/bin/testflatpacked $(CBF_PREFIX)/bin/testflatpacked_old
+	cp $(BIN)/testflatpacked $(CBF_PREFIX)/bin/testflatpacked
+	-cp $(CBF_PREFIX)/bin/tiff2cbf $(CBF_PREFIX)/bin/tiff2cbf_old
+	cp $(BIN)/tiff2cbf $(CBF_PREFIX)/bin/tiff2cbf
+	-cp $(CBF_PREFIX)/bin/test_cbf_airy_disk $(CBF_PREFIX)/bin/test_cbf_airy_disk_old
+	cp $(BIN)/test_cbf_airy_disk $(CBF_PREFIX)/bin/test_cbf_airy_disk
+	-cp $(CBF_PREFIX)/bin/test_cbf_airy_disk $(CBF_PREFIX)/bin/test_cbf_airy_disk_old
+	cp $(BIN)/test_cbf_airy_disk $(CBF_PREFIX)/bin/test_cbf_airy_disk
+	-cp $(CBF_PREFIX)/bin/testhdf5 $(CBF_PREFIX)/bin/testhdf5_old
+	cp $(BIN)/testhdf5 $(CBF_PREFIX)/bin/testhdf5
 ifneq ($(CBF_USE_ULP),)
-	-cp $(INSTALLDIR)/bin/testulp $(INSTALLDIR)/bin/testulp_old
-	cp $(BIN)/testulp $(INSTALLDIR)/bin/testulp
+	-cp $(CBF_PREFIX)/bin/testulp $(CBF_PREFIX)/bin/testulp_old
+	cp $(BIN)/testulp $(CBF_PREFIX)/bin/testulp
 endif
-	-cp $(INSTALLDIR)/bin/batch_convert_minicbf.sh $(INSTALLDIR)/bin/batch_convert_minicbf_old.sh
-	cp $(EXAMPLES)/batch_convert_minicbf.sh $(INSTALLDIR)/bin/batch_convert_minicbf.sh
+	-cp $(CBF_PREFIX)/bin/batch_convert_minicbf.sh $(CBF_PREFIX)/bin/batch_convert_minicbf_old.sh
+	cp $(EXAMPLES)/batch_convert_minicbf.sh $(CBF_PREFIX)/bin/batch_convert_minicbf.sh
 ifneq ($(CBFLIB_DONT_USE_PYCIFRW),yes)
-	cp $(SRC)/drel_lex.py $(INSTALLDIR)/bin/drel_lex.py
-	cp $(SRC)/drel_yacc.py $(INSTALLDIR)/bin/drel_yacc.py
-	cp $(SRC)/drelc.py $(INSTALLDIR)/bin/drelc.py
-	cp $(SRC)/drel_prep.py $(INSTALLDIR)/bin/drel_prep.py
+	cp $(SRC)/drel_lex.py $(CBF_PREFIX)/bin/drel_lex.py
+	cp $(SRC)/drel_yacc.py $(CBF_PREFIX)/bin/drel_yacc.py
+	cp $(SRC)/drelc.py $(CBF_PREFIX)/bin/drelc.py
+	cp $(SRC)/drel_prep.py $(CBF_PREFIX)/bin/drel_prep.py
 endif
-	chmod -R 755 $(INSTALLDIR)/include/cbflib
-	-rm -rf $(INSTALLDIR)/include/cbflib_old
-	-cp -r $(INSTALLDIR)/include/cbflib $(INSTALLDIR)/include/cbflib_old
-	-rm -rf $(INSTALLDIR)/include/cbflib
-	cp -r $(INCLUDE) $(INSTALLDIR)/include/cbflib
-	chmod 644 $(INSTALLDIR)/lib/libcbf.a
-	chmod 644 $(INSTALLDIR)/lib/libimg.a
-	chmod 644 $(INSTALLDIR)/lib/libfcb.a
-	chmod 755 $(INSTALLDIR)/lib/libcbf.so
-	chmod 755 $(INSTALLDIR)/lib/libimg.so
-	chmod 755 $(INSTALLDIR)/lib/libfcb.so
-	chmod 755 $(INSTALLDIR)/bin/arvai_test
-	chmod 755 $(INSTALLDIR)/bin/cbf2nexus
-	chmod 755 $(INSTALLDIR)/bin/cbf_standardize_numbers
-	chmod 755 $(INSTALLDIR)/bin/cif2c
-	chmod 755 $(INSTALLDIR)/bin/cif2cbf
-	chmod 755 $(INSTALLDIR)/bin/convert_image
-	chmod 755 $(INSTALLDIR)/bin/convert_minicbf
-	chmod 755 $(INSTALLDIR)/bin/img2cif
-	chmod 755 $(INSTALLDIR)/bin/makecbf
-	chmod 755 $(INSTALLDIR)/bin/minicbf2nexus
-	chmod 755 $(INSTALLDIR)/bin/nexus2cbf
-	chmod 755 $(INSTALLDIR)/bin/sequence_match
-	chmod 755 $(INSTALLDIR)/bin/testalloc
-	chmod 755 $(INSTALLDIR)/bin/testflat
-	chmod 755 $(INSTALLDIR)/bin/testflatpacked
-	chmod 755 $(INSTALLDIR)/bin/testhdf5
-	chmod 755 $(INSTALLDIR)/bin/testreals
+	chmod -R 755 $(CBF_PREFIX)/include/cbflib
+	-rm -rf $(CBF_PREFIX)/include/cbflib_old
+	-cp -r $(CBF_PREFIX)/include/cbflib $(CBF_PREFIX)/include/cbflib_old
+	-rm -rf $(CBF_PREFIX)/include/cbflib
+	cp -r $(INCLUDE) $(CBF_PREFIX)/include/cbflib
+	chmod 644 $(CBF_PREFIX)/lib/libcbf.a
+	chmod 644 $(CBF_PREFIX)/lib/libimg.a
+	chmod 644 $(CBF_PREFIX)/lib/libfcb.a
+	chmod 755 $(CBF_PREFIX)/lib/libcbf.so
+	chmod 755 $(CBF_PREFIX)/lib/libimg.so
+	chmod 755 $(CBF_PREFIX)/lib/libfcb.so
+	chmod 755 $(CBF_PREFIX)/bin/arvai_test
+	chmod 755 $(CBF_PREFIX)/bin/cbf2nexus
+	chmod 755 $(CBF_PREFIX)/bin/cbf_standardize_numbers
+	chmod 755 $(CBF_PREFIX)/bin/cif2c
+	chmod 755 $(CBF_PREFIX)/bin/cif2cbf
+	chmod 755 $(CBF_PREFIX)/bin/convert_image
+	chmod 755 $(CBF_PREFIX)/bin/convert_minicbf
+	chmod 755 $(CBF_PREFIX)/bin/img2cif
+	chmod 755 $(CBF_PREFIX)/bin/makecbf
+	chmod 755 $(CBF_PREFIX)/bin/minicbf2nexus
+	chmod 755 $(CBF_PREFIX)/bin/nexus2cbf
+	chmod 755 $(CBF_PREFIX)/bin/sequence_match
+	chmod 755 $(CBF_PREFIX)/bin/testalloc
+	chmod 755 $(CBF_PREFIX)/bin/testflat
+	chmod 755 $(CBF_PREFIX)/bin/testflatpacked
+	chmod 755 $(CBF_PREFIX)/bin/testhdf5
+	chmod 755 $(CBF_PREFIX)/bin/testreals
 ifneq ($(CBF_USE_ULP),)
-	chmod 755 $(INSTALLDIR)/bin/testulp
+	chmod 755 $(CBF_PREFIX)/bin/testulp
 endif
-	chmod 755 $(INSTALLDIR)/bin/tiff2cbf
-	chmod 755 $(INSTALLDIR)/bin/test_cbf_airy_disk
-	chmod 755 $(INSTALLDIR)/bin/batch_convert_minicbf.sh
-	chmod 644 $(INSTALLDIR)/include/cbflib/*.h
+	chmod 755 $(CBF_PREFIX)/bin/tiff2cbf
+	chmod 755 $(CBF_PREFIX)/bin/test_cbf_airy_disk
+	chmod 755 $(CBF_PREFIX)/bin/batch_convert_minicbf.sh
+	chmod 644 $(CBF_PREFIX)/include/cbflib/*.h
 	
 ifneq ($(CBFLIB_DONT_USE_PYCIFRW),yes)
 #
@@ -1127,18 +1159,23 @@ endif
 # REGEX
 #
 
-ifneq ($(REGEXDEP),)
-$(REGEXDEP):	$(REGEX)
-	(cd $(REGEX); ./configure; make install)
-endif
-
-ifeq ($(CBF_NO_REGEX),)
-$(REGEX):
-	$(DOWNLOAD) $(REGEXURL)
+build_regex:    $(M4)/Makefile.m4
+	touch build_regex
+$(REGEX):   build_regex
+	-rm -rf $(REGEX)
+	-rm -rf $(REGEX).tar.gz
+	$(DOWNLOAD) $(REGEX_URL)
 	tar -xvf $(REGEX).tar.gz
+	touch $(REGEX)
 	-rm $(REGEX).tar.gz
-endif
-	
+	cp config.guess config.sub $(REGEX)
+	(cd $(REGEX); ./configure --prefix=$(REGEX_PREFIX); make install)
+	@-cp $(REGEX_PREFIX)/include/pcreposix.h $(REGEX_PREFIX)/include/regex.h
+	@-cp $(REGEX_PREFIX)/include/pcre2posix.h $(REGEX_PREFIX)/include/regex.h
+$(REGEX)_INSTALL:   $(REGEX)
+	(cd $(REGEX); ./configure --prefix=$(CBF_PREFIX); make install)
+	@-cp $(CBF_PREFIX)/include/pcreposix.h $(CBF_PREFIX)/include/regex.h
+	@-cp $(CBF_PREFIX)/include/pcre2posix.h $(CBF_PREFIX)/include/regex.h
 
 #
 # TIFF
@@ -1148,12 +1185,15 @@ build_tiff:	$(M4)/Makefile.m4
 $(TIFF):	build_tiff config.guess config.sub
 	-rm -rf $(TIFF)
 	-rm -rf $(TIFF).tar.gz
-	$(DOWNLOAD) $(TIFFURL)
+	$(DOWNLOAD) $(TIFF_URL)
 	tar -xvf $(TIFF).tar.gz
 	touch $(TIFF)
 	-rm $(TIFF).tar.gz
 	cp config.guess config.sub $(TIFF)/config/
 	(cd $(TIFF); ./configure --prefix=$(TIFF_PREFIX); make install)
+$(TIFF)_INSTALL:    $(TIFF)
+	(cd $(TIFF); ./configure --prefix=$(CBF_PREFIX); make install)
+
 
 ifneq ($(CBFLIB_DONT_USE_LOCAL_HDF5),yes)
 #
@@ -1164,13 +1204,15 @@ build_hdf5:	$(M4)/Makefile.m4
 $(HDF5):	build_hdf5
 	-rm -rf $(HDF5)
 	-rm -rf $(HDF5).tar.gz
-	$(DOWNLOAD) $(HDF5URL)
+	$(DOWNLOAD) $(HDF5_URL)
 	tar -xvf $(HDF5).tar.gz
 	cp config.guess $(HDF5)/bin/config.guess
 	cp config.sub $(HDF5)/bin/config.sub
 	touch $(HDF5)
 	-rm $(HDF5).tar.gz
 	(cd $(HDF5); ./configure --enable-using-memchecker  --prefix=$(HDF5_PREFIX)  ; make install)
+$(HDF5)_INSTALL:    $(HDF5)
+	(cd $(HDF5); ./configure --enable-using-memchecker  --prefix=$(CBF_PREFIX)  ; make install)
 endif
 
 
@@ -1183,7 +1225,7 @@ build_lz4:	$(M4)/Makefile.m4 $(SOLIB)
 $(LZ4): $(HDF5)	build_lz4
 	-rm -rf $(LZ4)
 	-rm -rf $(LZ4).tar.gz
-	$(DOWNLOAD) $(LZ4URL)
+	$(DOWNLOAD) $(LZ4_URL)
 	tar -xvf $(LZ4).tar.gz
 	touch $(LZ4)
 	-rm $(LZ4).tar.gz
@@ -1223,20 +1265,20 @@ endif
 #
 # Directories
 #
-$(INSTALLDIR):
-	mkdir -p $(INSTALLDIR)
+$(CBF_PREFIX):
+	mkdir -p $(CBF_PREFIX)
 
-$(INSTALLDIR)/lib:  $(INSTALLDIR)
-	mkdir -p $(INSTALLDIR)/lib
+$(CBF_PREFIX)/lib:  $(CBF_PREFIX)
+	mkdir -p $(CBF_PREFIX)/lib
 
-$(INSTALLDIR)/bin:  $(INSTALLDIR)
-	mkdir -p $(INSTALLDIR)/bin
+$(CBF_PREFIX)/bin:  $(CBF_PREFIX)
+	mkdir -p $(CBF_PREFIX)/bin
 
-$(INSTALLDIR)/include:  $(INSTALLDIR)
-	mkdir -p $(INSTALLDIR)/include
+$(CBF_PREFIX)/include:  $(CBF_PREFIX)
+	mkdir -p $(CBF_PREFIX)/include
 	
-$(INSTALLDIR)/include/cbflib: $(INSTALLDIR)/include
-	mkdir -p $(INSTALLDIR)/include/cbflib
+$(CBF_PREFIX)/include/cbflib: $(CBF_PREFIX)/include
+	mkdir -p $(CBF_PREFIX)/include/cbflib
 
 
 
@@ -1304,7 +1346,7 @@ ifneq ($(CBFLIB_DONT_USE_BSHUF),yes)
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) $(SOCFLAGS) -DCBF_FILTER_STATIC -c $(BSHUFsrc)/../lz4/lz4.c -o lz4.o
 endif
 
-	$(CC) -o $@ *.o $(SOLDFLAGS) $(EXTRALIBS) $(HDF5SOLIBS)
+	$(CC) -o $@ *.o $(SOLDFLAGS) $(EXTRALIBS) $(REGEX_LIBS) $(HDF5SOLIBS)
 	-rm -f *.o
 
 #
@@ -1369,16 +1411,16 @@ $(PYCBF)/_pycbf.$(PYCBFEXT): $(PYCBF)  shared \
 	(cd $(PYCBF); $(PYTHON) $(SETUP_PY) build $(PYCBFBOPT); cp build/lib.*/_pycbf.$(PYCBFEXT) .) 
 
 $(PYCBF)/pycbfinstall:
-	(cd $(PYCBF); $(PYTHON) $(INSTALLSETUP_PY) install $(PYCBFIOPT))
+	(cd $(PYCBF); $(PYTHON) $(INSTALLSETUP_PY) install $(PYCBFIOPT) --prefix=$(CBF_PREFIX))
 
 $(PYCBF)/pycbfuserinstall:
 	(cd $(PYCBF); $(PYTHON) $(INSTALLSETUP_PY) install $(PYCBFIOPT) --user)
 
 $(PYCBF)/setup.py: $(M4)/setup_py.m4
-	(m4 -P -Dregexlib=$(REGEXLIB) -Dregexlibdir=$(REGEXLIBDIR) -Dhdf5_prefix=$(HDF5_PREFIX) $(M4)/setup_py.m4 > $@)
+	(m4 -P -Dregexlib=$(REGEX_LIB) -Dregexlibdir=$(REGEX_LIBDIR) -Dhdf5_prefix=$(HDF5_PREFIX) $(M4)/setup_py.m4 > $@)
 
 $(PYCBF)/setup_MINGW.py: m4/setup_py.m4
-	(m4 -P -Dregexlib=regex -Dregexlibdir=$(REGEXDIR) -Dhdf5_prefix=$(HDF5_PREFIX)  $(M4)/setup_py.m4 > $@)
+	(m4 -P -Dregexlib=regex -Dregexlibdir=$(REGEX_LIBDIR) -Dhdf5_prefix=$(HDF5_PREFIX)  $(M4)/setup_py.m4 > $@)
 
 $(LIB)/_pycbf.$(PYCBFEXT): $(PYCBF)/_pycbf.$(PYCBFEXT)
 	cp $(PYCBF)/_pycbf.$(PYCBFEXT) $(LIB)/_pycbf.$(PYCBFEXT)
@@ -1411,7 +1453,7 @@ $(JCBF)/cbflib-$(VERSION).jar: $(JCBF) $(JCBF)/jcbf.i
 
 $(SOLIB)/libcbf_wrap.so: $(JCBF)/cbflib-$(VERSION).jar $(SOLIB)/libcbf.so
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) $(JAVAINCLUDES) -c $(JCBF)/jcbf_wrap.c
-	$(CC) -o $@ jcbf_wrap.o $(SOLDFLAGS) -L$(SOLIB) -lcbf
+	$(CC) -o $@ jcbf_wrap.o $(SOLDFLAGS) -L$(SOLIB) -lcbf $(REGEX_LIBS)
 	rm jcbf_wrap.o
 
 #
@@ -1443,7 +1485,7 @@ $(BIN)/convert_image: $(LIB)/libcbf.a $(EXAMPLES)/convert_image.c $(SRC)/img.c \
 	$(GOPTLIB)	$(GOPTINC)
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/convert_image.c $(SRC)/img.c $(GOPTLIB) -L$(LIB) \
-	-lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
+	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -o $@
 #
 # convert_minicbf example program
 #
@@ -1451,7 +1493,7 @@ $(BIN)/convert_minicbf: $(LIB)/libcbf.a $(EXAMPLES)/convert_minicbf.c \
 	$(GOPTLIB)	$(GOPTINC) $(EXAMPLES)/batch_convert_minicbf.sh
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/convert_minicbf.c $(GOPTLIB) -L$(LIB) \
-	-lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
+	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) $(REGEX_LIBS) -o $@
 	chmod 755 $(EXAMPLES)/batch_convert_minicbf.sh
 
 #
@@ -1460,7 +1502,7 @@ $(BIN)/convert_minicbf: $(LIB)/libcbf.a $(EXAMPLES)/convert_minicbf.c \
 $(BIN)/makecbf: $(LIB)/libcbf.a $(EXAMPLES)/makecbf.c $(LIB)/libimg.a
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/makecbf.c  -L$(LIB) \
-	-lcbf $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
+	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
 
 
 #
@@ -1469,7 +1511,7 @@ $(BIN)/makecbf: $(LIB)/libcbf.a $(EXAMPLES)/makecbf.c $(LIB)/libimg.a
 $(BIN)/adscimg2cbf: $(LIB)/libcbf.a $(EXAMPLES)/adscimg2cbf.c $(EXAMPLES)/adscimg2cbf_sub.c
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) -D_SVID_SOURCE $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/adscimg2cbf.c $(EXAMPLES)/adscimg2cbf_sub.c  -L$(LIB) \
-	-lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
+	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -o $@
 
 #
 # cbf2adscimg example program
@@ -1477,14 +1519,14 @@ $(BIN)/adscimg2cbf: $(LIB)/libcbf.a $(EXAMPLES)/adscimg2cbf.c $(EXAMPLES)/adscim
 $(BIN)/cbf2adscimg: $(LIB)/libcbf.a $(EXAMPLES)/cbf2adscimg.c $(EXAMPLES)/cbf2adscimg_sub.c
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) -D_SVID_SOURCE $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/cbf2adscimg.c $(EXAMPLES)/cbf2adscimg_sub.c  -L$(LIB) \
-	-lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
+	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -o $@
 
 #
 # cbf_standardize_numbers example program
 #
 $(BIN)/cbf_standardize_numbers: $(EXAMPLES)/cbf_standardize_numbers.c $(EXAMPLES)/cbf_standardize_numbers.h
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) -D_SVID_SOURCE $(INCLUDES) $(WARNINGS) \
-	$(EXAMPLES)/cbf_standardize_numbers.c $(SRC_FGETLN) $(EXTRALIBS) -o $@
+	$(EXAMPLES)/cbf_standardize_numbers.c $(SRC_FGETLN) $(EXTRALIBS) $(REGEX_LIBS) -o $@
 
 #
 # changtestcompression example program
@@ -1492,7 +1534,7 @@ $(BIN)/cbf_standardize_numbers: $(EXAMPLES)/cbf_standardize_numbers.c $(EXAMPLES
 $(BIN)/changtestcompression: $(LIB)/libcbf.a $(EXAMPLES)/changtestcompression.c
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/changtestcompression.c -L$(LIB) \
-	-lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
+	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -o $@
 
 #
 # img2cif example program
@@ -1501,7 +1543,7 @@ $(BIN)/img2cif: $(LIB)/libcbf.a $(EXAMPLES)/img2cif.c $(LIB)/libimg.a \
 	$(GOPTLIB) 	$(GOTPINC)
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/img2cif.c $(GOPTLIB) -L$(LIB) \
-	-lcbf $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
+	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
 
 #
 # cif2cbf example program
@@ -1510,7 +1552,7 @@ $(BIN)/cif2cbf: $(LIB)/libcbf.a $(EXAMPLES)/cif2cbf.c $(LIB)/libimg.a \
 	$(GOPTLIB) $(GOPTINC) shared
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/cif2cbf.c $(GOPTLIB) -L$(LIB) \
-	-lcbf $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
+	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
 
 #
 # cbf2nexus example program
@@ -1519,7 +1561,7 @@ $(BIN)/cbf2nexus: $(LIB)/libcbf.a $(EXAMPLES)/cbf2nexus.c \
 	$(GOPTLIB)	$(GOPTINC) 
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/cbf2nexus.c $(GOPTLIB) -L$(LIB) \
-	-lcbf $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
+	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
 
 #
 # minicbf2nexus example program
@@ -1528,7 +1570,7 @@ $(BIN)/minicbf2nexus: $(LIB)/libcbf.a $(EXAMPLES)/minicbf2nexus.c $(LIB)/libimg.
 	$(GOPTLIB)	$(GOPTINC) 
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/minicbf2nexus.c $(GOPTLIB) -L$(LIB) \
-	-lcbf $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
+	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
 	
 #
 # nexus2cbf example program
@@ -1537,7 +1579,7 @@ $(BIN)/nexus2cbf: $(LIB)/libcbf.a $(EXAMPLES)/nexus2cbf.c \
 	$(GOPTLIB)	$(GOPTINC) 
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/nexus2cbf.c $(GOPTLIB) -L$(LIB) \
-	-lcbf $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
+	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
 
 
 #
@@ -1555,7 +1597,7 @@ $(BIN)/cbf_template_t: $(DECTRIS_EXAMPLES)/cbf_template_t.c \
 $(BIN)/testcell: $(LIB)/libcbf.a $(EXAMPLES)/testcell.C
 	$(C++) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/testcell.C -L$(LIB) \
-	-lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
+	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -o $@
 
 #
 # cif2c example program
@@ -1563,7 +1605,7 @@ $(BIN)/testcell: $(LIB)/libcbf.a $(EXAMPLES)/testcell.C
 $(BIN)/cif2c: $(LIB)/libcbf.a $(EXAMPLES)/cif2c.c
 	$(C++) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/cif2c.c -L$(LIB) \
-	-lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
+	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -o $@
 
 #
 # sauter_test example program
@@ -1571,7 +1613,7 @@ $(BIN)/cif2c: $(LIB)/libcbf.a $(EXAMPLES)/cif2c.c
 $(BIN)/sauter_test: $(LIB)/libcbf.a $(EXAMPLES)/sauter_test.C
 	$(C++) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/sauter_test.C -L$(LIB) \
-	-lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
+	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -o $@
 
 #
 # sequence_match example program
@@ -1580,7 +1622,7 @@ $(BIN)/sequence_match: $(LIB)/libcbf.a $(EXAMPLES)/sequence_match.c $(LIB)/libim
 	$(GOPTLIB)	$(GOPTINC)
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/sequence_match.c $(GOPTLIB) -L$(LIB) \
-	-lcbf $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
+	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
 
 #
 # tiff2cbf example program
@@ -1589,7 +1631,7 @@ $(BIN)/tiff2cbf: $(LIB)/libcbf.a $(EXAMPLES)/tiff2cbf.c \
 	$(GOPTLIB)	$(GOPTINC) $(TIFF)
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	-I$(TIFF)/libtiff $(EXAMPLES)/tiff2cbf.c $(GOPTLIB) -L$(LIB) \
-	-lcbf -L$(TIFF_PREFIX)/lib -ltiff $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
+	-lcbf $(REGEX_LIBS) -L$(TIFF_PREFIX)/lib -ltiff $(EXTRALIBS) $(HDF5LIBS)  -limg -o $@
 
 #
 # Andy Arvai's buffered read test program
@@ -1598,7 +1640,7 @@ $(BIN)/arvai_test: $(LIB)/libcbf.a $(EXAMPLES)/arvai_test.c $(LIB)/libimg.a \
 	$(GOPTLIB)	$(GOPTINC)
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/arvai_test.c $(GOPTLIB) -L$(LIB) \
-	-lcbf $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
+	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
 
 #
 # testreals example program
@@ -1606,7 +1648,7 @@ $(BIN)/arvai_test: $(LIB)/libcbf.a $(EXAMPLES)/arvai_test.c $(LIB)/libimg.a \
 $(BIN)/testreals: $(LIB)/libcbf.a $(EXAMPLES)/testreals.c
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/testreals.c -L$(LIB) \
-	-lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
+	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -o $@
 
 #
 # testflat example program
@@ -1614,14 +1656,14 @@ $(BIN)/testreals: $(LIB)/libcbf.a $(EXAMPLES)/testreals.c
 $(BIN)/testflat: $(LIB)/libcbf.a $(EXAMPLES)/testflat.c
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/testflat.c -L$(LIB) \
-	-lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
+	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -o $@
 #
 # testflatpacked example program
 #
 $(BIN)/testflatpacked: $(LIB)/libcbf.a $(EXAMPLES)/testflatpacked.c
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/testflatpacked.c -L$(LIB) \
-	-lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
+	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -o $@
 
 ifneq ($(F90C),)
 #
@@ -1645,7 +1687,7 @@ endif
 $(BIN)/ctestcbf: $(EXAMPLES)/testcbf.c $(LIB)/libcbf.a
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/testcbf.c -L$(LIB) \
-	-lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
+	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -o $@
 
 #
 # testcbf (Java)
@@ -1666,7 +1708,8 @@ endif
 # testhdf5 test program
 #
 $(BIN)/testhdf5: $(LIB)/libcbf.a $(EXAMPLES)/testhdf5.c $(EXAMPLES)/unittest.h
-	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) $(EXAMPLES)/testhdf5.c -L$(LIB) $(LIB)/libcbf.a $(HDF5LIBS) $(EXTRALIBS) -o $@.tmp
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(EXAMPLES)/testhdf5.c -L$(LIB) $(LIB)/libcbf.a $(HDF5LIBS) $(EXTRALIBS) $(REGEX_LIBS)  -o $@.tmp
 	mv $@.tmp $@
 
 #
@@ -2230,47 +2273,18 @@ dectristests: $(BIN)/cbf_template_t $(TEMPLATES)/cbf_test_orig.out
 # Remove all non-source files
 #
 empty:
-	@-rm -f  $(LIB)/*.o
-	@-rm -f  $(LIB)/libcbf.a
-	@-rm -f  $(LIB)/libfcb.a
-	@-rm -f  $(LIB)/libimg.a
-	@-rm -f  $(LIB)/_pycbf.$(PYCBFEXT)
-	@-rm -f  $(LIB)/*tiff*
-	@-rm -f  $(LIB)/*hdf5*
+	@-rm -rf $(LIB)/*
+	@-rm -rf $(INCLUDE)/bitshuf*
+	@-rm -rf $(INCLUDE)/bshuf*
+	@-rm -rf $(INCLUDE)/H5*
+	@-rm -rf $(BIN)/*
 	@-rm -f  $(PYCBF)/_pycbf.$(PYCBFEXT)
 	@-rm -rf  $(PYCBF)/build/*
 	@-rm -f  $(PYCBF)/newtest1.cbf
 	@-rm -f  $(PYCBF)/fel_test1.out
 	@-rm -f  $(PYCBF)/fel_test2.out
-	@-rm -rf  $(BIN)/adscimg2cbf*
-	@-rm -rf  $(BIN)/cbf2adscimg*
-	@-rm -rf  $(BIN)/makecbf*
-	@-rm -rf  $(BIN)/img2cif*
-	@-rm -rf  $(BIN)/cif2cbf*
-	@-rm -rf  $(BIN)/cbf2nexus*
-	@-rm -rf  $(BIN)/minicbf2nexus*
-	@-rm -rf  $(BIN)/nexus2cbf*
-	@-rm -rf  $(BIN)/convert_image*
-	@-rm -rf  $(BIN)/convert_minicbf*
-	@-rm -rf  $(BIN)/test_fcb_read_image*
-	@-rm -rf  $(BIN)/test_xds_binary*
-	@-rm -rf  $(BIN)/testcell*
-	@-rm -rf  $(BIN)/cif2c*
-	@-rm -rf  $(BIN)/test*
-	@-rm -rf  $(BIN)/cbf_template_t*
-	@-rm -rf  $(BIN)/sauter_test*
-	@-rm -rf  $(BIN)/arvai_test*
-	@-rm -rf  $(BIN)/changtestcompression*
-	@-rm -rf  $(BIN)/*tiff*
-	@-rm -rf  $(BIN)/fax*
-	@-rm -rf  $(BIN)/pal*
-	@-rm -rf  $(BIN)/h5*
-	@-rm -rf  $(BIN)/rgb*
-	@-rm -rf  $(BIN)/sequence*
-	@-rm -rf  $(BIN)/gif*
-	@-rm -rf  $(BIN)/thumbnail*
-	@-rm -rf  $(BIN)/test_cbf_airy_disk
-	@-rm -rf  $(BIN)/cbf_testxfelread
+	@-rm -f  $(PYCBF)/setup.py
+	@-rm -f  $(PYCBF)/setup_MINGW.py
 	@-rm -f  makecbf.cbf
 	@-rm -f  img2cif_packed.cif
 	@-rm -f  img2cif_canonical.cif
@@ -2335,17 +2349,9 @@ empty:
 	@-rm -f  $(EXAMPLES)/test_xds_binary.f90
 	@-rm -f  symlinksdone
 	@-rm -f  $(TESTOUTPUT) *$(SEXT)
-	@-rm -f  $(SOLIB)/*.o
-	@-rm -f  $(SOLIB)/libcbf_wrap.so
-	@-rm -f  $(SOLIB)/libjcbf.so
-	@-rm -f  $(SOLIB)/libimg.so
-	@-rm -f  $(SOLIB)/libfcb.so
-	@-rm -f  $(SOLIB)/libcbf.so
-	@-rm -rf $(JCBF)/org
-	@-rm -f  $(JCBF)/*.java
-	@-rm -f  $(JCBF)/jcbf_wrap.c
+	@-rm -rf $(SOLIB)
+	@-rm -rf $(JCBF)
 	@-rm -f  $(SRC)/cbf_wrap.c 
-	@-rm -f  $(BIN)/ctestcbf $(BIN)/testcbf.class testcbfc.txt testcbfj.txt
 	@-rm -rf $(REGEX)
 	@-rm -rf $(TIFF)
 	@-rm -rf $(HDF5)
