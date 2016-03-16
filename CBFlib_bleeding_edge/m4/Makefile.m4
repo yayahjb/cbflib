@@ -1,5 +1,5 @@
 m4_define(`cbf_version',`0.9.5')m4_dnl
-m4_define(`cbf_date',`13 Mar 2016')m4_dnl
+m4_define(`cbf_date',`15 Mar 2016')m4_dnl
 m4_ifelse(cbf_system,`',`m4_define(`cbf_system',`LINUX')')
 `######################################################################
 #  Makefile - command file for make to create CBFlib                 #
@@ -381,13 +381,15 @@ REGEX = pcre-8.38
 REGEXDEP = $(REGEX)
 REGEX_INSTALL = $(REGEX)_INSTALL
 REGEX_LIB ?= pcreposix
-REGEX_LIBS ?= -L $(REGEX_LIBDIR) -l$(REGEX_LIB)
+REGEX_LIB2 ?= pcre
+REGEX_LIBS ?= -L $(REGEX_LIBDIR) -l$(REGEX_LIB) -l$(REGEX_LIB2)
 REGEX_INCLUDES ?= -I $(REGEX_PREFIX)
 else
 REGEX =
 REGEXDEP =
 REGEX_INSTALL =
 REGEX_LIB ?=
+REGEX_LIB2 ?=
 REGEX_LIBS ?=
 REGEX_INCLUDES ?=
 endif
@@ -1668,10 +1670,14 @@ $(PYCBF)/pycbfuserinstall:
 	(cd $(PYCBF); $(PYTHON) $(INSTALLSETUP_PY) install $(PYCBFIOPT) --user)
 
 $(PYCBF)/setup.py: $(M4)/setup_py.m4
-	(m4 -P -Dregexlib=$(REGEX_LIB) -Dregexlibdir=$(REGEX_LIBDIR) -Dhdf5_prefix=$(HDF5_PREFIX) $(M4)/setup_py.m4 > $@)
+	(m4 -P -Dregexlib=$(REGEX_LIB) -Dregexlib2=$(REGEX_LIB2) \
+	   -Dregexlibdir=$(REGEX_LIBDIR) -Dhdf5_prefix=$(HDF5_PREFIX) \
+	   $(M4)/setup_py.m4 > $@)
 
 $(PYCBF)/setup_MINGW.py: m4/setup_py.m4
-	(m4 -P -Dregexlib=regex -Dregexlibdir=$(REGEX_LIBDIR) -Dhdf5_prefix=$(HDF5_PREFIX)  $(M4)/setup_py.m4 > $@)
+	   (m4 -P -Dregexlib=$(REGEX_LIB) -Dregexlib2=$(REGEX_LIB2) \
+	   -Dregexlibdir=$(REGEX_LIBDIR) -Dhdf5_prefix=$(HDF5_PREFIX) \
+	   $(M4)/setup_py.m4 > $@)
 
 $(LIB)/_pycbf.$(PYCBFEXT): $(PYCBF)/_pycbf.$(PYCBFEXT)
 	cp $(PYCBF)/_pycbf.$(PYCBFEXT) $(LIB)/_pycbf.$(PYCBFEXT)
