@@ -1,5 +1,5 @@
 m4_define(`cbf_version',`0.9.5')m4_dnl
-m4_define(`cbf_date',`15 Mar 2016')m4_dnl
+m4_define(`cbf_date',`19 Mar 2016')m4_dnl
 m4_ifelse(cbf_system,`',`m4_define(`cbf_system',`LINUX')')
 `######################################################################
 #  Makefile - command file for make to create CBFlib                 #
@@ -543,6 +543,7 @@ INSTALLSETUP_PY = installsetup.py
 CC	= gcc
 C++	= g++
 CFLAGS  = -g -O2  -Wall -ansi -pedantic
+LDFLAGS =
 F90C = gfortran
 F90FLAGS = -g -fno-range-check
 F90LDFLAGS = -bind_at_load
@@ -561,6 +562,7 @@ cbf_system,`OSX_gcc42',`
 CC	= gcc
 C++	= g++
 CFLAGS  = -g -O2  -Wall -ansi -pedantic
+LDFLAGS =
 F90C = gfortran
 F90FLAGS = -g -fno-range-check
 F90LDFLAGS = -bind_at_load
@@ -583,6 +585,7 @@ cbf_system,`OSX_gcc42_DMALLOC',`
 CC	= gcc
 C++	= g++
 CFLAGS  = -g -O2  -Wall -ansi -pedantic -DDMALLOC -DDMALLOC_FUNC_CHECK -I$(HOME)/include
+LDFLAGS =
 F90C = gfortran
 F90FLAGS = -g -fno-range-check
 F90LDFLAGS = -bind_at_load
@@ -604,6 +607,7 @@ cbf_system,`LINUX_64',`
 CC	= gcc -m64
 C++	= g++ -m64
 CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing
+LDFLAGS =
 F90C = gfortran -m64
 F90FLAGS = -g -fno-range-check
 F90LDFLAGS =
@@ -624,6 +628,7 @@ cbf_system,`LINUX_gcc42',`
 CC	= gcc
 C++	= g++
 CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing
+LDFLAGS =
 F90C = gfortran
 F90FLAGS = -g -fno-range-check
 F90LDFLAGS = 
@@ -643,6 +648,7 @@ cbf_system,`LINUX',`
 CC	= gcc
 C++	= g++
 CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing
+LDFLAGS =
 F90C = gfortran
 F90FLAGS = -g
 F90LDFLAGS = 
@@ -663,6 +669,7 @@ cbf_system,`LINUX_gcc42_DMALLOC',`
 CC	= gcc
 C++	= g++
 CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing -DDMALLOC -DDMALLOC_FUNC_CHECK  -I$(HOME)/include
+LDFLAGS =
 F90C = gfortran
 F90FLAGS = -g -fno-range-check
 F90LDFLAGS = 
@@ -682,6 +689,7 @@ cbf_system,`LINUX_DMALLOC',`
 CC	= gcc
 C++	= g++
 CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing -DDMALLOC -DDMALLOC_FUNC_CHECK  -I$(HOME)/include
+LDFLAGS =
 F90C = gfortran
 F90FLAGS = -g
 F90LDFLAGS = 
@@ -701,6 +709,7 @@ cbf_system,`AIX',`
 CC	= xlc
 C++	= xlC
 CFLAGS  = -g -O2  -Wall
+LDFLAGS =
 F90C = xlf90
 F90FLAGS = -g -qsuffix=f=f90
 F90LDFLAGS = 
@@ -717,7 +726,8 @@ cbf_system,`MINGW',`
 #########################################################
 CC	= gcc
 C++	= g++
-CFLAGS  = -g -O2  -Wall -static -I/usr/include -fno-strict-aliasing
+CFLAGS  = -g -O2  -Wall -I/usr/include -fno-strict-aliasing
+LDFLAGS =
 F90C = g95
 F90FLAGS = -g
 F90LDFLAGS = 
@@ -748,6 +758,7 @@ cbf_system,`MSYS2',`
 CC	= gcc
 C++	= g++
 CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing
+LDFLAGS =
 F90C = gfortran
 F90FLAGS = -g -fno-range-check
 F90LDFLAGS = 
@@ -771,6 +782,7 @@ cbf_system,`IRIX_gcc',`
 CC      = gcc
 C++     = g++
 CFLAGS  = -g -O2  -Wall
+LDFLAGS =
 F90C    =
 F90FLAGS =
 M4FLAGS = -Dfcb_bytes_in_rec=4096
@@ -789,6 +801,7 @@ RANLIB  = ',
 CC	= gcc
 C++	= g++
 CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing
+LDFLAGS =
 F90C = gfortran
 F90FLAGS = -g -fno-range-check
 F90LDFLAGS = 
@@ -1740,24 +1753,24 @@ $(EXAMPLES)/test_xds_binary.f90: $(M4)/test_xds_binary.m4 $(M4)/fcblib_defines.m
 #
 $(BIN)/convert_image: $(LIB)/libcbf.a $(EXAMPLES)/convert_image.c $(SRC)/img.c \
 	$(GOPTLIB)	$(GOPTINC)
-	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/convert_image.c $(SRC)/img.c $(GOPTLIB) -L$(LIB) \
-	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -o $@
+	-lcbf  $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -o $@
 #
 # convert_minicbf example program
 #
 $(BIN)/convert_minicbf: $(LIB)/libcbf.a $(EXAMPLES)/convert_minicbf.c \
 	$(GOPTLIB)	$(GOPTINC) $(EXAMPLES)/batch_convert_minicbf.sh
-	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/convert_minicbf.c $(GOPTLIB) -L$(LIB) \
-	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) $(REGEX_LIBS) -o $@
+	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -o $@
 	chmod 755 $(EXAMPLES)/batch_convert_minicbf.sh
 
 #
 # makecbf example program
 #
 $(BIN)/makecbf: $(LIB)/libcbf.a $(EXAMPLES)/makecbf.c $(LIB)/libimg.a
-	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/makecbf.c  -L$(LIB) \
 	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
 
@@ -1766,7 +1779,7 @@ $(BIN)/makecbf: $(LIB)/libcbf.a $(EXAMPLES)/makecbf.c $(LIB)/libimg.a
 # adscimg2cbf example program
 #
 $(BIN)/adscimg2cbf: $(LIB)/libcbf.a $(EXAMPLES)/adscimg2cbf.c $(EXAMPLES)/adscimg2cbf_sub.c
-	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) -D_SVID_SOURCE $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) -D_SVID_SOURCE $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/adscimg2cbf.c $(EXAMPLES)/adscimg2cbf_sub.c  -L$(LIB) \
 	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -o $@
 
@@ -1774,7 +1787,7 @@ $(BIN)/adscimg2cbf: $(LIB)/libcbf.a $(EXAMPLES)/adscimg2cbf.c $(EXAMPLES)/adscim
 # cbf2adscimg example program
 #
 $(BIN)/cbf2adscimg: $(LIB)/libcbf.a $(EXAMPLES)/cbf2adscimg.c $(EXAMPLES)/cbf2adscimg_sub.c
-	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) -D_SVID_SOURCE $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) -D_SVID_SOURCE $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/cbf2adscimg.c $(EXAMPLES)/cbf2adscimg_sub.c  -L$(LIB) \
 	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -o $@
 
@@ -1782,14 +1795,14 @@ $(BIN)/cbf2adscimg: $(LIB)/libcbf.a $(EXAMPLES)/cbf2adscimg.c $(EXAMPLES)/cbf2ad
 # cbf_standardize_numbers example program
 #
 $(BIN)/cbf_standardize_numbers: $(EXAMPLES)/cbf_standardize_numbers.c $(EXAMPLES)/cbf_standardize_numbers.h
-	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) -D_SVID_SOURCE $(INCLUDES) $(WARNINGS) \
-	$(EXAMPLES)/cbf_standardize_numbers.c $(SRC_FGETLN) $(EXTRALIBS) $(REGEX_LIBS) -o $@
+	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) -D_SVID_SOURCE $(INCLUDES) $(WARNINGS) \
+	$(EXAMPLES)/cbf_standardize_numbers.c $(SRC_FGETLN)  $(REGEX_LIBS) $(EXTRALIBS) -o $@
 
 #
 # changtestcompression example program
 #
 $(BIN)/changtestcompression: $(LIB)/libcbf.a $(EXAMPLES)/changtestcompression.c
-	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/changtestcompression.c -L$(LIB) \
 	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -o $@
 
@@ -1798,7 +1811,7 @@ $(BIN)/changtestcompression: $(LIB)/libcbf.a $(EXAMPLES)/changtestcompression.c
 #
 $(BIN)/img2cif: $(LIB)/libcbf.a $(EXAMPLES)/img2cif.c $(LIB)/libimg.a \
 	$(GOPTLIB) 	$(GOTPINC)
-	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/img2cif.c $(GOPTLIB) -L$(LIB) \
 	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
 
@@ -1807,7 +1820,7 @@ $(BIN)/img2cif: $(LIB)/libcbf.a $(EXAMPLES)/img2cif.c $(LIB)/libimg.a \
 #
 $(BIN)/cif2cbf: $(LIB)/libcbf.a $(EXAMPLES)/cif2cbf.c $(LIB)/libimg.a \
 	$(GOPTLIB) $(GOPTINC) shared
-	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/cif2cbf.c $(GOPTLIB) -L$(LIB) \
 	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
 
@@ -1816,7 +1829,7 @@ $(BIN)/cif2cbf: $(LIB)/libcbf.a $(EXAMPLES)/cif2cbf.c $(LIB)/libimg.a \
 #
 $(BIN)/cbf2nexus: $(LIB)/libcbf.a $(EXAMPLES)/cbf2nexus.c \
 	$(GOPTLIB)	$(GOPTINC) 
-	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/cbf2nexus.c $(GOPTLIB) -L$(LIB) \
 	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
 
@@ -1825,7 +1838,7 @@ $(BIN)/cbf2nexus: $(LIB)/libcbf.a $(EXAMPLES)/cbf2nexus.c \
 #
 $(BIN)/minicbf2nexus: $(LIB)/libcbf.a $(EXAMPLES)/minicbf2nexus.c $(LIB)/libimg.a \
 	$(GOPTLIB)	$(GOPTINC) 
-	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/minicbf2nexus.c $(GOPTLIB) -L$(LIB) \
 	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
 	
@@ -1834,9 +1847,9 @@ $(BIN)/minicbf2nexus: $(LIB)/libcbf.a $(EXAMPLES)/minicbf2nexus.c $(LIB)/libimg.
 #
 $(BIN)/nexus2cbf: $(LIB)/libcbf.a $(EXAMPLES)/nexus2cbf.c \
 	$(GOPTLIB)	$(GOPTINC) 
-	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/nexus2cbf.c $(GOPTLIB) -L$(LIB) \
-	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
+	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS)  -limg -o $@
 
 
 #
@@ -1845,14 +1858,14 @@ $(BIN)/nexus2cbf: $(LIB)/libcbf.a $(EXAMPLES)/nexus2cbf.c \
 $(BIN)/cbf_template_t: $(DECTRIS_EXAMPLES)/cbf_template_t.c \
 	$(DECTRIS_EXAMPLES)/mx_cbf_t_extras.h \
 	$(DECTRIS_EXAMPLES)/mx_parms.h
-	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) -I $(DECTRIS_EXAMPLES)  $(WARNINGS) \
+	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) -I $(DECTRIS_EXAMPLES)  $(WARNINGS) \
 	$(DECTRIS_EXAMPLES)/cbf_template_t.c -o $@
 
 #
 # testcell example program
 #
 $(BIN)/testcell: $(LIB)/libcbf.a $(EXAMPLES)/testcell.C
-	$(C++) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(C++) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/testcell.C -L$(LIB) \
 	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -o $@
 
@@ -1860,7 +1873,7 @@ $(BIN)/testcell: $(LIB)/libcbf.a $(EXAMPLES)/testcell.C
 # cif2c example program
 #
 $(BIN)/cif2c: $(LIB)/libcbf.a $(EXAMPLES)/cif2c.c
-	$(C++) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(C++) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/cif2c.c -L$(LIB) \
 	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -o $@
 
@@ -1868,7 +1881,7 @@ $(BIN)/cif2c: $(LIB)/libcbf.a $(EXAMPLES)/cif2c.c
 # sauter_test example program
 #
 $(BIN)/sauter_test: $(LIB)/libcbf.a $(EXAMPLES)/sauter_test.C
-	$(C++) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(C++) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/sauter_test.C -L$(LIB) \
 	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -o $@
 
@@ -1877,7 +1890,7 @@ $(BIN)/sauter_test: $(LIB)/libcbf.a $(EXAMPLES)/sauter_test.C
 #
 $(BIN)/sequence_match: $(LIB)/libcbf.a $(EXAMPLES)/sequence_match.c $(LIB)/libimg.a \
 	$(GOPTLIB)	$(GOPTINC)
-	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/sequence_match.c $(GOPTLIB) -L$(LIB) \
 	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
 
@@ -1886,16 +1899,16 @@ $(BIN)/sequence_match: $(LIB)/libcbf.a $(EXAMPLES)/sequence_match.c $(LIB)/libim
 #
 $(BIN)/tiff2cbf: $(LIB)/libcbf.a $(EXAMPLES)/tiff2cbf.c \
 	$(GOPTLIB)	$(GOPTINC) $(TIFF)
-	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	-I$(TIFF)/libtiff $(EXAMPLES)/tiff2cbf.c $(GOPTLIB) -L$(LIB) \
-	-lcbf $(REGEX_LIBS) -L$(TIFF_PREFIX)/lib -ltiff $(EXTRALIBS) $(HDF5LIBS)  -limg -o $@
+	-lcbf -L$(TIFF_PREFIX)/lib -ltiff $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
 
 #
 # Andy Arvai''`s buffered read test program
 #
 $(BIN)/arvai_test: $(LIB)/libcbf.a $(EXAMPLES)/arvai_test.c $(LIB)/libimg.a \
 	$(GOPTLIB)	$(GOPTINC)
-	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/arvai_test.c $(GOPTLIB) -L$(LIB) \
 	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
 
@@ -1903,7 +1916,7 @@ $(BIN)/arvai_test: $(LIB)/libcbf.a $(EXAMPLES)/arvai_test.c $(LIB)/libimg.a \
 # testreals example program
 #
 $(BIN)/testreals: $(LIB)/libcbf.a $(EXAMPLES)/testreals.c
-	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/testreals.c -L$(LIB) \
 	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -o $@
 
@@ -1911,14 +1924,14 @@ $(BIN)/testreals: $(LIB)/libcbf.a $(EXAMPLES)/testreals.c
 # testflat example program
 #
 $(BIN)/testflat: $(LIB)/libcbf.a $(EXAMPLES)/testflat.c
-	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/testflat.c -L$(LIB) \
 	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -o $@
 #
 # testflatpacked example program
 #
 $(BIN)/testflatpacked: $(LIB)/libcbf.a $(EXAMPLES)/testflatpacked.c
-	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/testflatpacked.c -L$(LIB) \
 	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -o $@
 
@@ -1942,7 +1955,7 @@ endif
 # testcbf (C)
 #
 $(BIN)/ctestcbf: $(EXAMPLES)/testcbf.c $(LIB)/libcbf.a
-	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/testcbf.c -L$(LIB) \
 	-lcbf $(REGEX_LIBS) $(EXTRALIBS) $(HDF5LIBS) -o $@
 
@@ -1957,7 +1970,7 @@ ifneq ($(CBF_USE_ULP),)
 # testulp test program
 #
 $(BIN)/testulp: $(LIB)/libcbf.a $(EXAMPLES)/testulp.c $(EXAMPLES)/unittest.h
-	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) $(EXAMPLES)/testulp.c -L$(LIB) $(LIB)/libcbf.a $(EXTRALIBS) -o $@.tmp
+	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) $(EXAMPLES)/testulp.c -L$(LIB) $(LIB)/libcbf.a $(EXTRALIBS) -o $@.tmp
 	mv $@.tmp $@
 endif
 
@@ -1965,7 +1978,7 @@ endif
 # testhdf5 test program
 #
 $(BIN)/testhdf5: $(LIB)/libcbf.a $(EXAMPLES)/testhdf5.c $(EXAMPLES)/unittest.h
-	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/testhdf5.c -L$(LIB) $(LIB)/libcbf.a $(HDF5LIBS) $(EXTRALIBS) $(REGEX_LIBS)  -o $@.tmp
 	mv $@.tmp $@
 
@@ -1973,14 +1986,14 @@ $(BIN)/testhdf5: $(LIB)/libcbf.a $(EXAMPLES)/testhdf5.c $(EXAMPLES)/unittest.h
 # testalloc test program
 #
 $(BIN)/testalloc: $(LIB)/libcbf.a $(EXAMPLES)/testalloc.c $(EXAMPLES)/unittest.h
-	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) $(EXAMPLES)/testalloc.c -L$(LIB) $(LIB)/libcbf.a $(EXTRALIBS) -o $@.tmp
+	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) $(EXAMPLES)/testalloc.c -L$(LIB) $(LIB)/libcbf.a $(EXTRALIBS) -o $@.tmp
 	mv $@.tmp $@
 	
 #
 # test_cbf_airy_disk test program
 #
 $(BIN)/test_cbf_airy_disk: $(LIB)/libcbf.a $(EXAMPLES)/test_cbf_airy_disk.c
-	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) $(EXAMPLES)/test_cbf_airy_disk.c -L$(LIB) $(LIB)/libcbf.a $(EXTRALIBS) -o $@.tmp
+	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) $(EXAMPLES)/test_cbf_airy_disk.c -L$(LIB) $(LIB)/libcbf.a $(EXTRALIBS) -o $@.tmp
 	mv $@.tmp $@
 
 #
