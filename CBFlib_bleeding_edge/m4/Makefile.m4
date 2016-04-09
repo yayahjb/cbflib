@@ -773,6 +773,7 @@ LDPREFIX = LD_LIBRARY_PATH=$(SOLIB)
 EXTRALIBS = -L/mingw64/bin -lm
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 PYTHON = python2
+PYCBFEXT = dll
 TIME = time',
 cbf_system,`IRIX_gcc',`
 
@@ -1684,7 +1685,7 @@ $(PYCBF)/_pycbf.$(PYCBFEXT): $(PYCBF)  shared \
 	$(PYCBF)/cbfdetectorwrappers.i \
 	$(PYCBF)/cbfgenericwrappers.i  \
 	$(PYCBF)/cbfgoniometerwrappers.i
-	(cd $(PYCBF); $(PYTHON) $(SETUP_PY) build $(PYCBFBOPT); cp build/lib.*/_pycbf.$(PYCBFEXT) .) 
+	(cd $(PYCBF); $(PYTHON) $(SETUP_PY) build $(PYCBFBOPT); cp build/lib*/_pycbf.$(PYCBFEXT) .) 
 
 $(PYCBF)/pycbfinstall:
 	(cd $(PYCBF); $(PYTHON) $(INSTALLSETUP_PY) install $(PYCBFIOPT) --prefix=$(CBF_PREFIX))
