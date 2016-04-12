@@ -14,6 +14,8 @@
 #include <string.h>
 
 
+char * fgetln(FILE *, size_t *);
+
 void usage ( void ) {
     
     fprintf(stderr,
