@@ -140,6 +140,7 @@ int     main (int argc, char **argv)
     
     while (argc > 3) {
         if (argc > 4 && (0 == cbf_cistrcmp("--overlay-image",argv[1])
+                         || (0 == cbf_cistrcmp("--overlay",argv[1]))
                          || (0 == cbf_cistrcmp("--ovl",argv[1])))) {
             overlayname = argv[2];
             argv+=2;
@@ -232,13 +233,6 @@ int     main (int argc, char **argv)
         }
         if (argc > 4 && (0 == cbf_cistrcmp("--min-value",argv[1]))) {
             min_value = (int)(atof(argv[2]));
-            argv+=2;
-            argc-=2;
-            continue;
-        }
-        if (argc > 4 && (0 == cbf_cistrcmp("--overlay",argv[1])
-                         || (0 == cbf_cistrcmp("ovl",argv[1])))) {
-            overlayname = argv[2];
             argv+=2;
             argc-=2;
             continue;
@@ -452,6 +446,7 @@ int     main (int argc, char **argv)
         int heat, min_crossw, min_crossh;
         fprintf(fp, "%7.2f %7.2f  %9.2f\n", peaks[i].x+fastlow, peaks[i].y+slowlow, peaks[i].isigma);
         if (overlayname) {
+            int tempx, tempy;
             min_crossw = (peaks[i].peakfw+1)/2-1;
             min_crossh = (peaks[i].peakfh+1)/2-1;
             if (min_crossw<1) min_crossw=1;
@@ -470,19 +465,21 @@ int     main (int argc, char **argv)
             if (heat < 7) heat = 7;
             if (heat > 65520) heat = 65520;
             for (ix = xlow; ix <=xhigh; ix++) {
+                tempy = ylow+rint((double)(ix-xlow)/((double)(xhigh-xlow))*(double)(yhigh-ylow));
                 if (ix < xcen-min_crossw || ix > xcen+min_crossw) {
-                    pnData[ix+nDim0*ycen] ^= heat;
+                    pnData[ix+nDim0*tempy] ^= heat;
                 }
-                if (ix == xlow+1 || ix == xhigh-1) {
-                    pnData[ix+nDim0*ycen] ^= 0xFF00;
+                if (ix <= xlow+1 || ix >= xhigh-1) {
+                    pnData[ix+nDim0*tempy] ^= 0xFF00;
                 }
             }
             for (iy = ylow; iy <=yhigh; iy++) {
+                tempx = xhigh-rint((double)(iy-ylow)/((double)(yhigh-ylow))*(double)(xhigh-xlow));
                 if (iy < ycen-min_crossh || iy > ycen+min_crossh) {
-                    pnData[xcen+nDim0*iy] ^= heat;
+                    pnData[tempx+nDim0*iy] ^= heat;
                 }
-                if (iy == ylow+1 || iy == yhigh-1) {
-                    pnData[xcen+nDim0*iy] ^= 0xFF00;
+                if (iy <= ylow+1 || iy >= yhigh-1) {
+                    pnData[tempy+nDim0*iy] ^= 0xFF00;
                 }
 
             }

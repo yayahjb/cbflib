@@ -439,7 +439,7 @@ int main (int argc, char *argv [])
 			fprintf(stderr, "Usage:\n\t%s [options] "
                     "[-o|--output]|[-u|--update] output_nexus input_cbf_files...\n"
 				"Options:\n"
-						"\t-c|--compression cbf|cbf-byte-offset|lz4**2|bslz4|zlib|none (default: none)\n"
+						"\t-c|--compression cbf|cbf-byte-offset|lz4|lz4**2|bslz4|zlib|none (default: none)\n"
 						"\t-g|--group output_group (default: 'entry')\n"
 						"\t-Z|--register manual|plugin (default: plugin)\n"
 							"\t--datablock datablock_name\n"

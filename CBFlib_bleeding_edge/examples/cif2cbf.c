@@ -46,7 +46,7 @@
  *    [-B {read|liberal|noread}] [-B {write|nowrite}] \               *
  *    [-c {p[acked]|c[annonical]|{b[yte_offset]}|\                    *
  *        {v[2packed]}|{f[latpacked]}|{I|nIbble_offset}|{L|LZ4}|      *
- *        {2|LZ4**2}|n[n[one]}] \                                     *
+ *        {2|LZ4**2}|{BS|BSLZ4}|n[n[one]}] \                           *
  *    [-C highclipvalue ] \                                           *
  *    [-D ] \                                                         *
  *    [-d {d[igest]|n[odigest]|w[warndigest]} \                       *
@@ -112,7 +112,7 @@
  *    write to enable writing of DDLm style brackets                  *
  *                                                                    *
  *  -c compression_scheme (Packed, Canonical, Byte_offset,            *
- *    V2packed, Flatpacked, nIbble, zlib, LZ4, or LZ4**2 or None,     *
+ *    V2packed, Flatpacked, nIbble, zlib, LZ4, LZ4**2, BSLZ4 or None, *
  *    default packed)                                                 *
  *                                                                    *
  *  -C highclipvalue                                                  *
@@ -787,7 +787,7 @@ int main (int argc, char *argv [])
      *    [-B {read|liberal|noread}] [-B {write|nowrite}] \               *
      *    [-c {p[acked]|c[annonical]|{b[yte_offset]}|\                    *
      *        {v[2packed]}|{f[latpacked]}|{I|nIbble_offset}| \            *
-     *        {z[lib]}|{L[Z4]}|{2|[LZ4**2}|{|n[n[one]}] \                 *
+     *        {z[lib]}|{L[Z4]}|{2|[LZ4**2}|{BS|BSLZ4}|{|n[n[one]}] \      *
      *    [-C highclipvalue] \                                            *
      *    [-d {d[igest]|n[odigest]|w[arndigest]} \                        *
      *    [-D ] \                                                         *
@@ -992,7 +992,13 @@ int main (int argc, char *argv [])
                                                             h5compression = CBF_H5COMPRESSION_LZ4_2;
                                                             compression = CBF_NIBBLE_OFFSET;
                                                         } else {
-                                                            errflg++;
+                                                            if ((optarg[0] == 'B' && optarg[1] == 'S') 
+                                                                || !cbf_cistrcmp(optarg,"BSLZ4")){
+                                                                h5compression = CBF_H5COMPRESSION_BSLZ4;
+                                                                compression = CBF_NIBBLE_OFFSET;
+                                                            } else {
+                                                                errflg++;
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -1320,7 +1326,7 @@ int main (int argc, char *argv [])
         fprintf(stderr,
                 "        {v[2packed]}|{f[latpacked]}|{I|nIbble_offset}|{L|LZ4}| \\\n");
         fprintf(stderr,
-                "        {2|LZ4**2}|n[n[one]}] \\\n");
+                "        {2|LZ4**2}|{BS|BSLZ4}|n[n[one]}] \\\n");
         fprintf(stderr,
                 "    [-C highclipvalue] \\\n");
         fprintf(stderr,

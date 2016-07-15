@@ -306,10 +306,13 @@ int main (int argc, char *argv [])
                         if (!cbf_cistrcmp("zlib",optarg?optarg:"")) {
                             h5_write_flags &= ~(CBF_COMPRESSION_MASK|CBF_FLAG_MASK);
                             h5_write_flags |= CBF_H5COMPRESSION_ZLIB;
-                        } else if (!cbf_cistrcmp("cbf",optarg?optarg:"")) {
+                        } else if (!cbf_cistrcmp("cbf",optarg?optarg:"")
+                                   ||!cbf_cistrcmp("cbf_nibble_offset",optarg?optarg:"")
+                                   ||!cbf_cistrcmp("cbf-nibble-offset",optarg?optarg:"")) {
                             h5_write_flags &= ~(CBF_COMPRESSION_MASK|CBF_FLAG_MASK);
                             h5_write_flags |= CBF_H5COMPRESSION_CBF|CBF_NIBBLE_OFFSET;
-                        } else if (!cbf_cistrcmp("cbf_byte_offset",optarg?optarg:"")) {
+                        } else if (!cbf_cistrcmp("cbf_byte_offset",optarg?optarg:"")
+                                   ||!cbf_cistrcmp("cbf-byte-offset",optarg?optarg:"")) {
                             h5_write_flags &= ~(CBF_COMPRESSION_MASK|CBF_FLAG_MASK);
                             h5_write_flags |= CBF_H5COMPRESSION_CBF|CBF_BYTE_OFFSET;
                         } else if (!cbf_cistrcmp("lz4",optarg?optarg:"")) {
@@ -379,7 +382,7 @@ int main (int argc, char *argv [])
         if (errflg) {
 			fprintf(stderr, "Usage:\n\t%s [options] -C|--config config_file -o|--output output_nexus input_minicbf_files...\n"
                     "Options:\n"
-                    "\t-c|--compression cbf|none|zlib (default: none)\n"
+                    "\t-c|--compression cbf|cbf-byte-offset|lz4|lz4**2|bslz4|zlib|none (default: none)\n"
                     "\t-g|--group output_group (default: 'entry')\n"
                     "\t-Z|--register manual|plugin (default: plugin)\n"
                     "These options are NOT case-sensitive.\n",
