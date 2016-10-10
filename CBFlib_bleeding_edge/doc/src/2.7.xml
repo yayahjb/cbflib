@@ -1,5 +1,0 @@
-<div>
-	<p>These functions primarily allow interaction with a <code>cbf_h5handle</code> without being exposed to its structure or the complexities of using it correctly.
-	Wherever possible these functions should be used instead of directly accessing a <code>cbf_h5handle</code> or <code>cbf_config_t</code> in order make code easier
-	to read, to maintain the integrity of the data structures and to ensure all resources allocated to these object are correctly cleaned up.</p>
-</div>

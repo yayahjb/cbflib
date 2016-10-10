@@ -1,2 +1,0 @@
-drel_yacc
-drel_lex
