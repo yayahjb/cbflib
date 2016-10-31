@@ -278,6 +278,89 @@
 #endif
 
 
+int local_exit (int status);
+int outerror(int err);
+
+int outerror(int err)
+{
+    
+    if ((err&CBF_FORMAT)==CBF_FORMAT)
+        fprintf(stderr, " cif2cbf: The file format is invalid.\n");
+    if ((err&CBF_ALLOC)==CBF_ALLOC)
+        fprintf(stderr, " cif2cbf Memory allocation failed.\n");
+    if ((err&CBF_ARGUMENT)==CBF_ARGUMENT)
+        fprintf(stderr, " cif2cbf: Invalid function argument.\n");
+    if ((err&CBF_ASCII)==CBF_ASCII)
+        fprintf(stderr, " cif2cbf: The value is ASCII (not binary).\n");
+    if ((err&CBF_BINARY)==CBF_BINARY)
+        fprintf(stderr, " cif2cbf: The value is binary (not ASCII).\n");
+    if ((err&CBF_BITCOUNT)==CBF_BITCOUNT)
+        fprintf(stderr, " cif2cbf: The expected number of bits does"
+                " not match the actual number written.\n");
+    if ((err&CBF_ENDOFDATA)==CBF_ENDOFDATA)
+        fprintf(stderr, " cif2cbf: The end of the data was reached"
+                " before the end of the array.\n");
+    if ((err&CBF_FILECLOSE)==CBF_FILECLOSE)
+        fprintf(stderr, " cif2cbf: File close error.\n");
+    if ((err&CBF_FILEOPEN)==CBF_FILEOPEN)
+        fprintf(stderr, " cif2cbf: File open error.\n");
+    if ((err&CBF_FILEREAD)==CBF_FILEREAD)
+        fprintf(stderr, " cif2cbf: File read error.\n");
+    if ((err&CBF_FILESEEK)==CBF_FILESEEK)
+        fprintf(stderr, " cif2cbf: File seek error.\n");
+    if ((err&CBF_FILETELL)==CBF_FILETELL)
+        fprintf(stderr, " cif2cbf: File tell error.\n");
+    if ((err&CBF_FILEWRITE)==CBF_FILEWRITE)
+        fprintf(stderr, " cif2cbf: File write error.\n");
+    if ((err&CBF_IDENTICAL)==CBF_IDENTICAL)
+        fprintf(stderr, " cif2cbf: A data block with the new name already exists.\n");
+    if ((err&CBF_NOTFOUND)==CBF_NOTFOUND)
+        fprintf(stderr, " cif2cbf: The data block, category, column or"
+                " row does not exist.\n");
+    if ((err&CBF_OVERFLOW)==CBF_OVERFLOW)
+        fprintf(stderr, " cif2cbf: The number read cannot fit into the "
+                "destination argument.\n        The destination has been set to the nearest value.\n");
+    if ((err& CBF_UNDEFINED)==CBF_UNDEFINED)
+        fprintf(stderr, " cif2cbf: The requested number is not defined (e.g. 0/0).\n");
+    if ((err&CBF_NOTIMPLEMENTED)==CBF_NOTIMPLEMENTED)
+        fprintf(stderr, " cif2cbf: The requested functionality is not yet implemented.\n");
+    if ((err&CBF_H5ERROR)==CBF_H5ERROR)
+        fprintf(stderr, " cif2cbf: HDF5 API error.\n");
+    return 0;
+    
+}
+
+#undef cbf_failnez
+#undef cbf_onfailnez
+
+#ifndef __FILE__
+
+#define cbf_failnez(x) {int err; err = (x); if (err) { fprintf (stderr, \
+"\nCBFlib error %d \n", err); outerror(err); local_exit (-1); }}
+
+#define cbf_onfailnez(x,c) {int err; err = (x); if (err) { fprintf (stderr, \
+"\nCBFlib error %d \n", err); \
+{ c; } outerror(err); local_exit (-1); }}
+#else
+#ifndef __func__
+#define cbf_failnez(x) {int err; err = (x); if (err) { fprintf (stderr, \
+"\nCBFlib error %d at %s:%d\n", err,__FILE__,__LINE__); outerror(err); local_exit (-1); }}
+
+#define cbf_onfailnez(x,c) {int err; err = (x); if (err) { fprintf (stderr, \
+"\nCBFlib error %d at %s:%d\n", err,__FILE__,__LINE__); \
+{ c; } outerror(err); local_exit (-1); }}
+#else
+#define cbf_failnez(x) {int err; err = (x); if (err) { fprintf (stderr, \
+"\nCBFlib error %d at %s:%d(%s)\n", err,__FILE__,__LINE__,__func__); outerror(err); local_exit (-1); }}
+
+#define cbf_onfailnez(x,c) {int err; err = (x); if (err) { fprintf (stderr, \
+"\nCBFlib error %d at %s:%d(%s)\n", err,__FILE__,__LINE__,__func__); \
+{ c; } outerror(err); local_exit (-1); }}
+
+#endif
+#endif
+
+
 int main (int argc, char *argv [])
 {
 	int error = CBF_SUCCESS;
@@ -513,6 +596,8 @@ int main (int argc, char *argv [])
             
 			/* Clean up */
 			if (cif) cbf_free_handle(cif);
+            
+            cbf_failnez(error);
         }
         
 		{ /* Write the file/close the handle */
@@ -535,3 +620,10 @@ int main (int argc, char *argv [])
 	error |= cbf_free_getopt_handle(opts);
 	return CBF_SUCCESS==error ? 0 : 1;
 }
+
+int local_exit (int status)
+{
+    exit(status);
+    return 1; /* avoid warnings */
+}
+

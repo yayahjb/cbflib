@@ -1754,6 +1754,7 @@ static int FUNC \
                 } else {
                     /* not a group - close the object & fail */
                     H5Oclose(g);
+                    cbf_debug_print("object is not a group");
                     return CBF_H5DIFFERENT;
                 }
             }
@@ -1807,6 +1808,7 @@ static int FUNC \
                 } else {
                     /* not a group - close the object & fail */
                     H5Oclose(g);
+                    cbf_debug_print("object is not a group");
                     return CBF_H5DIFFERENT;
                 }
             }
@@ -2328,16 +2330,16 @@ static int FUNC \
             if (CBF_SUCCESS==error) {
                 const size_t N = H5Sget_simple_extent_npoints(currSpace);
                 const htri_t vlStr = H5Tis_variable_str(currType);
-                    void * const _buf = buf ? 0 : malloc(H5Sget_simple_extent_npoints(currSpace)*H5Tget_size(memType));
-                    void * const membuf = buf ? buf : _buf;
-                    H5Aread(attr,memType,membuf);
-                    if (cmp(value,membuf,N)) {
-                        cbf_debug_print("Incorrect attribute value\n");
+                void * const _buf = buf ? 0 : malloc(H5Sget_simple_extent_npoints(currSpace)*H5Tget_size(memType));
+                void * const membuf = buf ? buf : _buf;
+                H5Aread(attr,memType,membuf);
+                if (cmp(value,membuf,N)) {
+                    cbf_debug_print("Incorrect attribute value\n");
                     error |= CBF_H5DIFFERENT;
                 }
                 if (vlStr < 0) error |= CBF_H5ERROR;
-                    if (vlStr > 0) H5Dvlen_reclaim(currType, currSpace, H5P_DEFAULT, membuf);
-                    if (_buf) free(_buf);
+                if (vlStr > 0) H5Dvlen_reclaim(currType, currSpace, H5P_DEFAULT, membuf);
+                if (_buf) free(_buf);
             }
             /* check local variables are properly closed */
                 cbf_H5Sfree(currSpace);
@@ -2418,13 +2420,18 @@ static int FUNC \
                         /* check that the dataspace is correct */
                         const htri_t eq = H5Sextent_equal(currSpace,attrSpace);
                         if (eq<0) error |= CBF_H5ERROR;
-                        else if (!eq) error |= CBF_H5DIFFERENT;
+                        else if (!eq) {
+                            error |= CBF_H5DIFFERENT;
+                            cbf_debug_print("error: dataspace extent different");
+                        }
                         /* else success */;
                     }
                     if (CBF_SUCCESS==error) {
                         /* check the datatype is correct */
-			if (H5Tget_class(currType) != H5Tget_class(fileType))
-			    error |= CBF_H5DIFFERENT;
+                        if (H5Tget_class(currType) != H5Tget_class(fileType)){
+                            error |= CBF_H5DIFFERENT;
+                            cbf_debug_print("error: datastype class different");
+                        }
                         /* const htri_t eq = H5Tequal(currType,fileType);
                         if (eq<0) error |= CBF_H5ERROR;
                         else if (!eq) error |= CBF_H5DIFFERENT;*/
@@ -2439,12 +2446,12 @@ static int FUNC \
                         H5Aread(attr,memType,membuf);
                         if (cmp(value,membuf,N,cmp_params)) {
                             cbf_debug_print("Incorrect attribute value\n");
-                                error |= CBF_H5DIFFERENT;
-                            }
-                            if (vlStr < 0) error |= CBF_H5ERROR;
-                            if (vlStr > 0) H5Dvlen_reclaim(currType, currSpace, H5P_DEFAULT, membuf);
-                            free(_buf);
+                            error |= CBF_H5DIFFERENT;
                         }
+                        if (vlStr < 0) error |= CBF_H5ERROR;
+                        if (vlStr > 0) H5Dvlen_reclaim(currType, currSpace, H5P_DEFAULT, membuf);
+                        free(_buf);
+                    }
                         /* check local variables are properly closed */
                         cbf_H5Sfree(currSpace);
                         cbf_H5Tfree(currType);
@@ -2724,14 +2731,20 @@ static int cmp_string
                         /* Check space */
                         const htri_t eq = H5Sextent_equal(currSpace,dataSpace);
                         if (eq < 0) error |= CBF_H5ERROR;
-                        else if (!eq) error |= CBF_H5DIFFERENT;
+                        else if (!eq) {
+                            error |= CBF_H5DIFFERENT;
+                            cbf_debug_print("error: dataspace extent different");
+                        }
+
                         /* else success */;
                     }
                     /* TODO: Check chunk? */
                     if (CBF_SUCCESS==error) {
                         /* check the datatype is correct */
-		        if (H5Tget_class(currType) != H5Tget_class(type))
-		            error |= CBF_H5DIFFERENT;
+                        if (H5Tget_class(currType) != H5Tget_class(type)) {
+                            error |= CBF_H5DIFFERENT;
+                            cbf_debug_print("error: datatype class different");
+                        }
                         /* const htri_t eq = H5Tequal(currType,type);
                         if (eq<0) error |= CBF_H5ERROR;
                         else if (!eq) error |= CBF_H5DIFFERENT */;
@@ -2745,6 +2758,7 @@ static int cmp_string
                 } else {
                     /* not a dataset - close the object & fail */
                     H5Oclose(g);
+                    cbf_debug_print("not a dataset");
                     return CBF_H5DIFFERENT;
                 }
             }
@@ -2849,6 +2863,7 @@ if (CBF_SUCCESS==found) {
                         error |= CBF_H5ERROR;
                     } else {
                         if (H5I_DATASET != H5Iget_type(g)) {
+                            cbf_debug_print("type differs");
                             error |= CBF_H5DIFFERENT;
                         } else {
                             /* it's a dataset - check its properties */
@@ -2877,6 +2892,7 @@ if (CBF_SUCCESS==found) {
                                     }
                                     for (i=0; i != currRank; ++i) {
                                         if (currMax[i] != max[i] && currMax[i] < max[i]) {
+                                            cbf_debug_print("dataspace differs");
                                             error |= CBF_H5DIFFERENT;
                                         }
                                     }
@@ -10883,7 +10899,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             
             axisendpointpath = _cbf_str_join(axisendpointparts,'_');
             
-            axisendpointparts[1] = "range_average";
+            axisendpointparts[1] = "increment_set";
             
             axisrangeavg = _cbf_str_join(axisendpointparts,'_');
 
@@ -11085,7 +11101,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                          */
                         
                         
-                        if (scan_range_total[0] <= scan_range_total[1]) {
+                        /*if (scan_range_total[0] <= scan_range_total[1]) {
                             
                             
                             cbf_reportnez(cbf_add_h5double_dataset_slab(h5handle->hfile,
@@ -11099,8 +11115,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                                                              2,
                                                                              h5handle->slice,
                                                                              errorcode),errorcode);
-                            
-                            /*
                              cbf_h5reportneg(dspaceavg = H5Screate_simple(1,&one,&one),CBF_ALLOC,errorcode);
                              
                              cbf_h5reportneg(nxaxisrangeavgid = H5Dcreatex(h5handle->hfile,axisrangeavg,dtype,dspaceavg,dprop),CBF_ALLOC,errorcode);
@@ -11121,10 +11135,9 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                              cbf_h5reportneg(H5Dclose(nxaxisrangeavgid),CBF_ALLOC,errorcode);
                              
                              cbf_h5reportneg(H5Dclose(nxaxisrangetotid),CBF_ALLOC,errorcode);
-                             */
                             
                             
-                        }
+                        } */
                         
                         errorcode |= cbf_apply_h5text_attribute(nxaxisid,
                                                                 "end_point",
@@ -11428,10 +11441,9 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     
                     if (dsexists > 0 ) {
                     
-                        cbf_reportnez(cbf_add_h5text_dataset_slab(parentid,
+                        cbf_reportnez(cbf_require_h5text_dataset_slab(parentid,
                                                               "depends_on",
                                                               nexus_path,
-                                                              H5S_UNLIMITED,
                                                               errorcode),errorcode);
                         cbf_debug_print2("depends_on_path '%s'", nexus_path);
                         
@@ -11829,7 +11841,11 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
             cbf_h5reportneg(H5Aread(attribid,memtype,attribtextbuffer),CBF_H5ERROR,errorcode);
 
-            if (cbf_cistrcmp(attribtext,attribtextbuffer)) errorcode |= CBF_H5DIFFERENT;
+            if (cbf_cistrcmp(attribtext,attribtextbuffer)) {
+                
+                errorcode |= CBF_H5DIFFERENT;
+                cbf_debug_print3("attribute text different '%s' '%s' ", attribtext, attribtextbuffer)
+            }
 
             if (cbf_H5Ivalid(memtype)) H5Tclose(memtype);
 
@@ -12461,8 +12477,352 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
     }
 
+    
+    /* require a text dataset slab in a dataset in a group
+     
+     places the specified datasettext in some slab of the
+     specified datasetname for group hid.  The dataset is created
+     if it does not already exist.
+     
+     If the new text is the same as the existing text in any slab, nothing changes.
+     A case-insensitive patch is used.
+     
+     The first slab goes in rank = 0.  Additional slabs go in rank 1.
+     
+     If the new text is different, a new slab is appended.
+     
+     The slabs are indexed from 0
+     
+     */
+    
+    int cbf_require_h5text_dataset_slab(hid_t hid,
+                                    const char* datasetname,
+                                    const char* datasettext,
+                                    int errorcode)
+    {
+        hid_t datasetspace, datasettype, datasetid;
+        
+        hid_t memspace, memtype;
+        
+        hid_t ndatasettype;
+        
+        hid_t ndatasetspace;
+        
+        hid_t nmemtype;
+        
+        int ndims = 0;
+        
+        hsize_t offset[1] = {0};
+        
+        hsize_t stride[1] = {1};
+        
+        hsize_t count[1]  = {1};
+        
+        hsize_t chunk[1] = {1};
+        
+        hsize_t curdim[1];
+        
+        hsize_t memsize[1] = {1};
+        
+        htri_t dsexists;
+        
+        hsize_t dssize[1];
+        
+        hsize_t maxdssize[1];
+        
+        hsize_t dsdims[1];
+        
+        hsize_t dsmaxdims[1];
+        
+        hsize_t dsslab;
+        
+        hid_t anondataset;
+        
+        void * datasettextbuffer;
+        
+        size_t text_size, old_size, new_size, ii;
+        
+        datasetspace = datasettype = memspace = memtype = CBF_H5FAIL;
+        
+        ndatasetspace = ndatasettype = nmemtype = CBF_H5FAIL;
+        
+        datasetid = CBF_H5FAIL;
+        
+        memsize[0] = 1;
+        
+        dssize[0] = 1;
+        
+        maxdssize[0] = H5S_UNLIMITED;
+        
+        chunk[0] = 1;
+        
+        datasettextbuffer = NULL;
+        
+        
+        /* ensure arguments all given */
+        
+        if (hid < 0 || !datasetname ||
+            !datasettext || errorcode) return CBF_ARGUMENT;
+        
+        text_size =  _cbf_strlen(datasettext);
+        
+        dsexists = H5Lexists(hid,datasetname, H5P_DEFAULT);
+        
+        if (dsexists < 0 ||
+            !dsexists
+            || (datasetid = H5Dopen2(hid,datasetname, H5P_DEFAULT))< 0) {
+            
+            /* If there is no dataset, just create it and exit. */
+             
+            return cbf_add_h5text_dataset(hid, datasetname, datasettext, errorcode);
+            
+        }
+        
+        if (datasetid <= 0) {
+            
+            datasetid = H5Dopen2(hid,datasetname, H5P_DEFAULT);
+            
+        }
+        
+        cbf_h5reportneg(datasettype = H5Dget_type(datasetid),CBF_FORMAT,errorcode);
+        
+        cbf_h5reportneg(datasetspace = H5Dget_space(datasetid),CBF_FORMAT,errorcode);
+        
+        cbf_h5reportneg(ndims = H5Sget_simple_extent_ndims(datasetspace),CBF_FORMAT,errorcode);
+        
+        if ( errorcode || ndims > 1 ) return CBF_FORMAT;
+        
+        old_size = H5Tget_size(datasettype);
+        
+        new_size = text_size+1;
+        
+        cbf_h5reportneg(H5Sget_simple_extent_dims(datasetspace,
+                                                  dsdims,dsmaxdims),CBF_FORMAT,errorcode);
+        
+        if ( old_size < new_size || ndims == 0 ) {
+            
+            ndatasettype = CBF_H5FAIL;
+            
+            cbf_h5reportneg(ndatasettype = H5Tcopy(H5T_C_S1),CBF_ALLOC,errorcode);
+            
+            /* rebuild the dataset with longer strings */
+            
+            if (old_size+(old_size>>1)+1 >= new_size) {
+                
+                new_size = old_size+(old_size>>1)+1;
+                
+            }
+            
+            cbf_reportnez(cbf_alloc(&datasettextbuffer,NULL,
+                                    1,new_size),errorcode);
+            
+            if (datasettype >= 0) H5Tclose(datasettype);
+            
+            datasettype = ndatasettype;
+            
+            cbf_h5reportneg(H5Tset_size(datasettype,new_size),CBF_ALLOC,errorcode);
+            
+            cbf_h5reportneg(memtype = H5Tcopy(H5T_C_S1),CBF_ALLOC,errorcode);
+            
+            cbf_h5reportneg(nmemtype = H5Tcopy(H5T_C_S1),CBF_ALLOC,errorcode);
+            
+            if (ndims==0) {
+                
+                cbf_h5reportneg(memspace = H5Screate(H5S_SCALAR),CBF_ALLOC,errorcode);
+                
+                dsdims[0] = 0;
+                
+                dsmaxdims[0] = H5S_UNLIMITED;
+                
+            } else {
+                
+                
+                cbf_h5reportneg(memspace = H5Screate_simple(1,memsize,NULL),CBF_ALLOC,errorcode);
+                
+            }
+            
+            cbf_h5reportneg(H5Tset_size(memtype,new_size),CBF_ALLOC,errorcode);
+            
+            cbf_h5reportneg(H5Tset_size(nmemtype,new_size),CBF_ALLOC,errorcode);
+            
+            cbf_reportnez(cbf_H5Dcreate(hid,&anondataset,NULL,1,dsdims,maxdssize,chunk,datasettype),errorcode);
+            
+            /* If we had a rank 0 dataset, leave it alone if the text is already in
+               or convert to rank 1 is the text is new */
+            
+            if (ndims == 0) {
+                
+                if(H5Dread(datasetid, memtype, memspace, datasetspace, H5P_DEFAULT, (void *)datasettextbuffer) >= 0 ) {
+                    
+                    if (cbf_cistrcmp(datasettextbuffer,datasettext)==0){
+                        
+                        if (nmemtype >= 0) H5Tclose(nmemtype);
+                        
+                        if (ndatasetspace >= 0) H5Sclose(ndatasetspace);
+ 
+                        if (memspace >= 0) H5Sclose(memspace);
+                        
+                        if (datasetspace >= 0) H5Sclose(datasetspace);
+                        
+                        if (anondataset >= 0) H5Dclose(anondataset);
 
-    /* apply a text dataset slab to a group
+                        if (datasetid >= 0) H5Dclose(datasetid);
+                        
+                        if (memtype >= 0) H5Tclose(memtype);
+                        
+                        return CBF_SUCCESS;
+
+                        
+                    }
+                    
+                    curdim[0] = 1;
+                    
+                    cbf_h5reportneg(H5Dset_extent(anondataset,curdim),CBF_FORMAT,errorcode);
+                    
+                    offset[0] = 0;
+                    
+                    stride[0] = 1;
+                    
+                    count[0] = 1;
+                    
+                    cbf_reportnez(cbf_H5Dwrite2(anondataset,offset,stride,count,(void *)datasettextbuffer,nmemtype),errorcode);
+                    
+                    dsdims[0] = 1;
+                    
+                    curdim[0] = 1;
+                    
+                }
+                
+                
+            /*  If we have a rank 1 dataset, leave it alone if the new text matches one of the existing lines,
+                otherwise copy the existing lines over */
+                
+            } else {
+                
+                for (dsslab=0; dsslab < dsdims[0]; dsslab++) {
+                    
+                    offset[0] = dsslab;
+                    
+                    cbf_h5reportneg(H5Sselect_hyperslab(datasetspace,H5S_SELECT_SET,
+                                                        offset,stride,count,0), CBF_FORMAT,errorcode);
+                    
+                    if (H5Dread(datasetid, memtype, memspace, datasetspace,
+                                H5P_DEFAULT, (void *)datasettextbuffer)>=0) {
+                        
+                        if (cbf_cistrcmp(datasettextbuffer,datasettext)==0){
+                            
+                            if (nmemtype >= 0) H5Tclose(nmemtype);
+                            
+                            if (ndatasetspace >= 0) H5Sclose(ndatasetspace);
+                            
+                            if (memspace >= 0) H5Sclose(memspace);
+                            
+                            if (datasetspace >= 0) H5Sclose(datasetspace);
+                            
+                            if (anondataset >= 0) H5Dclose(anondataset);
+                            
+                            if (datasetid >= 0) H5Dclose(datasetid);
+                            
+                            if (memtype >= 0) H5Tclose(memtype);
+                            
+                            return CBF_SUCCESS;
+                            
+                            
+                        }
+                        
+                        curdim[0] = dsslab+1;
+                        
+                        cbf_h5reportneg(H5Dset_extent(anondataset,curdim),CBF_FORMAT,errorcode);
+                        
+                        offset[0] = dsslab;
+                        
+                        stride[0] = 1;
+                        
+                        count[0] = 1;
+                        
+                        cbf_reportnez(cbf_H5Dwrite2(anondataset,offset,stride,count,(void *)datasettextbuffer,nmemtype),errorcode);
+                        
+                    }
+                    
+                }
+                
+            }
+            
+            if (nmemtype >= 0) H5Tclose(nmemtype);
+            
+            if (ndatasetspace >= 0) H5Sclose(ndatasetspace);
+            
+            if (datasetspace >= 0) H5Sclose(datasetspace);
+            
+            cbf_h5reportneg(H5Ldelete(hid,datasetname,H5P_DEFAULT), CBF_FORMAT, errorcode);
+            
+            cbf_h5reportneg(H5Olink(anondataset,hid,datasetname,H5P_DEFAULT,H5P_DEFAULT), CBF_FORMAT, errorcode);
+            
+            if (datasetid >= 0) H5Dclose(datasetid);
+            
+            datasetid = anondataset;
+            
+            if (memtype >= 0) H5Tclose(memtype);
+            
+            datasetspace = memtype = CBF_H5FAIL;
+            
+            old_size = new_size;
+            
+        }
+        
+        if (datasetspace >=0 )H5Sclose(datasetspace);
+        
+        datasetspace = CBF_H5FAIL;
+        
+        offset[0] = dsdims[0];
+            
+        curdim[0] = dsdims[0]+1;
+        
+        cbf_h5reportneg(H5Dset_extent(datasetid,curdim),CBF_FORMAT,errorcode);
+        
+        stride[0] = 1;
+        
+        count[0] = 1;
+        
+        if (!datasettextbuffer) {
+            
+            cbf_reportnez(cbf_alloc(&datasettextbuffer,NULL,
+                                    1,old_size),errorcode);
+            
+        }
+        
+        for (ii = 0; ii < text_size; ii++) {
+            
+            ((char *)datasettextbuffer)[ii] = datasettext[ii];
+            
+        }
+        
+        for (ii = text_size; ii < old_size; ii++) {
+            
+            ((char *)datasettextbuffer)[ii] = '\0';
+            
+        }
+        
+        /* cbf_debug_print4(" cbf_require_h5text_dataset_slab, text: '%s', oldsize: %d, newsize: %d", (char *)datasettextbuffer, old_size, new_size); */
+        
+        cbf_reportnez(cbf_H5Dwrite2(datasetid,offset,stride,count,datasettextbuffer,datasettype),errorcode);
+        
+        if (datasetspace >= 0)  H5Sclose(datasetspace);
+        
+        if (datasettype >= 0)   H5Tclose(datasettype);
+        
+        if (datasetid >= 0)     H5Dclose(datasetid);
+        
+        if (memtype >= 0)       H5Tclose(memtype);
+        
+        if (datasettextbuffer) cbf_free(&datasettextbuffer,NULL);
+        
+        return errorcode;
+        
+    }
+
+    
+    /* apply a text dataset slab to dataset in a group
 
      places the specified datasettext in the specified slab of the
      specified datasetname for group hid.  The dataset is created

@@ -1511,6 +1511,29 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
                                       const char* datasetnamesuffix,
                                       const hsize_t slab,
                                       int errorcode);
+    
+    /* require a text dataset slab in a dataset in a group
+     
+     places the specified datasettext in some slab of the
+     specified datasetname for group hid.  The dataset is created
+     if it does not already exist.
+     
+     If the new text is the same as the existing text in any slab, nothing changes.
+     A case-insensitive patch is used.
+     
+     The first slab goes in rank = 0.  Additional slabs go in rank 1.
+     
+     If the new text is different, a new slab is appended.
+     
+     The slabs are indexed from 0
+     
+     */
+    
+    int cbf_require_h5text_dataset_slab(hid_t hid,
+                                        const char* datasetname,
+                                        const char* datasettext,
+                                        int errorcode);
+
 
     /* apply a text dataset slab to a group
      

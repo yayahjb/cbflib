@@ -243,6 +243,7 @@
 #include <stdint.h>
 
 #include "cbf.h"
+#include "cbf_alloc.h"
 #include "cbf_simple.h"
 #include "img.h"
 #include "cbf_string.h"
@@ -260,6 +261,89 @@
 #define NOMKSTEMP
 #define NOTMPDIR
 #endif
+
+int local_exit (int status);
+int outerror(int err);
+
+int outerror(int err)
+{
+    
+    if ((err&CBF_FORMAT)==CBF_FORMAT)
+        fprintf(stderr, " cif2cbf: The file format is invalid.\n");
+    if ((err&CBF_ALLOC)==CBF_ALLOC)
+        fprintf(stderr, " cif2cbf Memory allocation failed.\n");
+    if ((err&CBF_ARGUMENT)==CBF_ARGUMENT)
+        fprintf(stderr, " cif2cbf: Invalid function argument.\n");
+    if ((err&CBF_ASCII)==CBF_ASCII)
+        fprintf(stderr, " cif2cbf: The value is ASCII (not binary).\n");
+    if ((err&CBF_BINARY)==CBF_BINARY)
+        fprintf(stderr, " cif2cbf: The value is binary (not ASCII).\n");
+    if ((err&CBF_BITCOUNT)==CBF_BITCOUNT)
+        fprintf(stderr, " cif2cbf: The expected number of bits does"
+                " not match the actual number written.\n");
+    if ((err&CBF_ENDOFDATA)==CBF_ENDOFDATA)
+        fprintf(stderr, " cif2cbf: The end of the data was reached"
+                " before the end of the array.\n");
+    if ((err&CBF_FILECLOSE)==CBF_FILECLOSE)
+        fprintf(stderr, " cif2cbf: File close error.\n");
+    if ((err&CBF_FILEOPEN)==CBF_FILEOPEN)
+        fprintf(stderr, " cif2cbf: File open error.\n");
+    if ((err&CBF_FILEREAD)==CBF_FILEREAD)
+        fprintf(stderr, " cif2cbf: File read error.\n");
+    if ((err&CBF_FILESEEK)==CBF_FILESEEK)
+        fprintf(stderr, " cif2cbf: File seek error.\n");
+    if ((err&CBF_FILETELL)==CBF_FILETELL)
+        fprintf(stderr, " cif2cbf: File tell error.\n");
+    if ((err&CBF_FILEWRITE)==CBF_FILEWRITE)
+        fprintf(stderr, " cif2cbf: File write error.\n");
+    if ((err&CBF_IDENTICAL)==CBF_IDENTICAL)
+        fprintf(stderr, " cif2cbf: A data block with the new name already exists.\n");
+    if ((err&CBF_NOTFOUND)==CBF_NOTFOUND)
+        fprintf(stderr, " cif2cbf: The data block, category, column or"
+                " row does not exist.\n");
+    if ((err&CBF_OVERFLOW)==CBF_OVERFLOW)
+        fprintf(stderr, " cif2cbf: The number read cannot fit into the "
+                "destination argument.\n        The destination has been set to the nearest value.\n");
+    if ((err& CBF_UNDEFINED)==CBF_UNDEFINED)
+        fprintf(stderr, " cif2cbf: The requested number is not defined (e.g. 0/0).\n");
+    if ((err&CBF_NOTIMPLEMENTED)==CBF_NOTIMPLEMENTED)
+        fprintf(stderr, " cif2cbf: The requested functionality is not yet implemented.\n");
+    if ((err&CBF_H5ERROR)==CBF_H5ERROR)
+        fprintf(stderr, " cif2cbf: HDF5 API error.\n");
+    return 0;
+    
+}
+
+#undef cbf_failnez
+#undef cbf_onfailnez
+
+#ifndef __FILE__
+
+#define cbf_failnez(x) {int err; err = (x); if (err) { fprintf (stderr, \
+"\nCBFlib error %x \n", err); outerror(err); local_exit (-1); }}
+
+#define cbf_onfailnez(x,c) {int err; err = (x); if (err) { fprintf (stderr, \
+"\nCBFlib error %x \n", err); \
+{ c; } outerror(err); local_exit (-1); }}
+#else
+#ifndef __func__
+#define cbf_failnez(x) {int err; err = (x); if (err) { fprintf (stderr, \
+"\nCBFlib error %x at %s:%d\n", err,__FILE__,__LINE__); outerror(err); local_exit (-1); }}
+
+#define cbf_onfailnez(x,c) {int err; err = (x); if (err) { fprintf (stderr, \
+"\nCBFlib error %x at %s:%d\n", err,__FILE__,__LINE__); \
+{ c; } outerror(err); local_exit (-1); }}
+#else
+#define cbf_failnez(x) {int err; err = (x); if (err) { fprintf (stderr, \
+"\nCBFlib error %x at %s:%d(%s)\n", err,__FILE__,__LINE__,__func__); outerror(err); local_exit (-1); }}
+
+#define cbf_onfailnez(x,c) {int err; err = (x); if (err) { fprintf (stderr, \
+"\nCBFlib error %x at %s:%d(%s)\n", err,__FILE__,__LINE__,__func__); \
+{ c; } outerror(err); local_exit (-1); }}
+
+#endif
+#endif
+
 
 /*
 The 'strdup' function isn't available when compiling with -ansi on GCC, so provide an alternative.
@@ -478,7 +562,7 @@ int main (int argc, char *argv [])
         /* Prepare the file names */
         
         hdf5outlen = datanumber = strlen(hdf5out);
-        hdf5master = hdf5out;
+        hdf5master = (char *)hdf5out;
         if (splitdata) {
             cbf_failnez(cbf_alloc(((void **) &hdf5master),NULL,1,hdf5outlen+7));
             cbf_failnez(cbf_alloc(((void **) &hdf5data),NULL,1,hdf5outlen+7));
@@ -516,7 +600,7 @@ int main (int argc, char *argv [])
               CBF_SUCCESS != (error |= cbf_create_h5handle2(&h5out,hdf5master)))
            ) {
 			fprintf(stderr,"Couldn't open the HDF5 file '%s'.\n", hdf5master);
-		} else if (CBF_SUCCESS != (error |= cbf_h5handle_require_entry_definition(h5out,0,group,"NXmx","1.2",0))) {
+		} else if (CBF_SUCCESS != (error |= cbf_h5handle_require_entry_definition(h5out,0,group,"NXmx","1.5",0))) {
 			fprintf(stderr,"Couldn't create an NXentry group in the HDF5 file '%s'.\n", hdf5out);
 		} else {
             if (splitdata) {
@@ -526,7 +610,7 @@ int main (int argc, char *argv [])
                       CBF_SUCCESS != (error |= cbf_create_h5handle2(&h5data,hdf5data)))
                    ) {
                     fprintf(stderr,"Couldn't open the HDF5 file '%s'.\n", hdf5data);
-                } else if (CBF_SUCCESS != (error |= cbf_h5handle_require_entry_definition(h5data,0,group,"NXmx","1.2",0))) {
+                } else if (CBF_SUCCESS != (error |= cbf_h5handle_require_entry_definition(h5data,0,group,"NXmx","1.5",0))) {
                     fprintf(stderr,"Couldn't create an NXentry group in the HDF5 file '%s'.\n", hdf5data);
                 }
                 
@@ -559,6 +643,8 @@ int main (int argc, char *argv [])
         imageno = 0;
         imageinblock = 0;
         blockno = 1;
+        
+        printf("Processing %ld cbfs\n", (long)cifid);
         
         for (f = 0; CBF_SUCCESS == error && f != cifid; ++f) {
 			cbf_handle cif = NULL;
@@ -610,6 +696,8 @@ int main (int argc, char *argv [])
 				if (NULL == (in = fopen(cifin[f], "rb"))) {
                     fprintf (stderr,"Couldn't open the input CIF file '%s': %s\n", cifin[f], strerror(errno));
 					error |= CBF_FILEOPEN;
+                } else {
+                    printf ("Processing input CIF file '%s'\n", cifin[f]);
                 }
 				/* ensure temporary file is removed when the program closes */
 				if (ciftmp == cifin[f]) {
@@ -646,6 +734,7 @@ int main (int argc, char *argv [])
                 h5out->slice = imageno;
                 if (splitdata) h5data->flags = h5out->flags;
 				error |= cbf_write_cbf2nx2(cif, h5out, h5data, datablock, scan, list);
+                cbf_failnez(error);
 				/* stop timing */
                 b = clock ();
 				printf("Time to convert '%s': %.3fs\n", cifin[f], ((float)(b - a))/CLOCKS_PER_SEC);
@@ -662,7 +751,8 @@ int main (int argc, char *argv [])
                           CBF_SUCCESS != (error |= cbf_create_h5handle2(&h5data,hdf5data)))
                        ) {
                         fprintf(stderr,"Couldn't open the HDF5 file '%s'.\n", hdf5data);
-                    } else if (CBF_SUCCESS != (error |= cbf_h5handle_require_entry_definition(h5data,0,group,"NXmx","1.2",0))) {
+                        cbf_failnez(error);
+                    } else if (CBF_SUCCESS != (error |= cbf_h5handle_require_entry_definition(h5data,0,group,"NXmx","1.5",0))) {
                         fprintf(stderr,"Couldn't create an NXentry group in the HDF5 file '%s'.\n", hdf5data);
                     }
                     
@@ -671,6 +761,7 @@ int main (int argc, char *argv [])
             
 			/* Clean up */
 			if (cif) cbf_free_handle(cif);
+            cbf_failnez(error);
         }
         
 		{ /* Write the file/close the handle */
@@ -689,3 +780,10 @@ int main (int argc, char *argv [])
 	error |= cbf_free_getopt_handle(opts);
 	return CBF_SUCCESS==error ? 0 : 1;
 }
+
+int local_exit (int status)
+{
+    exit(status);
+    return 1; /* avoid warnings */
+}
+
