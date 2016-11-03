@@ -305,7 +305,7 @@ endif
 #
 # Definition to get a version of tifflib to support tiff2cbf
 #
-TIFF = tiff-3.9.4-rev-1Oct15
+TIFF = tiff-4.0.6_rev_3Nov16
 TIFF_PREFIX ?= $(PWD)
 TIFF_INSTALL = $(TIFF)_INSTALL
 
