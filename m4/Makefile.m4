@@ -1,5 +1,5 @@
 m4_define(`cbf_version',`0.9.5')m4_dnl
-m4_define(`cbf_date',`06 Apr 2016')m4_dnl
+m4_define(`cbf_date',`05 Feb 2017')m4_dnl
 m4_ifelse(cbf_system,`',`m4_define(`cbf_system',`LINUX')')
 `######################################################################
 #  Makefile - command file for make to create CBFlib                 #
@@ -319,7 +319,7 @@ ifneq ($(HDF5_PREFIX),$(PWD))
 endif
 
 ifneq ($(CBFLIB_DONT_USE_LOCAL_HDF5),yes)
-HDF5 = hdf5-1.8.14
+HDF5 = hdf5-1.8.18
 HDF5_INSTALL = $(HDF5)_INSTALL
 HDF5LIBS_LOCAL = $(LIB)/libhdf5.a
 HDF5LIBS_SYSTEM = -lz -ldl
@@ -343,7 +343,7 @@ ifneq ($(CBFLIB_DONT_USE_LZ4),yes)
 #
 # Definitions to get a version of HDF5Plugin for LZ4
 #
-LZ4 = HDF5Plugin_6Feb15
+LZ4 = HDF5Plugin_4Feb17
 LZ4src = $(LZ4)/src
 LZ4include = $(LZ4)/include
 LZ4SOLIBS = -L$(SOLIB) -lh5zlz4
@@ -364,6 +364,23 @@ BSHUFFILTER = libbshuf_h5filter
 else
 BSHUFSOLIBS =
 endif
+
+CBFLIB_DONT_USE_BLOSC ?= no
+ifneq ($(CBFLIB_DONT_USE_BLOSC),yes)
+#
+# Definitions to get a version of HDF5Plugin for BLOSC
+#
+BLOSC = c-blosc_4Sep16.tar.gz
+BLOSCFILTER = hdf5-blosc_2Sep16.tar.gz
+BLOSCsrc = $(BLOSC)/src
+BLOSCinclude = $(BLOSC)/src
+BLOSCSOLIBS = -L$(SOLIB) -lh5zbshuf
+BLOSCFILTER = libbshuf_h5filter
+else
+BLOSCSOLIBS =
+endif
+
+
 
 #
 # Definition of python to use

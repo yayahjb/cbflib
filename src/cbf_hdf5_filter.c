@@ -567,7 +567,7 @@ extern "C" {
             
             *buf=destination;
             
-            tempfile->characters_base = tempfile->characters_base = vcharacters;
+            tempfile->characters_base = tempfile->characters = vcharacters;
             
             tempfile->characters_size = onbytes;
             
