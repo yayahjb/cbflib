@@ -1611,7 +1611,7 @@ $(SRC)/cbf_stx.c: $(SRC)/cbf.stx.y
 #
 # CBF library
 #
-$(LIB)/libcbf.a: $(SOURCE) $(HEADERS) $(COMMONDEP) $(LIB) $(HDF5) $(LZ4DEPS) $(BSHUFDEPS) $(REGEXDEP)
+$(LIB)/libcbf.a: $(SOURCE) $(HEADERS) $(COMMONDEP) $(LIB) $(HDF5)
 	-rm -f $@
 	-rm -f *.o
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) \
@@ -1635,7 +1635,7 @@ ifneq ($(RANLIB),)
 endif
 	-rm -f *.o
 
-$(SOLIB)/libcbf.so: $(SOURCE) $(HEADERS) $(COMMONDEP) $(SOLIB) $(HDF5) $(LZ4DEPS) $(BSHUFDEPS)
+$(SOLIB)/libcbf.so: $(SOURCE) $(HEADERS) $(COMMONDEP) $(SOLIB) $(HDF5)
 	-rm -f $@
 	-rm -f *.o
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(LZ4FLAG) $(BSHUFFLAG) $(PYCIFRWFLAG) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
