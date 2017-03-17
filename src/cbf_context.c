@@ -700,30 +700,34 @@ extern "C" {
         
         char * cbf_tmp_dir;
         size_t cbf_tmp_dir_len;
+        FILE * result;
         
         /* Locate and, if necessary, create the temporary files directory */
         
         if ((cbf_tmp_dir = getenv("CBF_TMP_DIR"))
             && (cbf_tmp_dir_len=cbf_convert_env(NULL,cbf_tmp_dir,0)) > 0) {
             
-            char cbf_tmp_dir_conv[cbf_tmp_dir_len+39];
+            char *cbf_tmp_dir_conv = malloc(cbf_tmp_dir_len+39);
             
             cbf_tmp_dir_len = cbf_convert_env(cbf_tmp_dir_conv,cbf_tmp_dir,cbf_tmp_dir_len+1);
             
             if (cbf_mkdir(cbf_tmp_dir_conv)) return NULL;
             
-            return cbf_mktmpfile(cbf_tmp_dir_conv, cbf_tmp_dir_len);
+            result = cbf_mktmpfile(cbf_tmp_dir_conv, cbf_tmp_dir_len);
+            free(cbf_tmp_dir_conv);
+            return result;
             
         } else if ((cbf_tmp_dir_len=cbf_convert_env(NULL,CBF_TMP_DIR,0)) > 0) {
 
-            char cbf_tmp_dir_conv[cbf_tmp_dir_len+39];
+            char *cbf_tmp_dir_conv = malloc(cbf_tmp_dir_len+39);
             
             cbf_tmp_dir_len = cbf_convert_env(cbf_tmp_dir_conv,CBF_TMP_DIR,cbf_tmp_dir_len+1);
             
             if (cbf_mkdir(cbf_tmp_dir_conv)) return NULL;
             
-            return cbf_mktmpfile(cbf_tmp_dir_conv, cbf_tmp_dir_len);
-        
+            result = cbf_mktmpfile(cbf_tmp_dir_conv, cbf_tmp_dir_len);
+            free(cbf_tmp_dir_conv);
+            return result;
         }
         
         return NULL;
