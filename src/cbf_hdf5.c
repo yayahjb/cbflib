@@ -5464,7 +5464,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             const char * curr_name = NULL;
             const char default_name[] = "beam";
             const char * group_name = name ? name : default_name;
-            CBF_CALL2(cbf_h5handle_get_sample(nx,&parent,0),error);
+            CBF_CALL2(cbf_h5handle_require_sample(nx,&parent,0),error);
             /* check if the names of the groups match, and if the parent contains the assumed group */
             if (CBF_SUCCESS==cbf_h5handle_get_beam(nx,&curr_group,&curr_name)) {
                 if (!strcmp(group_name,curr_name)) {
