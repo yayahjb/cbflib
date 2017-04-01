@@ -365,7 +365,7 @@ int main (int argc, char *argv [])
     int splitdata = 0;
     long imageno = 0;
     long imageinblock = 0;
-    long blockno = 0;
+    int block = 0;
 	const char ** const cifin = memset(malloc(argc*sizeof(char*)),0,argc*sizeof(char*));
 	const char * scan_id = NULL;
 	const char * sample_id = NULL;
@@ -642,7 +642,7 @@ int main (int argc, char *argv [])
         
         imageno = 0;
         imageinblock = 0;
-        blockno = 1;
+        block = 1;
         
         printf("Processing %ld cbfs\n", (long)cifid);
         
@@ -730,8 +730,12 @@ int main (int argc, char *argv [])
 			if (CBF_SUCCESS == error) {
 				/* start timing */
 				clock_t a = clock(), b;
-                if (splitdata) h5data->slice = imageinblock;
+                if (splitdata) {
+                    h5data->slice = imageinblock;
+                    h5data->block = block;
+                }
                 h5out->slice = imageno;
+                h5out->block = block;
                 if (splitdata) h5data->flags = h5out->flags;
 				error |= cbf_write_cbf2nx2(cif, h5out, h5data, datablock, scan, list);
                 cbf_failnez(error);
@@ -741,9 +745,9 @@ int main (int argc, char *argv [])
                 imageinblock++;
                 if (f != cifid-1 && splitdata && imageinblock >= splitdata) {
                     imageinblock = 0;
-                    blockno++;
+                    block++;
                     hdf5data[datanumber] = '\0';
-                    sprintf(hdf5data+datanumber,"_%.6ld%s",blockno,extension);
+                    sprintf(hdf5data+datanumber,"_%.6ld%s",block,extension);
                     error |= cbf_free_h5handle(h5data);
                     if( (update &&
                          CBF_SUCCESS != (error |= cbf_create_h5handle2u(&h5data,hdf5data)))
