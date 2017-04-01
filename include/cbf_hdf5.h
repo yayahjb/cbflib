@@ -954,6 +954,7 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
     {
         int   rwmode;  /* 0 for read-only, 1 for read-write */
 		unsigned int slice; /* The slice within the HDF5 data arrays where data will be added */
+        unsigned int block; /* The block of data arrays, or zero if no blocking */
         unsigned int num_detectors; /* The number of NXdetector groups */
         unsigned int cap_detectors; /* The capacity in terms of NXdetector groups */
         unsigned int cur_detector;  /* The currently active detector, numbered from 1 */

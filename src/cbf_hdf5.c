@@ -6059,9 +6059,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
        If a binary value is available, the type string 'bnry' is
        returned in *typeofvalue. */
     
-    static int cbf_get_nxdata_field_name(const cbf_handle handle,
+    static int cbf_get_nxdata_field_name2(const cbf_handle handle,
                                          const char * arrayid,
                                          const char * binaryid,
+                                         const int    block,
                                          const char ** datasetname,
                                          const char ** groupname,
                                          const char ** nxdata_field_link_target_file,
@@ -6079,7 +6080,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         const char * nxdata_field_name = NULL;
         
-        const char * datasetname_parts[4]={NULL,NULL,NULL,NULL};
+        const char * datasetname_parts[5]={NULL,NULL,NULL,NULL,NULL};
         
         node = handle->node;
         
@@ -6091,8 +6092,11 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         datasetname_parts[1] = arrayid;
         datasetname_parts[2] = binaryid;
         datasetname_parts[3] = NULL;
+        datasetname_parts[4] = NULL;
         
-        cbf_debug_print3(" nxdata_field_name arrayid '%s' binaryid '%s'",arrayid, binaryid);
+        char buffer[7];
+        
+        cbf_debug_print4(" nxdata_field_name arrayid '%s' binaryid '%s' block %d",arrayid, binaryid, block);
         
         if (!cbf_find_category(handle,"array_data") &&
             !cbf_rewind_row(handle) &&
@@ -6180,7 +6184,11 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             if (nxdata_field_link_target_path)
                 *nxdata_field_link_target_path = NULL;
             if (foundrow >= 0) {
-            *datasetname = _cbf_str_join(datasetname_parts,'_');
+                if (block > 0) {
+                    sprintf(buffer,"%06d",block);
+                    datasetname_parts[3]=buffer;
+                }
+                *datasetname = _cbf_str_join(datasetname_parts,'_');
             } else {
                 *datasetname = _cbf_strdup("data");
                 if (typeofvalue &&
@@ -6188,11 +6196,11 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     !cbf_rewind_row(handle) &&
                     !cbf_count_rows(handle,&rows) && rows > 0 ) {
                     if(!(!cbf_find_column(handle,"data") &&
-                        !cbf_get_typeofvalue(handle,typeofvalue) &&
-                        (*typeofvalue))) {
+                         !cbf_get_typeofvalue(handle,typeofvalue) &&
+                         (*typeofvalue))) {
                         *typeofvalue = "null";
-        }
-        
+                    }
+                    
                 }
                 
             }
@@ -6288,11 +6296,13 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         cbf_debug_print("write_array_h5file2\n");
         
-        cbf_get_nxdata_field_name(handle, arrayid, binaryid, &datasetname,
-                                  0,
-                                  &nxdata_field_link_target_file,
-                                  &nxdata_field_link_target_path,
-                                  &typeofvalue);
+        cbf_get_nxdata_field_name2(handle, arrayid, binaryid,
+                                   h5handle->block,
+                                   &datasetname,
+                                   0,
+                                   &nxdata_field_link_target_file,
+                                   &nxdata_field_link_target_path,
+                                   &typeofvalue);
         
         cbf_debug_print2("cbf_write_array_h5file2 nxdata_field_link_target_file = %s",nxdata_field_link_target_file);
         cbf_debug_print2("cbf_write_array_h5file2 nxdata_field_link_target_path = %s",nxdata_field_link_target_path);
@@ -7049,7 +7059,9 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         if (cbf_H5Ivalid(nxdata)) {
         
-            cbf_get_nxdata_field_name(handle,array_id,binary_id,&datasetname,
+            cbf_get_nxdata_field_name2(handle,array_id,binary_id,
+                                      h5handle->block,
+                                      &datasetname,
                                       0,
                                       &nxdata_field_link_target_file,
                                       &nxdata_field_link_target_path, 0);
@@ -7901,7 +7913,9 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
     
     /* process the data in a CBF looking for all combinations of array_ids
        and binary_ids for the given detector element and storing the
-       data in data_ARRAYID_BINARYID:NXdata groups
+       data in data_ARRAYID_BINARYID:NXdata groups.
+     
+       For block > 0, "_block" is appended to the BINARYID
      
        There are two choices on where to actually store the data;
           1.  Directly in NXdata, with an incoming link from NXdetector
@@ -8103,6 +8117,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 || !binaryid) binaryid = "1";
             
             
+            
             if (!cbf_find_column(handle,"data")) {
                 
                 node = handle->node;
@@ -8159,12 +8174,13 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             
         }
         if (matchfound && node) {
-            cbf_get_nxdata_field_name(handle,arrayid,binaryid,
-                                      &nxdataname,
-                                      &groupname,
-                                      &nxdata_field_link_target_file,
-                                      &nxdata_field_link_target_path,
-                                      &typeofvalue);
+            cbf_get_nxdata_field_name2(handle,arrayid,binaryid,
+                                       data_h5handle->block,
+                                       &nxdataname,
+                                       &groupname,
+                                       &nxdata_field_link_target_file,
+                                       &nxdata_field_link_target_path,
+                                       &typeofvalue);
             cbf_debug_print2("cbf_require_nxdata arrayid = %s",arrayid);
             cbf_debug_print2("cbf_require_nxdata binaryid = %s",binaryid);
             cbf_debug_print2("cbf_require_nxdata nxdataname = %s",nxdataname);
@@ -16789,6 +16805,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                 sizeof(cbf_h5handle_struct), 1));
 
         (*h5handle)->slice  = 0;
+        (*h5handle)->block = 0;
         (*h5handle)->num_detectors  = 0;
         (*h5handle)->hfile   = (hid_t)CBF_H5FAIL;
         (*h5handle)->rootid  = (hid_t)CBF_H5FAIL;
