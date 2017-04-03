@@ -7053,7 +7053,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             || !h5handle
             || !array_id ) return CBF_ARGUMENT;
         
-        cbf_debug_print("Entering cbf_require_nxarryid");
+        cbf_debug_print3("Entering cbf_require_nxarryid, array_id %s, binary_id %s", array_id, binary_id);
         
         dsetid = CBF_H5FAIL;
         
@@ -7274,6 +7274,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 }
                 
                 
+                cbf_debug_print3("cbf_require_nxarrayid, array_id %s xarray_id %s", array_id, xarray_id);
                 if (!cbf_cistrcmp(array_id,xarray_id)) {
                     
                     /* This array section is actually an array.  We need to create

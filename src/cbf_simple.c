@@ -1553,7 +1553,7 @@ extern "C" {
                 
                 if (origins) {
                     
-                    origins[index-1] = kend;
+                    origins[index-1] = kstart;
                     
                 }
                 
@@ -1605,6 +1605,13 @@ extern "C" {
         while (cbf_find_nextrow (handle, array_id) == 0)
         {
             long xdim;
+            const char * xsection_id;
+            
+            if (!cbf_find_column(handle,"array_section_id")
+                && !cbf_get_value(handle,&xsection_id)
+                && xsection_id
+                && cbf_cistrcmp(xsection_id,".")
+                && cbf_cistrcmp(xsection_id,"?")) continue;
             
             cbf_onfailnez (cbf_find_column      (handle, "precedence"),
                            {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);});
