@@ -250,6 +250,8 @@
 #ifndef CBF_H
 #define CBF_H
 
+#include "hdf5.h"
+
 #ifdef __cplusplus
 
 extern "C" {
@@ -299,7 +301,6 @@ _CBF_STR(CBF_VERS_RELEASE) CBF_VERS_SUBRELEASE
 #endif
     
 #include "cbf_tree.h"
-#include "hdf5.h"
 
 #include <stdlib.h>
 #include <limits.h>
