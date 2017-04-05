@@ -7278,7 +7278,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 if (!cbf_cistrcmp(array_id,xarray_id)) {
                     
                     /* This array section is actually an array.  We need to create
-                     a detector module for each associated array_section */
+                     a detector module for each associated array_section, one level
+                     down */
                     
                     if (!cbf_find_category(handle,"array_structure_list_section")
                         && !cbf_find_column(handle,"array_id")
@@ -8766,7 +8767,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                                                   (hsize_t) 1L,
                                                                   error),error);
                         
-                    } else {
+                    } else if (cbf_find_h5text_dataset_slab(detector_groupid,
+                        "group_names",detmodname, NULL, error)){
+                        
+                        /* group_names exists, see if it contains detmodname */
                         
                         hid_t datasetspace;
                         
@@ -8775,6 +8779,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                         hsize_t dsdims[1];
                         
                         hsize_t dsmaxdims[1];
+                        
+                        int havedmn;
+                        
+                        havedmn = 0;
                         
                         group_namesid=H5Dopen2(detector_groupid,"group_names", H5P_DEFAULT);
                         
@@ -8822,7 +8830,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                         
                         if (cbf_H5Ivalid(datasetspace)) H5Sclose(datasetspace);
                         
-
                         
                         cbf_reportnez(cbf_add_h5text_dataset_slab(detector_groupid,
                                                                   "group_names",
@@ -8832,7 +8839,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                         
                         cbf_reportnez(cbf_add_h5long_dataset_slab(detector_groupid,
                                                                   "group_index",
-                                                                  (long)dsdims[0],
+                                                                  1L+(long)dsdims[0],
                                                                   dsdims[0],
                                                                   error),error);
                         
@@ -11591,8 +11598,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             
             if (cbf_H5Ivalid(memtype)) H5Tclose(memtype);
             
-            if (cbf_H5Ivalid(memtype)) H5Tclose(memtype);
-            
             if (cbf_H5Ivalid(attribspace)) H5Sclose(attribspace);
 
             if (cbf_H5Ivalid(attribtype)) H5Tclose(attribtype);
@@ -12494,7 +12499,251 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
     }
 
+
     
+    /* find a text dataset slab in a dataset in a group, with slab location
+     
+     places the specified datasettext in some slab of the
+     specified datasetname for group hid.  The slab where the text is
+     found or placed is reported in textslab.  
+     
+     If the new text is the same as the existing text in any slab, nothing changes.
+     A case-insensitive compare is used.
+     
+     The slabs are indexed from 0
+     
+     */
+    
+    int cbf_find_h5text_dataset_slab(hid_t hid,
+                                        const char* datasetname,
+                                        const char* datasettext,
+                                        hsize_t * textslab,
+                                        int errorcode)
+    {
+        hid_t datasetspace, datasettype, datasetid;
+        
+        hid_t memspace, memtype;
+        
+        hid_t ndatasettype;
+        
+        hid_t ndatasetspace;
+        
+        hid_t nmemtype;
+        
+        int ndims = 0;
+        
+        hsize_t offset[1] = {0};
+        
+        hsize_t stride[1] = {1};
+        
+        hsize_t count[1]  = {1};
+        
+        hsize_t chunk[1] = {1};
+        
+        hsize_t curdim[1];
+        
+        hsize_t memsize[1] = {1};
+        
+        htri_t dsexists;
+        
+        hsize_t dssize[1];
+        
+        hsize_t maxdssize[1];
+        
+        hsize_t dsdims[1];
+        
+        hsize_t dsmaxdims[1];
+        
+        hsize_t dsslab;
+        
+        void * datasettextbuffer;
+        
+        size_t text_size, old_size, new_size, ii;
+        
+        datasetspace = datasettype = memspace = memtype = CBF_H5FAIL;
+        
+        datasetid = CBF_H5FAIL;
+        
+        memsize[0] = 1;
+        
+        dssize[0] = 1;
+        
+        maxdssize[0] = H5S_UNLIMITED;
+        
+        chunk[0] = 1;
+        
+        datasettextbuffer = NULL;
+        
+        
+        /* ensure arguments all given */
+        
+        if (hid < 0 || !datasetname ||
+            !datasettext || errorcode ) return CBF_ARGUMENT;
+        
+        text_size =  _cbf_strlen(datasettext);
+        
+        dsexists = H5Lexists(hid,datasetname, H5P_DEFAULT);
+        
+        if (dsexists < 0 ||
+            !dsexists
+            || (datasetid = H5Dopen2(hid,datasetname, H5P_DEFAULT))< 0) {
+            
+            /* If there is no dataset, return CBF_NOTFOUND. */
+            
+            return CBF_NOTFOUND;
+            
+        }
+        
+        if (datasetid <= 0) {
+            
+            datasetid = H5Dopen2(hid,datasetname, H5P_DEFAULT);
+            
+        }
+        
+        cbf_h5reportneg(datasettype = H5Dget_type(datasetid),CBF_FORMAT,errorcode);
+        
+        cbf_h5reportneg(datasetspace = H5Dget_space(datasetid),CBF_FORMAT,errorcode);
+        
+        cbf_h5reportneg(ndims = H5Sget_simple_extent_ndims(datasetspace),CBF_FORMAT,errorcode);
+        
+        if ( errorcode || ndims > 1 ) return CBF_FORMAT;
+        
+        old_size = H5Tget_size(datasettype);
+        
+        new_size = text_size+1;
+        
+        cbf_h5reportneg(H5Sget_simple_extent_dims(datasetspace,
+                                                  dsdims,dsmaxdims),CBF_FORMAT,errorcode);
+        
+        cbf_reportnez(cbf_alloc(&datasettextbuffer,NULL,1,old_size+1),errorcode);
+        
+        if ( old_size < new_size ) {
+            
+            errorcode = CBF_NOTFOUND;
+            
+        } else if ( ndims == 0 ) {
+            
+            cbf_h5reportneg(memtype = H5Tcopy(H5T_C_S1),CBF_ALLOC,errorcode);
+            
+            cbf_h5reportneg(memspace = H5Screate(H5S_SCALAR),CBF_ALLOC,errorcode);
+            
+            cbf_h5reportneg(H5Sselect_all(datasetspace),CBF_H5ERROR,errorcode);
+            
+            cbf_h5reportneg(H5Tset_size(memtype,old_size+1),CBF_ALLOC,errorcode);
+            
+            if(H5Dread(datasetid, memtype, memspace, datasetspace, H5P_DEFAULT, (void *)datasettextbuffer) >= 0 ) {
+                
+                if (memspace >= 0) H5Sclose(memspace);
+                
+                if (datasetspace >= 0) H5Sclose(datasetspace);
+                
+                if (datasetid >= 0) H5Dclose(datasetid);
+                
+                if (memtype >= 0) H5Tclose(memtype);
+                
+                if (cbf_cistrcmp(datasettextbuffer,datasettext)==0){
+                    
+                    if (textslab) *textslab = (hsize_t)0L;
+                    
+                    errorcode = CBF_SUCCESS;
+                    
+                } else {
+                    
+                    errorcode |= CBF_NOTFOUND;
+                    
+                }
+                
+                if (datasettextbuffer) cbf_free(&datasettextbuffer,NULL);
+                
+                return errorcode;
+
+            }
+            
+        } else {
+            
+            cbf_h5reportneg(memtype = H5Tcopy(H5T_C_S1),CBF_ALLOC,errorcode);
+            
+            cbf_h5reportneg(memspace = H5Screate_simple(ndims,count,0),CBF_ALLOC,errorcode);
+            
+            cbf_h5reportneg(H5Tset_size(memtype,old_size+1),CBF_ALLOC,errorcode);
+
+            
+            for (dsslab=0; dsslab < dsdims[0] && errorcode == CBF_SUCCESS; dsslab++) {
+                
+                offset[0] = dsslab;
+                
+                cbf_h5reportneg(H5Sselect_hyperslab(datasetspace,H5S_SELECT_SET,
+                                                    offset,stride,count,0), CBF_FORMAT,errorcode);
+                
+                if (H5Dread(datasetid, memtype, memspace, datasetspace,
+                            H5P_DEFAULT, (void *)datasettextbuffer)>=0) {
+                    
+                    if (cbf_cistrcmp(datasettextbuffer,datasettext)==0){
+                        
+                        if (nmemtype >= 0) H5Tclose(nmemtype);
+                        
+                        if (memspace >= 0) H5Sclose(memspace);
+                        
+                        if (datasetspace >= 0) H5Sclose(datasetspace);
+                        
+                        if (datasetid >= 0) H5Dclose(datasetid);
+                        
+                        if (memtype >= 0) H5Tclose(memtype);
+                        
+                        if (datasettextbuffer) cbf_free(&datasettextbuffer,NULL);
+                        
+                        if (textslab) *textslab = dsslab;
+                        
+                        return CBF_SUCCESS;
+                        
+                        
+                    }
+                    
+                    curdim[0] = dsslab+1;
+                    
+                }
+                
+            }
+            
+            
+            
+            if (nmemtype >= 0) H5Tclose(nmemtype);
+            
+            if (datasetspace >= 0) H5Sclose(datasetspace);
+            
+            if (datasetid >= 0) H5Dclose(datasetid);
+            
+            if (memtype >= 0) H5Tclose(memtype);
+            
+            datasetspace = memtype = CBF_H5FAIL;
+            
+            
+        }
+        
+        if (datasetspace >=0 )H5Sclose(datasetspace);
+        
+        datasetspace = CBF_H5FAIL;
+        
+        offset[0] = dsdims[0];
+        
+        curdim[0] = dsdims[0]+1;
+        
+        cbf_h5reportneg(H5Dset_extent(datasetid,curdim),CBF_FORMAT,errorcode);
+        
+        if (datasetspace >= 0)  H5Sclose(datasetspace);
+        
+        if (datasettype >= 0)   H5Tclose(datasettype);
+        
+        if (datasetid >= 0)     H5Dclose(datasetid);
+        
+        if (memtype >= 0)       H5Tclose(memtype);
+        
+        if (datasettextbuffer) cbf_free(&datasettextbuffer,NULL);
+        
+        return errorcode;
+        
+    }
+
     /* require a text dataset slab in a dataset in a group
      
      places the specified datasettext in some slab of the
@@ -12502,7 +12751,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
      if it does not already exist.
      
      If the new text is the same as the existing text in any slab, nothing changes.
-     A case-insensitive patch is used.
+     A case-insensitive compare is used.
      
      The first slab goes in rank = 0.  Additional slabs go in rank 1.
      
@@ -12665,7 +12914,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             cbf_reportnez(cbf_H5Dcreate(hid,&anondataset,NULL,1,dsdims,maxdssize,chunk,datasettype),errorcode);
             
             /* If we had a rank 0 dataset, leave it alone if the text is already in
-               or convert to rank 1 is the text is new */
+               or convert to rank 1 if the text is new */
             
             if (ndims == 0) {
                 
@@ -12743,7 +12992,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                             if (memtype >= 0) H5Tclose(memtype);
                             
                             return CBF_SUCCESS;
-                            
                             
                         }
                         
