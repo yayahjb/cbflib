@@ -12524,12 +12524,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         hid_t memspace, memtype;
         
-        hid_t ndatasettype;
-        
-        hid_t ndatasetspace;
-        
-        hid_t nmemtype;
-        
         int ndims = 0;
         
         hsize_t offset[1] = {0};
@@ -12680,8 +12674,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     
                     if (cbf_cistrcmp(datasettextbuffer,datasettext)==0){
                         
-                        if (nmemtype >= 0) H5Tclose(nmemtype);
-                        
                         if (memspace >= 0) H5Sclose(memspace);
                         
                         if (datasetspace >= 0) H5Sclose(datasetspace);
@@ -12707,31 +12699,19 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             
             
             
-            if (nmemtype >= 0) H5Tclose(nmemtype);
-            
             if (datasetspace >= 0) H5Sclose(datasetspace);
             
             if (datasetid >= 0) H5Dclose(datasetid);
             
             if (memtype >= 0) H5Tclose(memtype);
             
-            datasetspace = memtype = CBF_H5FAIL;
+            datasetspace = memtype = datasetid = CBF_H5FAIL;
             
             
         }
         
         if (datasetspace >=0 )H5Sclose(datasetspace);
-        
-        datasetspace = CBF_H5FAIL;
-        
-        offset[0] = dsdims[0];
-        
-        curdim[0] = dsdims[0]+1;
-        
-        cbf_h5reportneg(H5Dset_extent(datasetid,curdim),CBF_FORMAT,errorcode);
-        
-        if (datasetspace >= 0)  H5Sclose(datasetspace);
-        
+    
         if (datasettype >= 0)   H5Tclose(datasettype);
         
         if (datasetid >= 0)     H5Dclose(datasetid);
