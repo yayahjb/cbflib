@@ -12720,7 +12720,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         if (datasettextbuffer) cbf_free(&datasettextbuffer,NULL);
         
-        return errorcode;
+        return CBF_NOTFOUND;
         
     }
 
