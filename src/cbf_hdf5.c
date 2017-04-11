@@ -7031,6 +7031,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         hid_t nxdetector_module;
         
+        hid_t nxdetector_module_prev;
+        
         const char * datasetname = NULL;
         
         htri_t alexists;
@@ -7074,11 +7076,32 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         }
         
         if (!cbf_get_array_section_array_id(handle,array_id,&xarray_id)
+            && xarray_id
             && cbf_H5Ivalid(nxdetector)) {
             
-            cbf_reportnez(cbf_H5Grequire(nxdetector,&nxdetector_module,array_id),error);
+            if (cbf_cistrcmp(array_id,xarray_id)) {
+                /* array_id is an array_section and xarray_id is an array */
+                
+                cbf_reportnez(cbf_H5Grequire(nxdetector,&nxdetector_module_prev,xarray_id),error);
+                
+                cbf_reportnez(cbf_H5Arequire_string(nxdetector_module_prev,"NX_class","NXdetector_module"),error);
+                
+                cbf_reportnez(cbf_H5Grequire(nxdetector_module_prev,&nxdetector_module,array_id),error);
+                
+                cbf_reportnez(cbf_H5Arequire_string(nxdetector_module,"NX_class","NXdetector_module"),error);
+                
+            } else {
+                
+                /* array_id is an array and xarray_id is the same array */
+                
+                nxdetector_module_prev = -1;
+                
+                cbf_reportnez(cbf_H5Grequire(nxdetector,&nxdetector_module,array_id),error);
+                
+                cbf_reportnez(cbf_H5Arequire_string(nxdetector_module,"NX_class","NXdetector_module"),error);
+                
+            }
             
-            cbf_reportnez(cbf_H5Arequire_string(nxdetector_module,"NX_class","NXdetector_module"),error);
             
             cbf_reportnez(cbf_get_array_section_rank(handle,array_id,&rank),error);
             
@@ -7273,6 +7296,11 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     cbf_h5reportneg(H5Gclose(nxdetector_module),CBF_FORMAT,error);
                 }
                 
+                if (cbf_H5Ivalid(nxdetector_module_prev)) {
+                    cbf_h5reportneg(H5Gclose(nxdetector_module_prev),CBF_FORMAT,error);
+                }
+
+                
                 
                 cbf_debug_print3("cbf_require_nxarrayid, array_id %s xarray_id %s", array_id, xarray_id);
                 if (!cbf_cistrcmp(array_id,xarray_id)) {
@@ -7307,9 +7335,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                 && ((dsexists = H5Lexists(nxdetector,array_section_id,H5P_DEFAULT))==0
                                     || dsexists < 0)) {
                                 
-                                cbf_reportnez(cbf_H5Grequire(nxdetector,&nxdetector_module,array_section_id),error);
-                                
-                                cbf_reportnez(cbf_H5Arequire_string(nxdetector_module,"NX_class","NXdetector_module"),error);
+                                cbf_reportnez(cbf_H5Grequire(nxdetector,&nxdetector_module_prev,xarray_id),error);
+                                    
+                                cbf_reportnez(cbf_H5Grequire(nxdetector_module_prev,&nxdetector_module,array_section_id),error);
+                            cbf_reportnez(cbf_H5Arequire_string(nxdetector_module,"NX_class","NXdetector_module"),error);
                                 
                                 cbf_reportnez(cbf_get_array_section_rank(handle,array_section_id,&rank),error);
                                 
@@ -7748,11 +7777,23 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                             if (array_section_id_found && cbf_cistrcmp(array_id,xarray_section_id)
                                 && H5Lexists(nxdetector,xarray_section_id,H5P_DEFAULT)==0) {
                                 
-                                cbf_reportnez(cbf_H5Grequire(nxdetector,&nxdetector_module,xarray_section_id),error);
+                                nxdetector_module_prev = -1;
+                                
+                                cbf_reportnez(cbf_H5Grequire(nxdetector,&nxdetector_module_prev,array_id),error);
+                                
+                                cbf_reportnez(cbf_H5Grequire(nxdetector_module_prev,&nxdetector_module,xarray_section_id),error);
                                 
                                 cbf_failnez(cbf_get_NX_axis_path(h5handle,axis_id,&axis_path))
                                 
-                                if (error) return error;
+                                if (error) {
+                                    
+                                    if (cbf_H5Ivalid(nxdetector_module)) H5Gclose(nxdetector_module);
+                                    
+                                    if (cbf_H5Ivalid(nxdetector_module_prev)) H5Gclose(nxdetector_module_prev);
+                                    
+                                    return error;
+                                    
+                                }
                                 
                                 cbf_apply_h5integer_attribute(nxdetector_module,axis_indices,precedence-1,error);
                                 
@@ -7862,11 +7903,19 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 
             }
             
+            if (cbf_H5Ivalid(nxdetector_module)) H5Gclose(nxdetector_module);
+            
+            if (cbf_H5Ivalid(nxdetector_module_prev)) H5Gclose(nxdetector_module_prev);
+            
             if (cbf_H5Ivalid(dsetid)) H5Dclose(dsetid);
             
             return CBF_SUCCESS;
             
         } else {
+            
+            if (cbf_H5Ivalid(nxdetector_module)) H5Gclose(nxdetector_module);
+            
+            if (cbf_H5Ivalid(nxdetector_module_prev)) H5Gclose(nxdetector_module_prev);
             
             if (cbf_H5Ivalid(dsetid)) H5Dclose(dsetid);
             
@@ -9863,11 +9912,9 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             
         }
         
-        if (cbf_find_row(h5handle->scratch_tables,detector_element)) {
+        if (cbf_find_hashedvalue(h5handle->scratch_tables,detector_element,"detector_element",CBF_CASE_INSENSITIVE)) {
             
-            cbf_failnez(cbf_new_row(h5handle->scratch_tables));
-            
-            cbf_failnez(cbf_set_value(h5handle->scratch_tables, detector_element));
+            cbf_failnez(cbf_set_hashedvalue(h5handle->scratch_tables, detector_element,"detector_element",-1));
             
         }
     
@@ -10328,9 +10375,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         if (!(h5handle->scratch_tables)
             || cbf_find_datablock(h5handle->scratch_tables,"scratch")
             || cbf_find_category(h5handle->scratch_tables,"scratch_axis")
-            || cbf_find_column(h5handle->scratch_tables,"axis_id")
-            || cbf_rewind_row(h5handle->scratch_tables)
-            || cbf_find_row(h5handle->scratch_tables,axis_id)
+            || cbf_find_hashedvalue(h5handle->scratch_tables,axis_id,"axis_id",CBF_CASE_INSENSITIVE)
             || cbf_find_column(h5handle->scratch_tables,"nexus_path")
             || cbf_get_value(h5handle->scratch_tables,nexus_path)
             || !(*nexus_path)
@@ -10355,9 +10400,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         if (!(h5handle->scratch_tables)
             || cbf_find_datablock(h5handle->scratch_tables,"scratch")
             || cbf_find_category(h5handle->scratch_tables,"scratch_axis")
-            || cbf_find_column(h5handle->scratch_tables,"axis_id")
-            || cbf_rewind_row(h5handle->scratch_tables)
-            || cbf_find_row(h5handle->scratch_tables,axis_id)
+            || cbf_find_hashedvalue(h5handle->scratch_tables,axis_id,"axis_id",CBF_CASE_INSENSITIVE)
             || cbf_find_column(h5handle->scratch_tables,"poise_path")
             || cbf_get_value(h5handle->scratch_tables,poise_path)
             || !(*poise_path)
@@ -10378,6 +10421,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
     
         int errorcode = 0;
         
+        int rownum;
+        
         if (!h5handle || !axis_id || !parent_path ) return CBF_ARGUMENT;
         
         if (!(h5handle->scratch_tables)
@@ -10390,19 +10435,19 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             
         }
         
-        if (cbf_find_row(h5handle->scratch_tables,axis_id)) {
+        if (cbf_find_hashedvalue(h5handle->scratch_tables,axis_id,"axis_id",CBF_CASE_INSENSITIVE)) {
             
-            cbf_failnez(cbf_require_column(h5handle->scratch_tables,"axis_id"));
+            cbf_failnez(cbf_find_category(h5handle->scratch_tables,"scratch_axis"));
             
-            cbf_failnez(cbf_new_row(h5handle->scratch_tables));
-            
-            cbf_failnez(cbf_set_value(h5handle->scratch_tables, axis_id));
+            cbf_failnez(cbf_set_hashedvalue(h5handle->scratch_tables, axis_id, "axis_id", -1));
             
         }
         
+        cbf_failnez(cbf_row_number(h5handle->scratch_tables,&rownum));
+        
         cbf_failnez(cbf_require_column(h5handle->scratch_tables,"parent_path"));
         
-        cbf_failnez(cbf_set_value(h5handle->scratch_tables,parent_path));
+        cbf_failnez(cbf_set_value(h5handle->scratch_tables, parent_path));
         
         return errorcode;
         
@@ -10427,13 +10472,11 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             
         }
         
-        if (cbf_find_row(h5handle->scratch_tables,axis_id)) {
+        if (cbf_find_hashedvalue(h5handle->scratch_tables,axis_id,"axis_id",CBF_CASE_INSENSITIVE)) {
             
             cbf_failnez(cbf_require_column(h5handle->scratch_tables,"axis_id"));
             
-            cbf_failnez(cbf_new_row(h5handle->scratch_tables));
-            
-            cbf_failnez(cbf_set_value(h5handle->scratch_tables, axis_id));
+            cbf_failnez(cbf_set_hashedvalue(h5handle->scratch_tables, axis_id,"axis_id",-1));
             
         }
         
@@ -10465,13 +10508,11 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             
         }
         
-        if (cbf_find_row(h5handle->scratch_tables,axis_id)) {
+        if (cbf_find_hashedvalue(h5handle->scratch_tables,axis_id,"axis_id",CBF_CASE_INSENSITIVE)) {
             
             cbf_failnez(cbf_require_column(h5handle->scratch_tables,"axis_id"));
             
-            cbf_failnez(cbf_new_row(h5handle->scratch_tables));
-            
-            cbf_failnez(cbf_set_value(h5handle->scratch_tables, axis_id));
+            cbf_failnez(cbf_set_hashedvalue(h5handle->scratch_tables, axis_id, "axis_id", -1));
             
         }
         
@@ -10504,13 +10545,11 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             
         }
         
-        if (cbf_find_row(h5handle->scratch_tables,axis_id)) {
+        if (cbf_find_hashedvalue(h5handle->scratch_tables,axis_id,"axis_id",CBF_CASE_INSENSITIVE)) {
             
             cbf_failnez(cbf_require_column(h5handle->scratch_tables,"axis_id"));
             
-            cbf_failnez(cbf_new_row(h5handle->scratch_tables));
-            
-            cbf_failnez(cbf_set_value(h5handle->scratch_tables, axis_id));
+            cbf_failnez(cbf_set_hashedvalue(h5handle->scratch_tables, axis_id, "axis_id", -1));
             
         }
         
@@ -10534,6 +10573,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         int errorcode = 0;
         
+        int targetrow;
+        
         if (!h5handle || !axis_id || !nexus_path ) return CBF_ARGUMENT;
         
         if (!(h5handle->scratch_tables)
@@ -10548,29 +10589,28 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         cbf_debug_print3("cbf_set_NX_axis_path '%s' '%s'",axis_id, nexus_path )
         
-        if (cbf_find_row(h5handle->scratch_tables,axis_id)) {
+        if (cbf_find_hashedvalue(h5handle->scratch_tables,axis_id,"axis_id",CBF_CASE_INSENSITIVE)) {
             
-            cbf_failnez(cbf_require_column(h5handle->scratch_tables,"axis_id"));
-
-            cbf_failnez(cbf_new_row(h5handle->scratch_tables));
+            cbf_failnez(cbf_set_hashedvalue(h5handle->scratch_tables, axis_id,"axis_id",-1));
             
-            cbf_failnez(cbf_set_value(h5handle->scratch_tables, axis_id));
-            
-            cbf_failnez(cbf_require_column(h5handle->scratch_tables,"nexus_path"));
-            
-            cbf_failnez(cbf_require_column(h5handle->scratch_tables,"poise_path"));
-            
-            cbf_failnez(cbf_require_column(h5handle->scratch_tables,"depcount"));
-            
-            cbf_failnez(cbf_require_column(h5handle->scratch_tables,"parent_path"));
 
         }
-        
+            
+        cbf_failnez(cbf_row_number(h5handle->scratch_tables,&targetrow));
+            
         cbf_failnez(cbf_require_column(h5handle->scratch_tables,"nexus_path"));
+        
+        cbf_failnez(cbf_select_row(h5handle->scratch_tables,targetrow));
         
         cbf_failnez(cbf_set_value(h5handle->scratch_tables,nexus_path));
         
-        cbf_debug_print2("cbf_set_NX_axis_path path set 10260 %x", errorcode);
+        cbf_failnez(cbf_require_column(h5handle->scratch_tables,"depcount"));
+        
+        cbf_failnez(cbf_require_column(h5handle->scratch_tables,"parent_path"));
+        
+        
+        
+        cbf_debug_print2("cbf_set_NX_axis_path path set %x", errorcode);
         
         cbf_failnez(cbf_require_column(h5handle->scratch_tables,"poise_path"));
         
@@ -10590,21 +10630,21 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         if (ii >=0) poise_path[ii] = '\0';
         
-        errorcode |= cbf_set_value(h5handle->scratch_tables,poise_path);
+        cbf_failnez(cbf_select_row(h5handle->scratch_tables,targetrow));
+        
+        cbf_failnez(cbf_set_value(h5handle->scratch_tables,poise_path));
         
         for (ii = klen-1; ii >=0 && poise_path[ii] != '/'; ii--) poise_path[ii] = '\0';
         
         if (ii >=0) poise_path[ii] = '\0';
 
-        if (!cbf_require_column(h5handle->scratch_tables,"parent_path")) {
+        cbf_failnez(cbf_require_column(h5handle->scratch_tables,"parent_path"));
             
-            errorcode |= cbf_set_value(h5handle->scratch_tables,poise_path);
-            
-        }
+        cbf_failnez(cbf_set_value(h5handle->scratch_tables,poise_path));
         
         CBF_END_ARRAY_REPORTNEZ(poise_path,errorcode);
         
-        cbf_debug_print2("cbf_set_NX_axis_path path set 10294 %x", errorcode);
+        cbf_debug_print2("cbf_set_NX_axis_path path set %x", errorcode);
 
         return errorcode;
         
@@ -10809,11 +10849,9 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             
             cbf_reportnez(cbf_rewind_row(h5handle->scratch_tables),errorcode);
             
-            if (cbf_find_row(h5handle->scratch_tables,axis_id)) {
+            if (cbf_find_hashedvalue(h5handle->scratch_tables,axis_id,"axis_id",CBF_CASE_INSENSITIVE)) {
                 
-                cbf_reportnez(cbf_new_row(h5handle->scratch_tables),errorcode);
-                
-                cbf_reportnez(cbf_set_value(h5handle->scratch_tables,axis_id),errorcode);
+                cbf_reportnez(cbf_set_hashedvalue(h5handle->scratch_tables,axis_id,"axis_id",-1),errorcode);
                 
             }
 

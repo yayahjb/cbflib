@@ -1796,6 +1796,8 @@ int cbf_compute_hashcode(const char *string, unsigned int *hashcode)
     int i;
 
     *hashcode = 0;
+    
+    if (!string || !hashcode) return CBF_ARGUMENT;
 
     for (i = 0; i<(ssize_t)strlen(string); i++)
     {
