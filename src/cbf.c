@@ -4793,256 +4793,282 @@ int cbf_require_dictionary (cbf_handle handle, cbf_handle * dictionary)
 
 int cbf_set_hashedvalue(cbf_handle handle, const char * value, 
                                            const char * columnname, 
-                                           int valuerow) {
-
-  char colhashnext[91];
-  
-  char * category;
-  
-  const char * ovalue;
-  
-  int ohashnext;
-  
-  char categoryhashtable[91];
-
-  unsigned int hashcode, ohashcode;
-
-  int orownum, rownum, nrownum=0, catrownum;
-
-  int colnamelen, catnamelen;
-
-  if ( !columnname ) return CBF_ARGUMENT;
-
-  if ( (colnamelen = strlen(columnname)) > 80 ) return CBF_ARGUMENT;
-
-  cbf_failnez(cbf_category_name (handle, (const char * *)&category));
-  
-  if ( (catnamelen = strlen(category)) > 80 ) return CBF_ARGUMENT;
-  
-  strcpy (categoryhashtable,category);
-  
-  strcpy (categoryhashtable + catnamelen, "(hash_table)");
-
-  strcpy (colhashnext, columnname);
-
-  strcpy (colhashnext+colnamelen, "(hash_next)");
-
-  cbf_failnez( cbf_compute_hashcode(value, &hashcode))
-
-  cbf_failnez( cbf_require_column(handle, columnname))
-
-    /* If we are going to hash an exisiting row, we need to
-  
+                        int valuerow) {
+    
+    char colhashnext[91];
+    
+    char * category;
+    
+    const char * ovalue;
+    
+    int newhashes;
+    
+    int ohashnext;
+    
+    char categoryhashtable[91];
+    
+    unsigned int hashcode, ohashcode;
+    
+    int orownum, rownum, nrownum=0, catrownum;
+    
+    int colnamelen, catnamelen;
+    
+    if ( !columnname ) return CBF_ARGUMENT;
+    
+    if ( (colnamelen = strlen(columnname)) > 80 ) return CBF_ARGUMENT;
+    
+    cbf_failnez(cbf_category_name (handle, (const char * *)&category));
+    
+    if ( (catnamelen = strlen(category)) > 80 ) return CBF_ARGUMENT;
+    
+    strcpy (categoryhashtable,category);
+    
+    strcpy (categoryhashtable + catnamelen, "(hash_table)");
+    
+    strcpy (colhashnext, columnname);
+    
+    strcpy (colhashnext+colnamelen, "(hash_next)");
+    
+    cbf_failnez( cbf_compute_hashcode(value, &hashcode))
+    
+    cbf_failnez( cbf_require_column(handle, columnname))
+    
+    /* If we are going to hash an existing row, we need to
+     
      undo any existing hash to the same row */
-     
-  if (valuerow >= 0) {
-  
-    cbf_failnez( cbf_select_row       (handle, valuerow))
     
-    if (!cbf_get_value(handle,&ovalue) && ovalue
-      && !cbf_find_column(handle, colhashnext)
-      && !cbf_get_integervalue(handle, &ohashnext)) {
-  
-      cbf_failnez( cbf_compute_hashcode(ovalue, &ohashcode))
-      
-      if (hashcode != ohashcode)   {
-
-        cbf_failnez( cbf_require_category (handle,   categoryhashtable))
-  
-        cbf_failnez( cbf_require_column   (handle,   colhashnext))
-      	
-        cbf_failnez( cbf_select_row       (handle,   ohashcode))
-
-        if ( ! cbf_get_integervalue (handle, &rownum)) {
+    newhashes = 0;
+    
+    if (cbf_find_column(handle,colhashnext)) {
         
-          if (rownum == valuerow) {
-          
-            cbf_failnez(cbf_set_integervalue(handle,ohashnext))
-          	
-          } else  {
-          
-            cbf_failnez( cbf_find_category    (handle,   category))
-
-            cbf_failnez( cbf_find_column      (handle,   colhashnext))
-
-            while ( rownum >=0 && rownum != valuerow)  {
-  
-              cbf_failnez( cbf_select_row     (handle,   rownum))
+        newhashes = 1;
+        
+    }
     
-              orownum = -1;
-    
-              if (cbf_get_integervalue (handle,&orownum) || orownum <= rownum) {
-
-                break;
-      
-              } else {
-      	
-      	        if (orownum == valuerow) {
-      	      
-      	          cbf_failnez(cbf_set_integervalue(handle,ohashnext))
-      	        
-      	          break;
-      	      	
-      	        }
-              }
-      	
-              rownum = orownum;
-  	
+    if (valuerow >= 0) {
+        
+        cbf_failnez( cbf_select_row       (handle, valuerow))
+        
+        if (!cbf_get_value(handle,&ovalue) && ovalue
+            && !cbf_find_column(handle, colhashnext)
+            && !cbf_get_integervalue(handle, &ohashnext)) {
+            
+            newhashes = 0;
+            
+            cbf_failnez( cbf_compute_hashcode(ovalue, &ohashcode))
+            
+            if (hashcode != ohashcode)   {
+                
+                cbf_failnez( cbf_require_category (handle,   categoryhashtable))
+                
+                cbf_failnez( cbf_require_column   (handle,   colhashnext))
+                
+                cbf_failnez( cbf_select_row       (handle,   ohashcode))
+                
+                if ( ! cbf_get_integervalue (handle, &rownum)) {
+                    
+                    if (rownum == valuerow) {
+                        
+                        cbf_failnez(cbf_set_integervalue(handle,ohashnext))
+                        
+                    } else  {
+                        
+                        cbf_failnez( cbf_find_category    (handle,   category))
+                        
+                        cbf_failnez( cbf_find_column      (handle,   colhashnext))
+                        
+                        while ( rownum >=0 && rownum != valuerow)  {
+                            
+                            cbf_failnez( cbf_select_row     (handle,   rownum))
+                            
+                            orownum = -1;
+                            
+                            if (cbf_get_integervalue (handle,&orownum) || orownum <= rownum) {
+                                
+                                break;
+                                
+                            } else {
+                                
+                                if (orownum == valuerow) {
+                                    
+                                    cbf_failnez(cbf_set_integervalue(handle,ohashnext))
+                                    
+                                    break;
+                                    
+                                }
+                            }
+                            
+                            rownum = orownum;
+                            
+                        }
+                        
+                    }
+                    
+                }
+                
             }
-          	
-          }
-        	
+            
         }
-  
-      }
-      	
-    } 
-  	
-  }
-  
-
-  if ( valuerow < 0 )  {
-  	
-    cbf_failnez( cbf_new_row          (handle))
-    
-  } else {
-  	
-    cbf_failnez( cbf_select_row       (handle, valuerow))
-
-  }
-
-  cbf_failnez( cbf_set_value        (handle,    value))
-
-  cbf_failnez( cbf_row_number       (handle,   (unsigned int *)&nrownum))
-
-  cbf_failnez( cbf_require_column   (handle,   (const char *) colhashnext))
-
-  cbf_failnez( cbf_set_integervalue (handle,   -1))
-
-  cbf_failnez( cbf_require_category (handle,   categoryhashtable))
-  
-  cbf_failnez( cbf_require_column   (handle,   colhashnext))
-  
-  cbf_failnez( cbf_count_rows       (handle,   (unsigned int *)&catrownum))
-  
-  if ((unsigned int)catrownum < hashcode+1) {
-  
-    for (rownum = catrownum; (unsigned int)rownum < hashcode+1; rownum++) {
-    
-      cbf_failnez(cbf_new_row(handle))
-    	
-    }	
-  	
-  }
-
-  
-  cbf_failnez( cbf_find_column      (handle, colhashnext))
-
-  cbf_failnez( cbf_select_row       (handle, hashcode))
-
-  if ( cbf_get_integervalue (handle, &rownum) || rownum == -1) {
-
-    cbf_failnez( cbf_set_integervalue   (handle, nrownum))
-    
-    cbf_failnez( cbf_find_category      (handle, category))
-      
-    cbf_failnez( cbf_find_column        (handle,  colhashnext))
-     
-    cbf_failnez( cbf_select_row         (handle, nrownum))
         
-    cbf_failnez( cbf_set_integervalue   (handle, -1))
-
-    cbf_failnez( cbf_find_column        (handle, columnname))
-
-    return 0;
-  
-  }
+    }
     
-  /* nrownum is the row number of the value
-     rownum is the row number of pointed to the by the hash table 
-   
+    
+    cbf_failnez( cbf_find_category (handle,   category));
+    
+    
+    cbf_failnez( cbf_find_column (handle,   columnname));
+    
+    
+    if ( valuerow < 0 )  {
+        
+        cbf_failnez( cbf_new_row          (handle));
+        
+    } else {
+        
+        cbf_failnez( cbf_select_row       (handle, valuerow));
+        
+    }
+    
+    cbf_failnez( cbf_set_value        (handle,    value))
+    
+    cbf_failnez( cbf_row_number       (handle,   (unsigned int *)&nrownum))
+    
+    cbf_debug_print4("cbf_set_hashed_value, category %s, column %s, row %ud", category, columnname, nrownum);
+    
+    cbf_debug_print2("cbf_set_hashed_value, value %s", value);
+    
+    cbf_failnez( cbf_require_column   (handle,   (const char *) colhashnext))
+    
+    cbf_failnez( cbf_set_integervalue (handle,   -1))
+    
+    cbf_failnez( cbf_require_category (handle,   categoryhashtable))
+    
+    cbf_failnez( cbf_require_column   (handle,   colhashnext))
+    
+    cbf_failnez( cbf_count_rows       (handle,   (unsigned int *)&catrownum))
+    
+    if ((unsigned int)catrownum < hashcode+1) {
+        
+        for (rownum = catrownum; (unsigned int)rownum < hashcode+1; rownum++) {
+            
+            cbf_failnez(cbf_new_row(handle));
+            
+            cbf_failnez(cbf_set_integervalue(handle,-1));
+            
+        }
+        
+    }
+    
+    
+    cbf_failnez( cbf_find_column      (handle, colhashnext))
+    
+    cbf_failnez( cbf_select_row       (handle, hashcode))
+    
+    if ( cbf_get_integervalue (handle, &rownum) || rownum == -1) {
+        
+        cbf_failnez( cbf_set_integervalue   (handle, nrownum))
+        
+        cbf_failnez( cbf_find_category      (handle, category))
+        
+        cbf_failnez( cbf_find_column        (handle,  colhashnext))
+        
+        cbf_failnez( cbf_select_row         (handle, nrownum))
+        
+        cbf_failnez( cbf_set_integervalue   (handle, -1))
+        
+        cbf_failnez( cbf_find_column        (handle, columnname))
+        
+        return 0;
+        
+    }
+    
+    /* nrownum is the row number of the value
+     rownum is the row number of pointed to by the hash table
+     
      If the hash table points higher up, reset the hashtable to
      point to the new row.
-   
+     
      We will still have to relink the chain by having this row point
      to rownum
-   
+     
      If the hash table point higher up, the hash table remains as
      is, and the new link is inserted only in the main category
-   
-   */
-  
-  if (nrownum < rownum) {
-  
-    cbf_failnez( cbf_set_integervalue(handle,nrownum))
-  	
-  }
-  
-  cbf_failnez( cbf_find_category    (handle,   category))
-
-  cbf_failnez( cbf_find_column      (handle,   colhashnext))
-
-  if (rownum >= nrownum) {
-  
+     
+     */
+    
+    if (nrownum < rownum) {
+        
+        cbf_failnez( cbf_set_integervalue(handle,nrownum))
+        
+    }
+    
+    cbf_failnez( cbf_find_category    (handle,   category))
+    
+    cbf_failnez( cbf_find_column      (handle,   colhashnext))
+    
+    if (rownum >= nrownum) {
+        
         cbf_failnez( cbf_select_row         (handle, nrownum))
-
+        
         if (rownum > nrownum) {
-        	
-          cbf_failnez( cbf_set_integervalue(handle, rownum))
-          
+            
+            cbf_failnez( cbf_set_integervalue(handle, rownum))
+            
         }
-
+        
         if (cbf_get_integervalue (handle, &orownum)) {
-      	
-   
-          cbf_failnez(cbf_set_integervalue (handle, -1))
-        
+            
+            
+            cbf_failnez(cbf_set_integervalue (handle, -1))
+            
         }
-
+        
         cbf_failnez( cbf_find_column        (handle, columnname))
-
+        
         return 0;
-  	
-  }
- 
-  
-  while ( rownum >=0 )  {
-  
-    cbf_failnez( cbf_select_row     (handle,   rownum))
-    
-    orownum = -1;
-    
-    if (cbf_get_integervalue (handle,&orownum) || orownum < 0 || orownum >= nrownum) {
-          
-      cbf_failnez( cbf_set_integervalue   (handle, nrownum))
-
-      cbf_failnez( cbf_select_row         (handle, nrownum))
-
-      if ( orownum < 0  || orownum > nrownum) {
         
-        cbf_failnez( cbf_set_integervalue   (handle, orownum))
-        
-      }
-      
-      if (cbf_get_integervalue (handle, &orownum)) {
-      	
-   
-        cbf_failnez(cbf_set_integervalue (handle, -1))
-        
-      }
-
-      cbf_failnez( cbf_find_column        (handle, columnname))
-
-      return 0;
-      
-    }      
+    }
     
-    rownum = orownum;
-  	
-  }
-
-  return CBF_NOTFOUND;
-
+    
+    while ( rownum >=0 )  {
+        
+        cbf_failnez( cbf_select_row     (handle,   rownum))
+        
+        orownum = -1;
+        
+        if (cbf_get_integervalue (handle,&orownum) || orownum < 0 || orownum >= nrownum) {
+            
+            cbf_failnez( cbf_set_integervalue   (handle, nrownum))
+            
+            cbf_failnez( cbf_select_row         (handle, nrownum))
+            
+            if ( orownum < 0  || orownum > nrownum) {
+                
+                cbf_failnez( cbf_set_integervalue   (handle, orownum))
+                
+            }
+            
+            if (cbf_get_integervalue (handle, &orownum)) {
+                
+                
+                cbf_failnez(cbf_set_integervalue (handle, -1))
+                
+            }
+            
+            cbf_failnez( cbf_find_column        (handle, columnname))
+            
+            cbf_failnez( cbf_select_row         (handle, nrownum));
+            
+            return 0;
+            
+        }      
+        
+        rownum = orownum;
+        
+    }
+    
+    return CBF_NOTFOUND;
+    
 }
 
 
@@ -5100,7 +5126,7 @@ int cbf_find_hashedvalue(cbf_handle handle, const char * value,
 
   strcpy (colhashnext+colnamelen, "(hash_next)");
   
-    /* Switch the the hash table and make sure it has enough rows */
+    /* Switch to the hash table and make sure it has enough rows */
   
   cbf_failnez( cbf_require_category (handle, categoryhashtable))
   
@@ -5138,14 +5164,20 @@ int cbf_find_hashedvalue(cbf_handle handle, const char * value,
       
       if (caseinsensitive) {
       	
-        if ( !cbf_get_value(handle, &rowvalue)  && !cbf_cistrcmp(rowvalue, value)) {
+        if ( !cbf_get_value(handle, &rowvalue)  && rowvalue && !cbf_cistrcmp(rowvalue, value)) {
+            
+            cbf_debug_print4("cbf_find_hashed_value, category %s, column %s, row %ud", category, columnname, rownum);
+            
+            cbf_debug_print2("cbf_find_hashed_value, value %s", value);
+
       
           return 0;
           
         }
-      }else {
+          
+      } else {
       
-        if ( !cbf_get_value(handle, &rowvalue)  && !strcmp(rowvalue, value)) {
+        if ( !cbf_get_value(handle, &rowvalue)  && rowvalue && !strcmp(rowvalue, value)) {
       
           return 0;
           
