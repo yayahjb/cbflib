@@ -6830,7 +6830,8 @@ extern "C" {
             return CBF_ARGUMENT;
 
 
-        /* Currently just return the range of the first rotation axis */
+        /* Currently just return the range of the first rotation axis with 
+	   non-zero increment */
 
         for (axis = 0; axis < goniometer->axes; axis++)
 
@@ -6848,7 +6849,17 @@ extern "C" {
 
                     return 0;
                 }
-
+	
+	/* Second pass just look for first rotation axis */ 
+	
+        for (axis = 0; axis < goniometer->axes; axis++) {
+	  if (goniometer->axis [axis].type == CBF_ROTATION_AXIS) {
+	    if (start) *start = goniometer->axis [axis].start;
+	    if (increment) *increment = goniometer->axis [axis].increment;
+	    return 0;
+	  }
+	}
+	
         return CBF_NOTFOUND;
     }
 
