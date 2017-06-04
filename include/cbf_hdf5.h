@@ -955,6 +955,7 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
         int   rwmode;  /* 0 for read-only, 1 for read-write */
 		unsigned int slice; /* The slice within the HDF5 data arrays where data will be added */
         unsigned int block; /* The block of data arrays, or zero if no blocking */
+        unsigned int blocksize;  /* The number of arrays in a block */
         unsigned int num_detectors; /* The number of NXdetector groups */
         unsigned int cap_detectors; /* The capacity in terms of NXdetector groups */
         unsigned int cur_detector;  /* The currently active detector, numbered from 1 */
@@ -1512,6 +1513,28 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
                                       const char* datasetnamesuffix,
                                       const hsize_t slab,
                                       int errorcode);
+    
+    
+    
+    /* find a text dataset slab in a dataset in a group, with slab location
+     
+     places the specified datasettext in some slab of the
+     specified datasetname for group hid.  The slab where the text is
+     found or placed is reported in textslab.
+     
+     If the new text is the same as the existing text in any slab, nothing changes.
+     A case-insensitive compare is used.
+     
+     The slabs are indexed from 0
+     
+     */
+    
+    int cbf_find_h5text_dataset_slab(hid_t hid,
+                                     const char* datasetname,
+                                     const char* datasettext,
+                                     hsize_t * textslab,
+                                     int errorcode);
+
     
     /* require a text dataset slab in a dataset in a group
      
