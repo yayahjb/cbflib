@@ -708,6 +708,7 @@ extern "C" {
             && (cbf_tmp_dir_len=cbf_convert_env(NULL,cbf_tmp_dir,0)) > 0) {
             
             char *cbf_tmp_dir_conv = malloc(cbf_tmp_dir_len+39);
+            memset(cbf_tmp_dir_conv,0,cbf_tmp_dir_len+39);
             
             cbf_tmp_dir_len = cbf_convert_env(cbf_tmp_dir_conv,cbf_tmp_dir,cbf_tmp_dir_len+1);
             
@@ -720,6 +721,7 @@ extern "C" {
         } else if ((cbf_tmp_dir_len=cbf_convert_env(NULL,CBF_TMP_DIR,0)) > 0) {
 
             char *cbf_tmp_dir_conv = malloc(cbf_tmp_dir_len+39);
+            memset(cbf_tmp_dir_conv,0,cbf_tmp_dir_len+39);
             
             cbf_tmp_dir_len = cbf_convert_env(cbf_tmp_dir_conv,CBF_TMP_DIR,cbf_tmp_dir_len+1);
             
