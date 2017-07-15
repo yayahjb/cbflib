@@ -1200,11 +1200,9 @@ $(REGEX):   build_regex
 	cp config.guess config.sub $(REGEX)
 	(cd $(REGEX); ./configure --prefix=$(REGEX_PREFIX); make install)
 	@-cp $(REGEX_PREFIX)/include/pcreposix.h $(REGEX_PREFIX)/include/regex.h
-	@-cp $(REGEX_PREFIX)/include/pcre2posix.h $(REGEX_PREFIX)/include/regex.h
 $(REGEX)_INSTALL:   $(REGEX)
-	(cd $(REGEX); ./configure --prefix=$(CBF_PREFIX); make install)
+	(cd $(REGEX); make distclean; ./configure --prefix=$(CBF_PREFIX); make install)
 	@-cp $(CBF_PREFIX)/include/pcreposix.h $(CBF_PREFIX)/include/regex.h
-	@-cp $(CBF_PREFIX)/include/pcre2posix.h $(CBF_PREFIX)/include/regex.h
 
 #
 # TIFF
@@ -1221,7 +1219,7 @@ $(TIFF):	build_tiff config.guess config.sub
 	cp config.guess config.sub $(TIFF)/config/
 	(cd $(TIFF); ./configure --prefix=$(TIFF_PREFIX); make install)
 $(TIFF)_INSTALL:    $(TIFF)
-	(cd $(TIFF); ./configure --prefix=$(CBF_PREFIX); make install)
+	(cd $(TIFF); make distclean; ./configure --prefix=$(CBF_PREFIX); make install)
 
 
 ifneq ($(CBFLIB_DONT_USE_LOCAL_HDF5),yes)
@@ -1241,7 +1239,7 @@ $(HDF5):	build_hdf5
 	-rm $(HDF5).tar.gz
 	(cd $(HDF5); ./configure --enable-fortran --enable-using-memchecker  --prefix=$(HDF5_PREFIX)  ; make install)
 $(HDF5)_INSTALL:    $(HDF5)
-	(cd $(HDF5); ./configure --enable-fortran --enable-using-memchecker  --prefix=$(CBF_PREFIX)  ; make install)
+	(cd $(HDF5); make distclean; ./configure --enable-fortran --enable-using-memchecker  --prefix=$(CBF_PREFIX)  ; make install)
 endif
 
 
