@@ -584,6 +584,8 @@ extern "C" {
        a directory path followed by 38 empty character positions.
        The directory path is assumed to have been created already.
      
+       If the directory path name is NULL or "", "(NONE)", NULL is returned.
+     
      */
 
     static FILE* cbf_mktmpfile(char * tmpdir, size_t tmpdir_len) {
@@ -610,6 +612,10 @@ extern "C" {
         size_t ii;
         
         FILE * control_file, temp_file;
+        
+        if (tmpdir) tmpdir[tmpdir_len]='\0';
+        
+        if (!tmpdir || tmpdir_len == 0 || !cbf_cistrcmp(tmpdir,"(NONE)")) return NULL;
         
         if (tmpdir[tmpdir_len-1] != CBF_PATH_DIR_SEP) {
             
@@ -694,6 +700,8 @@ extern "C" {
      base 62, using 0-9,a-z,A-Z, managed by a file named CBF_TMP_mmmmmm
      containing the last aaaaaa string used, where mmmmmm is the PID%64.
      
+     If the directory name resolves to "(NONE)", NULL will be returned.
+     
      */
     static FILE * cbf_tmpfile( void ) {
         
@@ -769,9 +777,9 @@ extern "C" {
         
         stream = cbf_tmpfile ();
         
-        if (!stream)
+        /* if (!stream)
             
-            return CBF_FILEOPEN;
+            return CBF_FILEOPEN; */
         
         errorcode = cbf_make_file (&context->temporary, stream);
         
