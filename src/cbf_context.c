@@ -520,6 +520,10 @@ extern "C" {
         
         struct stat buffer;
         
+        /* silently reject NULL, the empty path, and "(NONE)" */
+        
+        if (!path || !cbf_cistrcmp(path,"") || !cbf_cistrcmp(path,"(NONE)")) return CBF_SUCCESS;
+        
         if ( MKDIR(path) && errno != EEXIST ) {
             
             ip = 0;
