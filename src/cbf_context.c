@@ -696,8 +696,8 @@ extern "C" {
         
     }
     
-    /* Find a temporary file dir.  If there is a non empty CBF_ENV_TMP_DIR,
-     use that.  If not, use CBF_TMP_DIR
+    /* Find a temporary file dir.  If there is a non empty CBF_TMP_DIR environment
+     variable, use that.  If not, use CBF_TMP_DIR from cbf.h
      
      If the directory name resolves to "(NONE)", NULL will be returned.
      
@@ -743,8 +743,8 @@ extern "C" {
     }
 
     
-    /* Create a temporary file.  If there is a non empty CBF_ENV_TMP_DIR,
-     use that.  If not, use CBF_TMP_DIR
+    /* Create a temporary file.  If there is a non empty environment variable
+     CBF_TMP_DIR use that.  If not, use CBF_TMP_DIR from cbf.h
      
      In that directory, create a file named CBF_TMP_nnnnnn_aaaaaa
      where nnnnnn is the PID and aaaaaa is a unique character string
@@ -754,7 +754,7 @@ extern "C" {
      If the directory name resolves to "(NONE)", NULL will be returned.
      
      */
-    static FILE * cbf_tmpfile( void ) {
+    FILE * cbf_tmpfile( void ) {
         
         char *cbf_tmp_dir_conv;
         size_t cbf_tmp_dir_len;
@@ -785,6 +785,8 @@ extern "C" {
     {
         FILE *stream;
         
+        const char * cbf_defer_tmp;
+        
         int errorcode;
         
         
@@ -809,11 +811,16 @@ extern "C" {
         
         /* Create the temporary file */
         
-        stream = cbf_tmpfile ();
+        cbf_defer_tmp = getenv("CBF_DEFER_TMP");
         
-        /* if (!stream)
+        if (!cbf_defer_tmp || !cbf_cistrcmp(cbf_defer_tmp,"no") || !cbf_cistrcmp(CBF_DEFER_TMP,"no")) {
+        
+            stream = cbf_tmpfile ();
+
+        } else {
             
-            return CBF_FILEOPEN; */
+            stream = NULL;
+        }
         
         errorcode = cbf_make_file (&context->temporary, stream);
         
