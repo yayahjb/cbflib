@@ -696,6 +696,53 @@ extern "C" {
         
     }
     
+    /* Find a temporary file dir.  If there is a non empty CBF_ENV_TMP_DIR,
+     use that.  If not, use CBF_TMP_DIR
+     
+     If the directory name resolves to "(NONE)", NULL will be returned.
+     
+     The path returned is a buffer with 39 free characters to provide room for
+     a termorary file name and must be freed after being used to create a stream.
+     
+     */
+    static int cbf_find_tmpdir( char * * cbf_tmp_dir_conv, size_t * cbf_tmp_dir_len ) {
+        
+        
+        char * cbf_tmp_dir;
+        FILE * result;
+        
+        if (!cbf_tmp_dir_conv || !cbf_tmp_dir_len) return CBF_ARGUMENT;
+        
+        /* Locate the temporary files directory */
+        
+        if ((cbf_tmp_dir = getenv("CBF_TMP_DIR"))
+            && (* cbf_tmp_dir_len=cbf_convert_env(NULL,cbf_tmp_dir,0)) > 0) {
+            
+            *cbf_tmp_dir_conv = malloc(*cbf_tmp_dir_len+39);
+            memset(*cbf_tmp_dir_conv,0,*cbf_tmp_dir_len+39);
+            
+            *cbf_tmp_dir_len = cbf_convert_env(*cbf_tmp_dir_conv,cbf_tmp_dir,*cbf_tmp_dir_len+1);
+            
+            return CBF_SUCCESS;
+            
+        } else if ((*cbf_tmp_dir_len=cbf_convert_env(NULL,CBF_TMP_DIR,0)) > 0) {
+            
+            *cbf_tmp_dir_conv = malloc(*cbf_tmp_dir_len+39);
+            memset(*cbf_tmp_dir_conv,0,*cbf_tmp_dir_len+39);
+            
+            *cbf_tmp_dir_len = cbf_convert_env(*cbf_tmp_dir_conv,CBF_TMP_DIR,*cbf_tmp_dir_len+1);
+            
+            return CBF_SUCCESS;
+
+        }
+        
+        *cbf_tmp_dir_len = 0;
+        *cbf_tmp_dir_conv = NULL;
+        return CBF_NOTFOUND;
+        
+    }
+
+    
     /* Create a temporary file.  If there is a non empty CBF_ENV_TMP_DIR,
      use that.  If not, use CBF_TMP_DIR
      
@@ -709,44 +756,27 @@ extern "C" {
      */
     static FILE * cbf_tmpfile( void ) {
         
-        
-        char * cbf_tmp_dir;
+        char *cbf_tmp_dir_conv;
         size_t cbf_tmp_dir_len;
         FILE * result;
         
-        /* Locate and, if necessary, create the temporary files directory */
-        
-        if ((cbf_tmp_dir = getenv("CBF_TMP_DIR"))
-            && (cbf_tmp_dir_len=cbf_convert_env(NULL,cbf_tmp_dir,0)) > 0) {
+        if (!cbf_find_tmpdir(&cbf_tmp_dir_conv, & cbf_tmp_dir_len)) {
+            result = NULL;
+            if (!cbf_mkdir(cbf_tmp_dir_conv)) {
+                
+                result = cbf_mktmpfile(cbf_tmp_dir_conv, cbf_tmp_dir_len);
+                
+            }
             
-            char *cbf_tmp_dir_conv = malloc(cbf_tmp_dir_len+39);
-            memset(cbf_tmp_dir_conv,0,cbf_tmp_dir_len+39);
-            
-            cbf_tmp_dir_len = cbf_convert_env(cbf_tmp_dir_conv,cbf_tmp_dir,cbf_tmp_dir_len+1);
-            
-            if (cbf_mkdir(cbf_tmp_dir_conv)) return NULL;
-            
-            result = cbf_mktmpfile(cbf_tmp_dir_conv, cbf_tmp_dir_len);
             free(cbf_tmp_dir_conv);
             return result;
             
-        } else if ((cbf_tmp_dir_len=cbf_convert_env(NULL,CBF_TMP_DIR,0)) > 0) {
-
-            char *cbf_tmp_dir_conv = malloc(cbf_tmp_dir_len+39);
-            memset(cbf_tmp_dir_conv,0,cbf_tmp_dir_len+39);
-            
-            cbf_tmp_dir_len = cbf_convert_env(cbf_tmp_dir_conv,CBF_TMP_DIR,cbf_tmp_dir_len+1);
-            
-            if (cbf_mkdir(cbf_tmp_dir_conv)) return NULL;
-            
-            result = cbf_mktmpfile(cbf_tmp_dir_conv, cbf_tmp_dir_len);
-            free(cbf_tmp_dir_conv);
-            return result;
         }
-        
+            
         return NULL;
-        
+
     }
+    
     
     
     /* Open a temporary file connection */
