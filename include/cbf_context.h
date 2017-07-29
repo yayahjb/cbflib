@@ -295,7 +295,10 @@ int cbf_delete_contextconnection (cbf_context **context);
   /* Open a temporary file connection */
 
 int cbf_open_temporary (cbf_context *context, cbf_file **temporary);
-
+    
+  /* Create a temporary file */
+    
+FILE * cbf_tmpfile( void );
 
   /* Close a temporary file connection */
 

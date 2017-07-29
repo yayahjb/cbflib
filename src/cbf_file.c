@@ -529,42 +529,48 @@ int cbf_set_io_buffersize (cbf_file *file, size_t size)
         old space, but certainly to the requested size */
 
 	if (file->characters_size < CBF_INIT_WRITE_BUFFER
-	  || file->characters_size < size ) {
-      
-      fc = &(file->characters_base);
-    
-      old_data = file->characters-file->characters_base;
-    
-      old_size = old_data + file->characters_size;
-      
-      target_size = old_data + size;
-      
-      if (target_size  < old_size) target_size = old_size*2;
-    
-      if (cbf_realloc ((void **)fc, &old_size, 1, target_size)) {
-          
-        if (!file->stream) return CBF_ALLOC;
-      
-        file->temporary = 0;
+        || file->characters_size < size ) {
         
-        file->characters = file->characters_base;
+        fc = &(file->characters_base);
         
-        file->characters_used = old_data;
+        old_data = file->characters-file->characters_base;
         
-        file->characters_size = old_size;
+        old_size = old_data + file->characters_size;
         
-        if (file->characters_size < size) return CBF_ALLOC;
+        target_size = old_data + size;
         
-        return 0;
-      	
-      } else {
-      
-        file->characters = file->characters_base + old_data;
+        if (target_size  < old_size) target_size = old_size*2;
         
-        file->characters_size = old_size - old_data;
+        if (cbf_realloc ((void **)fc, &old_size, 1, target_size)) {
+            
+            if (!file->stream) {
+                
+                file->stream = cbf_tmpfile();
+                
+            }
+            
+            if (!file->stream) return CBF_ALLOC;
+            
+            file->temporary = 0;
+            
+            file->characters = file->characters_base;
+            
+            file->characters_used = old_data;
+            
+            file->characters_size = old_size;
+            
+            if (file->characters_size < size) return CBF_ALLOC;
+            
+            return 0;
+            
+        } else {
+            
+            file->characters = file->characters_base + old_data;
+            
+            file->characters_size = old_size - old_data;
+            
+        }
         
-      }
-          	
     }
     
     return 0;
@@ -1415,6 +1421,13 @@ int cbf_flush_characters (cbf_file *file)
                 
                 if (!file->stream) {
                     
+                    file->stream = cbf_tmpfile();
+                    
+                }
+
+                
+                if (!file->stream) {
+                    
                     return 0;
                     
                 }
@@ -1440,6 +1453,12 @@ int cbf_flush_characters (cbf_file *file)
         }
         
         return 0;
+        
+    }
+    
+    if (!file->stream) {
+        
+        file->stream = cbf_tmpfile();
         
     }
     
@@ -2022,23 +2041,30 @@ int cbf_put_block (cbf_file *file, size_t nelem)
     
       old_size = old_data + file->characters_size;
     
-      if (cbf_realloc ((void **)fc, &old_size, 1, old_size+nelem)) {
-          
-        if (!file->stream) return CBF_ALLOC;
-      
-        file->temporary = 0;
-        
-        file->characters = file->characters_base;
-
-        file->characters_used = old_data;
-        
-        file->characters_size = old_size;
-        
-        cbf_failnez (cbf_flush_characters (file))
-        
-        break;
-      	
-      } else {
+        if (cbf_realloc ((void **)fc, &old_size, 1, old_size+nelem)) {
+            
+            if (!file->stream) {
+                
+                file->stream = cbf_tmpfile();
+                
+            }
+            
+            
+            if (!file->stream) return CBF_ALLOC;
+            
+            file->temporary = 0;
+            
+            file->characters = file->characters_base;
+            
+            file->characters_used = old_data;
+            
+            file->characters_size = old_size;
+            
+            cbf_failnez (cbf_flush_characters (file))
+            
+            break;
+            
+        } else {
       
         file->characters = file->characters_base + old_data;
         

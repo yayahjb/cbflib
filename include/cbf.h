@@ -281,12 +281,10 @@ _CBF_STR(CBF_VERS_RELEASE) CBF_VERS_SUBRELEASE
 #define CBF_SVN_DATE_STRING "$Date: 2015-12-15 18:48:12 -0500 (Tue, 15 Dec 2015) $"
     
 #ifdef _WIN32
-#define CBF_ENV_TMP_DIR "%CBF_TMP_DIR%"
 #define CBF_SYSTEM_TMP_DIR "C:\\CBF"
 #define CBF_USER_TMP_DIR "%TEMP%\\CBF"
 #define CBF_PATH_DIR_SEP '\\'
 #else
-#define CBF_ENV_TMP_DIR "${CBF_TMP_DIR}"
 #define CBF_SYSTEM_TMP_DIR "/tmp/cbf"
 #define CBF_USER_TMP_DIR "${HOME}/.cbf/tmp"
 #define CBF_PATH_DIR_SEP '/'
@@ -299,6 +297,9 @@ _CBF_STR(CBF_VERS_RELEASE) CBF_VERS_SUBRELEASE
 #define CBF_TMP_DIR CBF_USER_TMP_DIR
 #define CBF_TMP_DIR_PERM 0700
 #endif
+    
+#define CBF_DEFER_TMP "yes"
+    
     
 #include "cbf_tree.h"
 
