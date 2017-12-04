@@ -749,23 +749,23 @@ int cbf_set_binary (cbf_node *column, unsigned int row,
 
 int cbf_check_digest (cbf_node *column, unsigned int row)
 {
-  cbf_file *file;
+  cbf_file *file=NULL;
 
-  long start;
+  long start=0L;
 
-  size_t size;
+  size_t size=0;
 
   char old_digest [25], new_digest [25];
   
-  const char *byteorder;
+  const char *byteorder=NULL;
 
-  int id, bits, sign, type, checked_digest, realarray;
+  int id=0, bits=0, sign=0, type=0, checked_digest=0, realarray=0;
   
-  size_t dimover, dimfast, dimmid, dimslow;
+  size_t dimover=0, dimfast=0, dimmid=0, dimslow=0;
   
-  size_t padding;
+  size_t padding=0;
 
-  unsigned int compression;
+  unsigned int compression=0;
 
 
     /* Parse the value */
@@ -841,17 +841,17 @@ int cbf_binary_parameters (cbf_node *column,
                            size_t *dimfast, size_t *dimmid, size_t *dimslow,
                            size_t *padding)
 {
-  cbf_file *file;
+  cbf_file *file=NULL;
 
-  long start;
+  long start=0;
 
-  size_t size, file_elsize, file_nelem;
+  size_t size=0, file_elsize=0, file_nelem=0;
 
-  int text_bits, errorcode;
+  int text_bits=0, errorcode=0;
   
-  size_t text_dimover;
+  size_t text_dimover=0;
   
-  int text_sign;
+  int text_sign=0;
 
 
     /* Check the digest (this will also decode it if necessary) */
@@ -968,20 +968,20 @@ int cbf_get_binary (cbf_node *column, unsigned int row, int *id,
                     const char **byteorder, size_t *dimover, size_t *dimfast, size_t *dimmid,
                     size_t *dimslow, size_t *padding)
 {
-  cbf_file *file;
+  cbf_file *file=NULL;
 
-  long start;
+  long start=0;
 
-  int eltype_file, elsigned_file, elunsigned_file,
-                   minelem_file, maxelem_file, bits, sign;
+  int eltype_file=0, elsigned_file=0, elunsigned_file=0,
+                   minelem_file=0, maxelem_file=0, bits=0, sign=0;
 
-  unsigned int compression;
+  unsigned int compression=0;
 
-  size_t nelem_file;
+  size_t nelem_file=0;
   
-  size_t text_dimover;
+  size_t text_dimover=0;
 
-  size_t size;
+  size_t size=0;
 
     /* Check the digest (this will also decode it if necessary) */
 

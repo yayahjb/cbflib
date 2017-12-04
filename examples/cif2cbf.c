@@ -1377,7 +1377,7 @@ int main (int argc, char *argv [])
                 "    [--{foi|frames-of-interest}  frame[,framehigh] \\\n");
         fprintf(stderr,
                 "    [--{roi|region-of-interest}\n"
-                "    fastlow,fasthigh[[,midlow,midhigh[,slowlow,slowhigh]] \\\n");
+                "    fastlow,fasthigh[,midlow,midhigh[,slowlow,slowhigh[,vallow,valhigh]]]] \\\n");
         fprintf(stderr,
                 "    [--{add-data-array} \\\n");
         fprintf(stderr,

@@ -262,6 +262,7 @@ extern "C" {
 #include "cbf_alloc.h"
 #include "cbf_string.h"
     
+#include <float.h>
 #include <ctype.h>
 #include <string.h>
 #include <math.h>
@@ -651,6 +652,7 @@ extern "C" {
         double vallow, valhigh;
         
 #endif
+
          
         cbf_get_local_integer_byte_order(&border);
         
@@ -674,8 +676,7 @@ extern "C" {
             elsize != sizeof (short int) &&
             elsize != sizeof (char))
             return CBF_ARGUMENT;
-        
-        
+       
         cbf_failnez(cbf_require_category(cbfout,category_name));
         
         cbf_failnez(cbf_count_rows(cbfout,&rows));
@@ -814,6 +815,10 @@ extern "C" {
             const char *byteorder;
             
             size_t dimfast, dimmid, dimslow, padding;
+
+            size_t fastlow=0, fasthigh=0, midlow=0, midhigh=0, slowlow=0, slowhigh=0;
+            double valuelow=-DBL_MAX, valuehigh=DBL_MAX;
+
             
             cbf_failnez(cbf_get_arrayparameters_wdims_fs(cbfin,
                                                          &cifcompression,
@@ -828,7 +833,25 @@ extern "C" {
                                                          &byteorder,
                                                          &dimfast,
                                                          &dimmid,
-                                                         &dimslow, &padding))
+                                                         &dimslow, &padding));
+            if (dimfast == 0) dimfast = 1;
+            fasthigh = dimfast-1;
+            if (dimmid == 0) dimmid = 1;
+            midhigh = dimmid-1;
+            if (dimslow == 0) dimslow = 1;
+            slowhigh = dimslow-1;
+
+            if (roi) {
+
+                cbf_failnez(cbf_convertroi((char *)roi,dimfast,dimmid,dimslow,
+                                                   &fastlow,&fasthigh,
+                                                   &midlow,&midhigh,
+                                                   &slowlow,&slowhigh,
+                                                   &valuelow,&valuehigh));
+
+            } 
+        
+
             
             if (oelsize != sizeof (long int) &&
 #ifdef CBF_USE_LONG_LONG
@@ -891,12 +914,6 @@ extern "C" {
                         
                         void * roi_array;
                         
-                        size_t fastlow, fasthigh, midlow, midhigh, slowlow, slowhigh;
-                        
-                        cbf_failnez(cbf_convertroi((char *)roi,dimfast,dimmid,dimslow,
-                                                   &fastlow,&fasthigh,
-                                                   &midlow,&midhigh,
-                                                   &slowlow,&slowhigh));
                         
                         roi_array=malloc(oelsize*(fasthigh-fastlow+1)*(midhigh-midlow+1)*(slowhigh-slowlow+1));
                         
@@ -939,7 +956,8 @@ extern "C" {
                         && (elsign == 0 || 
                             ((elsign & CBF_CPY_SETSIGNED) && elsigned) ||
                             ((elsign & CBF_CPY_SETUNSIGNED) && elunsigned))
-                        && cliplow >= cliphigh) {
+                        && cliplow >= cliphigh
+                        && valuelow == -DBL_MAX && valuehigh == DBL_MAX ) {
                         
                         cbf_onfailnez(cbf_set_integerarray_wdims_fs(
                                                                     cbfout, compression,
@@ -977,7 +995,7 @@ extern "C" {
                         
                         if ((narray=malloc(nelsize*elements))) {
                             
-                            if (cliplow < cliphigh) {
+                            if (cliplow < cliphigh || valuelow > -DBL_MAX || valuehigh < DBL_MAX) {
                                 
                                 double doval;
                                 
@@ -986,32 +1004,60 @@ extern "C" {
                                     if ((ssize_t)oelsize == sizeof(char)){
                                         if (elsigned) doval = (double)((signed char *)array)[icount];
                                         else doval = (double)((unsigned char *)array)[icount];
-                                        if (doval < cliplow) doval = cliplow;
-                                        if (doval > cliphigh) doval = cliphigh;
+                                        if (cliplow < cliphigh) {
+                                          if (doval < cliplow) doval = cliplow;
+                                          if (doval > cliphigh) doval = cliphigh;
+                                        }
+                                        if (doval+0.5 < valuelow || doval-0.5 > valuehigh) {
+                                          doval = 0.;
+                                        } else {
+                                          doval -= (valuelow-1);
+                                        }
                                         if (elsigned) ((signed char *)array)[icount] = (signed char)doval;
                                         else ((unsigned char *)array)[icount] = (unsigned char)doval;
                                         
                                     } else if ((ssize_t)oelsize == sizeof(short int)){
                                         if (elsigned) doval = (double)((signed short int *)array)[icount];
                                         else doval = (double)((unsigned short int *)array)[icount];
-                                        if (doval < cliplow) doval = cliplow;
-                                        if (doval > cliphigh) doval = cliphigh;
+                                        if (cliplow < cliphigh) {
+                                          if (doval < cliplow) doval = cliplow;
+                                          if (doval > cliphigh) doval = cliphigh;
+                                        }
+                                        if (doval+0.5 < valuelow || doval-0.5 > valuehigh) {
+                                          doval = 0.;
+                                        } else {
+                                          doval -= (valuelow-1);
+                                        }
                                         if (elsigned) ((signed short int *)array)[icount] = (signed short int)doval;
                                         else ((unsigned short int *)array)[icount] = (unsigned short int)doval;
                                         
                                     } else if ((ssize_t)oelsize == sizeof(int)){
                                         if (elsigned) doval = (double)((signed int *)array)[icount];
                                         else doval = (double)((unsigned int *)array)[icount];
-                                        if (doval < cliplow) doval = cliplow;
-                                        if (doval > cliphigh) doval = cliphigh;
+                                        if (cliplow < cliphigh) {
+                                          if (doval < cliplow) doval = cliplow;
+                                          if (doval > cliphigh) doval = cliphigh;
+                                        }
+                                        if (doval+0.5 < valuelow || doval-0.5 > valuehigh) {
+                                          doval = 0.;
+                                        } else {
+                                          doval -= (valuelow-1);
+                                        }
                                         if (elsigned) ((signed int *)array)[icount] = (signed int)doval;
                                         else ((unsigned int *)array)[icount] = (unsigned int)doval;
                                         
                                     } else if ((ssize_t)oelsize == sizeof(long int)){
                                         if (elsigned) doval = (double)((signed long int *)array)[icount];
                                         else doval = (double)((unsigned long int *)array)[icount];
-                                        if (doval < cliplow) doval = cliplow;
-                                        if (doval > cliphigh) doval = cliphigh;
+                                        if (cliplow < cliphigh) {
+                                          if (doval < cliplow) doval = cliplow;
+                                          if (doval > cliphigh) doval = cliphigh;
+                                        }
+                                        if (doval+0.5 < valuelow || doval-0.5 > valuehigh) {
+                                          doval = 0.;
+                                        } else {
+                                          doval -= (valuelow-1);
+                                        }
                                         if (elsigned) ((signed long int *)array)[icount] = (signed long int)doval;
                                         else ((unsigned long int *)array)[icount] = (unsigned long int)doval;
                                         
@@ -1019,8 +1065,15 @@ extern "C" {
                                     } else if ((ssize_t)oelsize == sizeof(long long int)){
                                         if (elsigned) doval = (double)((signed long long int *)array)[icount];
                                         else doval = (double)((unsigned long long int *)array)[icount];
-                                        if (doval < cliplow) doval = cliplow;
-                                        if (doval > cliphigh) doval = cliphigh;
+                                        if (cliplow < cliphigh) {
+                                          if (doval < cliplow) doval = cliplow;
+                                          if (doval > cliphigh) doval = cliphigh;
+                                        }
+                                        if (doval+0.5 < valuelow || doval-0.5 > valuehigh) {
+                                          doval = 0.;
+                                        } else {
+                                          doval -= (valuelow-1);
+                                        }
                                         if (elsigned) ((signed long long int *)array)[icount] = (signed long long int)doval;
                                         else ((unsigned long long int *)array)[icount] = (unsigned long long int)doval;
 #endif
@@ -1356,11 +1409,13 @@ extern "C" {
                         void * roi_array;
                         
                         size_t fastlow, fasthigh, midlow, midhigh, slowlow, slowhigh;
+                        double valuelow, valuehigh;
                         
                         cbf_failnez(cbf_convertroi((char *)roi,dimfast,dimmid,dimslow,
                                                    &fastlow,&fasthigh,
                                                    &midlow,&midhigh,
-                                                   &slowlow,&slowhigh));
+                                                   &slowlow,&slowhigh,
+                                                   &valuelow,&valuehigh));
                         
                         roi_array=malloc(oelsize*(fasthigh-fastlow+1)*(midhigh-midlow+1)*(slowhigh-slowlow+1));
                         
@@ -1399,7 +1454,8 @@ extern "C" {
                     }
                     
                     if (((eltype &(CBF_CPY_SETREAL)) || eltype == 0)
-                        && (elsize == 0 || elsize==(ssize_t)oelsize) && cliplow >= cliphigh) {
+                        && (elsize == 0 || elsize==(ssize_t)oelsize) 
+                        && cliplow >= cliphigh && valuelow == -DBL_MAX && valuehigh == DBL_MAX) {
                         
                         
                         cbf_failnez(cbf_set_realarray_wdims_fs(
@@ -1425,14 +1481,28 @@ extern "C" {
                                     
                                     if (oelsize==sizeof(float)){
                                         doval = (double)((float *)array)[icount];
-                                        if (doval < cliplow) doval = cliplow;
-                                        if (doval > cliphigh) doval = cliphigh;
+                                        if (cliplow < cliphigh) {
+                                          if (doval < cliplow) doval = cliplow;
+                                          if (doval > cliphigh) doval = cliphigh;
+                                        }
+                                        if (doval < valuelow || doval > valuehigh) {
+                                          doval = 0.;
+                                        } else {
+                                          doval -= (valuelow - 1.);
+                                        }
                                         ((float *)array)[icount] = (float)doval;
                                         
                                     } else if (oelsize==sizeof(double)){
                                         doval = ((double *)array)[icount];
-                                        if (doval < cliplow) doval = cliplow;
-                                        if (doval > cliphigh) doval = cliphigh;
+                                        if (cliplow < cliphigh) {
+                                          if (doval < cliplow) doval = cliplow;
+                                          if (doval > cliphigh) doval = cliphigh;
+                                        }
+                                        if (doval < valuelow || doval > valuehigh) {
+                                          doval = 0.;
+                                        } else {
+                                          doval -= (valuelow - 1.);
+                                        }
                                         ((double *)array)[icount] = doval;
                                         
                                     } else {
@@ -2037,61 +2107,131 @@ extern "C" {
                        size_t dimfast, size_t dimmid, size_t dimslow,
                        size_t * fastlow, size_t * fasthigh,
                        size_t * midlow,  size_t * midhigh,
-                       size_t * slowlow, size_t * slowhigh) {
+                       size_t * slowlow, size_t * slowhigh,
+                       double * valuelow, double * valuehigh) {
+        size_t  xfastlow,  xfasthigh,
+                xmidlow,   xmidhigh,
+                xslowlow,  xslowhigh;
+        double xvaluelow,  xvaluehigh;
         char * endptr;
         char * str;
-        if (!fastlow) return CBF_ARGUMENT;
-        *fastlow = 0;
+        xfastlow = xslowlow = xmidlow = 0;
+        if (dimfast == 0) dimfast = 1;
+        if (dimmid  == 0) dimmid = 1;
+        if (dimslow == 0) dimslow = 1;
+        xfasthigh = dimfast-1;
+        xslowhigh = dimslow-1;
+        xmidhigh = dimmid-1;
+        xvaluelow = -DBL_MAX;
+        xvaluehigh = DBL_MAX;
+        if (fastlow) *fastlow = 0;
         if (midlow) *midlow = 0;
         if (slowlow) *slowlow = 0;
         if (fasthigh) *fasthigh = dimfast-1;
         if (midhigh) *midhigh = dimmid-1;
         if (slowhigh) *slowhigh = dimslow-1;
+        if (valuelow) *valuelow = -DBL_MAX;
+        if (valuehigh) *valuehigh = DBL_MAX;
         if (!roi) {
             return CBF_SUCCESS;
         }
         str = roi;
-        *fastlow = (int)strtol(str,&endptr,0);
-        if (*fastlow > dimfast-1) *fastlow = dimfast-1;
-        if (*endptr == '\0') return CBF_SUCCESS;
-        if (*endptr != ',' && *endptr != ' ') return CBF_FORMAT;
-        if (!fasthigh) return CBF_SUCCESS;
-        
-        str = endptr+1;
-        *fasthigh = (int)strtol(str,&endptr,0);
-        if (*fasthigh < *fastlow) *fasthigh = *fastlow;
-        if (*fasthigh > dimfast-1) *fasthigh = dimfast-1;
-        if (*endptr == '\0') return CBF_SUCCESS;
-        if (*endptr != ',' && *endptr != ' ') return CBF_FORMAT;
-        str = endptr+1;
-        
-        if (!midlow) return CBF_SUCCESS;
-        *midlow = (int)strtol(str,&endptr,0);
-        if (*midlow > dimmid-1) *midlow = dimmid-1;
-        if (*endptr == '\0') return CBF_SUCCESS;
-        if (*endptr != ',' && *endptr != ' ') return CBF_FORMAT;
-        if (!midhigh) return CBF_SUCCESS;
-        
-        str = endptr+1;
-        *midhigh = (int)strtol(str,&endptr,0);
-        if (*midhigh < *midlow) *midhigh = *midlow;
-        if (*midhigh > dimmid-1) *midhigh = dimmid-1;
-        if (*endptr == '\0') return CBF_SUCCESS;
-        if (*endptr != ',' && *endptr != ' ') return CBF_FORMAT;
-        if (!slowlow) return CBF_SUCCESS;
+        while (*str && isspace(*str)) str++;
+        if (*str != ',') {
+            xfastlow = (int)strtol(str,&endptr,0);
+            if (xfastlow > dimfast-1) xfastlow = dimfast-1;
+            if (fastlow) *fastlow = xfastlow;
+            if (*endptr == '\0') return CBF_SUCCESS;
+            if (*endptr != ',' && *endptr != ' ') return CBF_FORMAT;
             str = endptr+1;
-        
-        *slowlow = (int)strtol(str,&endptr,0);
-        if (*slowlow > dimslow-1) *slowlow = dimslow-1;
-        if (*endptr == '\0') return CBF_SUCCESS;
-        if (*endptr != ',' && *endptr != ' ') return CBF_FORMAT;
-        if (!slowhigh) return CBF_SUCCESS;
-        str = endptr+1;
-        *slowhigh = (int)strtol(str,&endptr,0);
-        if (*slowhigh < *slowlow) *slowhigh = *slowlow;
-        if (*slowhigh > dimslow-1) *slowhigh = dimslow-1;
-        if (*endptr == '\0') return CBF_SUCCESS;
-        return CBF_FORMAT;
+        } else {
+            str++;
+        }
+        while (*str && isspace(*str)) str++; 
+        if (*str != ',') {
+            xfasthigh = (int)strtol(str,&endptr,0);
+            if (xfasthigh < xfastlow) xfasthigh = xfastlow;
+            if (xfasthigh > dimfast-1) xfasthigh = dimfast-1;
+            if (fasthigh) *fasthigh = xfasthigh;
+            if (*endptr == '\0') return CBF_SUCCESS;
+            if (*endptr != ',' && *endptr != ' ') return CBF_FORMAT;
+            str = endptr+1;
+        } else {
+            str++;
+        }
+        while (*str && isspace(*str)) str++; 
+        if (*str != ',') {
+            xmidlow = (int)strtol(str,&endptr,0);
+            if (xmidlow > dimmid-1) xmidlow = dimmid-1;
+            if(midlow) *midlow = xmidlow;
+            if (*endptr == '\0') return CBF_SUCCESS;
+            if (*endptr != ',' && *endptr != ' ') return CBF_FORMAT;
+            str = endptr+1;
+        } else {
+            str++;
+        }
+        while (*str && isspace(*str)) str++; 
+        if (*str != ',') {
+            xmidhigh = (int)strtol(str,&endptr,0);
+            if (xmidhigh < xmidlow) xmidhigh = xmidlow;
+            if (xmidhigh > dimmid-1) xmidhigh = dimmid-1;
+            if(midhigh) *midhigh = xmidhigh;
+            if (*endptr == '\0') return CBF_SUCCESS;
+            if (*endptr != ',' && *endptr != ' ') return CBF_FORMAT;
+            str = endptr+1;
+        } else {
+            str++;
+        }
+        while (*str && isspace(*str)) str++; 
+        if (*str != ',') {
+            xslowlow = (int)strtol(str,&endptr,0);
+            if (xslowlow > dimslow-1) xslowlow = dimslow-1;
+            if(slowlow) *slowlow = xslowlow;
+            if (*endptr == '\0') return CBF_SUCCESS;
+            if (*endptr != ',' && *endptr != ' ') return CBF_FORMAT;
+            str = endptr+1;
+        } else {
+            str++;
+        }
+        while (*str && isspace(*str)) str++; 
+        if (*str != ',') {
+            xslowhigh = (int)strtol(str,&endptr,0);
+            if (xslowhigh < xslowlow) xslowhigh = xslowlow;
+            if (xslowhigh > dimslow-1) xslowhigh = dimslow-1;
+            if(slowhigh) *slowhigh = xslowhigh;
+            if (*endptr == '\0') return CBF_SUCCESS;
+            if (*endptr != ',' && *endptr != ' ') return CBF_FORMAT;
+            str = endptr+1;
+        } else {
+            str++;
+        }
+        while (*str && isspace(*str)) str++; 
+        if (*str != ',') {
+            xvaluelow = (double)strtod(str,&endptr);
+            if(valuelow) *valuelow = xvaluelow;
+            if (*endptr == '\0') return CBF_SUCCESS;
+            if (*endptr != ',' && *endptr != ' ') return CBF_FORMAT;
+            str = endptr+1;
+        } else {
+            str++;
+        }
+        while (*str && isspace(*str)) str++; 
+        if (*str != ',') {
+            xvaluehigh = (double)strtod(str,&endptr);
+            if (xvaluehigh < xvaluelow) xvaluehigh=xvaluelow;
+            if(valuehigh) *valuehigh = xvaluehigh;
+            if (*endptr == '\0') return CBF_SUCCESS;
+            if (*endptr != ',' && *endptr != ' ') return CBF_FORMAT;
+            str = endptr+1;
+        } else {
+            str++;
+        }
+        cbf_debug_print3("fastlow  %d, fasthigh %d\n", fastlow,fasthigh);
+        cbf_debug_print3("midlow  %d, midhigh %d\n", midlow,midhigh);
+        cbf_debug_print3("slowlow  %d, slowhigh %d\n", slowlow,slowhigh);
+        cbf_debug_print3("valuelow  %d, valuehigh %d\n", valuelow,valuehigh);
+        return CBF_SUCCESS;
+
     }
 
     

@@ -4801,7 +4801,6 @@ int cbf_set_hashedvalue(cbf_handle handle, const char * value,
     
     const char * ovalue;
     
-    int newhashes;
     
     int ohashnext;
     
@@ -4837,13 +4836,6 @@ int cbf_set_hashedvalue(cbf_handle handle, const char * value,
      
      undo any existing hash to the same row */
     
-    newhashes = 0;
-    
-    if (cbf_find_column(handle,colhashnext)) {
-        
-        newhashes = 1;
-        
-    }
     
     if (valuerow >= 0) {
         
@@ -4852,8 +4844,6 @@ int cbf_set_hashedvalue(cbf_handle handle, const char * value,
         if (!cbf_get_value(handle,&ovalue) && ovalue
             && !cbf_find_column(handle, colhashnext)
             && !cbf_get_integervalue(handle, &ohashnext)) {
-            
-            newhashes = 0;
             
             cbf_failnez( cbf_compute_hashcode(ovalue, &ohashcode))
             

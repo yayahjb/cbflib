@@ -332,7 +332,8 @@ extern "C" {
                        size_t fastdim, size_t middim, size_t slowdim,
                        size_t * fastlow, size_t * fasthigh,
                        size_t * midlow,  size_t * midhigh,
-                       size_t * slowlow, size_t * slowhigh);
+                       size_t * slowlow, size_t * slowhigh,
+                       double * valuelow, double * valuehigh);
     
     /* Extract an ROI from an image array */
     
