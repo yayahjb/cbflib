@@ -17630,7 +17630,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
     Should check the type of CBF file we have (miniCBF [+header convention, eventually...] vs full CBF) and call the appropriate function.
     */
-    int cbf_write_h5file (cbf_handle handle, cbf_h5handle h5handle, int flags)
+    int cbf_write_h5file (cbf_handle handle, cbf_h5handle h5handle,unsigned long int flags)
     {
         cbf_node *node = NULL;
 
@@ -29244,7 +29244,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 
         int innexus;
 
-        int incbf, incbfdb, incbfcat, incbfcol;
+        int incbf, incbfdb, incbfcat, incbfcol, innxpdb;
 
         hid_t group_id, dataset_id;
 
@@ -29319,6 +29319,8 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
         incbfcat = ((cbf_h5Ovisithandle)op_data)->incbfcat;
 
         incbfcol = ((cbf_h5Ovisithandle)op_data)->incbfcol;
+
+        innxpdb = ((cbf_h5Ovisithandle)op_data)->innxpdb;
 
         memmove(&saved_bookmark,&(((cbf_h5Ovisithandle)op_data)->bookmark),sizeof(cbf_bookmark));
 
@@ -29479,13 +29481,25 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 
                         }
 
-                        if (!cbf_cistrcmp(value,"CBF_cbf")||!cbf_cistrcmp(value,"NXcbf")) {
-
+                        if (!cbf_cistrcmp(value,"CBF_cbf")
+                          ||!cbf_cistrcmp(value,"NXcbf")
+                          ||!cbf_cistrcmp(value,"NXcif")) {
                             ((cbf_h5Ovisithandle)op_data)->incbf = 1;
+                        }
+
+                        if (!cbf_cistrcmp(value,"NXpdb")) {
+
+                            ((cbf_h5Ovisithandle)op_data)->innxpdb = 1;
+                            ((cbf_h5Ovisithandle)op_data)->incbf = 1;
+                            if (incbfcat) ((cbf_h5Ovisithandle)op_data)->incbfcol = 1;
+                            else {if (incbfdb) ((cbf_h5Ovisithandle)op_data)->incbfcat = 1;
+                                  else {if (innxpdb) ((cbf_h5Ovisithandle)op_data)->incbfdb = 1;}}
 
                         }
 
-                        if (!cbf_cistrcmp(value,"CBF_cbfdb") || !cbf_cistrcmp(value,"NXcbfdb")) {
+                        if (!cbf_cistrcmp(value,"CBF_cbfdb") 
+                            || !cbf_cistrcmp(value,"NXcbfdb")
+                            || ((cbf_h5Ovisithandle)op_data)->incbfdb) {
 
                             ((cbf_h5Ovisithandle)op_data)->incbfdb = 1;
 
@@ -29504,7 +29518,9 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 
                         }
 
-                        if ((!cbf_cistrcmp(value,"CBF_cbfcat")||!cbf_cistrcmp(value,"NXcbfcat"))&& saved_bookmark.datablock) {
+                        if ((!cbf_cistrcmp(value,"CBF_cbfcat")
+                             ||!cbf_cistrcmp(value,"NXcbfcat")
+                             || ((cbf_h5Ovisithandle)op_data)->incbfcat)&& saved_bookmark.datablock) {
 
                             ((cbf_h5Ovisithandle)op_data)->incbfcat = 1;
 
@@ -29527,7 +29543,8 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                         }
 
                         if ((!cbf_cistrcmp(value,"CBF_cbfcol")
-                             ||!cbf_cistrcmp(value,"NXcbfcol"))
+                             ||!cbf_cistrcmp(value,"NXcbfcol")
+                             || ((cbf_h5Ovisithandle)op_data)->incbfcol)
                             && saved_bookmark.category) {
 
                             ((cbf_h5Ovisithandle)op_data)->incbfcol = 1;

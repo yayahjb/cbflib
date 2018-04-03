@@ -284,11 +284,11 @@ extern "C" {
 #define CBF_H5_SPECIAL          0x2000
 #define CBF_H5_ARRAY            0x4000
 #define CBF_H5_LINK             0x8000  /* should appear both in the special
-field of the target and the dsorat
-field of the source */
+					field of the target and the dsorat
+					field of the source */
 #define CBF_H5_MORE             0x10000 /* more mappings of same column follow
-field of the target and the dsorat
-field of the source */
+					field of the target and the dsorat
+					field of the source */
     
     
     
@@ -315,16 +315,16 @@ field of the source */
                              from the name attribute "long_name" */
 		hid_t axis;
 		cbf_axisEquipment_e equipment;
-        int flags;
+        	int flags;
 		struct _cbf_axisData_t * depends_on;
-        struct _cbf_axisData_t * rotation_axis;
-        struct _cbf_axisData_t * axis_hash_next_name;
-        struct _cbf_axisData_t * axis_hash_next_path;
-        struct _cbf_axisData_t * axis_hash_next_object;
-        ssize_t axisData_index;                  /* the index at which this entry appears */
-        const char * axis_path; /* A path to this axis */
-        const char * do_path;  
-        const char * ra_path;
+        	struct _cbf_axisData_t * rotation_axis;
+        	struct _cbf_axisData_t * axis_hash_next_name;
+        	struct _cbf_axisData_t * axis_hash_next_path;
+        	struct _cbf_axisData_t * axis_hash_next_object;
+        	ssize_t axisData_index;                  /* the index at which this entry appears */
+        	const char * axis_path; /* A path to this axis */
+        	const char * do_path;  
+        	const char * ra_path;
 	}  cbf_axisData_t;
     
 /*  Note the number of hash bins must be a power of 2 */
@@ -953,23 +953,23 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
     typedef struct
     {
         int   rwmode;  /* 0 for read-only, 1 for read-write */
-		unsigned int slice; /* The slice within the HDF5 data arrays where data will be added */
+	unsigned int slice; /* The slice within the HDF5 data arrays where data will be added */
         unsigned int block; /* The block of data arrays, or zero if no blocking */
         unsigned int blocksize;  /* The number of arrays in a block */
         unsigned int num_detectors; /* The number of NXdetector groups */
         unsigned int cap_detectors; /* The capacity in terms of NXdetector groups */
         unsigned int cur_detector;  /* The currently active detector, numbered from 1 */
-		hid_t hfile;   /* The HDF5 file */
-		hid_t nxid;    /* /entry@NXentry */
-		hid_t nxdata; /* /entry/data@NXdata */
-		hid_t nxsample; /* /entry/sample@NXsample group */
-		hid_t nxbeam; /* /entry/beam@NXbeam group */
-		hid_t nxinst;  /* /entry/instrument@NXinstrument */
+	hid_t hfile;   /* The HDF5 file */
+	hid_t nxid;    /* /entry@NXentry */
+	hid_t nxdata; /* /entry/data@NXdata */
+	hid_t nxsample; /* /entry/sample@NXsample group */
+	hid_t nxbeam; /* /entry/beam@NXbeam group */
+	hid_t nxinst;  /* /entry/instrument@NXinstrument */
         hid_t nxdetector_group; /* /entry/instrument/detector_group@NXdetector_group */
-		hid_t * nxdetectors; /* /entry/instrument/detector@NXdetector */
-		hid_t nxmonochromator;  /* /entry/instrument/monochromator@NXmonochromator */
+	hid_t * nxdetectors; /* /entry/instrument/detector@NXdetector */
+	hid_t nxmonochromator;  /* /entry/instrument/monochromator@NXmonochromator */
         hid_t nxgoniometer;  /* /entry/instrument/goniometer@NXgoniometer */
-		hid_t nxsource;  /* /entry/instrument/source@NXsource */
+	hid_t nxsource;  /* /entry/instrument/source@NXsource */
         hid_t rootid;  /* The root CBF database group */
         hid_t dbid;    /* The current datablock in the CBF */
         hid_t sfid;    /* The current saveframe in the current datablock or -1 */
@@ -993,7 +993,7 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
         const char * nxfilename;
 
 		/* Flags for various options */
-        int flags;
+        unsigned long int flags;
 #ifdef CBF_USE_ULP
 		/* Parameters controlling floating point comparisons */
 		int cmp_double_as_float;
@@ -1032,8 +1032,10 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
                         into a NeXus NXcbfcat */
         int incbfcol;  /* set to 1 when we have descended
                         into a NeXus NXcbfcol */
-        int innexus;   /* set to 1 shen we have descended
+        int innexus;   /* set to 1 when we have descended
                         into a NeXus NXexntry */
+        int innxpdb;   /* set to 1 when we have descended
+                        into a NeXus NXpdb */
     }
     cbf_h5Ovisit_struct;
     
@@ -1888,7 +1890,7 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
 
     /*  Write cbf to HDF5 file hfile */
     
-	int cbf_write_h5file (cbf_handle handle, cbf_h5handle h5handle, int flags);
+	int cbf_write_h5file (cbf_handle handle, cbf_h5handle h5handle, unsigned long int flags);
     
 	/**
 	\brief Extract the data from a CBF file & put it into a NeXus file.

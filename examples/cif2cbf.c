@@ -62,7 +62,8 @@
  *    [-T {read|noread}] [-T {write|nowrite}] \                       *
  *    [-v dictionary]* [-w] [-D]\                                     *
  *    [-O] \                                                          *
- *    [-5 {r|w|rw|rn|wn|rwn|n[oH5]} \                                 *
+ *    [-5 {r|w|rw|rn|wn|rwn|n[oH5]}] \                                *
+ *    [--nxpdb] \                                                     *
  *    [--register {manual|plugin}] \                                  *
  *    [--add-minicbf-header] \                                        *
  *    [--minicbf] \                                                   *
@@ -176,6 +177,12 @@
  *  -5 hdf5mode specifies whether to read and/or write in hdf5 mode   *
  *     the n parameter will cause the CIF H5 datablock to be deleted  *
  *     on both read and write, for both CIF, CBF and HDF5 files       *
+ *  --nxpdb                                                           *
+ *     when in -5 w (hdf5 write) mode, --nxpdb forced the use of      *
+ *     NXpdb conventions                                              *
+ *  -O when in -5 w (hdf5 write) mode, -O forces the use of opaque    *
+ *     objects for CBF binaries                                       *
+ *                                                                    *
  *                                                                    *
  *  --register manual or plugin (default plugin)                      *
  *     controls whether to rely on the HDF5 filter plugin mechanism   *
@@ -229,9 +236,6 @@
  *                                                                    *
  *  --U n                                                             *
  *     test cbf_construct_detector in element_id n                    *
- *                                                                    *
- *  -O when in -5 w (hdf5 write) mode, -O forces the use of opaque    *
- *     objects for CBF binaries                                       *
  *                                                                    *
  *                                                                    *
  *                                                                    *
@@ -727,6 +731,7 @@ int main (int argc, char *argv [])
     int c;
     int errflg = 0;
     int opaquemode = 0;
+    int nxpdbmode = 0;
     int add_minicbf_header = 0;
     int minicbf = 0;
     int data_last = 0;
@@ -891,7 +896,8 @@ int main (int argc, char *argv [])
                                  "\x8(add-update-data)" \
                                  "\x9(subtract-update-data)" \
                                  "\xa(merge-datablocks-by-number)" \
-                                 "\xb(merge-datablocks-by-name)"
+                                 "\xb(merge-datablocks-by-name)" \
+                                 "\xc(nxpdb conventions on h5 write)"
                                  ));
 
     if (!cbf_rewind_getopt_option(opts))
@@ -1133,7 +1139,10 @@ int main (int argc, char *argv [])
                     if (merge_datablocks_by_number >= 0) errflg++;
                     merge_datablocks_by_number = 0;
                     break;
-                    
+                case '\xc': /* use nxpdb conventions on h5 write */
+                    if (nxpdbmode) errflg++;
+                    nxpdbmode = 1;
+                    break;
                 case 'O': /* set Opaque mode */
                     if (opaquemode) errflg++;
                     opaquemode = 1;
@@ -3007,8 +3016,9 @@ int main (int argc, char *argv [])
     if ( ! devnull ){
         if (hdf5mode&HDF5_WRITE_MODE) {
 
-            cbf_failnez(cbf_write_h5file (cbf, h5out, hdf5register|h5compression|(
-                                          opaquemode?CBF_H5_OPAQUE:0)))
+            cbf_failnez(cbf_write_h5file (cbf, h5out, hdf5register|h5compression|
+                                          (opaquemode?CBF_H5_OPAQUE:0)|
+                                          (nxpdbmode?CBF_H5_NXPDB:0)));
 
         } else {
 
@@ -3021,11 +3031,11 @@ int main (int argc, char *argv [])
             if (Wide) {
                 cbf_failnez (cbf_write_widefile (cbf, out, 1, cbforcif,
                                                  mime | (digest&(MSG_DIGEST|MSG_DIGESTNOW)) | padflag | qwflags,
-                                                 encoding | bytedir | term ))
+                                                 encoding | bytedir | term ));
             } else {
                 cbf_failnez (cbf_write_file (cbf, out, 1, cbforcif,
                                              mime | (digest&(MSG_DIGEST|MSG_DIGESTNOW)) | padflag | qwflags,
-                                             encoding | bytedir | term ))
+                                             encoding | bytedir | term ));
             }
         }
 

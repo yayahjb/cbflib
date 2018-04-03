@@ -1711,10 +1711,10 @@ extern "C" {
                                                 
                                                 valtemp = ((float *)array)[icount];
                                                 
-                                                if (valtemp < minval || valtemp > maxval) {
+                                                /* if (valtemp < minval || valtemp > maxval) {
                                                     
                                                     free(array); free(narray); return CBF_OVERFLOW;
-                                                }
+                                                } */
                                                 
                                                 ((signed int *)narray)[icount] = (signed int)valtemp;
                                             }
@@ -1725,10 +1725,10 @@ extern "C" {
                                                 
                                                 valtemp = ((float *)array)[icount];
                                                 
-                                                if (valtemp < minval || valtemp > maxval) {
+                                               /* if (valtemp < minval || valtemp > maxval) {
                                                     
                                                     free(array); free(narray); return CBF_OVERFLOW;
-                                                }
+                                                } */
                                                 
                                                 ((unsigned int *)narray)[icount] = (unsigned int)valtemp;
                                             }

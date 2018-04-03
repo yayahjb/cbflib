@@ -609,6 +609,8 @@ _CBF_STR(CBF_VERS_RELEASE) CBF_VERS_SUBRELEASE
 #define CBF_H5_CBFNONAMES \
                         0x8000  /* Flag to not carry CBF names into HDF5  */
 
+#define CBF_H5_NXPDB   0x10000  /* Flag to use  NXpdb conventions in HDF5 */
+
 
   /* Flags used for logging */
   
