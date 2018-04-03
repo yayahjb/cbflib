@@ -16472,14 +16472,75 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         }
 
 
-        cbf_failnez(cbf_apply_h5text_attribute(h5handle->catid,
+        if (h5handle->flags&CBF_H5_NXPDB) {
+
+          cbf_failnez(cbf_apply_h5text_attribute(h5handle->catid,
+                                               "NX_class","NXpdb",errorcode));
+
+        } else {
+
+          cbf_failnez(cbf_apply_h5text_attribute(h5handle->catid,
                                                "NX_class","CBF_cbfcat",errorcode));
+        }
+
+        /* now, for each column, make it into an array dataset, or a group.  For NXpdb
+           and for text values use an array dataset, otherwise make to column into
+           a group.
+        */
 
 
-        /* now, for each column, make it into a group and
-         store each row as a dataset */
+        if (h5handle->flags&CBF_H5_NXPDB) {
 
 
+            cbf_node * column_node;
+
+            const char * text = 0;
+
+            for (column= 0; column < category->children; column++) {
+
+                column_node = category->child[column];
+
+                if(!cbf_cistrcmp(column_node->name,"id")){
+
+                    if (column_node->children > 1 ) {
+
+                        for (colrow=0; colrow < column_node->children; colrow++) {
+
+                            if(cbf_get_columnrow (&text, column_node, colrow)) {
+
+                                text = " .";
+
+                            }
+
+                            if (cbf_add_h5text_dataset_slab(h5handle->nxid,
+                                                              column_node->name,
+                                                              text+1,
+                                                              colrow,errorcode)) break;
+
+                        }
+
+                    } else {
+
+
+                        if(cbf_get_columnrow (&text, column_node, 0)) break;
+
+                        if (!text) break;
+
+                        if(cbf_add_h5text_dataset(h5handle->nxid,
+                                                    column_node->name,text+1,errorcode)) break;
+
+                        break;
+
+                    }
+
+                }
+            }
+        }
+
+
+
+
+        if (!(h5handle->flags&CBF_H5_NXPDB) )
         for (column= 0; column < category->children; column++)
         {
             /* save the column name in the read bookmark */
@@ -16492,8 +16553,17 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                                      (category->child[column])->name:"_(null)_"),
                           CBF_FORMAT);
 
-            cbf_failnez(cbf_apply_h5text_attribute(h5handle->colid,
+
+
+            if (h5handle->flags&CBF_H5_NXPDB) {
+
+              cbf_failnez(cbf_apply_h5text_attribute(h5handle->colid,
+                                                   "NX_class","NXpdb",errorcode));
+            } else {
+
+              cbf_failnez(cbf_apply_h5text_attribute(h5handle->colid,
                                                    "NX_class","CBF_cbfcol",errorcode));
+            }
 
             /* For each row, create a dataset */
 
@@ -17393,8 +17463,9 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                               &((*h5handle)->rootid)),
                       {cbf_free_h5handle(*h5handle);*h5handle=NULL;});
 
+
         cbf_failnez(cbf_apply_h5text_attribute((*h5handle)->rootid,"NX_class",
-                                               "CBF_cbf",0));
+                                               "NXpdb",0));
         
         cbf_failnez(cbf_require_h5handle_filename(*h5handle));
 
