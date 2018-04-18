@@ -1451,6 +1451,7 @@ $(PYCBF)/_pycbf.$(PYCBFEXT): $(PYCBF)  shared \
 	$(PYCBF)/cbfdetectorwrappers.i \
 	$(PYCBF)/cbfgenericwrappers.i  \
 	$(PYCBF)/cbfgoniometerwrappers.i
+	-cp $(SOLIB)/*.so $(LIB)
 	(cd $(PYCBF); $(PYTHON) $(SETUP_PY) build $(PYCBFBOPT); cp build/lib*/_pycbf.$(PYCBFEXT) .) 
 
 $(PYCBF)/pycbfinstall:
