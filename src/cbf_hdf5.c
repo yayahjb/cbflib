@@ -17465,6 +17465,43 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
 
         cbf_failnez(cbf_apply_h5text_attribute((*h5handle)->rootid,"NX_class",
+                                               "CBF_cbf",0));
+        
+        cbf_failnez(cbf_require_h5handle_filename(*h5handle));
+
+
+        return CBF_SUCCESS;
+
+    }
+    /* Create an HDF5 File handle */
+
+    int cbf_create_h5handle_nxpdb(cbf_h5handle *h5handle,const char * h5filename)
+    {
+        hid_t fcreate_prop_list;
+        
+        cbf_failnez(cbf_make_h5handle(h5handle));
+
+        cbf_h5onfailneg(fcreate_prop_list = H5Pcreate(H5P_FILE_ACCESS),
+                        CBF_ALLOC,cbf_free((void**) h5handle, NULL));
+
+        (*h5handle)->rwmode = 1;
+
+        cbf_h5onfailneg(H5Pset_fclose_degree(fcreate_prop_list,H5F_CLOSE_STRONG),
+                        CBF_ARGUMENT,cbf_free((void**) h5handle, NULL));
+
+        cbf_h5onfailneg((*h5handle)->hfile = H5Fcreate(h5filename,H5F_ACC_TRUNC,
+                                                       H5P_DEFAULT,fcreate_prop_list),
+                        CBF_ARGUMENT,cbf_free((void**) h5handle, NULL));
+
+        cbf_h5onfailneg(H5Pclose(fcreate_prop_list),
+                        CBF_ARGUMENT,cbf_free((void**) h5handle, NULL));
+
+        cbf_onfailnez(cbf_H5Gcreate_in_handle(*h5handle,"CBF_cbf",
+                                              &((*h5handle)->rootid)),
+                      {cbf_free_h5handle(*h5handle);*h5handle=NULL;});
+
+
+        cbf_failnez(cbf_apply_h5text_attribute((*h5handle)->rootid,"NX_class",
                                                "NXpdb",0));
         
         cbf_failnez(cbf_require_h5handle_filename(*h5handle));
@@ -17585,6 +17622,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
         return error;
     }
+
 
     /* Create an HDF5 File handle without adding a CBF_cbf group to it
        in update mode*/

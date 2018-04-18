@@ -2938,8 +2938,11 @@ int main (int argc, char *argv [])
 
     if (hdf5mode&HDF5_WRITE_MODE) {
 
-        if(cbf_create_h5handle(&h5out,cbfout)) {
-            printf (" Couldn't open the HDF5 file %s\n", cbfout);
+        if(nxpdbmode) { if (cbf_create_h5handle_nxpdb(&h5out,cbfout)) {
+            printf (" Couldn't open the HDF5 file %s for writing\n", cbfout); 
+        }
+        } else if (cbf_create_h5handle(&h5out,cbfout)) {
+            printf (" Couldn't open the HDF5 file %s for writing\n", cbfout);
         }
 
     } else {
