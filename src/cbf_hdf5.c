@@ -15738,9 +15738,9 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         handle->row = 0;
 
         
-        /* Process diffrn_detector category */
+        /* Process diffrn_detector category if CBF_H5_NOH5 is not set */
 
-        if (!cbf_cistrcmp(category->name,"diffrn_detector"))
+        if (!cbf_cistrcmp(category->name,"diffrn_detector")&& !(h5handle->flags&CBF_H5_NOH5))
         {
             unsigned int maxrows;
             unsigned int row;
@@ -15888,7 +15888,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
         /* Process diffrn_detector_element category */
 
-        if (!cbf_cistrcmp(category->name,"diffrn_detector_element"))
+        if (!cbf_cistrcmp(category->name,"diffrn_detector_element")&&!(h5handle->flags&CBF_H5_NOH5))
         {
             unsigned int maxrows;
             unsigned int row;
@@ -16195,11 +16195,11 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             if (detgpid >= 0) H5Gclose(detgpid);
 
         }
-/**** Check for closing instrumentid ****/
+        /**** Check for closing instrumentid ****/
 
         /* Process diffrn_radiation category */
 
-        if (!cbf_cistrcmp(category->name,"diffrn_radiation"))
+        if (!cbf_cistrcmp(category->name,"diffrn_radiation")&&!(h5handle->flags&CBF_H5_NOH5))
         {
             unsigned int maxrows;
             unsigned int row;
@@ -16415,7 +16415,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         }
 
 
-        if (!cbf_cistrcmp(category->name,"diffrn_radiation"))
+        if (!cbf_cistrcmp(category->name,"diffrn_radiation")&&!(h5handle->flags&CBF_H5_NOH5))
         {
             for (column= 0; column < category->children; column++)
             {
@@ -16442,7 +16442,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 }
             }
         }
-        if (!cbf_cistrcmp(category->name,"diffrn_radiation_wavelength"))
+        if (!cbf_cistrcmp(category->name,"diffrn_radiation_wavelength")&&!(h5handle->flags&CBF_H5_NOH5))
         {
             for (column= 0; column < category->children; column++)
             {
@@ -16484,7 +16484,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         }
 
         /* now, for each column, make it into an array dataset, or a group.  For NXpdb
-           and for text values use an array dataset, otherwise make to column into
+           and for text values use an array dataset, otherwise make the column into
            a group.
         */
 
@@ -16500,40 +16500,33 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
                 column_node = category->child[column];
 
-                if(!cbf_cistrcmp(column_node->name,"id")){
+                if (column_node->children > 1 ) {
 
-                    if (column_node->children > 1 ) {
+                    for (colrow=0; colrow < column_node->children; colrow++) {
 
-                        for (colrow=0; colrow < column_node->children; colrow++) {
+                        if(cbf_get_columnrow (&text, column_node, colrow) || !text) {
 
-                            if(cbf_get_columnrow (&text, column_node, colrow)) {
-
-                                text = " .";
-
-                            }
-
-                            if (cbf_add_h5text_dataset_slab(h5handle->nxid,
-                                                              column_node->name,
-                                                              text+1,
-                                                              colrow,errorcode)) break;
+                            text = " .";
 
                         }
 
-                    } else {
+                        if (cbf_add_h5text_dataset_slab(h5handle->catid,
+                                                              column_node->name,
+                                                              text+1,
+                                                              colrow,errorcode)) break;
+                    }
+                } else {
 
-
-                        if(cbf_get_columnrow (&text, column_node, 0)) break;
-
-                        if (!text) break;
-
-                        if(cbf_add_h5text_dataset(h5handle->nxid,
-                                                    column_node->name,text+1,errorcode)) break;
-
-                        break;
+                    if(cbf_get_columnrow (&text, column_node, 0) || !text) {
+                       
+                        text = " .";
 
                     }
 
+                    cbf_failnez(cbf_add_h5text_dataset(h5handle->catid,
+                                                    column_node->name,text+1,errorcode)) 
                 }
+                
             }
         }
 
@@ -16583,7 +16576,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         }
 
 
-        if (!cbf_cistrcmp(category->name,"diffrn_scan")) {
+        if (!cbf_cistrcmp(category->name,"diffrn_scan")&&!(h5handle->flags&CBF_H5_NOH5)) {
 
             cbf_node * column_node;
 
@@ -16630,7 +16623,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             }
         }
 
-        if (!cbf_cistrcmp(category->name,"entry")) {
+        if (!cbf_cistrcmp(category->name,"entry")&&!(h5handle->flags&CBF_H5_NOH5)) {
 
             cbf_node * column_node;
 
@@ -16678,7 +16671,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             }
         }
 
-        if (!cbf_cistrcmp(category->name,"diffrn")) {
+        if (!cbf_cistrcmp(category->name,"diffrn")&&!(h5handle->flags&CBF_H5_NOH5)) {
 
             cbf_node * column_node;
 
@@ -17290,6 +17283,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
     int cbf_write_h5datablockname (const cbf_node *datablock, cbf_h5handle h5handle)
     {
 
+        int errorcode = 0;
+
         /* Does the node exist? */
 
         if (!datablock || !h5handle || h5handle->rootid <0)
@@ -17342,11 +17337,22 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                                 datablock->name),
                       CBF_FORMAT);
 
-        cbf_failnez(cbf_apply_h5text_attribute(h5handle->dbid,
-                                               "NX_class", "CBF_cbfdb",0));
+        if (h5handle->flags&CBF_H5_NXPDB) {
+
+          errorcode = 0;
+
+          cbf_failnez(cbf_apply_h5text_attribute(h5handle->dbid,
+                                               "NX_class","NXpdb",errorcode)||errorcode);
+
+        } else {
+
+          cbf_failnez(cbf_apply_h5text_attribute(h5handle->dbid,
+                                               "NX_class","CBF_cbfdb",errorcode)||errorcode);
+        }
 
         return CBF_SUCCESS;
     }
+
 
 
     /* Write a node to an HDF5 file */
@@ -17441,6 +17447,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
     int cbf_create_h5handle(cbf_h5handle *h5handle,const char * h5filename)
     {
         hid_t fcreate_prop_list;
+
+        int errorcode;
         
         cbf_failnez(cbf_make_h5handle(h5handle));
 
@@ -17463,15 +17471,25 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                               &((*h5handle)->rootid)),
                       {cbf_free_h5handle(*h5handle);*h5handle=NULL;});
 
+        if ((*h5handle)->flags&CBF_H5_NXPDB) {
 
-        cbf_failnez(cbf_apply_h5text_attribute((*h5handle)->rootid,"NX_class",
-                                               "CBF_cbf",0));
-        
+          errorcode = 0;
+
+          cbf_failnez(cbf_apply_h5text_attribute((*h5handle)->rootid,
+                                               "NX_class","NXpdb",errorcode)||errorcode);
+
+        } else {
+
+          errorcode = 0;
+
+          cbf_failnez(cbf_apply_h5text_attribute((*h5handle)->rootid,
+                                               "NX_class","CBF_cbf",errorcode)||errorcode);
+        }
+
         cbf_failnez(cbf_require_h5handle_filename(*h5handle));
 
 
         return CBF_SUCCESS;
-
     }
     /* Create an HDF5 File handle */
 

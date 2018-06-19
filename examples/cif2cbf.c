@@ -809,6 +809,7 @@ int main (int argc, char *argv [])
      *    [-p {0|1|2|4}] \                                                *
      *    [-v dictionary]* [-w] [-W] \                                    *
      *    [-5 {r|w|rw|rn|wn|rwn|n[oH5]} \                                 *
+     *    [--nxpdb] \                                                     *
      *    [-O] \                                                          *
      *    [--register {manual|plugin}] \                                  *
      *    [--add-minicbf-header] \                                        *
@@ -1410,7 +1411,9 @@ int main (int argc, char *argv [])
         fprintf(stderr,
                 "    [-v dictionary]* [-w] [-W]\\\n");
         fprintf(stderr,
-                "    [-5 {r|w|rw|rn|wn|rwn|n[oH5]}\\\n");
+                "    [-5 {r|w|rw|rn|wn|rwn|n[oH5]}]\\\n");
+        fprintf(stderr,
+                "    [--nxpdb]\\\n");
         fprintf(stderr,
                 "    [-O] \\\n");
         fprintf(stderr,
@@ -3064,7 +3067,8 @@ int main (int argc, char *argv [])
 
             cbf_failnez(cbf_write_h5file (cbf, h5out, hdf5register|h5compression|
                                           (opaquemode?CBF_H5_OPAQUE:0)|
-                                          (nxpdbmode?CBF_H5_NXPDB:0)));
+                                          (nxpdbmode?CBF_H5_NXPDB:0)  |
+                                          (hdf5noH5?CBF_H5_NOH5:0)      ));
         } else {
 
             if (minicbf) {
