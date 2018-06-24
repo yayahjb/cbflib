@@ -16239,7 +16239,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 multi_element = 0;
 
 
-                  /* check for the multielement case
+                  /* check for the multi-element case
 
                  if there is another row with the same detector name,
                  this will be a multielement case to be written by slabs
@@ -28223,131 +28223,120 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
         return good_type;
 
     }
-
-    /* Store an HDF5 Dataset in CBF handle, using
-     category categoryname, ...*/
-
-    int cbf_h5ds_store(cbf_handle handle, haddr_t parent,
-                       const char * parent_name,
-                       const int target_row,
+    
+    /* Store an HDF5 Dataset in CBF handle as a column, using
+     category categoryname, ...
+     If target_row is -1, the new column is appended to any
+     existing column
+     If target row is >= 0, overwrites any existing rows starting
+     at target_row
+     
+     */
+    
+    int cbf_h5ds_store_as_column(cbf_handle handle,
+                             int target_row,
+                       const char * columnname,
                        const char * categoryname, hid_t obj_id,
                        hid_t space, hid_t type,
-                       const char * name,
-                       const int readattrib,
                        void ** value) {
-
+        
         char buffer[25];
-
+        
         int errorcode;
-
+        
         unsigned char* data = NULL;
-
+        
         char h5t_type_class[14], h5t_base_type_class[14];
-
+        
         hid_t base_type;
-
+        
         hid_t native_type;
-
+        
         int atomic;
-
+        
         int ndims = 0, kdims = 0, ii;
-
+        
         unsigned int rows;
-
+        
         hsize_t dims[H5S_MAX_RANK];
-
+        
         hsize_t maxdims[H5S_MAX_RANK];
-
+        
         char * byte_order;
-
+        
         size_t type_size, total_size, total_dim;
-
+        
         H5T_class_t type_class, base_type_class;
-
+        
         H5T_order_t type_order;
-
+        
         H5T_sign_t type_sign = H5T_SGN_ERROR;
-
+        
         errorcode = 0;
-
+        
         cbf_reportnez(cbf_require_category(handle,categoryname),errorcode);
-
+        
         /*  Give the name of this dataset as its own id */
-
-        cbf_reportnez(cbf_require_column(handle,"id"),errorcode);
+        
+        cbf_reportnez(cbf_require_column(handle,columnname),errorcode);
         
         rows = 0;
-
+        
         cbf_reportnez(cbf_count_rows(handle,&rows),errorcode);
-
+        
         if (target_row==-1) {
-
+            
             cbf_reportnez(cbf_new_row(handle),errorcode);
-
+            
+            target_row = rows;
+            
         } else {
-
+            
             if ((unsigned int)target_row >= rows ) {
-
+                
                 for (ii=rows; ii <= target_row; ii++) {
-
+                    
                     cbf_reportnez(cbf_new_row(handle),errorcode);
-
+                    
                 }
             }
-
+            
             cbf_reportnez(cbf_select_row(handle,target_row),errorcode);
         }
-
-        cbf_reportnez(cbf_set_value(handle,name),errorcode);
-
-        /*  Give the parent name and id for this dataset */
-
-        cbf_reportnez(cbf_require_column(handle,"parent_name"),errorcode);
-
-        cbf_reportnez(cbf_set_value(handle,parent_name),errorcode);
-
-        cbf_reportnez(cbf_require_column(handle,"parent_id"),errorcode);
-
-        sprintf(buffer,"0x%lx",(unsigned long)parent);
-
-        cbf_reportnez(cbf_set_value(handle,buffer),errorcode);
-
-
+        
         /* get the class, and, if not atomic
          try to get the base class for an array
          give up otherwise */
-
+        
         type_class = H5Tget_class(type);
-
+        
         native_type = H5Tget_native_type(type,H5T_DIR_ASCEND);
-
+        
         base_type = CBF_H5FAIL;
-
-        cbf_reportnez(cbf_require_column(handle,"type"),errorcode);
-
+        
         type_size = 0;
-
+        
         if (value) *value = 0;
-
+        
         type_order = -1;
-
+        
         kdims= ndims = H5Sget_simple_extent_ndims(space);
-
+        
         if (ndims <= 0) ndims = 1;
-
+        
         H5Sget_simple_extent_dims(space,dims,maxdims);
-
+        
         if (!cbf_h5type_class_string(
                                      type_class,
                                      h5t_type_class,&atomic,14)) {
-
+            
             cbf_reportnez(cbf_set_value(handle, h5t_type_class),errorcode);
-
+            
             if (!atomic && type_class==H5T_ARRAY){
                 base_type = H5Tget_super(type);
-
+                
                 base_type_class = H5Tget_class(base_type);
-
+                
                 if (!cbf_h5type_class_string(
                                              base_type_class,
                                              h5t_base_type_class,&atomic,14)) {
@@ -28356,532 +28345,94 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                         cbf_h5failneg(H5Tclose(base_type),CBF_FORMAT);
                         base_type = CBF_H5FAIL;
                     } else {
-
+                        
                         type_size = H5Tget_size(base_type);
-
+                        
                         type_order = H5Tget_order(base_type);
-
+                        
                         type_sign = H5Tget_sign(base_type);
-
-                        cbf_reportnez(cbf_require_column(handle,"base_type"),errorcode);
-
-                        cbf_reportnez(cbf_set_value(handle,h5t_base_type_class),errorcode);
-                    }
+                        
+                        }
                 } else {
                     _cbf_strncpy (h5t_base_type_class,".",14);
                     cbf_h5failneg(H5Tclose(base_type),CBF_FORMAT);
                     base_type = CBF_H5FAIL;
                 }
-
+                
             } else if (atomic) {
-
+                
                 type_size = H5Tget_size(native_type);
-
+                
                 type_order = H5Tget_order(type);
-
+                
                 type_sign = H5Tget_sign(type);
-
+                
             }
-
+            
         }
-
+        
         total_size = type_size;
-
+        
         total_dim = 1;
-
+        
         for (ii=0; ii < kdims; ii ++) {
-
+            
             total_size *= dims[ii];
-
+            
             total_dim *= dims[ii];
-
+            
         }
-
-
+        
+        
         if (total_size < type_size) total_size = type_size;
-
+        
         if (total_dim < 1 ) total_dim = 1;
-
-        cbf_reportnez(cbf_require_column(handle,"value"),errorcode);
-
+        
+        cbf_reportnez(cbf_require_column(handle,columnname),errorcode);
+        
         if(total_size > 0) {
-
-            if(readattrib) {
-
-                /* Process an attribute */
-
-                cbf_reportnez(cbf_alloc(((void **) value),NULL,
-                                        1,total_size+1),errorcode);
-
-                cbf_h5failneg(H5Aread(obj_id,native_type,(void *)*value),
-                              CBF_ARGUMENT);
-
-                (*((char **)value))[total_size]='\0';
-
-                if (type_class==H5T_STRING) {
-
-                    cbf_reportnez(cbf_set_value(handle,(const char *)(*value)),errorcode);
-
-                } else if (type_class==H5T_INTEGER){
-
-                    /* Read of a single integer or an integer array of
-                     up to 3 dimensions */
-
-                    char * ivalue = NULL;
-
-                    long xdata = 0;
-
-                    unsigned long uxdata = 0;
-
-                    int sign;
-
-                    sign = (type_sign==H5T_SGN_2)?1:0;
-
-                    if (total_dim ==1) {
-
-                        cbf_reportnez(cbf_alloc(((void **) &ivalue),NULL,
-                                                1,type_size*3+1),errorcode);
-
-                        if (H5Tequal(native_type,H5T_NATIVE_CHAR)&&sign) xdata = **((signed char **)value);
-                        if (H5Tequal(native_type,H5T_NATIVE_CHAR)&&!sign) uxdata = **((unsigned char **)value);
-                        if (H5Tequal(native_type,H5T_NATIVE_SCHAR)) xdata = **((signed char **)value);
-                        if (H5Tequal(native_type,H5T_NATIVE_UCHAR)) uxdata = **((unsigned char **)value);
-                        if (H5Tequal(native_type,H5T_NATIVE_SHORT)) xdata = **((unsigned short **)value);
-                        if (H5Tequal(native_type,H5T_NATIVE_USHORT)) uxdata = **((unsigned short **)value);
-                        if (H5Tequal(native_type,H5T_NATIVE_INT)) xdata = **((int **)value);
-                        if (H5Tequal(native_type,H5T_NATIVE_UINT)) uxdata = **((unsigned int **)value);
-                        if (H5Tequal(native_type,H5T_NATIVE_LONG)) xdata = **((long **)value);
-                        if (H5Tequal(native_type,H5T_NATIVE_ULONG)) uxdata = **((unsigned long **)value);
-
-                        if (sign) {
-
-                            sprintf(ivalue,"%ld",xdata);
-
-                        } else {
-
-                            sprintf(ivalue,"%lu",uxdata);
-
-                        }
-
-                        cbf_reportnez(cbf_set_value(handle,(const char *)(ivalue)),errorcode);
-
-                        cbf_reportnez(cbf_free((void**)value,NULL),errorcode);
-
-                        *value = (unsigned char *)ivalue;
-
-                    } else {
-
-
-
-                        /* process arrays of up to 100 as
-                         bracketed strings
-                         */
-
-                        if (total_dim < 101) {
-
-                            size_t indices[H5S_MAX_RANK];
-
-                            size_t master_index, ival_index;
-
-                            int idim, level;
-
-                            char buffer[40];
-
-                            cbf_reportnez(cbf_alloc(((void **) &ivalue),NULL,
-                                                    1,total_dim*((type_size*3)+kdims*2)+1),errorcode);
-
-                            for (idim = 0; idim < kdims; idim ++) {
-
-                                indices[idim] = 0;
-
-                                ivalue[idim] = '[';
-
-                            }
-
-                            level = kdims-1;
-
-                            ival_index = kdims;
-
-                            master_index = 0;
-
-                            while (master_index < total_dim) {
-
-                                for (indices[level]=0; indices[level] < dims[level];) {
-
-                                    if (H5Tequal(native_type,H5T_NATIVE_CHAR)&&sign) xdata = ((*(signed char **)value)[master_index]);
-                                    if (H5Tequal(native_type,H5T_NATIVE_CHAR)&&!sign) uxdata = ((*(unsigned char **)value)[master_index]);
-                                    if (H5Tequal(native_type,H5T_NATIVE_SCHAR)) xdata = ((*(signed char **)value)[master_index]);
-                                    if (H5Tequal(native_type,H5T_NATIVE_UCHAR)) uxdata = ((*(unsigned char **)value)[master_index]);
-                                    if (H5Tequal(native_type,H5T_NATIVE_SHORT)) xdata = ((*(unsigned short **)value)[master_index]);
-                                    if (H5Tequal(native_type,H5T_NATIVE_USHORT)) uxdata = ((*(unsigned short **)value)[master_index]);
-                                    if (H5Tequal(native_type,H5T_NATIVE_INT)) xdata = ((*(int **)value)[master_index]);
-                                    if (H5Tequal(native_type,H5T_NATIVE_UINT)) uxdata = ((*(unsigned int **)value)[master_index]);
-                                    if (H5Tequal(native_type,H5T_NATIVE_LONG)) xdata = ((*(long **)value)[master_index]);
-                                    if (H5Tequal(native_type,H5T_NATIVE_ULONG)) uxdata = ((*(unsigned long **)value)[master_index]);
-
-
-                                    if (sign) {
-
-                                        sprintf(buffer,"%ld",xdata);
-
-                                    } else {
-
-                                        sprintf(buffer,"%lu",uxdata);
-
-                                    }
-
-                                    strcat(ivalue+ival_index,buffer);
-
-                                    ival_index+=_cbf_strlen(buffer);
-
-                                    ivalue[ival_index++]= (indices[level] < dims[level]-1)?',':']';
-
-                                    master_index++;
-
-                                    indices[level]++;
-
-                                    if (indices[level] == dims[level]) {
-
-                                        /* We are at the end of a fast-dimension row
-                                         and therefore need to update higher level indices
-                                         if any.  */
-
-                                        indices[level] = 0;
-
-                                        level --;
-
-                                        while (level >= 0) {
-
-                                            indices[level]++;
-
-                                            if (indices[level] < dims[level]) {
-
-                                                ivalue[ival_index++] = ',';
-
-                                                ivalue[ival_index++] = '[';
-
-                                                level++;
-
-                                                break;
-
-                                            } else {
-
-                                                ivalue[ival_index++] = ']';
-
-                                                indices[level] = 0;
-
-                                                level --;
-
-                                            }
-
-                                        }
-
-                                        if (level < 0) break;
-
-                                        while (level > kdims-1) {
-
-                                            ivalue[ival_index++] = '[';
-
-                                            level++;
-
-                                        }
-
-                                    }
-
-                                }
-
-                            }
-
-                            ivalue[ival_index++] = '\0';
-
-                            cbf_reportnez(cbf_set_value(handle,(const char *)(ivalue)),errorcode);
-
-                            cbf_reportnez(cbf_set_typeofvalue(handle,"bkts"),errorcode);
-
-                            cbf_reportnez(cbf_free((void**)value,NULL),errorcode);
-
-                            *value = (unsigned char *)ivalue;
-
-                        } else {
-
-                            size_t dimfast, dimmid, dimslow;
-
-                            dimmid = dimslow = 1;
-
-                            dimfast = dims[kdims-1];
-
-                            if (kdims > 1) dimmid = dims[kdims-2];
-
-                            if (kdims > 2) dimslow = total_dim/(dimfast*dimmid);
-
-                            cbf_reportnez(cbf_set_integerarray_wdims_fs(handle,
-                                                                        CBF_NIBBLE_OFFSET,target_row,*value,
-                                                                        type_size,sign,total_dim,"little_endian",
-                                                                        dimfast,dimmid,dimslow,0),errorcode);
-
-                        }
-
-
-                    }
-
-
-                } else if (type_class==H5T_FLOAT){
-
-                    /* Read of a single float or double or a float or
-                     double array of up to 3 dimensions */
-
-                    char * ivalue = NULL;
-
-                    double dxdata;
-
-                    float xdata;
-
-                    if (total_dim ==1) {
-
-                        cbf_reportnez(cbf_alloc(((void **) &ivalue),NULL,
-                                                1,type_size*2+6),errorcode);
-
-                        if (H5Tequal(native_type,H5T_NATIVE_FLOAT)) {
-
-                            xdata = **((float **)value);
-
-                            snprintf(ivalue,type_size*2+5,"%.7g",(double) xdata);
-
-                        } else {
-
-                            dxdata = **((double **)value);
-
-                            snprintf(ivalue,type_size*2+5,"%.15g",dxdata);
-
-                        }
-
-                        cbf_reportnez(cbf_set_value(handle,(const char *)(ivalue)),errorcode);
-
-                        cbf_reportnez(cbf_free((void**)value,NULL),errorcode);
-
-                        *value = (unsigned char *)ivalue;
-
-                    } else {
-
-
-
-                        /* process arrays of up to 100 as
-                         bracketed strings
-                         */
-
-                        if (total_dim < 101) {
-
-                            size_t indices[H5S_MAX_RANK];
-
-                            size_t master_index, ival_index;
-
-                            int idim, level;
-
-                            char buffer[40];
-
-                            cbf_reportnez(cbf_alloc(((void **) &ivalue),NULL,
-                                                    1,total_dim*((type_size*2)+5+kdims*2)+1),errorcode);
-
-                            for (idim = 0; idim < kdims; idim ++) {
-
-                                indices[idim] = 0;
-
-                                ivalue[idim] = '[';
-
-                            }
-
-                            level = kdims-1;
-
-                            ival_index = kdims;
-
-                            master_index = 0;
-
-                            while (master_index < total_dim) {
-
-                                for (indices[level]=0; indices[level] < dims[level];) {
-
-                                    if (H5Tequal(native_type,H5T_NATIVE_FLOAT)) {
-
-                                        xdata = ((*(float **)value)[master_index]);
-
-                                        snprintf(buffer,type_size*2+5,"%.7g",(double) xdata);
-
-                                    } else {
-
-                                        dxdata = ((*(double **)value)[master_index]);
-
-                                        snprintf(buffer,type_size*2+5,"%.15g",dxdata);
-
-                                    }
-
-                                    strcat(ivalue+ival_index,buffer);
-
-                                    ival_index+=_cbf_strlen(buffer);
-
-                                    ivalue[ival_index++]= (indices[level] < dims[level]-1)?',':']';
-
-                                    master_index++;
-
-                                    indices[level]++;
-
-                                    if (indices[level] == dims[level]) {
-
-                                        /* We are at the end of a fast-dimension row
-                                         and therefore need to update higher level indices
-                                         if any.  */
-
-                                        indices[level] = 0;
-
-                                        level --;
-
-                                        while (level >= 0) {
-
-                                            indices[level]++;
-
-                                            if (indices[level] < dims[level]) {
-
-                                                ivalue[ival_index++] = ',';
-
-                                                ivalue[ival_index++] = '[';
-
-                                                level++;
-
-                                                break;
-
-                                            } else {
-
-                                                ivalue[ival_index++] = ']';
-
-                                                indices[level] = 0;
-
-                                                level --;
-
-                                            }
-
-                                        }
-
-                                        if (level < 0) break;
-
-                                        while (level > kdims-1) {
-
-                                            ivalue[ival_index++] = '[';
-
-                                            level++;
-
-                                        }
-
-                                    }
-
-                                }
-
-                            }
-
-                            ivalue[ival_index++] = '\0';
-
-                            cbf_reportnez(cbf_set_value(handle,(const char *)(ivalue)),errorcode);
-
-                            cbf_reportnez(cbf_set_typeofvalue(handle,"bkts"),errorcode);
-
-                            cbf_reportnez(cbf_free((void**)value,NULL),errorcode);
-
-                            *value = (unsigned char *)ivalue;
-
-                        } else {
-
-                            size_t dimfast, dimmid, dimslow;
-
-                            dimmid = dimslow = 1;
-
-                            dimfast = dims[kdims-1];
-
-                            if (kdims > 1) dimmid = dims[kdims-2];
-
-                            if (kdims > 2) dimslow = total_dim/(dimfast*dimmid);
-
-                            cbf_reportnez(cbf_set_realarray_wdims_fs(handle,
-                                                                     CBF_NIBBLE_OFFSET,target_row,*value,
-                                                                     type_size,total_dim,"little_endian",
-                                                                     dimfast,dimmid,dimslow,0),errorcode);
-
-                        }
-
-
-                    }
-
-
-                } else if (type_class != H5T_OPAQUE) {
-
-                    unsigned char * hexvalue = NULL;
-
-                    unsigned char hexdigs[16] = {'0','1','2','3','4','5','6','7','8','9',
-                        'a','b','c','d','e','f'};
-
-                    size_t ii;
-
-                    cbf_reportnez(cbf_alloc(((void **) &hexvalue),NULL,
-                                            1,2*total_size+1),errorcode);
-
-                    hexvalue[2*total_size+1] = '\0';
-
-                    for (ii=0; ii< total_size; ii++) {
-
-                        hexvalue[(total_size-ii)*2-2] =
-                        hexdigs[((int)(*((unsigned char **)value))[ii])&0xF];
-
-                        hexvalue[(total_size-ii)*2-1] =
-                        hexdigs[((int)((*((unsigned char **)value))[ii])>>4)&0xF];
-
-                    }
-
-                    cbf_reportnez(cbf_set_value(handle,(const char *)(hexvalue)),errorcode);
-
-                    cbf_reportnez(cbf_free((void**)value,NULL),errorcode);
-
-                    *value = hexvalue;
-
-                }
-
-            } else {
-
+            
+            {
+                
                 /* process a dataset */
-
+                
                 hid_t memspace;
-
+                
                 memspace=H5Screate_simple(kdims,dims,NULL);
-
+                
                 cbf_reportnez(cbf_alloc(((void **) &data),NULL,
                                         1,total_size+1),errorcode);
-
+                
                 cbf_h5failneg(H5Dread(obj_id,native_type,
                                       H5S_ALL,memspace,H5P_DEFAULT,data),
                               CBF_ARGUMENT);
-
+                
                 data[total_size]='\0';
-
+                
                 if (type_class==H5T_STRING) {
-
+                    
                     cbf_reportnez(cbf_set_value(handle,(const char *)data),errorcode)
-
+                    
                 } else if (type_class==H5T_INTEGER){
-
+                    
                     /* Read of a single integer or an integer array of
                      up to 3 dimensions */
-
+                    
                     char * ivalue = NULL;
-
+                    
                     long xdata = 0;
-
+                    
                     unsigned long uxdata = 0;
-
+                    
                     int sign;
-
+                    
                     sign = (type_sign==H5T_SGN_2)?1:0;
-
+                    
                     if (total_dim ==1) {
-
+                        
                         cbf_reportnez(cbf_alloc(((void **) &ivalue),NULL,
                                                 1,type_size*3+1),errorcode);
-
+                        
                         if (H5Tequal(native_type, H5T_NATIVE_CHAR)&&sign) xdata = *((signed char *)data);
                         if (H5Tequal(native_type, H5T_NATIVE_CHAR)&&!sign) uxdata = *((unsigned char *)data);
                         if (H5Tequal(native_type, H5T_NATIVE_SCHAR)) xdata = *((signed char *)data);
@@ -28892,62 +28443,65 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                         if (H5Tequal(native_type, H5T_NATIVE_UINT)) uxdata = *((unsigned int *)data);
                         if (H5Tequal(native_type, H5T_NATIVE_LONG)) xdata = *((long *)data);
                         if (H5Tequal(native_type, H5T_NATIVE_ULONG)) uxdata = *((unsigned long *)data);
-
+                        
                         if (sign) {
-
+                            
                             sprintf(ivalue,"%ld",xdata);
-
+                            
                         } else {
-
+                            
                             sprintf(ivalue,"%lu",uxdata);
-
+                            
                         }
-
+                        
                         cbf_reportnez(cbf_set_value(handle,(const char *)(ivalue)),errorcode);
-
+                        
                         cbf_reportnez(cbf_free((void**)&data,NULL),errorcode);
-
+                        
                         data = (unsigned char *)ivalue;
-
+                        
                     } else {
-
-
-
-                        /* process arrays of up to 100 as
-                         bracketed strings
+                        
+                        
+                        
+                        /* process arrays as multiple rows in the slowest index
                          */
-
-                        if (total_dim < 101) {
-
+                        
+                        {
+                            
                             size_t indices[H5S_MAX_RANK];
-
+                            
                             size_t master_index, ival_index;
-
+                            
                             int idim, level;
-
+                            
                             char buffer[40];
-
+                            
+                            char open, close;
+                            
                             cbf_reportnez(cbf_alloc(((void **) &ivalue),NULL,
                                                     1,total_dim*((type_size*3)+kdims*2)+1),errorcode);
-
+                            
                             for (idim = 0; idim < kdims; idim ++) {
-
+                                
                                 indices[idim] = 0;
-
+                                
                                 ivalue[idim] = '[';
-
+                                
                             }
-
+                            
                             level = kdims-1;
-
-                            ival_index = kdims;
-
+                            
+                            ivalue[level] = '\0';
+                            
+                            ival_index = kdims-1;
+                            
                             master_index = 0;
-
+                            
                             while (master_index < total_dim) {
-
+                                
                                 for (indices[level]=0; indices[level] < dims[level];) {
-
+                                    
                                     if (H5Tequal(native_type, H5T_NATIVE_CHAR)
                                         &&sign) xdata = (((signed char *)data)[master_index]);
                                     if (H5Tequal(native_type, H5T_NATIVE_CHAR)
@@ -28960,341 +28514,353 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                                     if (H5Tequal(native_type, H5T_NATIVE_UINT)) uxdata = (((unsigned int *)data)[master_index]);
                                     if (H5Tequal(native_type, H5T_NATIVE_LONG)) xdata = (((long *)data)[master_index]);
                                     if (H5Tequal(native_type, H5T_NATIVE_ULONG)) uxdata = (((unsigned long *)data)[master_index]);
-
-
+                                    
+                                    
                                     if (sign) {
-
+                                        
                                         sprintf(buffer,"%ld",xdata);
-
+                                        
                                     } else {
-
+                                        
                                         sprintf(buffer,"%lu",uxdata);
-
+                                        
                                     }
-
+                                    
                                     strcat(ivalue+ival_index,buffer);
-
+                                    
                                     ival_index+=_cbf_strlen(buffer);
-
+                                    
                                     ivalue[ival_index++]= (indices[level] < dims[level]-1)?',':']';
-
+                                    
                                     master_index++;
-
+                                    
                                     indices[level]++;
-
+                                    
                                     if (indices[level] == dims[level]) {
-
+                                        
                                         /* We are at the end of a fast-dimension row
                                          and therefore need to update higher level indices
                                          if any.  */
-
+                                        
                                         indices[level] = 0;
-
+                                        
                                         level --;
-
+                                        
                                         while (level >= 0) {
-
+                                            
                                             indices[level]++;
-
+                                            
                                             if (indices[level] < dims[level]) {
-
-                                                ivalue[ival_index++] = ',';
-
-                                                ivalue[ival_index++] = '[';
-
-                                                level++;
-
-                                                break;
-
+                                            
+                                                if (level > 0) {    
+                                                
+                                                    ivalue[ival_index++] = ',';
+                                                
+                                                    ivalue[ival_index++] = '[';
+                                                
+                                                    level++;
+                                                
+                                                    break;
+                                                
+                                                } else {
+                                                                                                
+                                                    cbf_reportnez(cbf_select_row(handle,target_row),errorcode);
+                                                    
+                                                    cbf_reportnez(cbf_set_value(handle,(const char *)(ivalue)),errorcode);
+                                                    
+                                                    cbf_reportnez(cbf_new_row(handle),errorcode);
+                                                    
+                                                    target_row++;
+                                                    
+                                                    ival_index = kdims-1;
+                                                
+                                                }
+                                                
                                             } else {
-
-                                                ivalue[ival_index++] = ']';
-
-                                                indices[level] = 0;
-
+                                            
+                                                if (level > 0) {
+                                                
+                                                    ivalue[ival_index++] = ']';
+                                                
+                                                    indices[level] = 0;
+                                                
+                                                } else {
+                                                
+                                                    cbf_reportnez(cbf_select_row(handle,target_row),errorcode);
+                                                    
+                                                    cbf_reportnez(cbf_set_value(handle,(const char *)(ivalue)),errorcode);
+     
+                                                
+                                                }
                                                 level --;
-
+                                                
                                             }
-
+                                            
                                         }
-
+                                        
                                         if (level < 0) break;
-
-                                        while (level > kdims-1) {
-
+                                        
+                                        while (level < kdims-1) {
+                                            
                                             ivalue[ival_index++] = '[';
-
+                                            
                                             level++;
-
+                                            
                                         }
-
+                                        
                                     }
-
+                                    
                                 }
-
+                                
                             }
-
+                            
                             ivalue[ival_index++] = '\0';
-
-                            cbf_reportnez(cbf_set_value(handle,(const char *)(ivalue)),errorcode);
-
+                                                                                   
                             cbf_reportnez(cbf_set_typeofvalue(handle,"bkts"),errorcode);
-
+                            
                             cbf_reportnez(cbf_free((void**)&data,NULL),errorcode);
-
+                            
                             data = (unsigned char *)ivalue;
-
-                        } else {
-
-                            size_t dimfast, dimmid, dimslow;
-
-                            dimmid = dimslow = 1;
-
-                            dimfast = dims[kdims-1];
-
-                            if (kdims > 1) dimmid = dims[kdims-2];
-
-                            if (kdims > 2) dimslow = total_dim/(dimfast*dimmid);
-
-                            cbf_reportnez(cbf_set_integerarray_wdims_fs(handle,
-                                                                        CBF_NIBBLE_OFFSET,target_row,data,
-                                                                        type_size,sign,total_dim,"little_endian",
-                                                                        dimfast,dimmid,dimslow,0),errorcode);
-
+                            
                         }
-
-
+                        
                     }
-
-
+                    
+                    
                 } else if (type_class==H5T_FLOAT){
-
+                    
                     /* Read of a single float or double or a float or
                      double array of up to 3 dimensions */
-
+                    
                     char * ivalue = NULL;
-
+                    
                     double dxdata;
-
+                    
                     float xdata;
-
+                    
                     if (total_dim ==1) {
-
+                        
                         cbf_reportnez(cbf_alloc(((void **) &ivalue),NULL,
                                                 1,type_size*2+6),errorcode);
-
+                        
                         if (H5Tequal(native_type, H5T_NATIVE_FLOAT)) {
-
+                            
                             xdata = *((float *)data);
-
+                            
                             snprintf(ivalue,type_size*2+5,"%.7g",(double) xdata);
-
+                            
                         } else {
-
+                            
                             dxdata = *((double *)data);
-
+                            
                             snprintf(ivalue,type_size*2+5,"%.15g",dxdata);
-
+                            
                         }
-
+                        
                         cbf_reportnez(cbf_set_value(handle,(const char *)(ivalue)),errorcode);
-
+                        
                         cbf_reportnez(cbf_free((void**)&data,NULL),errorcode);
-
+                        
                         data = (unsigned char *)ivalue;
-
+                        
                     } else {
-
-
-
-                        /* process arrays of up to 100 as
-                         bracketed strings
+                        
+                        
+                        
+                        /* process arrays
                          */
-
-                        if (total_dim < 101) {
-
+                        
+                       {
+                            
                             size_t indices[H5S_MAX_RANK];
-
+                            
                             size_t master_index, ival_index;
-
+                            
                             int idim, level;
-
+                            
                             char buffer[40];
-
+                            
                             cbf_reportnez(cbf_alloc(((void **) &ivalue),NULL,
                                                     1,total_dim*((type_size*2)+5+kdims*2)+1),errorcode);
-
+                            
                             for (idim = 0; idim < kdims; idim ++) {
-
+                                
                                 indices[idim] = 0;
-
+                                
                                 ivalue[idim] = '[';
-
+                                
                             }
-
+                            
                             level = kdims-1;
-
-                            ival_index = kdims;
-
+                            
+                            ival_index = kdims-1;
+                            
                             master_index = 0;
-
+                            
                             while (master_index < total_dim) {
-
+                                
                                 for (indices[level]=0; indices[level] < dims[level];) {
-
+                                    
                                     if (H5Tequal(native_type, H5T_NATIVE_FLOAT)) {
-
+                                        
                                         xdata = (((float *)data)[master_index]);
-
+                                        
                                         snprintf(buffer,type_size*2+5,"%.7g",(double) xdata);
-
+                                        
                                     } else {
-
+                                        
                                         dxdata = (((double *)data)[master_index]);
-
+                                        
                                         snprintf(buffer,type_size*2+5,"%.15g",dxdata);
-
+                                        
                                     }
-
+                                    
                                     strcat(ivalue+ival_index,buffer);
-
+                                    
                                     ival_index+=_cbf_strlen(buffer);
-
+                                    
                                     ivalue[ival_index++]= (indices[level] < dims[level]-1)?',':']';
-
+                                    
                                     master_index++;
-
+                                    
                                     indices[level]++;
-
+                                    
                                     if (indices[level] == dims[level]) {
-
+                                        
                                         /* We are at the end of a fast-dimension row
                                          and therefore need to update higher level indices
                                          if any.  */
-
+                                        
                                         indices[level] = 0;
-
+                                        
                                         level --;
-
+                                        
                                         while (level >= 0) {
-
+                                            
                                             indices[level]++;
-
+                                            
                                             if (indices[level] < dims[level]) {
-
-                                                ivalue[ival_index++] = ',';
-
-                                                ivalue[ival_index++] = '[';
-
-                                                level++;
-
-                                                break;
-
+                                                
+                                                 if (level > 0) {    
+                                                
+                                                    ivalue[ival_index++] = ',';
+                                                
+                                                    ivalue[ival_index++] = '[';
+                                                
+                                                    level++;
+                                                
+                                                    break;
+                                                
+                                                } else {
+                                                                                                
+                                                    cbf_reportnez(cbf_select_row(handle,target_row),errorcode);
+                                                    
+                                                    cbf_reportnez(cbf_set_value(handle,(const char *)(ivalue)),errorcode);
+                                                    
+                                                    cbf_reportnez(cbf_new_row(handle),errorcode);
+                                                    
+                                                    target_row++;
+                                                    
+                                                    ival_index = kdims-1;
+                                                
+                                                }
+                                                
                                             } else {
-
-                                                ivalue[ival_index++] = ']';
-
-                                                indices[level] = 0;
-
+                                                
+                                                if (level > 0) {
+                                                
+                                                    ivalue[ival_index++] = ']';
+                                                
+                                                    indices[level] = 0;
+                                                
+                                                } else {
+                                                
+                                                    cbf_reportnez(cbf_select_row(handle,target_row),errorcode);
+                                                    
+                                                    cbf_reportnez(cbf_set_value(handle,(const char *)(ivalue)),errorcode);
+     
+                                                
+                                                }
                                                 level --;
-
+                                                
                                             }
-
+                                            
                                         }
-
+                                        
                                         if (level < 0) break;
-
+                                        
                                         while (level > kdims-1) {
-
+                                            
                                             ivalue[ival_index++] = '[';
-
+                                            
                                             level++;
-
+                                            
                                         }
-
+                                        
                                     }
-
+                                    
                                 }
-
+                                
                             }
-
+                            
                             ivalue[ival_index++] = '\0';
-
+                            
                             cbf_reportnez(cbf_set_value(handle,(const char *)(ivalue)),errorcode);
-
+                            
                             cbf_reportnez(cbf_set_typeofvalue(handle,"bkts"),errorcode);
-
+                            
                             cbf_reportnez(cbf_free((void**)&data,NULL),errorcode);
-
+                            
                             data = (unsigned char *)ivalue;
-
-                        } else {
-
-                            size_t dimfast, dimmid, dimslow;
-
-                            dimmid = dimslow = 1;
-
-                            dimfast = dims[kdims-1];
-
-                            if (kdims > 1) dimmid = dims[kdims-2];
-
-                            if (kdims > 2) dimslow = total_dim/(dimfast*dimmid);
-
-                            cbf_reportnez(cbf_set_realarray_wdims_fs(handle,
-                                                                     CBF_NIBBLE_OFFSET,target_row,data,
-                                                                     type_size,total_dim,"little_endian",
-                                                                     dimfast,dimmid,dimslow,0),errorcode);
-
-                        }
-
-
+                            
+                        }                         
                     }
-
-
+                    
+                    
                 } else if (type_class!= H5T_OPAQUE){
-
+                    
                     char * hexvalue = NULL;
-
+                    
                     char hexdigs[16] = {'0','1','2','3','4','5','6','7','8','9',
                         'a','b','c','d','e','f'};
-
+                    
                     size_t ii;
-
+                    
                     cbf_reportnez(cbf_alloc(((void **) &hexvalue),NULL,
                                             1,2*total_size+1),errorcode);
-
+                    
                     hexvalue[2*total_size+1] = '\0';
-
+                    
                     for (ii=0; ii< total_size; ii++) {
-
+                        
                         hexvalue[(total_size-ii)*2-2] =
                         hexdigs[((int)(((unsigned char *)data))[ii])&0xF];
-
+                        
                         hexvalue[(total_size-ii)*2-1] =
                         hexdigs[((int)((((unsigned char *)data))[ii])>>4)&0xF];
-
+                        
                     }
-
+                    
                     cbf_reportnez(cbf_set_value(handle,(const char *)(hexvalue)),errorcode);
-
+                    
                     cbf_reportnez(cbf_free((void**)&data,NULL),errorcode);
-
+                    
                     data = (unsigned char *)hexvalue;
-
+                    
                 }
-
-
+                
+                
                 if (value) {
-
+                    
                     *value=data;
-
+                    
                 } else {
-
+                    
                     cbf_reportnez(cbf_free((void **)&data,NULL),errorcode);
                 }
-
+                
             }
-
+            
         }
         switch(type_order) {
             case H5T_ORDER_LE:
@@ -29318,31 +28884,1153 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
             default: byte_order="UNKNOWN";
                 break;
         }
-
+        
         cbf_reportnez(cbf_require_column(handle,"h5_byte_order"),errorcode);
-
+        
         cbf_reportnez(cbf_set_value(handle,byte_order),errorcode);
-
+        
         if (type_size < 10) {
-
+            
             sprintf(buffer,"%ld",(unsigned long)type_size);
-
+            
         } else {
-
+            
             sprintf(buffer,"0x%lx",(unsigned long)type_size);
-
+            
         }
-
+        
         cbf_reportnez(cbf_require_column(handle,"size"),errorcode);
-
+        
         cbf_reportnez(cbf_set_value(handle,buffer),errorcode);
-
+        
         if (base_type >=0) H5Tclose(base_type);
-
+        
         if (native_type>=0) H5Tclose(native_type);
-
+        
         H5garbage_collect();
+        
+        return CBF_SUCCESS;
+    }
 
+    /* Store an HDF5 Dataset in CBF handle, using
+     category categoryname, ...*/
+
+    int cbf_h5ds_store(cbf_handle handle, haddr_t parent,
+                       const char * parent_name,
+                       const int target_row,
+                       const char * categoryname, hid_t obj_id,
+                       hid_t space, hid_t type,
+                       const char * name,
+                       const int readattrib,
+                       void ** value) {
+        
+        char buffer[25];
+        
+        int errorcode;
+        
+        unsigned char* data = NULL;
+        
+        char h5t_type_class[14], h5t_base_type_class[14];
+        
+        hid_t base_type;
+        
+        hid_t native_type;
+        
+        int atomic;
+        
+        int ndims = 0, kdims = 0, ii;
+        
+        unsigned int rows;
+        
+        hsize_t dims[H5S_MAX_RANK];
+        
+        hsize_t maxdims[H5S_MAX_RANK];
+        
+        char * byte_order;
+        
+        size_t type_size, total_size, total_dim;
+        
+        H5T_class_t type_class, base_type_class;
+        
+        H5T_order_t type_order;
+        
+        H5T_sign_t type_sign = H5T_SGN_ERROR;
+        
+        errorcode = 0;
+        
+        cbf_reportnez(cbf_require_category(handle,categoryname),errorcode);
+        
+        /*  Give the name of this dataset as its own id */
+        
+        cbf_reportnez(cbf_require_column(handle,"id"),errorcode);
+        
+        rows = 0;
+        
+        cbf_reportnez(cbf_count_rows(handle,&rows),errorcode);
+        
+        if (target_row==-1) {
+            
+            cbf_reportnez(cbf_new_row(handle),errorcode);
+            
+        } else {
+            
+            if ((unsigned int)target_row >= rows ) {
+                
+                for (ii=rows; ii <= target_row; ii++) {
+                    
+                    cbf_reportnez(cbf_new_row(handle),errorcode);
+                    
+                }
+            }
+            
+            cbf_reportnez(cbf_select_row(handle,target_row),errorcode);
+        }
+        
+        cbf_reportnez(cbf_set_value(handle,name),errorcode);
+        
+        /*  Give the parent name and id for this dataset */
+        
+        cbf_reportnez(cbf_require_column(handle,"parent_name"),errorcode);
+        
+        cbf_reportnez(cbf_set_value(handle,parent_name),errorcode);
+        
+        cbf_reportnez(cbf_require_column(handle,"parent_id"),errorcode);
+        
+        sprintf(buffer,"0x%lx",(unsigned long)parent);
+        
+        cbf_reportnez(cbf_set_value(handle,buffer),errorcode);
+        
+        
+        /* get the class, and, if not atomic
+         try to get the base class for an array
+         give up otherwise */
+        
+        type_class = H5Tget_class(type);
+        
+        native_type = H5Tget_native_type(type,H5T_DIR_ASCEND);
+        
+        base_type = CBF_H5FAIL;
+        
+        cbf_reportnez(cbf_require_column(handle,"type"),errorcode);
+        
+        type_size = 0;
+        
+        if (value) *value = 0;
+        
+        type_order = -1;
+        
+        kdims= ndims = H5Sget_simple_extent_ndims(space);
+        
+        if (ndims <= 0) ndims = 1;
+        
+        H5Sget_simple_extent_dims(space,dims,maxdims);
+        
+        if (!cbf_h5type_class_string(
+                                     type_class,
+                                     h5t_type_class,&atomic,14)) {
+            
+            cbf_reportnez(cbf_set_value(handle, h5t_type_class),errorcode);
+            
+            if (!atomic && type_class==H5T_ARRAY){
+                base_type = H5Tget_super(type);
+                
+                base_type_class = H5Tget_class(base_type);
+                
+                if (!cbf_h5type_class_string(
+                                             base_type_class,
+                                             h5t_base_type_class,&atomic,14)) {
+                    if (!atomic) {
+                        _cbf_strncpy (h5t_base_type_class,".",14);
+                        cbf_h5failneg(H5Tclose(base_type),CBF_FORMAT);
+                        base_type = CBF_H5FAIL;
+                    } else {
+                        
+                        type_size = H5Tget_size(base_type);
+                        
+                        type_order = H5Tget_order(base_type);
+                        
+                        type_sign = H5Tget_sign(base_type);
+                        
+                        cbf_reportnez(cbf_require_column(handle,"base_type"),errorcode);
+                        
+                        cbf_reportnez(cbf_set_value(handle,h5t_base_type_class),errorcode);
+                    }
+                } else {
+                    _cbf_strncpy (h5t_base_type_class,".",14);
+                    cbf_h5failneg(H5Tclose(base_type),CBF_FORMAT);
+                    base_type = CBF_H5FAIL;
+                }
+                
+            } else if (atomic) {
+                
+                type_size = H5Tget_size(native_type);
+                
+                type_order = H5Tget_order(type);
+                
+                type_sign = H5Tget_sign(type);
+                
+            }
+            
+        }
+        
+        total_size = type_size;
+        
+        total_dim = 1;
+        
+        for (ii=0; ii < kdims; ii ++) {
+            
+            total_size *= dims[ii];
+            
+            total_dim *= dims[ii];
+            
+        }
+        
+        
+        if (total_size < type_size) total_size = type_size;
+        
+        if (total_dim < 1 ) total_dim = 1;
+        
+        cbf_reportnez(cbf_require_column(handle,"value"),errorcode);
+        
+        if(total_size > 0) {
+            
+            if(readattrib) {
+                
+                /* Process an attribute */
+                
+                cbf_reportnez(cbf_alloc(((void **) value),NULL,
+                                        1,total_size+1),errorcode);
+                
+                cbf_h5failneg(H5Aread(obj_id,native_type,(void *)*value),
+                              CBF_ARGUMENT);
+                
+                (*((char **)value))[total_size]='\0';
+                
+                if (type_class==H5T_STRING) {
+                    
+                    cbf_reportnez(cbf_set_value(handle,(const char *)(*value)),errorcode);
+                    
+                } else if (type_class==H5T_INTEGER){
+                    
+                    /* Read of a single integer or an integer array of
+                     up to 3 dimensions */
+                    
+                    char * ivalue = NULL;
+                    
+                    long xdata = 0;
+                    
+                    unsigned long uxdata = 0;
+                    
+                    int sign;
+                    
+                    sign = (type_sign==H5T_SGN_2)?1:0;
+                    
+                    if (total_dim ==1) {
+                        
+                        cbf_reportnez(cbf_alloc(((void **) &ivalue),NULL,
+                                                1,type_size*3+1),errorcode);
+                        
+                        if (H5Tequal(native_type,H5T_NATIVE_CHAR)&&sign) xdata = **((signed char **)value);
+                        if (H5Tequal(native_type,H5T_NATIVE_CHAR)&&!sign) uxdata = **((unsigned char **)value);
+                        if (H5Tequal(native_type,H5T_NATIVE_SCHAR)) xdata = **((signed char **)value);
+                        if (H5Tequal(native_type,H5T_NATIVE_UCHAR)) uxdata = **((unsigned char **)value);
+                        if (H5Tequal(native_type,H5T_NATIVE_SHORT)) xdata = **((unsigned short **)value);
+                        if (H5Tequal(native_type,H5T_NATIVE_USHORT)) uxdata = **((unsigned short **)value);
+                        if (H5Tequal(native_type,H5T_NATIVE_INT)) xdata = **((int **)value);
+                        if (H5Tequal(native_type,H5T_NATIVE_UINT)) uxdata = **((unsigned int **)value);
+                        if (H5Tequal(native_type,H5T_NATIVE_LONG)) xdata = **((long **)value);
+                        if (H5Tequal(native_type,H5T_NATIVE_ULONG)) uxdata = **((unsigned long **)value);
+                        
+                        if (sign) {
+                            
+                            sprintf(ivalue,"%ld",xdata);
+                            
+                        } else {
+                            
+                            sprintf(ivalue,"%lu",uxdata);
+                            
+                        }
+                        
+                        cbf_reportnez(cbf_set_value(handle,(const char *)(ivalue)),errorcode);
+                        
+                        cbf_reportnez(cbf_free((void**)value,NULL),errorcode);
+                        
+                        *value = (unsigned char *)ivalue;
+                        
+                    } else {
+                        
+                        
+                        
+                        /* process arrays of up to 100 as
+                         bracketed strings
+                         */
+                        
+                        if (total_dim < 101) {
+                            
+                            size_t indices[H5S_MAX_RANK];
+                            
+                            size_t master_index, ival_index;
+                            
+                            int idim, level;
+                            
+                            char buffer[40];
+                            
+                            cbf_reportnez(cbf_alloc(((void **) &ivalue),NULL,
+                                                    1,total_dim*((type_size*3)+kdims*2)+1),errorcode);
+                            
+                            for (idim = 0; idim < kdims; idim ++) {
+                                
+                                indices[idim] = 0;
+                                
+                                ivalue[idim] = '[';
+                                
+                            }
+                            
+                            level = kdims-1;
+                            
+                            ival_index = kdims;
+                            
+                            master_index = 0;
+                            
+                            while (master_index < total_dim) {
+                                
+                                for (indices[level]=0; indices[level] < dims[level];) {
+                                    
+                                    if (H5Tequal(native_type,H5T_NATIVE_CHAR)&&sign) xdata = ((*(signed char **)value)[master_index]);
+                                    if (H5Tequal(native_type,H5T_NATIVE_CHAR)&&!sign) uxdata = ((*(unsigned char **)value)[master_index]);
+                                    if (H5Tequal(native_type,H5T_NATIVE_SCHAR)) xdata = ((*(signed char **)value)[master_index]);
+                                    if (H5Tequal(native_type,H5T_NATIVE_UCHAR)) uxdata = ((*(unsigned char **)value)[master_index]);
+                                    if (H5Tequal(native_type,H5T_NATIVE_SHORT)) xdata = ((*(unsigned short **)value)[master_index]);
+                                    if (H5Tequal(native_type,H5T_NATIVE_USHORT)) uxdata = ((*(unsigned short **)value)[master_index]);
+                                    if (H5Tequal(native_type,H5T_NATIVE_INT)) xdata = ((*(int **)value)[master_index]);
+                                    if (H5Tequal(native_type,H5T_NATIVE_UINT)) uxdata = ((*(unsigned int **)value)[master_index]);
+                                    if (H5Tequal(native_type,H5T_NATIVE_LONG)) xdata = ((*(long **)value)[master_index]);
+                                    if (H5Tequal(native_type,H5T_NATIVE_ULONG)) uxdata = ((*(unsigned long **)value)[master_index]);
+                                    
+                                    
+                                    if (sign) {
+                                        
+                                        sprintf(buffer,"%ld",xdata);
+                                        
+                                    } else {
+                                        
+                                        sprintf(buffer,"%lu",uxdata);
+                                        
+                                    }
+                                    
+                                    strcat(ivalue+ival_index,buffer);
+                                    
+                                    ival_index+=_cbf_strlen(buffer);
+                                    
+                                    ivalue[ival_index++]= (indices[level] < dims[level]-1)?',':']';
+                                    
+                                    master_index++;
+                                    
+                                    indices[level]++;
+                                    
+                                    if (indices[level] == dims[level]) {
+                                        
+                                        /* We are at the end of a fast-dimension row
+                                         and therefore need to update higher level indices
+                                         if any.  */
+                                        
+                                        indices[level] = 0;
+                                        
+                                        level --;
+                                        
+                                        while (level >= 0) {
+                                            
+                                            indices[level]++;
+                                            
+                                            if (indices[level] < dims[level]) {
+                                                
+                                                ivalue[ival_index++] = ',';
+                                                
+                                                ivalue[ival_index++] = '[';
+                                                
+                                                level++;
+                                                
+                                                break;
+                                                
+                                            } else {
+                                                
+                                                ivalue[ival_index++] = ']';
+                                                
+                                                indices[level] = 0;
+                                                
+                                                level --;
+                                                
+                                            }
+                                            
+                                        }
+                                        
+                                        if (level < 0) break;
+                                        
+                                        while (level > kdims-1) {
+                                            
+                                            ivalue[ival_index++] = '[';
+                                            
+                                            level++;
+                                            
+                                        }
+                                        
+                                    }
+                                    
+                                }
+                                
+                            }
+                            
+                            ivalue[ival_index++] = '\0';
+                            
+                            cbf_reportnez(cbf_set_value(handle,(const char *)(ivalue)),errorcode);
+                            
+                            cbf_reportnez(cbf_set_typeofvalue(handle,"bkts"),errorcode);
+                            
+                            cbf_reportnez(cbf_free((void**)value,NULL),errorcode);
+                            
+                            *value = (unsigned char *)ivalue;
+                            
+                        } else {
+                            
+                            size_t dimfast, dimmid, dimslow;
+                            
+                            dimmid = dimslow = 1;
+                            
+                            dimfast = dims[kdims-1];
+                            
+                            if (kdims > 1) dimmid = dims[kdims-2];
+                            
+                            if (kdims > 2) dimslow = total_dim/(dimfast*dimmid);
+                            
+                            cbf_reportnez(cbf_set_integerarray_wdims_fs(handle,
+                                                                        CBF_NIBBLE_OFFSET,target_row,*value,
+                                                                        type_size,sign,total_dim,"little_endian",
+                                                                        dimfast,dimmid,dimslow,0),errorcode);
+                            
+                        }
+                        
+                        
+                    }
+                    
+                    
+                } else if (type_class==H5T_FLOAT){
+                    
+                    /* Read of a single float or double or a float or
+                     double array of up to 3 dimensions */
+                    
+                    char * ivalue = NULL;
+                    
+                    double dxdata;
+                    
+                    float xdata;
+                    
+                    if (total_dim ==1) {
+                        
+                        cbf_reportnez(cbf_alloc(((void **) &ivalue),NULL,
+                                                1,type_size*2+6),errorcode);
+                        
+                        if (H5Tequal(native_type,H5T_NATIVE_FLOAT)) {
+                            
+                            xdata = **((float **)value);
+                            
+                            snprintf(ivalue,type_size*2+5,"%.7g",(double) xdata);
+                            
+                        } else {
+                            
+                            dxdata = **((double **)value);
+                            
+                            snprintf(ivalue,type_size*2+5,"%.15g",dxdata);
+                            
+                        }
+                        
+                        cbf_reportnez(cbf_set_value(handle,(const char *)(ivalue)),errorcode);
+                        
+                        cbf_reportnez(cbf_free((void**)value,NULL),errorcode);
+                        
+                        *value = (unsigned char *)ivalue;
+                        
+                    } else {
+                        
+                        
+                        
+                        /* process arrays of up to 100 as
+                         bracketed strings
+                         */
+                        
+                        if (total_dim < 101) {
+                            
+                            size_t indices[H5S_MAX_RANK];
+                            
+                            size_t master_index, ival_index;
+                            
+                            int idim, level;
+                            
+                            char buffer[40];
+                            
+                            cbf_reportnez(cbf_alloc(((void **) &ivalue),NULL,
+                                                    1,total_dim*((type_size*2)+5+kdims*2)+1),errorcode);
+                            
+                            for (idim = 0; idim < kdims; idim ++) {
+                                
+                                indices[idim] = 0;
+                                
+                                ivalue[idim] = '[';
+                                
+                            }
+                            
+                            level = kdims-1;
+                            
+                            ival_index = kdims;
+                            
+                            master_index = 0;
+                            
+                            while (master_index < total_dim) {
+                                
+                                for (indices[level]=0; indices[level] < dims[level];) {
+                                    
+                                    if (H5Tequal(native_type,H5T_NATIVE_FLOAT)) {
+                                        
+                                        xdata = ((*(float **)value)[master_index]);
+                                        
+                                        snprintf(buffer,type_size*2+5,"%.7g",(double) xdata);
+                                        
+                                    } else {
+                                        
+                                        dxdata = ((*(double **)value)[master_index]);
+                                        
+                                        snprintf(buffer,type_size*2+5,"%.15g",dxdata);
+                                        
+                                    }
+                                    
+                                    strcat(ivalue+ival_index,buffer);
+                                    
+                                    ival_index+=_cbf_strlen(buffer);
+                                    
+                                    ivalue[ival_index++]= (indices[level] < dims[level]-1)?',':']';
+                                    
+                                    master_index++;
+                                    
+                                    indices[level]++;
+                                    
+                                    if (indices[level] == dims[level]) {
+                                        
+                                        /* We are at the end of a fast-dimension row
+                                         and therefore need to update higher level indices
+                                         if any.  */
+                                        
+                                        indices[level] = 0;
+                                        
+                                        level --;
+                                        
+                                        while (level >= 0) {
+                                            
+                                            indices[level]++;
+                                            
+                                            if (indices[level] < dims[level]) {
+                                                
+                                                ivalue[ival_index++] = ',';
+                                                
+                                                ivalue[ival_index++] = '[';
+                                                
+                                                level++;
+                                                
+                                                break;
+                                                
+                                            } else {
+                                                
+                                                ivalue[ival_index++] = ']';
+                                                
+                                                indices[level] = 0;
+                                                
+                                                level --;
+                                                
+                                            }
+                                            
+                                        }
+                                        
+                                        if (level < 0) break;
+                                        
+                                        while (level > kdims-1) {
+                                            
+                                            ivalue[ival_index++] = '[';
+                                            
+                                            level++;
+                                            
+                                        }
+                                        
+                                    }
+                                    
+                                }
+                                
+                            }
+                            
+                            ivalue[ival_index++] = '\0';
+                            
+                            cbf_reportnez(cbf_set_value(handle,(const char *)(ivalue)),errorcode);
+                            
+                            cbf_reportnez(cbf_set_typeofvalue(handle,"bkts"),errorcode);
+                            
+                            cbf_reportnez(cbf_free((void**)value,NULL),errorcode);
+                            
+                            *value = (unsigned char *)ivalue;
+                            
+                        } else {
+                            
+                            size_t dimfast, dimmid, dimslow;
+                            
+                            dimmid = dimslow = 1;
+                            
+                            dimfast = dims[kdims-1];
+                            
+                            if (kdims > 1) dimmid = dims[kdims-2];
+                            
+                            if (kdims > 2) dimslow = total_dim/(dimfast*dimmid);
+                            
+                            cbf_reportnez(cbf_set_realarray_wdims_fs(handle,
+                                                                     CBF_NIBBLE_OFFSET,target_row,*value,
+                                                                     type_size,total_dim,"little_endian",
+                                                                     dimfast,dimmid,dimslow,0),errorcode);
+                            
+                        }
+                        
+                        
+                    }
+                    
+                    
+                } else if (type_class != H5T_OPAQUE) {
+                    
+                    unsigned char * hexvalue = NULL;
+                    
+                    unsigned char hexdigs[16] = {'0','1','2','3','4','5','6','7','8','9',
+                        'a','b','c','d','e','f'};
+                    
+                    size_t ii;
+                    
+                    cbf_reportnez(cbf_alloc(((void **) &hexvalue),NULL,
+                                            1,2*total_size+1),errorcode);
+                    
+                    hexvalue[2*total_size+1] = '\0';
+                    
+                    for (ii=0; ii< total_size; ii++) {
+                        
+                        hexvalue[(total_size-ii)*2-2] =
+                        hexdigs[((int)(*((unsigned char **)value))[ii])&0xF];
+                        
+                        hexvalue[(total_size-ii)*2-1] =
+                        hexdigs[((int)((*((unsigned char **)value))[ii])>>4)&0xF];
+                        
+                    }
+                    
+                    cbf_reportnez(cbf_set_value(handle,(const char *)(hexvalue)),errorcode);
+                    
+                    cbf_reportnez(cbf_free((void**)value,NULL),errorcode);
+                    
+                    *value = hexvalue;
+                    
+                }
+                
+            } else {
+                
+                /* process a dataset */
+                
+                hid_t memspace;
+                
+                memspace=H5Screate_simple(kdims,dims,NULL);
+                
+                cbf_reportnez(cbf_alloc(((void **) &data),NULL,
+                                        1,total_size+1),errorcode);
+                
+                cbf_h5failneg(H5Dread(obj_id,native_type,
+                                      H5S_ALL,memspace,H5P_DEFAULT,data),
+                              CBF_ARGUMENT);
+                
+                data[total_size]='\0';
+                
+                if (type_class==H5T_STRING) {
+                    
+                    cbf_reportnez(cbf_set_value(handle,(const char *)data),errorcode)
+                    
+                } else if (type_class==H5T_INTEGER){
+                    
+                    /* Read of a single integer or an integer array of
+                     up to 3 dimensions */
+                    
+                    char * ivalue = NULL;
+                    
+                    long xdata = 0;
+                    
+                    unsigned long uxdata = 0;
+                    
+                    int sign;
+                    
+                    sign = (type_sign==H5T_SGN_2)?1:0;
+                    
+                    if (total_dim ==1) {
+                        
+                        cbf_reportnez(cbf_alloc(((void **) &ivalue),NULL,
+                                                1,type_size*3+1),errorcode);
+                        
+                        if (H5Tequal(native_type, H5T_NATIVE_CHAR)&&sign) xdata = *((signed char *)data);
+                        if (H5Tequal(native_type, H5T_NATIVE_CHAR)&&!sign) uxdata = *((unsigned char *)data);
+                        if (H5Tequal(native_type, H5T_NATIVE_SCHAR)) xdata = *((signed char *)data);
+                        if (H5Tequal(native_type, H5T_NATIVE_UCHAR)) uxdata = *((unsigned char *)data);
+                        if (H5Tequal(native_type, H5T_NATIVE_SHORT)) xdata = *((unsigned short *)data);
+                        if (H5Tequal(native_type, H5T_NATIVE_USHORT)) uxdata = *((unsigned short *)data);
+                        if (H5Tequal(native_type, H5T_NATIVE_INT)) xdata = *((int *)data);
+                        if (H5Tequal(native_type, H5T_NATIVE_UINT)) uxdata = *((unsigned int *)data);
+                        if (H5Tequal(native_type, H5T_NATIVE_LONG)) xdata = *((long *)data);
+                        if (H5Tequal(native_type, H5T_NATIVE_ULONG)) uxdata = *((unsigned long *)data);
+                        
+                        if (sign) {
+                            
+                            sprintf(ivalue,"%ld",xdata);
+                            
+                        } else {
+                            
+                            sprintf(ivalue,"%lu",uxdata);
+                            
+                        }
+                        
+                        cbf_reportnez(cbf_set_value(handle,(const char *)(ivalue)),errorcode);
+                        
+                        cbf_reportnez(cbf_free((void**)&data,NULL),errorcode);
+                        
+                        data = (unsigned char *)ivalue;
+                        
+                    } else {
+                        
+                        
+                        
+                        /* process arrays of up to 100 as
+                         bracketed strings
+                         */
+                        
+                        if (total_dim < 101) {
+                            
+                            size_t indices[H5S_MAX_RANK];
+                            
+                            size_t master_index, ival_index;
+                            
+                            int idim, level;
+                            
+                            char buffer[40];
+                            
+                            cbf_reportnez(cbf_alloc(((void **) &ivalue),NULL,
+                                                    1,total_dim*((type_size*3)+kdims*2)+1),errorcode);
+                            
+                            for (idim = 0; idim < kdims; idim ++) {
+                                
+                                indices[idim] = 0;
+                                
+                                ivalue[idim] = '[';
+                                
+                            }
+                            
+                            level = kdims-1;
+                            
+                            ival_index = kdims;
+                            
+                            master_index = 0;
+                            
+                            while (master_index < total_dim) {
+                                
+                                for (indices[level]=0; indices[level] < dims[level];) {
+                                    
+                                    if (H5Tequal(native_type, H5T_NATIVE_CHAR)
+                                        &&sign) xdata = (((signed char *)data)[master_index]);
+                                    if (H5Tequal(native_type, H5T_NATIVE_CHAR)
+                                        &&!sign) uxdata = (((unsigned char *)data)[master_index]);
+                                    if (H5Tequal(native_type, H5T_NATIVE_SCHAR)) xdata = (((signed char *)data)[master_index]);
+                                    if (H5Tequal(native_type, H5T_NATIVE_UCHAR)) uxdata = (((unsigned char *)data)[master_index]);
+                                    if (H5Tequal(native_type, H5T_NATIVE_SHORT)) xdata = (((unsigned short *)data)[master_index]);
+                                    if (H5Tequal(native_type, H5T_NATIVE_USHORT)) uxdata = (((unsigned short *)data)[master_index]);
+                                    if (H5Tequal(native_type, H5T_NATIVE_INT)) xdata = (((int *)data)[master_index]);
+                                    if (H5Tequal(native_type, H5T_NATIVE_UINT)) uxdata = (((unsigned int *)data)[master_index]);
+                                    if (H5Tequal(native_type, H5T_NATIVE_LONG)) xdata = (((long *)data)[master_index]);
+                                    if (H5Tequal(native_type, H5T_NATIVE_ULONG)) uxdata = (((unsigned long *)data)[master_index]);
+                                    
+                                    
+                                    if (sign) {
+                                        
+                                        sprintf(buffer,"%ld",xdata);
+                                        
+                                    } else {
+                                        
+                                        sprintf(buffer,"%lu",uxdata);
+                                        
+                                    }
+                                    
+                                    strcat(ivalue+ival_index,buffer);
+                                    
+                                    ival_index+=_cbf_strlen(buffer);
+                                    
+                                    ivalue[ival_index++]= (indices[level] < dims[level]-1)?',':']';
+                                    
+                                    master_index++;
+                                    
+                                    indices[level]++;
+                                    
+                                    if (indices[level] == dims[level]) {
+                                        
+                                        /* We are at the end of a fast-dimension row
+                                         and therefore need to update higher level indices
+                                         if any.  */
+                                        
+                                        indices[level] = 0;
+                                        
+                                        level --;
+                                        
+                                        while (level >= 0) {
+                                            
+                                            indices[level]++;
+                                            
+                                            if (indices[level] < dims[level]) {
+                                                
+                                                ivalue[ival_index++] = ',';
+                                                
+                                                ivalue[ival_index++] = '[';
+                                                
+                                                level++;
+                                                
+                                                break;
+                                                
+                                            } else {
+                                                
+                                                ivalue[ival_index++] = ']';
+                                                
+                                                indices[level] = 0;
+                                                
+                                                level --;
+                                                
+                                            }
+                                            
+                                        }
+                                        
+                                        if (level < 0) break;
+                                        
+                                        while (level > kdims-1) {
+                                            
+                                            ivalue[ival_index++] = '[';
+                                            
+                                            level++;
+                                            
+                                        }
+                                        
+                                    }
+                                    
+                                }
+                                
+                            }
+                            
+                            ivalue[ival_index++] = '\0';
+                            
+                            cbf_reportnez(cbf_set_value(handle,(const char *)(ivalue)),errorcode);
+                            
+                            cbf_reportnez(cbf_set_typeofvalue(handle,"bkts"),errorcode);
+                            
+                            cbf_reportnez(cbf_free((void**)&data,NULL),errorcode);
+                            
+                            data = (unsigned char *)ivalue;
+                            
+                        } else {
+                            
+                            size_t dimfast, dimmid, dimslow;
+                            
+                            dimmid = dimslow = 1;
+                            
+                            dimfast = dims[kdims-1];
+                            
+                            if (kdims > 1) dimmid = dims[kdims-2];
+                            
+                            if (kdims > 2) dimslow = total_dim/(dimfast*dimmid);
+                            
+                            cbf_reportnez(cbf_set_integerarray_wdims_fs(handle,
+                                                                        CBF_NIBBLE_OFFSET,target_row,data,
+                                                                        type_size,sign,total_dim,"little_endian",
+                                                                        dimfast,dimmid,dimslow,0),errorcode);
+                            
+                        }
+                        
+                        
+                    }
+                    
+                    
+                } else if (type_class==H5T_FLOAT){
+                    
+                    /* Read of a single float or double or a float or
+                     double array of up to 3 dimensions */
+                    
+                    char * ivalue = NULL;
+                    
+                    double dxdata;
+                    
+                    float xdata;
+                    
+                    if (total_dim ==1) {
+                        
+                        cbf_reportnez(cbf_alloc(((void **) &ivalue),NULL,
+                                                1,type_size*2+6),errorcode);
+                        
+                        if (H5Tequal(native_type, H5T_NATIVE_FLOAT)) {
+                            
+                            xdata = *((float *)data);
+                            
+                            snprintf(ivalue,type_size*2+5,"%.7g",(double) xdata);
+                            
+                        } else {
+                            
+                            dxdata = *((double *)data);
+                            
+                            snprintf(ivalue,type_size*2+5,"%.15g",dxdata);
+                            
+                        }
+                        
+                        cbf_reportnez(cbf_set_value(handle,(const char *)(ivalue)),errorcode);
+                        
+                        cbf_reportnez(cbf_free((void**)&data,NULL),errorcode);
+                        
+                        data = (unsigned char *)ivalue;
+                        
+                    } else {
+                        
+                        
+                        
+                        /* process arrays of up to 100 as
+                         bracketed strings
+                         */
+                        
+                        if (total_dim < 101) {
+                            
+                            size_t indices[H5S_MAX_RANK];
+                            
+                            size_t master_index, ival_index;
+                            
+                            int idim, level;
+                            
+                            char buffer[40];
+                            
+                            cbf_reportnez(cbf_alloc(((void **) &ivalue),NULL,
+                                                    1,total_dim*((type_size*2)+5+kdims*2)+1),errorcode);
+                            
+                            for (idim = 0; idim < kdims; idim ++) {
+                                
+                                indices[idim] = 0;
+                                
+                                ivalue[idim] = '[';
+                                
+                            }
+                            
+                            level = kdims-1;
+                            
+                            ival_index = kdims;
+                            
+                            master_index = 0;
+                            
+                            while (master_index < total_dim) {
+                                
+                                for (indices[level]=0; indices[level] < dims[level];) {
+                                    
+                                    if (H5Tequal(native_type, H5T_NATIVE_FLOAT)) {
+                                        
+                                        xdata = (((float *)data)[master_index]);
+                                        
+                                        snprintf(buffer,type_size*2+5,"%.7g",(double) xdata);
+                                        
+                                    } else {
+                                        
+                                        dxdata = (((double *)data)[master_index]);
+                                        
+                                        snprintf(buffer,type_size*2+5,"%.15g",dxdata);
+                                        
+                                    }
+                                    
+                                    strcat(ivalue+ival_index,buffer);
+                                    
+                                    ival_index+=_cbf_strlen(buffer);
+                                    
+                                    ivalue[ival_index++]= (indices[level] < dims[level]-1)?',':']';
+                                    
+                                    master_index++;
+                                    
+                                    indices[level]++;
+                                    
+                                    if (indices[level] == dims[level]) {
+                                        
+                                        /* We are at the end of a fast-dimension row
+                                         and therefore need to update higher level indices
+                                         if any.  */
+                                        
+                                        indices[level] = 0;
+                                        
+                                        level --;
+                                        
+                                        while (level >= 0) {
+                                            
+                                            indices[level]++;
+                                            
+                                            if (indices[level] < dims[level]) {
+                                                
+                                                ivalue[ival_index++] = ',';
+                                                
+                                                ivalue[ival_index++] = '[';
+                                                
+                                                level++;
+                                                
+                                                break;
+                                                
+                                            } else {
+                                                
+                                                ivalue[ival_index++] = ']';
+                                                
+                                                indices[level] = 0;
+                                                
+                                                level --;
+                                                
+                                            }
+                                            
+                                        }
+                                        
+                                        if (level < 0) break;
+                                        
+                                        while (level > kdims-1) {
+                                            
+                                            ivalue[ival_index++] = '[';
+                                            
+                                            level++;
+                                            
+                                        }
+                                        
+                                    }
+                                    
+                                }
+                                
+                            }
+                            
+                            ivalue[ival_index++] = '\0';
+                            
+                            cbf_reportnez(cbf_set_value(handle,(const char *)(ivalue)),errorcode);
+                            
+                            cbf_reportnez(cbf_set_typeofvalue(handle,"bkts"),errorcode);
+                            
+                            cbf_reportnez(cbf_free((void**)&data,NULL),errorcode);
+                            
+                            data = (unsigned char *)ivalue;
+                            
+                        } else {
+                            
+                            size_t dimfast, dimmid, dimslow;
+                            
+                            dimmid = dimslow = 1;
+                            
+                            dimfast = dims[kdims-1];
+                            
+                            if (kdims > 1) dimmid = dims[kdims-2];
+                            
+                            if (kdims > 2) dimslow = total_dim/(dimfast*dimmid);
+                            
+                            cbf_reportnez(cbf_set_realarray_wdims_fs(handle,
+                                                                     CBF_NIBBLE_OFFSET,target_row,data,
+                                                                     type_size,total_dim,"little_endian",
+                                                                     dimfast,dimmid,dimslow,0),errorcode);
+                            
+                        }
+                        
+                        
+                    }
+                    
+                    
+                } else if (type_class!= H5T_OPAQUE){
+                    
+                    char * hexvalue = NULL;
+                    
+                    char hexdigs[16] = {'0','1','2','3','4','5','6','7','8','9',
+                        'a','b','c','d','e','f'};
+                    
+                    size_t ii;
+                    
+                    cbf_reportnez(cbf_alloc(((void **) &hexvalue),NULL,
+                                            1,2*total_size+1),errorcode);
+                    
+                    hexvalue[2*total_size+1] = '\0';
+                    
+                    for (ii=0; ii< total_size; ii++) {
+                        
+                        hexvalue[(total_size-ii)*2-2] =
+                        hexdigs[((int)(((unsigned char *)data))[ii])&0xF];
+                        
+                        hexvalue[(total_size-ii)*2-1] =
+                        hexdigs[((int)((((unsigned char *)data))[ii])>>4)&0xF];
+                        
+                    }
+                    
+                    cbf_reportnez(cbf_set_value(handle,(const char *)(hexvalue)),errorcode);
+                    
+                    cbf_reportnez(cbf_free((void**)&data,NULL),errorcode);
+                    
+                    data = (unsigned char *)hexvalue;
+                    
+                }
+                
+                
+                if (value) {
+                    
+                    *value=data;
+                    
+                } else {
+                    
+                    cbf_reportnez(cbf_free((void **)&data,NULL),errorcode);
+                }
+                
+            }
+            
+        }
+        switch(type_order) {
+            case H5T_ORDER_LE:
+                byte_order = "H5T_ORDER_LE";
+                break;
+            case H5T_ORDER_BE:
+                byte_order = "H5T_ORDER_BE";
+                break;
+            case H5T_ORDER_VAX:
+                byte_order = "H5T_ORDER_VAX";
+                break;
+            case H5T_ORDER_MIXED:
+                byte_order = "H5T_ORDER_MIXED";
+                break;
+            case H5T_ORDER_NONE:
+                byte_order = "H5T_ORDER_LE";
+                break;
+            case -1:
+                byte_order = ".";
+                break;
+            default: byte_order="UNKNOWN";
+                break;
+        }
+        
+        cbf_reportnez(cbf_require_column(handle,"h5_byte_order"),errorcode);
+        
+        cbf_reportnez(cbf_set_value(handle,byte_order),errorcode);
+        
+        if (type_size < 10) {
+            
+            sprintf(buffer,"%ld",(unsigned long)type_size);
+            
+        } else {
+            
+            sprintf(buffer,"0x%lx",(unsigned long)type_size);
+            
+        }
+        
+        cbf_reportnez(cbf_require_column(handle,"size"),errorcode);
+        
+        cbf_reportnez(cbf_set_value(handle,buffer),errorcode);
+        
+        if (base_type >=0) H5Tclose(base_type);
+        
+        if (native_type>=0) H5Tclose(native_type);
+        
+        H5garbage_collect();
+        
         return CBF_SUCCESS;
     }
 
@@ -29352,126 +30040,130 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
     herr_t cbf_object_visit(hid_t loc_id, const char *name,
                             const H5L_info_t *info,
                             void *op_data){
-
+        
         int cbfrow = -1;
-
+        
         int errorcode;
-
+        
         cbf_handle handle;
-
+        
         haddr_t parent_addr;
-
+        
         hid_t parent_id;
-
+        
         unsigned int row;
-
+        
         const char* parent_name;
-
+        
         const char* grand_parent_name;
-
+        
+        const char* great_grand_parent_name;
+        
         int innexus;
-
+        
         int incbf, incbfdb, incbfcat, incbfcol, innxpdb;
-
+        
         hid_t group_id, dataset_id;
-
+        
         herr_t retval;
-
+        
         hsize_t i;
-
+        
         char buffer[25];
-
+        
         char digest[25];
-
+        
         char *value;
-
+        
         char cbftype[5];
-
+        
         cbf_bookmark bookmark;
-
+        
         cbf_bookmark saved_bookmark;
-
+        
         H5O_info_t  objinfo;
-
+        
         hid_t attrib_id,attrib_ds,attrib_type;
-
+        
         hid_t dataset_ds, dataset_type;
-
+        
         H5T_class_t dataset_type_class;
-
+        
         ssize_t attrib_name_size;
-
+        
         int attrib_num;
-
+        
         unsigned int compression;
-
+        
         int binary_id, bits, sign, type, checked_digest, realarray = 0;
-
+        
         const char *byteorder;
-
+        
         size_t binsize;
-
+        
         size_t dimover, dimfast, dimmid, dimslow;
-
+        
         size_t padding;
         
         CBF_UNUSED( info );
-
+        
         errorcode = 0;
-
+        
         handle = ((cbf_h5Ovisithandle)op_data)->handle;
-
+        
         if (!handle) return -1;
-
+        
         /* skip the root group itself */
-
+        
         if (name[0]== '.') return 0;
-
+        
         cbf_h5failneg(H5Oget_info_by_name(loc_id,
                                           name, &objinfo, H5P_DEFAULT),CBF_FORMAT);
         parent_id = ((cbf_h5Ovisithandle)op_data)->parent_id;
-
+        
         parent_addr = ((cbf_h5Ovisithandle)op_data)->parent_addr;
-
+        
         parent_name = ((cbf_h5Ovisithandle)op_data)->parent_name;
-
+        
         grand_parent_name = ((cbf_h5Ovisithandle)op_data)->grand_parent_name;
-
+        
+        great_grand_parent_name = ((cbf_h5Ovisithandle)op_data)->great_grand_parent_name;
+        
         innexus = ((cbf_h5Ovisithandle)op_data)->innexus;
-
+        
         incbf = ((cbf_h5Ovisithandle)op_data)->incbf;
-
+        
         incbfdb = ((cbf_h5Ovisithandle)op_data)->incbfdb;
-
+        
         incbfcat = ((cbf_h5Ovisithandle)op_data)->incbfcat;
-
+        
         incbfcol = ((cbf_h5Ovisithandle)op_data)->incbfcol;
-
+        
         innxpdb = ((cbf_h5Ovisithandle)op_data)->innxpdb;
-
+        
         memmove(&saved_bookmark,&(((cbf_h5Ovisithandle)op_data)->bookmark),sizeof(cbf_bookmark));
-
+        
         switch (objinfo.type) {
-
+                
             case H5O_TYPE_GROUP:
-
+                
                 /* Skip duplicates */
-
+                
                 for (i=0; i < ((cbf_h5Ovisithandle)op_data)->path_size; i++) {
-
+                    
                     if (objinfo.addr ==
                         ((cbf_h5Ovisithandle)op_data)->haddr_path[i])
                         return 0;
-
+                    
                 }
-
+                
                 if (((cbf_h5Ovisithandle)op_data)->path_size >=
                     ((cbf_h5Ovisithandle)op_data)->capacity) {
-
+                    
                     size_t newcap;
-
+                    
                     newcap = 2*((cbf_h5Ovisithandle)op_data)->capacity;
-
+                    
                     cbf_reportnez(
                                   cbf_realloc(
                                               (void **)(&((cbf_h5Ovisithandle)op_data)->hid_path),
@@ -29480,85 +30172,85 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                                   cbf_realloc(
                                               (void **)(&((cbf_h5Ovisithandle)op_data)->haddr_path),
                                               NULL,sizeof(haddr_t),newcap),errorcode);
-
+                    
                     ((cbf_h5Ovisithandle)op_data)->capacity=newcap;
-
+                    
                 }
-
+                
                 (((cbf_h5Ovisithandle)op_data)->
                  haddr_path)[((cbf_h5Ovisithandle)op_data)->path_size] =
                 objinfo.addr;
-
+                
                 group_id = H5Gopenx(loc_id,name);
                 (((cbf_h5Ovisithandle)op_data)->
                  haddr_path)[((cbf_h5Ovisithandle)op_data)->path_size] =
                 group_id;
                 (((cbf_h5Ovisithandle)op_data)->path_size)++;
-
+                
                 /* We have a group
                  We need to add it to the H5_Groups category
                  in the H5 data block.
-
+                 
                  If it has attributes, we need to add them to
                  the H5Attributes category
-
+                 
                  If it has datasets, we will catch them when we
                  iterate again
-
+                 
                  */
-
+                
                 cbf_reportnez(cbf_rewind_datablock(handle),errorcode);
-
+                
                 if (cbf_find_datablock(handle,"H5")) {
-
+                    
                     cbf_reportnez(cbf_new_datablock(handle,"H5"),errorcode);
-
+                    
                 }
-
+                
                 cbf_reportnez(cbf_require_category(handle,"H5_Groups"),errorcode);
-
+                
                 cbf_reportnez(cbf_new_row(handle),errorcode);
-
+                
                 cbf_reportnez(cbf_row_number(handle,&row),errorcode);
-
+                
                 cbf_reportnez(cbf_require_column(handle,"name"),errorcode);
-
+                
                 cbf_reportnez(cbf_set_value(handle,name),errorcode);
-
+                
                 cbf_reportnez(cbf_require_column(handle,"parent_name"),errorcode);
-
+                
                 cbf_reportnez(cbf_set_value(handle,parent_name),errorcode);
-
+                
                 cbf_reportnez(cbf_require_column(handle,"parent_id"),errorcode);
-
+                
                 if (!parent_addr) {
-
+                    
                     cbf_reportnez(cbf_set_value(handle,"."),errorcode);
-
+                    
                     cbf_reportnez(cbf_set_typeofvalue(handle,"null"),errorcode);
-
+                    
                 } else {
-
+                    
                     sprintf(buffer,"0x%lx",(unsigned long)parent_addr);
-
+                    
                     cbf_reportnez(cbf_set_value(handle,buffer),errorcode);
-
+                    
                 }
-
+                
                 cbf_reportnez(cbf_require_column(handle,"id"),errorcode);
-
+                
                 sprintf(buffer,"0x%lx",(unsigned long)objinfo.addr);
-
+                
                 cbf_reportnez(cbf_set_value(handle,buffer),errorcode);
-
+                
                 attrib_num = objinfo.num_attrs;
-
+                
                 cbf_reportnez(cbf_require_column(handle,"no_attributes"),errorcode);
-
+                
                 cbf_reportnez(cbf_set_integervalue(handle,attrib_num),errorcode);
-
+                
                 for (i=0; (ssize_t)i < attrib_num; i++) {
-
+                    
                     char * attrib_name = NULL;
                     attrib_id=H5Aopen_by_idx(group_id,".",
                                              H5_INDEX_NAME,
@@ -29570,10 +30262,22 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                     attrib_name = NULL;
                     cbf_reportnez(cbf_alloc(((void **) &attrib_name),NULL,
                                             1,attrib_name_size+1),errorcode);
-
+                    
                     cbf_h5failneg(H5Aget_name(attrib_id,
                                               attrib_name_size+1,attrib_name),
                                   CBF_ARGUMENT);
+                    /* call cbf_h5ds_store
+                     handle = handle
+                     parent = objinfo.addr
+                     parent_name = name
+                     target_row = -1
+                     categoryname = "H5_Group_attribute"
+                     obj_id = attrib_id
+                     space = attrib_ds
+                     type = attrib_type
+                     name = attrib_name
+                     readattrib = 1,
+                     value = value */
                     cbf_h5ds_store(handle,objinfo.addr,
                                    name,-1,
                                    "H5_Group_attribute",
@@ -29581,121 +30285,133 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                                    attrib_ds,
                                    attrib_type,
                                    attrib_name,1, (void **)&value);
+                    
                     if (!cbf_cistrcmp(attrib_name,"NX_class")&& value) {
-
+                        
                         cbf_reportnez(cbf_rewind_datablock(handle),errorcode);
-
+                        
                         if (cbf_find_datablock(handle,"H5")) {
-
+                            
                             cbf_reportnez(cbf_new_datablock(handle,"H5"),errorcode);
-
+                            
                         }
-
-
+                        
+                        
                         cbf_reportnez(cbf_require_category(handle,"H5_Groups"),errorcode);
-
+                        
                         cbf_reportnez(cbf_find_column(handle,"id"),errorcode);
-
+                        
                         cbf_reportnez(cbf_select_row(handle,row),errorcode);
-
+                        
                         cbf_reportnez(cbf_require_column(handle,"NX_class"),errorcode);
-
+                        
                         cbf_reportnez(cbf_set_value(handle,value),errorcode);
-
+                        
                         if (!cbf_cistrcmp(value,"NXentry")) {
-
+                            
                             ((cbf_h5Ovisithandle)op_data)->innexus = 1;
-
+                            
                         }
-
+                        
                         if (!cbf_cistrcmp(value,"CBF_cbf")
-                          ||!cbf_cistrcmp(value,"NXcbf")
-                          ||!cbf_cistrcmp(value,"NXcif")) {
+                            ||!cbf_cistrcmp(value,"NXcbf")
+                            ||!cbf_cistrcmp(value,"NXcif")) {
                             ((cbf_h5Ovisithandle)op_data)->incbf = 1;
                         }
-
+                        
                         if (!cbf_cistrcmp(value,"NXpdb")) {
-
-                            ((cbf_h5Ovisithandle)op_data)->innxpdb = 1;
+                            
+                            /* The top level (1) NXpdb group may contain one or more
+                             NXpdb groups, each of which is a data block.
+                             Each data block is a level 2 NXpdb group which may contain
+                             one of more  categories.  Each category is
+                             an level 3 NXpdb group which may contain one or more
+                             columns.  Each column is an level 4 NXpdb group.
+                             */
+                            ((cbf_h5Ovisithandle)op_data)->innxpdb = innxpdb+1;
                             ((cbf_h5Ovisithandle)op_data)->incbf = 1;
-                            if (incbfcat) ((cbf_h5Ovisithandle)op_data)->incbfcol = 1;
-                            else {if (incbfdb) ((cbf_h5Ovisithandle)op_data)->incbfcat = 1;
-                                  else {if (innxpdb) ((cbf_h5Ovisithandle)op_data)->incbfdb = 1;}}
-
+                            
+                            /* all we do for now is to collect the names of the
+                             nested groups.  We need to get down to the column
+                             before we can know which names to use for the
+                             category and datablock, if the 4 levels deep,
+                             or category save frame and datablock frame if 5 levels deep.
+                             */
+                            
+                            
                         }
-
-                        if (!cbf_cistrcmp(value,"CBF_cbfdb") 
+                        
+                        if (!cbf_cistrcmp(value,"CBF_cbfdb")
                             || !cbf_cistrcmp(value,"NXcbfdb")
                             || ((cbf_h5Ovisithandle)op_data)->incbfdb) {
-
+                            
                             ((cbf_h5Ovisithandle)op_data)->incbfdb = 1;
-
+                            
                             cbf_get_bookmark(handle,&bookmark);
-
+                            
                             if (cbf_find_datablock(handle,name)) {
-
+                                
                                 cbf_reportnez(cbf_new_datablock(handle,name),errorcode);
-
+                                
                             }
-
+                            
                             cbf_get_bookmark(handle,
                                              &(((cbf_h5Ovisithandle)op_data)->bookmark));
-
+                            
                             cbf_goto_bookmark(handle,bookmark);
-
+                            
                         }
-
+                        
                         if ((!cbf_cistrcmp(value,"CBF_cbfcat")
                              ||!cbf_cistrcmp(value,"NXcbfcat")
                              || ((cbf_h5Ovisithandle)op_data)->incbfcat)&& saved_bookmark.datablock) {
-
+                            
                             ((cbf_h5Ovisithandle)op_data)->incbfcat = 1;
-
+                            
                             cbf_get_bookmark(handle,&bookmark);
-
+                            
                             cbf_goto_bookmark(handle,saved_bookmark);
-
+                            
                             if (cbf_find_category(handle,name)) {
-
+                                
                                 cbf_reportnez(cbf_new_category(handle,name),errorcode);
-
+                                
                             }
-
+                            
                             cbf_get_bookmark(handle,
                                              &(((cbf_h5Ovisithandle)op_data)->bookmark));
-
+                            
                             cbf_goto_bookmark(handle,bookmark);
-
-
+                            
+                            
                         }
-
+                        
                         if ((!cbf_cistrcmp(value,"CBF_cbfcol")
                              ||!cbf_cistrcmp(value,"NXcbfcol")
                              || ((cbf_h5Ovisithandle)op_data)->incbfcol)
                             && saved_bookmark.category) {
-
+                            
                             ((cbf_h5Ovisithandle)op_data)->incbfcol = 1;
-
+                            
                             cbf_get_bookmark(handle,&bookmark);
-
+                            
                             cbf_goto_bookmark(handle,saved_bookmark);
-
+                            
                             if (cbf_find_column(handle,name)) {
-
+                                
                                 cbf_reportnez(cbf_new_column(handle,name),errorcode);
-
+                                
                             }
-
+                            
                             cbf_get_bookmark(handle,
                                              &(((cbf_h5Ovisithandle)op_data)->bookmark));
-
+                            
                             cbf_goto_bookmark(handle,bookmark);
-
+                            
                         }
-
                     }
-
-
+                    
+                    
                     attrib_name = NULL;
                     cbf_reportnez(cbf_free((void **)&attrib_name,NULL),errorcode);
                     if (value) {
@@ -29705,140 +30421,149 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                     H5Sclose(attrib_ds);
                     H5Aclose(attrib_id);
                 }
-
+                
                 ((cbf_h5Ovisithandle)op_data)->parent_addr = objinfo.addr;
-
+                
                 ((cbf_h5Ovisithandle)op_data)->parent_id = group_id;
-
+                
                 cbf_reportnez(cbf_alloc((void **) &(((cbf_h5Ovisithandle)op_data)->parent_name),NULL,
                                         1,_cbf_strlen(name)+1),errorcode);
-
+                
+                ((cbf_h5Ovisithandle)op_data)->great_grand_parent_name = grand_parent_name;
+                
                 ((cbf_h5Ovisithandle)op_data)->grand_parent_name = parent_name;
-
+                
                 if (!name) return -1;
-
+                
                 _cbf_strcpy((char *)((cbf_h5Ovisithandle)op_data)->parent_name,name);
-
+                
                 retval = H5Literate_by_name(loc_id, name,H5_INDEX_NAME,
                                             H5_ITER_INC,
                                             NULL,
                                             cbf_object_visit,op_data,H5P_DEFAULT);
-
+                
                 H5Gclose(group_id);
-
+                
                 cbf_reportnez(cbf_free((void **)(&((cbf_h5Ovisithandle)op_data)->parent_name),NULL),errorcode);
-
+                
                 (((cbf_h5Ovisithandle)op_data)->path_size)--;
-
+                
                 ((cbf_h5Ovisithandle)op_data)->parent_id = parent_id;
-
+                
                 ((cbf_h5Ovisithandle)op_data)->parent_addr = parent_addr;
-
+                
                 ((cbf_h5Ovisithandle)op_data)->parent_name = parent_name;
-
+                
                 ((cbf_h5Ovisithandle)op_data)->grand_parent_name = grand_parent_name;
-
+                
+                ((cbf_h5Ovisithandle)op_data)->great_grand_parent_name = great_grand_parent_name;
+                
                 ((cbf_h5Ovisithandle)op_data)->innexus = innexus;
-
+                
                 ((cbf_h5Ovisithandle)op_data)->incbf = incbf;
-
+                
                 ((cbf_h5Ovisithandle)op_data)->incbfdb = incbfdb;
-
+                
                 ((cbf_h5Ovisithandle)op_data)->incbfcat = incbfcat;
-
+                
                 ((cbf_h5Ovisithandle)op_data)->incbfcol = incbfcol;
-
+                
+                ((cbf_h5Ovisithandle)op_data)->innxpdb = innxpdb;
+                
                 return retval;
                 break;
-
+                
             case H5O_TYPE_DATASET:
-
+                
                 dataset_id = H5Dopen2(loc_id,name,H5P_DEFAULT);
-
+                
                 /* We have a dataset
                  We need to add it to the H5_Datasets category
                  in the current data block.
-
+                 
                  If it has attributes, we need to add them to
                  the H5_Attributes category
-
+                 
+                 If we are innxpdb we need to convert this dataset
+                 to a column in the CIF
+                 
                  */
-
-
+                
+                
                 cbf_reportnez(cbf_rewind_datablock(handle),errorcode);
-
+                
                 if (cbf_find_datablock(handle,"H5")) {
-
+                    
                     cbf_reportnez(cbf_new_datablock(handle,"H5"),errorcode);
-
+                    
                 }
-
+                
                 cbf_reportnez(cbf_require_category(handle,"H5_Datasets"),errorcode);
-
+                
                 cbf_reportnez(cbf_new_row(handle),errorcode);
-
+                
                 cbf_reportnez(cbf_row_number(handle,&row),errorcode);
-
+                
                 cbf_reportnez(cbf_require_column(handle,"name"),errorcode);
-
+                
                 cbf_reportnez(cbf_set_value(handle,name),errorcode);
-
+                
                 cbf_reportnez(cbf_require_column(handle,"parent_name"),errorcode);
-
+                
                 cbf_reportnez(cbf_set_value(handle,parent_name),errorcode);
-
+                
                 cbf_reportnez(cbf_require_column(handle,"parent_id"),errorcode);
-
+                
                 if (!parent_addr) {
-
+                    
                     cbf_reportnez(cbf_set_value(handle,"."),errorcode);
-
+                    
                     cbf_reportnez(cbf_set_typeofvalue(handle,"null"),errorcode);
-
+                    
                 } else {
-
+                    
                     sprintf(buffer,"0x%lx",(unsigned long)parent_addr);
-
+                    
                     cbf_reportnez(cbf_set_value(handle,buffer),errorcode);
-
+                    
                 }
-
+                
                 cbf_reportnez(cbf_require_column(handle,"id"),errorcode);
-
+                
                 sprintf(buffer,"0x%lx",(unsigned long)objinfo.addr);
-
+                
                 cbf_reportnez(cbf_set_value(handle,buffer),errorcode);
-
+                
                 attrib_num = objinfo.num_attrs;
-
+                
                 cbf_reportnez(cbf_require_column(handle,"no_attributes"),errorcode);
-
+                
                 cbf_reportnez(cbf_set_integervalue(handle,attrib_num),errorcode);
-
+                
                 dimover = 0;
-
+                
                 binsize = 0;
-
+                
                 compression = 0;
-
+                
                 binary_id = 0;
-
+                
                 bits = 0;
-
+                
                 sign = 0;
-
+                
                 type = 0;
-
+                
                 byteorder = " ";
-
+                
                 dimfast=dimslow=dimmid = 0;
-
+                
                 padding = 0;
-
+                
                 cbftype[0] = '\0';
-
+                
                 for (i=0; (ssize_t)i < attrib_num; i++) {
-
+                    
                     char * attrib_name = NULL;
                     attrib_id=H5Aopen_by_idx(dataset_id,".",
                                              H5_INDEX_NAME,
@@ -29850,7 +30575,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                     attrib_name = NULL;
                     cbf_reportnez(cbf_alloc(((void **) &attrib_name),NULL,
                                             1,attrib_name_size+1),errorcode);
-
+                    
                     cbf_h5failneg(H5Aget_name(attrib_id,
                                               attrib_name_size+1,attrib_name),
                                   CBF_ARGUMENT);
@@ -29862,26 +30587,25 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                                    attrib_type,
                                    attrib_name,1,(void **)&value);
                     if (*value) {
-
-
+                        
                         cbf_reportnez(cbf_rewind_datablock(handle),errorcode);
-
+                        
                         if (cbf_find_datablock(handle,"H5")) {
-
+                            
                             cbf_reportnez(cbf_new_datablock(handle,"H5"),errorcode);
-
+                            
                         }
-
+                        
                         cbf_reportnez(cbf_require_category(handle,"H5_Datasets"),errorcode);
-
+                        
                         cbf_reportnez(cbf_find_column(handle,"id"),errorcode);
-
+                        
                         cbf_reportnez(cbf_select_row(handle,row),errorcode);
-
+                        
                         cbf_reportnez(cbf_require_column(handle,attrib_name),errorcode);
-
+                        
                         cbf_reportnez(cbf_set_value(handle,value),errorcode);
-
+                        
                         if (!cbf_cistrcmp(attrib_name,"compression")) {
                             compression=(int)strtol(value,NULL,0);
                         } else if (!cbf_cistrcmp(attrib_name,"binid")) {
@@ -29921,7 +30645,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                             cbftype[4] = '\0';
                         }
                     }
-
+                    
                     attrib_name = NULL;
                     cbf_reportnez(cbf_free((void **)&attrib_name,NULL),errorcode);
                     if (value) cbf_reportnez(cbf_free((void **)&value, NULL),errorcode);
@@ -29929,154 +30653,213 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                     H5Sclose(attrib_ds);
                     H5Aclose(attrib_id);
                 }
-
+                
                 dataset_ds         = H5Dget_space(dataset_id);
                 dataset_type       = H5Dget_type(dataset_id);
                 dataset_type_class = H5Tget_class(dataset_type);
-
-                cbf_h5ds_store(handle,objinfo.addr,
-                               parent_name,row,
-                               "H5_Datasets",
-                               dataset_id,
-                               dataset_ds,
-                               dataset_type,
-                               name,0,(void **)&value);
-
-                if (incbfcol&&value) {
-
-                    cbfrow = (int)strtol(name,NULL,0);
-
+                
+                /* call cbf_h5ds_store
+                 handle = handle
+                 parent = objinfo.addr
+                 parent_name = parent_name
+                 target_row = row
+                 categoryname = "H5_Datasets"
+                 obj_id = dataset_id
+                 space = dataset_ds
+                 type = dataset_type
+                 name = name
+                 readattrib = 0,
+                 value = value */
+                
+                if (!innxpdb) cbf_h5ds_store(handle,objinfo.addr,
+                                             parent_name,row,
+                                             "H5_Datasets",
+                                             dataset_id,
+                                             dataset_ds,
+                                             dataset_type,
+                                             name,0,(void **)&value);
+                
+                if (innxpdb && value) {
+                    
+                    /* name is the name of the column
+                     parent_name is the name of the category
+                     grand_parent_name is the name of the data block or save frame
+                     great_grand_parent_name is the name of the data block if this is a save frame
+                     */
+                    
                     cbf_get_bookmark(handle,&bookmark);
-
+                    
                     cbf_goto_bookmark(handle,saved_bookmark);
-
+                    
+                    if (great_grand_parent_name) {
+                        
+                        if (!cbf_find_datablock(handle,great_grand_parent_name)||
+                            !cbf_new_datablock(handle,great_grand_parent_name)) {
+                            
+                            if (cbf_find_saveframe(handle,grand_parent_name)) {
+                                
+                                cbf_failnez(cbf_new_saveframe(handle,grand_parent_name));
+                                
+                            }
+                            
+                        } else { cbf_failnez(CBF_NOTFOUND);}
+                        
+                    } else if ( !cbf_find_datablock(handle,grand_parent_name)||
+                               !cbf_new_datablock(handle, grand_parent_name)){
+                        
+                    } else { cbf_failnez(CBF_NOTFOUND);}
+                    
+                    /* call cbf_h5ds_store_as_column
+                     handle = handle
+                     target_row = 0
+                     columnname = name
+                     categoryname = parent_name
+                     obj_id= dataset_id
+                     space = dataset_ds
+                     type = dataset_type,
+                     value = (void **)&value);
+                     */
+                    cbf_reportnez(cbf_h5ds_store_as_column(handle,0,
+                                                           name, parent_name, dataset_id,dataset_ds,
+                                                           dataset_type, (void **)&value ),errorcode);
+                    
                 }
-
+                
+                if (incbfcol&&value) {
+                    
+                    cbfrow = (int)strtol(name,NULL,0);
+                    
+                    cbf_get_bookmark(handle,&bookmark);
+                    
+                    cbf_goto_bookmark(handle,saved_bookmark);
+                    
+                }
+                
                 if (incbfcol&&binsize&&value) {
-
+                    
                     size_t elsize=0, nelem=0;
-
+                    
                     cbf_node * column = NULL;
-
+                    
                     cbf_file *tempfile = NULL;
-
+                    
                     long start = 0;
-
+                    
                     unsigned int localrow, ii;
-
+                    
                     elsize = (bits+CHAR_BIT-1)/CHAR_BIT;
-
+                    
                     nelem = (binsize+elsize-1)/elsize;
-
+                    
                     if (dimover <=0) dimover = nelem;
-
+                    
                     localrow = row;
-
+                    
                     if (nelem > 0 && elsize > 0) {
-
+                        
                         if (incbfcol) {
-
+                            
                             unsigned int rows;
                             
                             rows = 0;
-
+                            
                             cbf_reportnez(cbf_count_rows(handle,&rows),errorcode);
-
+                            
                             if (cbfrow >= (int)rows) {
-
+                                
                                 for (ii=rows; (int)ii <= cbfrow; ii++) {
-
+                                    
                                     cbf_reportnez(cbf_new_row(handle),errorcode);
                                 }
-
+                                
                             }
-
+                            
                             cbf_select_row(handle,cbfrow);
-
+                            
                             localrow = cbfrow;
-
+                            
                         } else {
-
-
+                            
+                            
                             cbf_reportnez(cbf_rewind_datablock(handle),errorcode);
-
+                            
                             if (cbf_find_datablock(handle,"H5")) {
-
+                                
                                 cbf_reportnez(cbf_new_datablock(handle,"H5"),errorcode);
-
+                                
                             }
-
-
+                            
+                            
                             cbf_reportnez(cbf_require_category(handle,"H5_Datasets"),errorcode);
-
+                            
                             cbf_reportnez(cbf_find_column(handle,"id"),errorcode);
-
+                            
                             cbf_reportnez(cbf_select_row(handle,localrow),errorcode);
-
+                            
                             cbf_reportnez(cbf_require_column(handle,"value"),errorcode);
-
+                            
                         }
-
+                        
                         column = handle->node;
-
+                        
                         if (dataset_type_class == H5T_OPAQUE) {
-
+                            
                             /* If we have stored as an opqaue dataset, keep it that way */
-
-
+                            
+                            
                             /* Remove the old value */
-
+                            
                             cbf_reportnez (cbf_set_columnrow (column, localrow, NULL, 1),errorcode)
-
-
+                            
+                            
                             /* Get the temporary file */
-
+                            
                             cbf_reportnez (cbf_open_temporary (column->context, &tempfile),errorcode)
-
-
+                            
+                            
                             /* Move to the end of the temporary file */
-
+                            
                             if (cbf_set_fileposition (tempfile, 0, SEEK_END))
-
+                                
                                 return CBF_FILESEEK | cbf_delete_fileconnection (&tempfile);
-
-
+                            
+                            
                             /* Get the starting location */
-
+                            
                             if (cbf_get_fileposition (tempfile, &start))
-
+                                
                                 return CBF_FILETELL | cbf_delete_fileconnection (&tempfile);
-
-
+                            
+                            
                             /* Discard any bits in the buffers */
-
+                            
                             cbf_reportnez (cbf_reset_bits (tempfile),errorcode)
-
+                            
                             /* Add the binary data to the temporary file */
-
+                            
                             if (!cbf_set_output_buffersize(tempfile,binsize))  {
-
+                                
                                 memmove((void *)(tempfile->characters+tempfile->characters_used),
                                         (void *)value,binsize);
-
+                                
                                 tempfile->characters_used+=binsize;
-
+                                
                             }
-
+                            
                             cbf_onfailnez(cbf_set_bintext(column,localrow,CBF_TOKEN_TMP_BIN,
                                                           binary_id,tempfile,start,binsize,
                                                           1,digest,bits,sign,realarray,byteorder,
                                                           dimover, dimfast, dimmid, dimslow,
                                                           padding,compression),
                                           cbf_delete_fileconnection (&tempfile));
-
+                            
                             cbf_onfailnez(cbf_flush_bits(tempfile),
                                           cbf_delete_fileconnection (&tempfile));
                         } else {
-
-                            /* If this is not an opqaue object, then recompress
+                            
+                            /* If this is not an opaque object, then recompress
                              using the attributes */
-
+                            
                             cbf_reportnez(cbf_set_binary(handle->node,
                                                          handle->row,
                                                          compression,
@@ -30092,66 +30875,66 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                                                          dimmid,
                                                          dimslow,
                                                          padding ), errorcode);
-
+                            
                         }
-
+                        
                     }
-
+                    
                 } else {
-
+                    
                     if (incbfcol && value) {
-
+                        
                         unsigned int rows;
                         
                         rows = 0;
-
+                        
                         cbf_reportnez(cbf_count_rows(handle,&rows),errorcode);
-
+                        
                         if (cbfrow >= (int)rows) {
-
+                            
                             cbf_reportnez(cbf_insert_row(handle,cbfrow),errorcode);
-
+                            
                         }
-
+                        
                         cbf_reportnez(cbf_select_row(handle,cbfrow),errorcode);
-
+                        
                         cbf_reportnez(cbf_set_value(handle,value),errorcode);
-
+                        
                         if (cbftype[0] && cbf_cistrcmp(cbftype,"(null)")
                             && _cbf_strlen(cbftype) == 4) {
-
+                            
                             cbf_reportnez(cbf_set_typeofvalue(handle,cbftype),errorcode);
-
+                            
                         }
-
+                        
                     }
-
+                    
                 }
-
+                
                 if (incbfcol&&value) {
-
+                    
                     cbf_reportnez(cbf_goto_bookmark(handle,bookmark),errorcode);
-
+                    
                 }
                 if (value) cbf_reportnez(cbf_free((void **)&value, NULL),errorcode);
                 H5Dclose(dataset_id);
                 H5Sclose(dataset_ds);
                 H5Tclose(dataset_type);
-
+                
                 break;
-
+                
             case H5O_TYPE_NAMED_DATATYPE:
-
+                
                 break;
-
+                
             default:
-
+                
                 return CBF_FORMAT;
-
-
-
+                
+                
+                
         }
-
+        
         return 0;
     }
     /* Read an HDF5 file */
@@ -30250,9 +31033,13 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 
         h5Ovisit.grand_parent_name = NULL;
 
+        h5Ovisit.great_grand_parent_name = NULL;
+
         h5Ovisit.incbf = h5Ovisit.incbfdb = h5Ovisit.incbfcat = h5Ovisit.incbfcol = 0;
 
         h5Ovisit.innexus = 0;
+
+        h5Ovisit.innxpdb = 0;
 
         h5Ovisit.bookmark.datablock = NULL;
 

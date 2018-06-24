@@ -1017,8 +1017,13 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
         cbf_h5handle h5handle;
         hid_t parent_id;
         haddr_t parent_addr;
+        const char * great_grand_parent_name;
         const char * grand_parent_name;
         const char * parent_name;
+        /* when at column, parent is category,
+           grand-parent is data-block (or save frame if there is a grand parent)
+           and great_grand_parent is data-block for a save_fame */
+
         size_t capacity;
         size_t path_size;
         hid_t *hid_path;
@@ -1035,7 +1040,8 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
         int innexus;   /* set to 1 when we have descended
                         into a NeXus NXexntry */
         int innxpdb;   /* set to 1 when we have descended
-                        into a NeXus NXpdb */
+                        into a NeXus NXpdb, updated by 1
+                        for each subgroup level */
     }
     cbf_h5Ovisit_struct;
     
@@ -1954,6 +1960,25 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
     int cbf_h5type_class_string(H5T_class_t type_class,
                                 char * buffer,
                                 int * atomic, size_t n );
+                                
+                                    
+    /* Store an HDF5 Dataset in CBF handle as a column, using
+     category categoryname, ...
+     If target_row is -1, the new column is appended to any
+     existing column
+     If target row is >= 0, overwrites any existing rows starting
+     at target_row
+     
+     */
+    
+    int cbf_h5ds_store_as_column(cbf_handle handle,
+                             int target_row,
+                       const char * columnname,
+                       const char * categoryname, 
+                       hid_t obj_id,
+                       hid_t space, 
+                       hid_t type,
+                       void ** value);
     
     
     /* Store an HDF5 Dataset in CBF handle, using
