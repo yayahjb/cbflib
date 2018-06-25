@@ -16239,7 +16239,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 multi_element = 0;
 
 
-                  /* check for the multielement case
+                  /* check for the multi-element case
 
                  if there is another row with the same detector name,
                  this will be a multielement case to be written by slabs
@@ -29369,6 +29369,8 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 
         const char* grand_parent_name;
 
+        const char* great_grand_parent_name;
+
         int innexus;
 
         int incbf, incbfdb, incbfcat, incbfcol, innxpdb;
@@ -29436,6 +29438,8 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
         parent_name = ((cbf_h5Ovisithandle)op_data)->parent_name;
 
         grand_parent_name = ((cbf_h5Ovisithandle)op_data)->grand_parent_name;
+
+        great_grand_parent_name = ((cbf_h5Ovisithandle)op_data)->great_grand_parent_name;
 
         innexus = ((cbf_h5Ovisithandle)op_data)->innexus;
 
@@ -29581,6 +29585,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                                    attrib_ds,
                                    attrib_type,
                                    attrib_name,1, (void **)&value);
+
                     if (!cbf_cistrcmp(attrib_name,"NX_class")&& value) {
 
                         cbf_reportnez(cbf_rewind_datablock(handle),errorcode);
@@ -29616,11 +29621,23 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 
                         if (!cbf_cistrcmp(value,"NXpdb")) {
 
-                            ((cbf_h5Ovisithandle)op_data)->innxpdb = 1;
+                           /* The top level (1) NXpdb group may contain one or more
+                              NXpdb groups, each of which is a data block.
+                              Each data block is an level 2 NXpdb group which may contain
+                              one of more  categories.  Each category is
+                              an level 3 NXpdb group which may contain one or more
+                              columns.  Each column is an level 4 NXpdb group.
+                            */
+                            ((cbf_h5Ovisithandle)op_data)->innxpdb = innxpdb+1;
                             ((cbf_h5Ovisithandle)op_data)->incbf = 1;
-                            if (incbfcat) ((cbf_h5Ovisithandle)op_data)->incbfcol = 1;
-                            else {if (incbfdb) ((cbf_h5Ovisithandle)op_data)->incbfcat = 1;
-                                  else {if (innxpdb) ((cbf_h5Ovisithandle)op_data)->incbfdb = 1;}}
+
+                            /* all we do for now is to collect the names of the
+                               nested groups.  We need to get down to the column
+                               before we can know which names to use for the
+                               category and datablock, if the 4 levels deep,
+                               or category save frame and datablock frame if 5 levels deep.
+                            */
+
 
                         }
 
@@ -29692,7 +29709,6 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                             cbf_goto_bookmark(handle,bookmark);
 
                         }
-
                     }
 
 
@@ -29712,6 +29728,8 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 
                 cbf_reportnez(cbf_alloc((void **) &(((cbf_h5Ovisithandle)op_data)->parent_name),NULL,
                                         1,_cbf_strlen(name)+1),errorcode);
+
+                ((cbf_h5Ovisithandle)op_data)->great_grand_parent_name = grand_parent_name;
 
                 ((cbf_h5Ovisithandle)op_data)->grand_parent_name = parent_name;
 
@@ -29738,6 +29756,8 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 
                 ((cbf_h5Ovisithandle)op_data)->grand_parent_name = grand_parent_name;
 
+                ((cbf_h5Ovisithandle)op_data)->great_grand_parent_name = great_grand_parent_name;
+
                 ((cbf_h5Ovisithandle)op_data)->innexus = innexus;
 
                 ((cbf_h5Ovisithandle)op_data)->incbf = incbf;
@@ -29747,6 +29767,8 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                 ((cbf_h5Ovisithandle)op_data)->incbfcat = incbfcat;
 
                 ((cbf_h5Ovisithandle)op_data)->incbfcol = incbfcol;
+
+                ((cbf_h5Ovisithandle)op_data)->innxpdb = innxpdb;
 
                 return retval;
                 break;
@@ -29761,6 +29783,9 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 
                  If it has attributes, we need to add them to
                  the H5_Attributes category
+
+                 If we are innxpdb we need to convert this dataset
+                 to a column in the CIF
 
                  */
 
@@ -29863,7 +29888,6 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                                    attrib_name,1,(void **)&value);
                     if (*value) {
 
-
                         cbf_reportnez(cbf_rewind_datablock(handle),errorcode);
 
                         if (cbf_find_datablock(handle,"H5")) {
@@ -29941,6 +29965,20 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                                dataset_ds,
                                dataset_type,
                                name,0,(void **)&value);
+
+                if (innxpdb && value) {
+
+                   /* name is the name of the column
+                      parent is the name of the category
+                      grand_parent is the name of the data block or save frame
+                      great_grand_parent is the name of the data block is this is a save frame
+                   */
+
+                    cbf_get_bookmark(handle,&bookmark);
+
+                    cbf_goto_bookmark(handle,saved_bookmark);
+
+                }
 
                 if (incbfcol&&value) {
 
@@ -30074,7 +30112,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                                           cbf_delete_fileconnection (&tempfile));
                         } else {
 
-                            /* If this is not an opqaue object, then recompress
+                            /* If this is not an opaque object, then recompress
                              using the attributes */
 
                             cbf_reportnez(cbf_set_binary(handle->node,
@@ -30250,9 +30288,13 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 
         h5Ovisit.grand_parent_name = NULL;
 
+        h5Ovisit.great_grand_parent_name = NULL;
+
         h5Ovisit.incbf = h5Ovisit.incbfdb = h5Ovisit.incbfcat = h5Ovisit.incbfcol = 0;
 
         h5Ovisit.innexus = 0;
+
+        h5Ovisit.innxpdb = 0;
 
         h5Ovisit.bookmark.datablock = NULL;
 
