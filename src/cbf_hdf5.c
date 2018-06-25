@@ -30056,7 +30056,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
         const char* parent_name;
         
         const char* grand_parent_name;
-        
+
         const char* great_grand_parent_name;
         
         int innexus;
@@ -30285,7 +30285,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                                    attrib_ds,
                                    attrib_type,
                                    attrib_name,1, (void **)&value);
-                    
+
                     if (!cbf_cistrcmp(attrib_name,"NX_class")&& value) {
                         
                         cbf_reportnez(cbf_rewind_datablock(handle),errorcode);
@@ -30337,7 +30337,6 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                              category and datablock, if the 4 levels deep,
                              or category save frame and datablock frame if 5 levels deep.
                              */
-                            
                             
                         }
                         
@@ -30587,7 +30586,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                                    attrib_type,
                                    attrib_name,1,(void **)&value);
                     if (*value) {
-                        
+
                         cbf_reportnez(cbf_rewind_datablock(handle),errorcode);
                         
                         if (cbf_find_datablock(handle,"H5")) {
@@ -30856,7 +30855,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                             cbf_onfailnez(cbf_flush_bits(tempfile),
                                           cbf_delete_fileconnection (&tempfile));
                         } else {
-                            
+
                             /* If this is not an opaque object, then recompress
                              using the attributes */
                             
