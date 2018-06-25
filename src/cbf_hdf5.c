@@ -30691,7 +30691,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                     
                     cbf_goto_bookmark(handle,saved_bookmark);
                     
-                    if (great_grand_parent_name) {
+                    if (great_grand_parent_name && innxpdb > 4) {
                         
                         if (!cbf_find_datablock(handle,great_grand_parent_name)||
                             !cbf_new_datablock(handle,great_grand_parent_name)) {
