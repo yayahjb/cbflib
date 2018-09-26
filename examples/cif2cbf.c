@@ -3069,6 +3069,7 @@ int main (int argc, char *argv [])
                                           (opaquemode?CBF_H5_OPAQUE:0)|
                                           (nxpdbmode?CBF_H5_NXPDB:0)  |
                                           (hdf5noH5?CBF_H5_NOH5:0)      ));
+
         } else {
 
             if (minicbf) {

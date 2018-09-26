@@ -291,6 +291,11 @@ extern "C" {
 #endif
 #endif
 
+static int cbf_write_nx2cbf__cbfdb_op
+    (hid_t g_id,
+     const char * name,
+     const H5L_info_t * info,
+     void * op_data);
 
     static int cbf_find_array_data_h5type
     (hid_t * const type,
@@ -5342,6 +5347,145 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 CBF_CALL2(cbf_H5Grequire(parent,&new_group,group_name),error);
                 CBF_CALL2(cbf_H5Arequire_string(new_group,"NX_class","NXsample"),error);
                 CBF_CALL2(cbf_h5handle_set_sample(nx,new_group,group_name),error);
+                if (CBF_SUCCESS!=error) cbf_H5Gfree(new_group);
+            }
+            /* if there haven't been any major problems, return any requested data */
+            CBF_CALL2(cbf_h5handle_get_sample(nx,group,0),error);
+        }
+        return error;
+    }
+    
+    /**
+     Check the handle for the presence of an cbfdb group and its name, optionally returning any combination of them.
+     \param nx A handle to query for the presence of the requested information.
+     \param group A place to store the group (if found), or null if the group isn't wanted.
+     \param name A place to store the name of the group (if found), or null if the name isn't wanted.
+     \sa cbf_h5handle_get_cbfdb
+     \sa cbf_h5handle_set_cbfdb
+     \sa cbf_h5handle_require_cbfdb
+     \return An error code.
+     */
+    int cbf_h5handle_get_cbfdb
+    (const cbf_h5handle nx,
+     hid_t * const group,
+     const char * * const name)
+    {
+            int error = CBF_SUCCESS;
+        if (!nx) {
+            error |= CBF_ARGUMENT;
+        } else {
+            /* check for a valid group */
+            if (group) {
+                if (cbf_H5Ivalid(nx->dbid)) *group = nx->dbid;
+                else error |= CBF_NOTFOUND;
+            }
+            /* check for a name */
+            if (name) {
+                if (nx->dbid_name) *name = nx->dbid_name;
+                else error |= CBF_NOTFOUND;
+            }
+        }
+            return error;
+    }
+    
+    /**
+     Sets the cbfdb group and name within the handle to the given values.
+     Doesn't check or modify the <code>NX_class</code> attribute in any way.
+     The handle will take ownership of the group id iff this function succeeds.
+     \param nx The handle to add information to.
+     \param group The group to be set as the current sample group
+     \param name The name which the group should be given.
+     \sa cbf_h5handle_get_cbfdb
+     \sa cbf_h5handle_set_cbfdb
+     \sa cbf_h5handle_require_cbfdb
+     \return An error code.
+     */
+    int cbf_h5handle_set_cbfdb
+    (const cbf_h5handle nx,
+     const hid_t group,
+     const char * const name)
+    {
+        int error = CBF_SUCCESS;
+        if (!nx || !cbf_H5Ivalid(group) || !name) {
+            error |= CBF_ARGUMENT;
+        } else {
+            hid_t * const nxGroup = &(nx->dbid);
+            const char * * const nxName = &(nx->dbid_name);
+            htri_t cmp;
+            if (cbf_H5Ivalid(*nxGroup)) {
+                cmp = cbf_H5Ocmp(*nxGroup,group);
+            } else {
+                cmp = 1;
+            }
+            if (cmp < 0) {
+                error |= CBF_H5ERROR;
+            } else if (cmp) {
+                /* free the old group, take ownership of the new one */
+                if (cbf_H5Ivalid(*nxGroup)) cbf_H5Gfree(*nxGroup);
+                *nxGroup = group;
+                /* set the name */
+                if (*nxName) cbf_free_text(nxName,0);
+                *nxName = _cbf_strdup(name);
+            } else {
+                /* already set - check that the names match, too */
+                if (!*nxName || strcmp(name,*nxName)) error |= CBF_H5DIFFERENT;
+            }
+        }
+        return error;
+    }
+
+    /**
+     This will check if the cbfdb group within the handle matches any existing group of the
+     same name within the current file. If they don't match a new group is opened or created
+     and added to the handle. The <code>NX_class</code> attributes are not checked.
+
+     \param nx The HDF5 handle to use.
+     \param group An optional pointer to a place where the group should be stored.
+     \param name The group name, or null to use the default name of <code>"sample"</code>.
+     \sa cbf_h5handle_get_cbfdb
+     \sa cbf_h5handle_set_cbfdb
+     \sa cbf_h5handle_require_cbfdb
+     \return An error code.
+     */
+    int cbf_h5handle_require_cbfdb
+    (const cbf_h5handle nx,
+     hid_t * const group,
+     const char * name)
+    {
+        int error = CBF_SUCCESS;
+        if (!nx) {
+            error |= CBF_ARGUMENT;
+        } else {
+            int match = 0;
+            hid_t curr_group = CBF_H5FAIL;
+            hid_t parent = CBF_H5FAIL;
+            const char * curr_name = NULL;
+            const char default_name[] = "cbfdb";
+            const char * group_name = name ? name : default_name;
+            CBF_CALL2(cbf_h5handle_get_entry(nx,&parent,0),error);
+            /* check if the names of the groups match, and if the parent contains the assumed group */
+            if (CBF_SUCCESS==cbf_h5handle_get_sample(nx,&curr_group,&curr_name)) {
+                if (!strcmp(group_name,curr_name)) {
+                    hid_t test_group = CBF_H5FAIL;
+                    const int found = cbf_H5Gfind(parent,&test_group,group_name);
+                    if (CBF_SUCCESS==found) {
+                        if (!cbf_H5Ocmp(test_group,curr_group)) match = 1;
+                    } else if (CBF_NOTFOUND!=found) {
+                        error |= found;
+                    }
+                    cbf_H5Gfree(test_group);
+                }
+            }
+            /* if there is no match I need to create/find a suitable group and put it in the handle */
+            if (CBF_SUCCESS==error && !match) {
+                hid_t new_group = CBF_H5FAIL;
+                CBF_CALL2(cbf_H5Grequire(parent,&new_group,group_name),error);
+                if (nx->flags&CBF_H5_NXPDB) {
+                  CBF_CALL2(cbf_H5Arequire_string(new_group,"NX_class","NXpdb"),error);
+                } else {
+                  CBF_CALL2(cbf_H5Arequire_string(new_group,"NX_class","NXsample"),error);
+                }
+                CBF_CALL2(cbf_h5handle_set_cbfdb(nx,new_group,group_name),error);
                 if (CBF_SUCCESS!=error) cbf_H5Gfree(new_group);
             }
             /* if there haven't been any major problems, return any requested data */
@@ -17175,6 +17319,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         (*h5handle)->nxgoniometer_name = NULL;
         (*h5handle)->nxmonochromator_name = NULL;
         (*h5handle)->nxsource_name = NULL;
+        (*h5handle)->dbid_name = NULL;
+        (*h5handle)->sfid_name = NULL;
+        (*h5handle)->catid_name = NULL;
+        (*h5handle)->colid_name = NULL;
         (*h5handle)->rwmode  = 0;
         (*h5handle)->flags = 0;
 #ifdef CBF_USE_ULP
@@ -17192,6 +17340,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         (*h5handle)->logfile = NULL;
 #endif
         (*h5handle)->nxfilename = NULL;
+        (*h5handle)->cbf_datablock = NULL;
+        (*h5handle)->cbf_saveframe = NULL;
+        (*h5handle)->cbf_category = NULL;
+        (*h5handle)->cbf_column = NULL;
         cbf_make_handle(&((*h5handle)->scratch_tables));
         return CBF_SUCCESS;
 
@@ -17267,8 +17419,17 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                                 saveframe->name),
                       CBF_FORMAT);
 
-        cbf_failnez(cbf_apply_h5text_attribute(h5handle->sfid,
+        if (h5handle->flags&CBF_H5_NXPDB) {
+        
+          cbf_failnez(cbf_apply_h5text_attribute(h5handle->sfid,
+                                               "NX_class","NXpdb",0));
+        
+        } else {
+
+
+          cbf_failnez(cbf_apply_h5text_attribute(h5handle->sfid,
                                                "NX_class", "CBF_cbfsf",0));
+        }
 
         return CBF_SUCCESS;
     }
@@ -18711,6 +18872,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             else fprintf(out,"- %s:%s\n",name,class);
         }
     }
+
 
     static int cbf_write_nx2cbf__detector_op
     (hid_t g_id,
@@ -20186,7 +20348,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     } else {
                         /* unknown field: can't process it, but it's not an error */
                         if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
-        }
+                    }
                 } else if (H5I_GROUP==type) {
                     /* get NXclass & handle all groups here */
                     const char * NX_class = NULL;
@@ -20221,32 +20383,40 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                 if (1) {
                                     cbf_debug_print(cbf_strerror(found));
                                     cbf_debug_print2("error:  failed to set the '%s' group in the handle\n",name);
-                                }
-                            } else {
-                                object = CBF_H5FAIL;
-                                /* The hdf5 handle now owns the group, process it */
-                                ++table->indent;
-                                if (H5Literate(group,H5_INDEX_NAME,H5_ITER_NATIVE,NULL,cbf_write_nx2cbf__detector_op,op_data)<0) {
-                                    cbf_debug_print3("error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
-                                    error |= CBF_H5ERROR;
-                                } else {
-                                    /* success: extract some data that should have been returned via the op_data argument */
-                                    if (!table->has_offset) {
-                                        CBF_CALL(_cbf_nx2cbf_table__array_intensities(cbf,nx,table));
-                                        CBF_CALL(cbf_require_column(cbf,"offset"));
-                                        CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",0.0));
-                                    }
-                                    if (!table->has_scaling_factor) {
-                                        CBF_CALL(_cbf_nx2cbf_table__array_intensities(cbf,nx,table));
-                                        CBF_CALL(cbf_require_column(cbf,"scaling"));
-                                        CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",1.0));
                                     }
                                     CBF_CALL(_cbf_nx2cbf_table__array_intensities(cbf,nx,table));
                                     CBF_CALL(cbf_require_column(cbf,"linearity"));
                                     CBF_CALL(cbf_set_value(cbf,"scaling_offset"));
                                 }
+                                if (!table->has_offset) {
+                            }
+
+                        } else if (!strcmp(NX_class,"NXpdb")) {
+                            const unsigned int indent = table->indent;
+                            hid_t group = object;
+                            /* debugging output */
+                            if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
+                            /* try to take ownership of the group away from the iteration function
+                               and record it as the current cif data block name  */
+                            if (CBF_SUCCESS!=(error|=cbf_require_datablock(cbf,name))) {
+                                cbf_debug_print(cbf_strerror(found));
+                                cbf_debug_print2("error:  failed to set the '%s' cif datablock in the h5handle\n",name);
+                            } else {
+                                cbf_datablock_name(cbf,&(nx->cbf_datablock));
+                                nx->cbf_saveframe = NULL;
+                                nx->cbf_category = NULL;
+                                nx->cbf_column = NULL;
+                                object = CBF_H5FAIL;
+                                /* The hdf5 handle now owns the group, process it */
+
+                                ++table->indent;
+                                if (H5Literate(group,H5_INDEX_NAME,H5_ITER_NATIVE,NULL,cbf_write_nx2cbf__cbfdb_op,op_data)<0) {
+                                    cbf_debug_print3("error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
+                                    error |= CBF_H5ERROR;
+                                } 
                                 table->indent = indent;
                             }
+
                             /*-----------------------------------------------------------------------------------------------*/
                         } else if (!strcmp(NX_class,"NXgoniometer")) {
                             const unsigned int indent = table->indent;
@@ -20320,6 +20490,324 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                         }
                     }
                     free((void*)NX_class);
+                } else {
+                    /* unrecognised object type: can't process it, but it's not an error */
+                    if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
+                }
+            }
+            if (cbf_H5Ivalid(object)) H5Oclose(object);
+        }
+        /*
+         Convert a CBF error to something the HDF5 iteration function can understand.
+         All errors should already have been reported, so I shouldn't need to print anything.
+         */
+        return (CBF_SUCCESS==error) ? 0 : -1;
+    }
+
+
+   /* iteration in a second level NXpdb group that defines a cbfcat
+      should contain datasets, each of which defines a column in the
+      category,  or possibly contains groups, each of which defines
+      a saveframe */
+
+    static int cbf_write_nx2cbf__cbfcat_op
+    (hid_t g_id,
+     const char * name,
+     const H5L_info_t * info,
+     void * op_data)
+    {
+        int error = CBF_SUCCESS;
+        
+        if (!cbf_H5Ivalid(g_id) || !name || !info || !op_data) {
+            cbf_debug_print(cbf_strerror(CBF_ARGUMENT));
+            error |= CBF_ARGUMENT;
+        } else {
+            const op_data_t * const op_data_struct = op_data;
+            cbf_h5handle nx = op_data_struct->nx;
+            cbf_handle cbf = op_data_struct->cbf;
+            cbf_nx2cbf_key_t * const table = op_data_struct->table;
+            hid_t object = CBF_H5FAIL;
+            H5I_type_t type = H5I_BADID;
+            if (!nx) {
+                cbf_debug_print("Invalid NeXus handle given");
+                error |= CBF_ARGUMENT;
+            } else if (!cbf) {
+                cbf_debug_print("No CBF handle given");
+                error |= CBF_ARGUMENT;
+            } else if (!table) {
+                cbf_debug_print("No key given");
+                error |= CBF_ARGUMENT;
+            } else if (!cbf_H5Ivalid(object=H5Oopen(g_id, name, H5P_DEFAULT))) {
+                cbf_debug_print2("error: couldn't open '%s'\n",name);
+                error |= CBF_H5ERROR;
+            } else if (H5I_BADID==(type=H5Iget_type(object))) {
+                cbf_debug_print2("error: couldn't get type of '%s'\n",name);
+                error |= CBF_H5ERROR;
+            } else {
+                if (H5I_BADID==type) {
+                    /* something went wrong when finding the object type */
+                    cbf_debug_print2("error: couldn't get object type of '%s'\n",name);
+                    error |= CBF_H5ERROR;
+                } else if (H5I_DATASET==type) {
+                    /* each dataset is a column */
+                    int colerr=0;
+                    {   /* log the dataset */
+                        if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
+                        /* name is the required column */
+                        colerr=cbf_require_column(cbf,name);
+                        if (CBF_SUCCESS!=colerr) {
+                            cbf_debug_print(cbf_strerror(colerr));
+                            cbf_debug_print2("error:  whilst processing column '%s'\n",name);
+                        } else {
+                          /* iterate through the column */
+                          hsize_t slab;
+                          hsize_t dsslab;
+                          int ndims = 0;
+                          hsize_t offset[1] = {0};
+                          hsize_t stride[1] = {1};
+                          hsize_t count[1]  = {1};
+                          hsize_t chunk[1] = {1};
+                          hsize_t curdim[1]; 
+                          hsize_t memsize[1] = {1};
+                          htri_t dsexists;   
+                          hsize_t dssize[1];
+                          hsize_t maxdssize[1];
+                          hsize_t dsdims[1];
+                          hsize_t dsmaxdims[1];
+                          size_t old_size;
+                          int slaberr;
+                          slaberr=0;
+                          slab = 0L;
+                          const char * datasettext;
+                          size_t rank;
+                          hid_t datasetspace, datasettype;
+                          hid_t memspace, memtype;
+                          void * datasettextbuffer;
+                          int errorcode=0;
+                          hid_t datasetid=object;
+                          datasetspace = (hid_t)-1;
+                          datasettype = (hid_t)-1;
+                          memspace = (hid_t)-1;
+                          memtype = (hid_t)-1;
+                          datasettextbuffer = NULL;
+                          cbf_h5reportneg(datasettype = H5Dget_type(datasetid),CBF_FORMAT,errorcode);
+                          cbf_h5reportneg(datasetspace = H5Dget_space(datasetid),CBF_FORMAT,errorcode);
+                          old_size = H5Tget_size(datasettype);
+                          cbf_reportnez(cbf_alloc(&datasettextbuffer,NULL,1,old_size+1),errorcode);
+                          cbf_h5reportneg(ndims = H5Sget_simple_extent_ndims(datasetspace),CBF_FORMAT,errorcode);
+                          if ( errorcode || ndims > 1 ) {
+                            cbf_debug_print(cbf_strerror(CBF_FORMAT));
+                            cbf_debug_print2("error:  whilst processing column '%s'\n",name);
+                          } else {
+                            if (ndims == 0) {
+                              cbf_h5reportneg(memtype = H5Tcopy(H5T_C_S1),CBF_ALLOC,errorcode);
+                              cbf_h5reportneg(memspace = H5Screate(H5S_SCALAR),CBF_ALLOC,errorcode);
+                              cbf_h5reportneg(H5Sselect_all(datasetspace),CBF_H5ERROR,errorcode);
+                              cbf_h5reportneg(H5Tset_size(memtype,old_size+1),CBF_ALLOC,errorcode);
+                              cbf_h5reportneg(H5Dread(datasetid, memtype, memspace, datasetspace, H5P_DEFAULT, (void *)datasettextbuffer),
+                                CBF_H5ERROR,errorcode);
+                              if (errorcode==0) {
+                                errorcode|=cbf_set_value(cbf,datasettextbuffer);
+                              }
+                            } else {
+                                cbf_h5reportneg(memtype = H5Tcopy(H5T_C_S1),CBF_ALLOC,errorcode);
+                                cbf_h5reportneg(memspace = H5Screate_simple(ndims,count,0),CBF_ALLOC,errorcode);
+                                cbf_h5reportneg(H5Tset_size(memtype,old_size+1),CBF_ALLOC,errorcode);
+                                errorcode|=cbf_select_row(cbf,0);
+                                for (dsslab=0; dsslab < dsdims[0] && errorcode == CBF_SUCCESS; dsslab++) { 
+                                  offset[0] = dsslab;
+                                  cbf_h5reportneg(H5Sselect_hyperslab(datasetspace,H5S_SELECT_SET,
+                                                    offset,stride,count,0), CBF_FORMAT,errorcode);
+                                  errorcode|=cbf_new_row(cbf);
+                                  if (H5Dread(datasetid, memtype, memspace, datasetspace,
+                                     H5P_DEFAULT, (void *)datasettextbuffer)>=0) {
+                                      errorcode|=cbf_set_value(cbf,datasettextbuffer);
+                                  }
+                                }
+                            }
+                            if (memspace >= 0) H5Sclose(memspace);
+                            if (datasetspace >= 0) H5Sclose(datasetspace);
+                            if (datasetspace >= 0) H5Sclose(datasetspace);
+                            if (datasetid >= 0) H5Dclose(datasetid);
+                            if (memtype >= 0) H5Tclose(memtype);
+                            if (datasettextbuffer) cbf_free(&datasettextbuffer,NULL);
+                            return errorcode;
+                          }
+                       }
+                    }
+                } else if (H5I_GROUP==type) {
+                    /* get NXclass & handle all groups here, should be NXpdb for a cbfcat */
+                    const char * NX_class = NULL;
+                    const int found = _cbf_NXclass(object,&NX_class);
+                    if (CBF_NOTFOUND==found) {
+                        /* no NX_class: can't process it, but it's not an error */
+                        if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
+                    } else if (CBF_SUCCESS!=found) {
+                        if (1) {
+                            cbf_debug_print(cbf_strerror(found));
+                            cbf_debug_print2("error:  whilst processing group '%s'\n",name);
+                        }
+                        error |= found;
+                    } else {
+                        /* I have a group with an NX_class: match on NX_class */
+                        if (!strcmp(NX_class,"NXpdb")) {
+                            const unsigned int indent = table->indent;
+                            hid_t group = object;
+                            /* debugging output */
+                            if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
+                            /* try to take ownership of the group away from the iteration function */
+                            if (CBF_SUCCESS!=(error|=cbf_h5handle_set_cbfdb(nx,object,name))) {
+                                if (1) {
+                                    cbf_debug_print(cbf_strerror(found));
+                                    cbf_debug_print2("error:  failed to set the '%s' cif dataset  in the handle\n",name);
+                                }
+                            } else {
+                                object = CBF_H5FAIL;
+                                /* The hdf5 handle now owns the group, process it */
+                                ++table->indent;
+                                if (H5Literate(group,H5_INDEX_NAME,H5_ITER_NATIVE,NULL,cbf_write_nx2cbf__cbfcat_op,op_data)<0) {
+                                    cbf_debug_print3("error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
+                                    error |= CBF_H5ERROR;
+                                } else {
+                                    /* success: extract some data that should have been returned via the op_data argument */
+                                    if (!table->has_offset) {
+                                    }
+                                }
+
+                            }
+
+                            /*-----------------------------------------------------------------------------------------------*/
+                        } else {
+                            /* unknown NX_class: (probably) not an error */
+                            if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,0);
+                        }
+                    }
+                    free((void*)NX_class);
+                } else {
+                    /* unrecognised object type: can't process it, but it's not an error */
+                    if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
+                }
+            }
+            if (cbf_H5Ivalid(object)) H5Oclose(object);
+        }
+        /*
+         Convert a CBF error to something the HDF5 iteration function can understand.
+         All errors should already have been reported, so I shouldn't need to print anything.
+         */
+        return (CBF_SUCCESS==error) ? 0 : -1;
+    }
+
+   /* iteration in a top level NXpdb group that defines a cbfdb
+      should contain groups, each of which defines a cbfcat or nxpdb
+      each of which should contain datasets, each of which defines
+      a cbfcol, or possibly contains groups, each of which defines
+      a saveframe */
+
+    static int cbf_write_nx2cbf__cbfdb_op
+    (hid_t g_id,
+     const char * name,
+     const H5L_info_t * info,
+     void * op_data)
+    {
+        int error = CBF_SUCCESS;
+        
+        if (!cbf_H5Ivalid(g_id) || !name || !info || !op_data) {
+            cbf_debug_print(cbf_strerror(CBF_ARGUMENT));
+            error |= CBF_ARGUMENT;
+        } else {
+            const op_data_t * const op_data_struct = op_data;
+            cbf_h5handle nx = op_data_struct->nx;
+            cbf_handle cbf = op_data_struct->cbf;
+            cbf_nx2cbf_key_t * const table = op_data_struct->table;
+            hid_t object = CBF_H5FAIL;
+            H5I_type_t type = H5I_BADID;
+            if (!nx) {
+                cbf_debug_print("Invalid NeXus handle given");
+                error |= CBF_ARGUMENT;
+            } else if (!cbf) {
+                cbf_debug_print("No CBF handle given");
+                error |= CBF_ARGUMENT;
+            } else if (!table) {
+                cbf_debug_print("No key given");
+                error |= CBF_ARGUMENT;
+            } else if (!cbf_H5Ivalid(object=H5Oopen(g_id, name, H5P_DEFAULT))) {
+                cbf_debug_print2("error: couldn't open '%s'\n",name);
+                error |= CBF_H5ERROR;
+            } else if (H5I_BADID==(type=H5Iget_type(object))) {
+                cbf_debug_print2("error: couldn't get type of '%s'\n",name);
+                error |= CBF_H5ERROR;
+            } else {
+                if (H5I_BADID==type) {
+                    /* something went wrong when finding the object type */
+                    cbf_debug_print2("error: couldn't get object type of '%s'\n",name);
+                    error |= CBF_H5ERROR;
+                } else if (H5I_DATASET==type) {
+                    /* handle all datasets here */
+                    if (0) {
+                        /* I don't actually have any items to match here */
+                    } else {
+                        /* unknown field: can't process it, but it's not an error */
+                        if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
+                    }
+                } else if (H5I_GROUP==type) {
+                    /* get NXclass & handle all groups here, should be NXpdb for a cbfcat */
+                    const char * NX_class = NULL;
+                    const int found = _cbf_NXclass(object,&NX_class);
+                    if (CBF_NOTFOUND==found) {
+                        /* no NX_class: can't process it, but it's not an error */
+                        if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
+                    } else if (CBF_SUCCESS!=found) {
+                        if (1) {
+                            cbf_debug_print(cbf_strerror(found));
+                            cbf_debug_print2("error:  whilst processing group '%s'\n",name);
+                        }
+                        error |= found;
+
+                        /* I have a group with an NX_class: match on NX_class */
+                    } else if (!cbf_cistrcmp(NX_class,"NXpdb") || !cbf_cistrcmp(NX_class,"CBF_cbfcat")) {
+                        const unsigned int indent = table->indent;
+                        hid_t group = object;
+                        /* debugging output */
+                        if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
+                        /* try to take ownership of the group away from the iteration function 
+                           and record it as the current cif category name  */
+                        if (!(nx->cbf_datablock)) {
+                           cbf_require_datablock(cbf,"(none)");
+                        } else {
+                           cbf_require_datablock(cbf,nx->cbf_datablock);
+                        }
+                        if (nx->cbf_saveframe)  {
+                           cbf_require_saveframe(cbf,nx->cbf_saveframe);
+                        }
+                        if (CBF_SUCCESS!=(error|=cbf_require_category(cbf,name))) {
+                            cbf_debug_print(cbf_strerror(found));
+                            cbf_debug_print2("error:  failed to set the '%s' cif category in the h5handle nx\n",name);
+                        } else {
+                            cbf_category_name(cbf,&(nx->cbf_category));
+                            nx->cbf_saveframe = NULL;
+                            nx->cbf_column = NULL;
+                            object = CBF_H5FAIL;
+                            /* The hdf5 handle now owns the group, process it */
+                            ++table->indent;
+                            if (!cbf_require_category(cbf,name)) {
+                              if (H5Literate(group,H5_INDEX_NAME,H5_ITER_NATIVE,NULL,cbf_write_nx2cbf__cbfcat_op,op_data)<0) {
+                                  cbf_debug_print3("error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
+                                  error |= CBF_H5ERROR;
+                              } else {
+                                  /* success: extract some data that should have been returned via the op_data argument */
+                                  if (!table->has_offset) {
+                                  
+                                  }
+                              }
+                            }
+
+                        }
+                            /*-----------------------------------------------------------------------------------------------*/
+                    } else {
+                          /* unknown NX_class: (probably) not an error */
+                          if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,0);
+                    }
+                      free((void*)NX_class);
                 } else {
                     /* unrecognised object type: can't process it, but it's not an error */
                     if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
@@ -21144,6 +21632,34 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                 if (H5Literate(group,H5_INDEX_NAME,H5_ITER_NATIVE,NULL,cbf_write_nx2cbf__sample_op,op_data)<0) {
                                     cbf_debug_print3("error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
                                     error |= CBF_H5ERROR;
+                                }
+                                table->indent = indent;
+                            }
+                            /*-----------------------------------------------------------------------------------------------*/
+
+                        } else if (!strcmp(NX_class,"NXpdb")) {
+                            const unsigned int indent = table->indent;
+                            hid_t group = object;
+                            /* debugging output */
+                            if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
+                            /* try to take ownership of the group away from the iteration function 
+                               and record it as the current cif data block name  */
+                            if (CBF_SUCCESS!=(error|=cbf_require_datablock(cbf,name))) {
+                                cbf_debug_print(cbf_strerror(found));
+                                cbf_debug_print2("error:  failed to set the '%s' cif datablock in the h5handle\n",name);
+                            } else {
+                                cbf_datablock_name(cbf,&(nx->cbf_datablock));
+                                nx->cbf_saveframe = NULL;
+                                nx->cbf_category = NULL;
+                                nx->cbf_column = NULL;
+                                object = CBF_H5FAIL;
+                                /* The hdf5 handle now owns the group, process it */
+                                ++table->indent;
+                                if (!cbf_require_datablock(cbf,name)){
+                                    if (H5Literate(group,H5_INDEX_NAME,H5_ITER_NATIVE,NULL,cbf_write_nx2cbf__cbfdb_op,op_data)<0) {
+                                        cbf_debug_print3("error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
+                                        error |= CBF_H5ERROR;
+                                     }
                                 }
                                 table->indent = indent;
                             }
@@ -31194,3 +31710,6 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 }
 
 #endif
+
+
+

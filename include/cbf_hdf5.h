@@ -991,6 +991,18 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
         const char * nxsource_name;
         const char * nxdata_name;
         const char * nxfilename;
+        const char * dbid_name;
+        const char * sfid_name;
+        const char * catid_name;
+        const char * colid_name;
+                /* Names of corresponding CBF datablock, saveframe, category, column
+                   each case these must have already been created in the cbf and should
+                   not be freed or modified
+                */ 
+        const char * cbf_datablock;
+        const char * cbf_saveframe;
+        const char * cbf_category;
+        const char * cbf_column;
 
 		/* Flags for various options */
         unsigned long int flags;
@@ -1134,6 +1146,33 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
 	\ingroup section_H5Handle
 	 */
 	int cbf_h5handle_require_sample
+			(const cbf_h5handle nx,
+			 hid_t * const group,
+			 const char * name);
+    
+	/**
+	\brief Get the current id and name of the cbfdb group within the given handle.
+	\ingroup section_H5Handle
+	 */
+	int cbf_h5handle_get_cbfdb
+			(const cbf_h5handle nx,
+			 hid_t * const group,
+			 const char * * const name);
+
+	/**
+	\brief Set the id and name of the cbfdb group within the given handle.
+	\ingroup section_H5Handle
+	 */
+	int cbf_h5handle_set_cbfdb
+			(const cbf_h5handle nx,
+			 const hid_t group,
+                                      const char * const name);
+    
+	/**
+	\brief Ensure I have a cfbdb in the hdf5 handle.
+	\ingroup section_H5Handle
+	 */
+	int cbf_h5handle_require_cbfdb
 			(const cbf_h5handle nx,
 			 hid_t * const group,
 			 const char * name);

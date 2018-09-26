@@ -1602,6 +1602,11 @@ void cbf_flog (cbf_file * file, const char *message, int logflags);
 int cbf_require_datablock (cbf_handle  handle,
                              const char *datablockname);
 
+  /* Find a saveframe, creating it if necessary */
+  
+int cbf_require_saveframe (cbf_handle  handle,
+                             const char *saveframename);
+
   /* Find a category, creating it if necessary */
   
 int cbf_require_category (cbf_handle  handle,
