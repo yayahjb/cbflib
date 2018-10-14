@@ -934,6 +934,7 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
     
     typedef struct {
         const char * datablock;
+        const char * saveframe;
         const char * category;
         const char * column;
         unsigned int row;
@@ -1045,6 +1046,8 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
                         into a NeXus NXcbf    */
         int incbfdb;   /* set to 1 when we have descended
                         into a NeXus NXcbfdb  */
+        int incbfsf;   /* set to 1 when we have descended
+                        into a NeXus NXcbfsf  */
         int incbfcat;  /* set to 1 when we have descended
                         into a NeXus NXcbfcat */
         int incbfcol;  /* set to 1 when we have descended
