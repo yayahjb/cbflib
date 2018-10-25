@@ -2226,10 +2226,10 @@ extern "C" {
         } else {
             str++;
         }
-        cbf_debug_print3("fastlow  %d, fasthigh %d\n", fastlow,fasthigh);
-        cbf_debug_print3("midlow  %d, midhigh %d\n", midlow,midhigh);
-        cbf_debug_print3("slowlow  %d, slowhigh %d\n", slowlow,slowhigh);
-        cbf_debug_print3("valuelow  %d, valuehigh %d\n", valuelow,valuehigh);
+        cbf_debug_print3("fastlow  %ld, fasthigh %ld\n", (long)fastlow,(long)fasthigh);
+        cbf_debug_print3("midlow  %ld, midhigh %ld\n", (long)midlow,(long)midhigh);
+        cbf_debug_print3("slowlow  %ld, slowhigh %ld\n", (long)slowlow,(long)slowhigh);
+        cbf_debug_print3("valuelow  %ld, valuehigh %ld\n", (long)valuelow,(long)valuehigh);
         return CBF_SUCCESS;
 
     }

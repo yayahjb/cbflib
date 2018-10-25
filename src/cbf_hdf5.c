@@ -16633,6 +16633,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
           cbf_failnez(cbf_apply_h5text_attribute(h5handle->catid,
                                                "NX_class","NXpdb",errorcode));
 
+          cbf_failnez(cbf_apply_h5text_attribute(h5handle->catid,
+                                               "NXpdb_class", "CBF_cbfcat",0));
+
+
         } else {
 
           cbf_failnez(cbf_apply_h5text_attribute(h5handle->catid,
@@ -16708,6 +16712,12 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
               cbf_failnez(cbf_apply_h5text_attribute(h5handle->colid,
                                                    "NX_class","NXpdb",errorcode));
+
+              cbf_failnez(cbf_apply_h5text_attribute(h5handle->colid,
+                                               "NXpdb_class", "CBF_cbfcol",0));
+
+
+
             } else {
 
               cbf_failnez(cbf_apply_h5text_attribute(h5handle->colid,
@@ -17520,6 +17530,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
           cbf_failnez(cbf_apply_h5text_attribute(h5handle->dbid,
                                                "NX_class","NXpdb",errorcode)||errorcode);
 
+          cbf_failnez(cbf_apply_h5text_attribute(h5handle->dbid,
+                                               "NXpdb_class", "CBF_cbfdb",0));
+
+
         } else {
 
           cbf_failnez(cbf_apply_h5text_attribute(h5handle->dbid,
@@ -17653,6 +17667,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
           cbf_failnez(cbf_apply_h5text_attribute((*h5handle)->rootid,
                                                "NX_class","NXpdb",errorcode)||errorcode);
+
+          cbf_failnez(cbf_apply_h5text_attribute((*h5handle)->rootid,
+                                               "NXpdb_class", "CBF_cbf",0));
+
 
         } else {
 
@@ -20718,7 +20736,9 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
       should contain groups, each of which defines a cbfcat or nxpdb
       each of which should contain datasets, each of which defines
       a cbfcol, or possibly contains groups, each of which defines
-      a saveframe */
+      a saveframe, which contains groups, each of which defines
+      a cbfcat or nxpdb each of which contains datasets, each of
+      which defines a cbfcol. */
 
     static int cbf_write_nx2cbf__cbfdb_op
     (hid_t g_id,
@@ -28946,7 +28966,29 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 
                 if (type_class==H5T_STRING) {
 
-                    cbf_reportnez(cbf_set_value(handle,(const char *)data),errorcode)
+                    char element[type_size+1];
+
+                    size_t ii, jj;;
+
+                    for (ii=0; ii<total_dim; ii++) {
+
+                        for(jj=0; jj<type_size; jj++) element[jj]=data[jj+ii*type_size];
+
+                        element[type_size]=0;
+
+                        cbf_debug_print(element);
+
+                        cbf_reportnez(cbf_select_row(handle,target_row+ii),errorcode);
+
+                        cbf_reportnez(cbf_set_value(handle,(const char *)element),errorcode);
+
+                        if (ii < total_dim-1 && target_row+ii >= rows) {
+
+                        cbf_reportnez(cbf_new_row(handle),errorcode);
+
+                        }
+
+                    }
 
                 } else if (type_class==H5T_INTEGER){
 
@@ -28996,8 +29038,6 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                         data = (unsigned char *)ivalue;
 
                     } else {
-
-
 
                         /* process arrays as multiple rows in the slowest index
                          */
@@ -29200,8 +29240,6 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 
                     } else {
 
-
-
                         /* process arrays
                          */
 
@@ -29397,46 +29435,6 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
             }
 
         }
-        switch(type_order) {
-            case H5T_ORDER_LE:
-                byte_order = "H5T_ORDER_LE";
-                break;
-            case H5T_ORDER_BE:
-                byte_order = "H5T_ORDER_BE";
-                break;
-            case H5T_ORDER_VAX:
-                byte_order = "H5T_ORDER_VAX";
-                break;
-            case H5T_ORDER_MIXED:
-                byte_order = "H5T_ORDER_MIXED";
-                break;
-            case H5T_ORDER_NONE:
-                byte_order = "H5T_ORDER_LE";
-                break;
-            case -1:
-                byte_order = ".";
-                break;
-            default: byte_order="UNKNOWN";
-                break;
-        }
-
-        cbf_reportnez(cbf_require_column(handle,"h5_byte_order"),errorcode);
-
-        cbf_reportnez(cbf_set_value(handle,byte_order),errorcode);
-
-        if (type_size < 10) {
-
-            sprintf(buffer,"%ld",(unsigned long)type_size);
-
-        } else {
-
-            sprintf(buffer,"0x%lx",(unsigned long)type_size);
-
-        }
-
-        cbf_reportnez(cbf_require_column(handle,"size"),errorcode);
-
-        cbf_reportnez(cbf_set_value(handle,buffer),errorcode);
 
         if (base_type >=0) H5Tclose(base_type);
 
@@ -30576,17 +30574,24 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                             const H5L_info_t *info,
                             void *op_data){
 
+
         int cbfrow = -1;
 
         int errorcode;
 
         cbf_handle handle;
 
-        haddr_t parent_addr;
+        haddr_t save_parent_addr,parent_addr;
 
-        hid_t parent_id;
+        hid_t save_parent_id,parent_id;
 
         unsigned int row;
+
+        const char* save_parent_name;
+
+        const char* save_grand_parent_name;
+
+        const char* save_great_grand_parent_name;
 
         const char* parent_name;
 
@@ -30594,9 +30599,13 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 
         const char* great_grand_parent_name;
 
-        int innexus;
+        int save_innexus, innexus;
+
+        int save_incbf, save_incbfdb, save_incbfcat, save_incbfcol, save_innxpdb, save_incbfsf;
 
         int incbf, incbfdb, incbfcat, incbfcol, innxpdb, incbfsf;
+
+        size_t save_path_size;
 
         hid_t group_id, dataset_id;
 
@@ -30658,29 +30667,32 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 
         cbf_h5failneg(H5Oget_info_by_name(loc_id,
                                           name, &objinfo, H5P_DEFAULT),CBF_FORMAT);
-        parent_id = ((cbf_h5Ovisithandle)op_data)->parent_id;
 
-        parent_addr = ((cbf_h5Ovisithandle)op_data)->parent_addr;
+        save_path_size = ((cbf_h5Ovisithandle)op_data)->path_size;
 
-        parent_name = ((cbf_h5Ovisithandle)op_data)->parent_name;
+        save_parent_id=parent_id = ((cbf_h5Ovisithandle)op_data)->parent_id;
 
-        grand_parent_name = ((cbf_h5Ovisithandle)op_data)->grand_parent_name;
+        save_parent_addr=parent_addr = ((cbf_h5Ovisithandle)op_data)->parent_addr;
 
-        great_grand_parent_name = ((cbf_h5Ovisithandle)op_data)->great_grand_parent_name;
+        save_parent_name=parent_name = ((cbf_h5Ovisithandle)op_data)->parent_name;
 
-        innexus = ((cbf_h5Ovisithandle)op_data)->innexus;
+        save_grand_parent_name=grand_parent_name = ((cbf_h5Ovisithandle)op_data)->grand_parent_name;
 
-        incbf = ((cbf_h5Ovisithandle)op_data)->incbf;
+        save_great_grand_parent_name=great_grand_parent_name = ((cbf_h5Ovisithandle)op_data)->great_grand_parent_name;
 
-        incbfdb = ((cbf_h5Ovisithandle)op_data)->incbfdb;
+        save_innexus=innexus = ((cbf_h5Ovisithandle)op_data)->innexus;
 
-        incbfsf = ((cbf_h5Ovisithandle)op_data)->incbfsf;
+        save_incbf=incbf = ((cbf_h5Ovisithandle)op_data)->incbf;
 
-        incbfcat = ((cbf_h5Ovisithandle)op_data)->incbfcat;
+        save_incbfdb=incbfdb = ((cbf_h5Ovisithandle)op_data)->incbfdb;
 
-        incbfcol = ((cbf_h5Ovisithandle)op_data)->incbfcol;
+        save_incbfsf=incbfsf = ((cbf_h5Ovisithandle)op_data)->incbfsf;
 
-        innxpdb = ((cbf_h5Ovisithandle)op_data)->innxpdb;
+        save_incbfcat=incbfcat = ((cbf_h5Ovisithandle)op_data)->incbfcat;
+
+        save_incbfcol=incbfcol = ((cbf_h5Ovisithandle)op_data)->incbfcol;
+
+        save_innxpdb=innxpdb = ((cbf_h5Ovisithandle)op_data)->innxpdb;
 
         memmove(&saved_bookmark,&(((cbf_h5Ovisithandle)op_data)->bookmark),sizeof(cbf_bookmark));
 
@@ -30794,9 +30806,13 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 
                 { int errorcode = 0;
 
+                    value_nx_class=NULL;
                     cbf_reportnez(_cbf_Attrval(group_id,"NX_class", &value_nx_class),errorcode);
-
+                    cbf_debug_print2("NX_class %s\n",value_nx_class);
+    
+                    value_nxpdb_class=NULL;
                     cbf_reportnez(_cbf_Attrval(group_id,"NXpdb_class", &value_nxpdb_class),errorcode);
+                    cbf_debug_print2("NXpdb_class %s\n",value_nxpdb_class);
                 }
 
                 for (i=0; (ssize_t)i < attrib_num; i++) {
@@ -30875,7 +30891,14 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                             ((cbf_h5Ovisithandle)op_data)->incbf = 1;
 
                         }
-                        if (innxpdb == 2) incbfdb = ((cbf_h5Ovisithandle)op_data)->incbfdb = 1;
+                        if (innxpdb == 2) {
+                            incbfdb = ((cbf_h5Ovisithandle)op_data)->incbfdb = 1;
+                            if (value_nxpdb_class && !cbf_cistrcmp(value_nxpdb_class,"CBF_cbfdb")) {
+                              cbf_debug_print2("CBF_cbfdb agrees with tree depth %s", name);
+                            } else {
+                              cbf_debug_print3("CBF_cbfdb attribute disagrees with tree depth %d %s", innxpdb, name);
+                            }
+                        }
                         if (innxpdb == 3) {
                             if (value_nxpdb_class && !cbf_cistrcmp(value_nxpdb_class,"CBF_cbfsf")) {
                                incbfsf = ((cbf_h5Ovisithandle)op_data)->incbfsf = 1;
@@ -30883,7 +30906,15 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                                incbfsf = ((cbf_h5Ovisithandle)op_data)->incbfsf = 0;
                             }
                         }
-                        if (innxpdb == 3+incbfsf) incbfcat = ((cbf_h5Ovisithandle)op_data)->incbfcat = 1;
+
+                        if (innxpdb == 3+incbfsf) {
+                            incbfcat = ((cbf_h5Ovisithandle)op_data)->incbfcat = 1;
+                            if (value_nxpdb_class && !cbf_cistrcmp(value_nxpdb_class,"CBF_cbfcat")) {
+                              cbf_debug_print2("CBF_cbfcat agrees with tree depth %s", name)
+                            } else {
+                              cbf_debug_print3("CBF_cbfcat attribute disagrees with tree depth %d %s", innxpdb, name)
+                            }
+                        }
 
 
                         if (!cbf_cistrcmp(value,"CBF_cbfdb")
@@ -31022,31 +31053,31 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 
                 cbf_reportnez(cbf_free((void **)(&((cbf_h5Ovisithandle)op_data)->parent_name),NULL),errorcode);
 
-                (((cbf_h5Ovisithandle)op_data)->path_size)--;
+                (((cbf_h5Ovisithandle)op_data)->path_size)=save_path_size;;
 
-                ((cbf_h5Ovisithandle)op_data)->parent_id = parent_id;
+                ((cbf_h5Ovisithandle)op_data)->parent_id = save_parent_id;
 
-                ((cbf_h5Ovisithandle)op_data)->parent_addr = parent_addr;
+                ((cbf_h5Ovisithandle)op_data)->parent_addr = save_parent_addr;
 
-                ((cbf_h5Ovisithandle)op_data)->parent_name = parent_name;
+                ((cbf_h5Ovisithandle)op_data)->parent_name = save_parent_name;
 
-                ((cbf_h5Ovisithandle)op_data)->grand_parent_name = grand_parent_name;
+                ((cbf_h5Ovisithandle)op_data)->grand_parent_name = save_grand_parent_name;
 
-                ((cbf_h5Ovisithandle)op_data)->great_grand_parent_name = great_grand_parent_name;
+                ((cbf_h5Ovisithandle)op_data)->great_grand_parent_name = save_great_grand_parent_name;
 
-                ((cbf_h5Ovisithandle)op_data)->innexus = innexus;
+                ((cbf_h5Ovisithandle)op_data)->innexus = save_innexus;
 
-                ((cbf_h5Ovisithandle)op_data)->incbf = incbf;
+                ((cbf_h5Ovisithandle)op_data)->incbf = save_incbf;
 
-                ((cbf_h5Ovisithandle)op_data)->incbfdb = incbfdb;
+                ((cbf_h5Ovisithandle)op_data)->incbfdb = save_incbfdb;
 
-                ((cbf_h5Ovisithandle)op_data)->incbfsf = incbfsf;
+                ((cbf_h5Ovisithandle)op_data)->incbfsf = save_incbfsf;
 
-                ((cbf_h5Ovisithandle)op_data)->incbfcat = incbfcat;
+                ((cbf_h5Ovisithandle)op_data)->incbfcat = save_incbfcat;
 
-                ((cbf_h5Ovisithandle)op_data)->incbfcol = incbfcol;
+                ((cbf_h5Ovisithandle)op_data)->incbfcol = save_incbfcol;
 
-                ((cbf_h5Ovisithandle)op_data)->innxpdb = innxpdb;
+                ((cbf_h5Ovisithandle)op_data)->innxpdb = save_innxpdb;
 
                 return retval;
                 break;
@@ -31245,7 +31276,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                                              dataset_type,
                                              name,0,(void **)&value);
 
-                if (innxpdb && value) {
+                if (innxpdb ) {
 
                     /* name is the name of the column
                      parent_name is the name of the category
@@ -31257,7 +31288,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 
                     cbf_goto_bookmark(handle,saved_bookmark);
 
-                    if (great_grand_parent_name && innxpdb > 4) {
+                    if (great_grand_parent_name && incbfsf) {
 
                         if (!cbf_find_datablock(handle,great_grand_parent_name)||
                             !cbf_new_datablock(handle,great_grand_parent_name)) {
@@ -31273,6 +31304,8 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                     } else if ( !cbf_find_datablock(handle,grand_parent_name)||
                                !cbf_new_datablock(handle, grand_parent_name)){
 
+                        cbf_debug_print4("Dataset %s in datablock %s cat %s",name,grand_parent_name,parent_name);
+
                     } else { cbf_failnez(CBF_NOTFOUND);}
 
                     cbf_debug_print("cbf_h5ds_store_as_column");
@@ -31283,7 +31316,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 
                 }
 
-                if (incbfcol&&value) {
+                if (incbfcol) {
 
                     cbfrow = (int)strtol(name,NULL,0);
 
@@ -31293,7 +31326,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 
                 }
 
-                if (incbfcol&&binsize&&value) {
+                if (incbfcol&&binsize) {
 
                     size_t elsize=0, nelem=0;
 
@@ -31377,16 +31410,74 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 
                             /* Move to the end of the temporary file */
 
-                            if (cbf_set_fileposition (tempfile, 0, SEEK_END))
+                            if (cbf_set_fileposition (tempfile, 0, SEEK_END)) {
+
+                                (((cbf_h5Ovisithandle)op_data)->path_size)=save_path_size;
+
+                                ((cbf_h5Ovisithandle)op_data)->parent_id = save_parent_id;
+
+                                ((cbf_h5Ovisithandle)op_data)->parent_addr = save_parent_addr;
+
+                                ((cbf_h5Ovisithandle)op_data)->parent_name = save_parent_name;
+
+                                ((cbf_h5Ovisithandle)op_data)->grand_parent_name = save_grand_parent_name;
+
+                                ((cbf_h5Ovisithandle)op_data)->great_grand_parent_name = save_great_grand_parent_name;
+
+                                ((cbf_h5Ovisithandle)op_data)->innexus = save_innexus;
+
+                                ((cbf_h5Ovisithandle)op_data)->incbf = save_incbf;
+
+                                ((cbf_h5Ovisithandle)op_data)->incbfdb = save_incbfdb;
+
+                                ((cbf_h5Ovisithandle)op_data)->incbfsf = save_incbfsf;
+
+                                ((cbf_h5Ovisithandle)op_data)->incbfcat = save_incbfcat;
+
+                                ((cbf_h5Ovisithandle)op_data)->incbfcol = save_incbfcol;
+
+                                ((cbf_h5Ovisithandle)op_data)->innxpdb = save_innxpdb;
+
+
 
                                 return CBF_FILESEEK | cbf_delete_fileconnection (&tempfile);
 
+                            }
 
                             /* Get the starting location */
 
-                            if (cbf_get_fileposition (tempfile, &start))
+                            if (cbf_get_fileposition (tempfile, &start)) {
+
+                                (((cbf_h5Ovisithandle)op_data)->path_size)=save_path_size;
+
+                                ((cbf_h5Ovisithandle)op_data)->parent_id = save_parent_id;
+
+                                ((cbf_h5Ovisithandle)op_data)->parent_addr = save_parent_addr;
+
+                                ((cbf_h5Ovisithandle)op_data)->parent_name = save_parent_name;
+
+                                ((cbf_h5Ovisithandle)op_data)->grand_parent_name = save_grand_parent_name;
+
+                                ((cbf_h5Ovisithandle)op_data)->great_grand_parent_name = save_great_grand_parent_name;
+
+                                ((cbf_h5Ovisithandle)op_data)->innexus = save_innexus;
+
+                                ((cbf_h5Ovisithandle)op_data)->incbf = save_incbf;
+
+                                ((cbf_h5Ovisithandle)op_data)->incbfdb = save_incbfdb;
+
+                                ((cbf_h5Ovisithandle)op_data)->incbfsf = save_incbfsf;
+
+                                ((cbf_h5Ovisithandle)op_data)->incbfcat = save_incbfcat;
+
+                                ((cbf_h5Ovisithandle)op_data)->incbfcol = save_incbfcol;
+
+                                ((cbf_h5Ovisithandle)op_data)->innxpdb = save_innxpdb;
+
 
                                 return CBF_FILETELL | cbf_delete_fileconnection (&tempfile);
+
+                            }
 
 
                             /* Discard any bits in the buffers */
@@ -31487,11 +31578,64 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 
             default:
 
+                (((cbf_h5Ovisithandle)op_data)->path_size)=save_path_size;
+
+                ((cbf_h5Ovisithandle)op_data)->parent_id = save_parent_id;
+
+                ((cbf_h5Ovisithandle)op_data)->parent_addr = save_parent_addr;
+
+                ((cbf_h5Ovisithandle)op_data)->parent_name = save_parent_name;
+
+                ((cbf_h5Ovisithandle)op_data)->grand_parent_name = save_grand_parent_name;
+
+                ((cbf_h5Ovisithandle)op_data)->great_grand_parent_name = save_great_grand_parent_name;
+
+                ((cbf_h5Ovisithandle)op_data)->innexus = save_innexus;
+
+                ((cbf_h5Ovisithandle)op_data)->incbf = save_incbf;
+
+                ((cbf_h5Ovisithandle)op_data)->incbfdb = save_incbfdb;
+
+                ((cbf_h5Ovisithandle)op_data)->incbfsf = save_incbfsf;
+
+                ((cbf_h5Ovisithandle)op_data)->incbfcat = save_incbfcat;
+
+                ((cbf_h5Ovisithandle)op_data)->incbfcol = save_incbfcol;
+
+                ((cbf_h5Ovisithandle)op_data)->innxpdb = save_innxpdb;
+
+
                 return CBF_FORMAT;
 
 
 
         }
+
+        (((cbf_h5Ovisithandle)op_data)->path_size)= save_path_size;
+
+        ((cbf_h5Ovisithandle)op_data)->parent_id = save_parent_id;
+
+        ((cbf_h5Ovisithandle)op_data)->parent_addr = save_parent_addr;
+
+        ((cbf_h5Ovisithandle)op_data)->parent_name = save_parent_name;
+
+        ((cbf_h5Ovisithandle)op_data)->grand_parent_name = save_grand_parent_name;
+
+        ((cbf_h5Ovisithandle)op_data)->great_grand_parent_name = save_great_grand_parent_name;
+
+        ((cbf_h5Ovisithandle)op_data)->innexus = save_innexus;
+
+        ((cbf_h5Ovisithandle)op_data)->incbf = save_incbf;
+
+        ((cbf_h5Ovisithandle)op_data)->incbfdb = save_incbfdb;
+
+        ((cbf_h5Ovisithandle)op_data)->incbfsf = save_incbfsf;
+
+        ((cbf_h5Ovisithandle)op_data)->incbfcat = save_incbfcat;
+
+        ((cbf_h5Ovisithandle)op_data)->incbfcol = save_incbfcol;
+
+        ((cbf_h5Ovisithandle)op_data)->innxpdb = save_innxpdb;
 
         return 0;
     }
@@ -31580,43 +31724,23 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
         }
 
         h5Ovisit.handle = handle;
-
         h5Ovisit.h5handle = h5handle;
-
-        h5Ovisit.parent_addr = 0;
-
         h5Ovisit.parent_id = h5handle->hfile;
-
-        h5Ovisit.parent_name = "/";
-
-        h5Ovisit.grand_parent_name = NULL;
-
+        h5Ovisit.parent_addr = 0;
         h5Ovisit.great_grand_parent_name = NULL;
-
-        h5Ovisit.incbf = h5Ovisit.incbfdb = h5Ovisit.incbfcat = h5Ovisit.incbfcol = 0;
-
-        h5Ovisit.innexus = 0;
-
-        h5Ovisit.innxpdb = 0;
-
-        h5Ovisit.bookmark.datablock = NULL;
-
-        h5Ovisit.bookmark.category = NULL;
-
-        h5Ovisit.bookmark.column = NULL;
-
-        h5Ovisit.bookmark.haverow = 0;
-
-
-        cbf_failnez(cbf_alloc ((void **) (&(h5Ovisit.hid_path)), NULL,
-                               sizeof(hid_t), 1));
-
-        cbf_failnez(cbf_alloc ((void **) (&(h5Ovisit.haddr_path)), NULL,
-                               sizeof(haddr_t), 1));
-
+        h5Ovisit.grand_parent_name = NULL;
+        h5Ovisit.parent_name = "/"; 
+        cbf_failnez(cbf_alloc ((void **) (&(h5Ovisit.hid_path)), NULL,sizeof(hid_t), 1));
+        cbf_failnez(cbf_alloc ((void **) (&(h5Ovisit.haddr_path)), NULL,sizeof(haddr_t), 1));
         h5Ovisit.capacity = 1;
-
         h5Ovisit.path_size = 0;
+        h5Ovisit.bookmark.datablock = NULL;
+        h5Ovisit.bookmark.saveframe = NULL;
+        h5Ovisit.bookmark.category = NULL;
+        h5Ovisit.bookmark.column = NULL;
+        h5Ovisit.bookmark.row = 0;
+        h5Ovisit.bookmark.haverow = 0;
+        h5Ovisit.incbf = h5Ovisit.incbfdb = h5Ovisit.incbfsf =h5Ovisit.incbfcat = h5Ovisit.incbfcol = h5Ovisit.innexus = h5Ovisit.innxpdb = 0;
 
         cbf_failnez(cbf_new_datablock(handle,"H5"));
 
