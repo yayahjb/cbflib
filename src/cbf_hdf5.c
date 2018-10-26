@@ -28982,6 +28982,12 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 
                         cbf_reportnez(cbf_set_value(handle,(const char *)element),errorcode);
 
+                        if (!cbf_cistrcmp(element,".") || !cbf_cistrcmp(element,"?") ) {
+
+                            cbf_reportnez(cbf_set_typeofvalue(handle,"null"),errorcode);
+
+                        }
+
                         if (ii < total_dim-1 && target_row+ii >= rows) {
 
                         cbf_reportnez(cbf_new_row(handle),errorcode);
@@ -30919,7 +30925,9 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 
                         if (!cbf_cistrcmp(value,"CBF_cbfdb")
                             || !cbf_cistrcmp(value,"NXcbfdb")
-                            || ((cbf_h5Ovisithandle)op_data)->incbfdb) {
+                            || (((cbf_h5Ovisithandle)op_data)->incbfdb&&
+                                !((cbf_h5Ovisithandle)op_data)->incbfsf&&
+                                !((cbf_h5Ovisithandle)op_data)->incbfcat)) {
 
                             ((cbf_h5Ovisithandle)op_data)->incbfdb = 1;
 
