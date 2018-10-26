@@ -561,8 +561,8 @@ INSTALLSETUP_PY = installsetup.py
 #########################################################
 CC	= gcc
 C++	= g++
-CFLAGS  = -g -O0 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing -DCBFDEBUG=1
-#CFLAGS  = -g -O3 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing
+#CFLAGS  = -g -O0 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing -DCBFDEBUG=1
+CFLAGS  = -g -O3 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing
 LDFLAGS =
 F90C = gfortran
 F90FLAGS = -g -fno-range-check
