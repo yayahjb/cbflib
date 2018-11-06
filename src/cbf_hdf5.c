@@ -291,7 +291,7 @@ extern "C" {
 #endif
 #endif
 
-static int cbf_write_nx2cbf__cbfdb_op
+    static int cbf_write_nx2cbf__cbfdb_op
     (hid_t g_id,
      const char * name,
      const H5L_info_t * info,
@@ -15894,9 +15894,9 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         handle->row = 0;
 
 
-        /* Process diffrn_detector category if CBF_H5_NOH5 is not set */
+        /* Process diffrn_detector category if CBF_H5_NXPDB is not set */
 
-        if (!cbf_cistrcmp(category->name,"diffrn_detector")&& !(h5handle->flags&CBF_H5_NOH5))
+        if (!cbf_cistrcmp(category->name,"diffrn_detector")&& !(h5handle->flags&CBF_H5_NXPDB))
         {
             unsigned int maxrows;
             unsigned int row;
@@ -16044,7 +16044,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
         /* Process diffrn_detector_element category */
 
-        if (!cbf_cistrcmp(category->name,"diffrn_detector_element")&&!(h5handle->flags&CBF_H5_NOH5))
+        if (!cbf_cistrcmp(category->name,"diffrn_detector_element")&&!(h5handle->flags&CBF_H5_NXPDB))
         {
             unsigned int maxrows;
             unsigned int row;
@@ -16355,7 +16355,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
         /* Process diffrn_radiation category */
 
-        if (!cbf_cistrcmp(category->name,"diffrn_radiation")&&!(h5handle->flags&CBF_H5_NOH5))
+        if (!cbf_cistrcmp(category->name,"diffrn_radiation")&&!(h5handle->flags&CBF_H5_NXPDB))
         {
             unsigned int maxrows;
             unsigned int row;
@@ -16571,7 +16571,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         }
 
 
-        if (!cbf_cistrcmp(category->name,"diffrn_radiation")&&!(h5handle->flags&CBF_H5_NOH5))
+        if (!cbf_cistrcmp(category->name,"diffrn_radiation")&&!(h5handle->flags&CBF_H5_NXPDB))
         {
             for (column= 0; column < category->children; column++)
             {
@@ -16598,7 +16598,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 }
             }
         }
-        if (!cbf_cistrcmp(category->name,"diffrn_radiation_wavelength")&&!(h5handle->flags&CBF_H5_NOH5))
+        if (!cbf_cistrcmp(category->name,"diffrn_radiation_wavelength")&&!(h5handle->flags&CBF_H5_NXPDB))
         {
             for (column= 0; column < category->children; column++)
             {
@@ -16742,7 +16742,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         }
 
 
-        if (!cbf_cistrcmp(category->name,"diffrn_scan")&&!(h5handle->flags&CBF_H5_NOH5)) {
+        if (!cbf_cistrcmp(category->name,"diffrn_scan")&&!(h5handle->flags&CBF_H5_NXPDB)) {
 
             cbf_node * column_node;
 
@@ -16789,7 +16789,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             }
         }
 
-        if (!cbf_cistrcmp(category->name,"entry")&&!(h5handle->flags&CBF_H5_NOH5)) {
+        if (!cbf_cistrcmp(category->name,"entry")&&!(h5handle->flags&CBF_H5_NXPDB)) {
 
             cbf_node * column_node;
 
@@ -16837,7 +16837,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             }
         }
 
-        if (!cbf_cistrcmp(category->name,"diffrn")&&!(h5handle->flags&CBF_H5_NOH5)) {
+        if (!cbf_cistrcmp(category->name,"diffrn")&&!(h5handle->flags&CBF_H5_NXPDB)) {
 
             cbf_node * column_node;
 
@@ -17544,7 +17544,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
     }
 
 
-
     /* Write a node to an HDF5 file */
 
     int cbf_write_h5node (cbf_handle handle, const cbf_node *node,
@@ -17834,7 +17833,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
         return error;
     }
-
 
     /* Create an HDF5 File handle without adding a CBF_cbf group to it
        in update mode*/
@@ -18905,7 +18903,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             else fprintf(out,"- %s:%s\n",name,class);
         }
     }
-
 
     static int cbf_write_nx2cbf__detector_op
     (hid_t g_id,
@@ -20416,40 +20413,32 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                 if (1) {
                                     cbf_debug_print(cbf_strerror(found));
                                     cbf_debug_print2("error:  failed to set the '%s' group in the handle\n",name);
+                                }
+                            } else {
+                                object = CBF_H5FAIL;
+                                /* The hdf5 handle now owns the group, process it */
+                                ++table->indent;
+                                if (H5Literate(group,H5_INDEX_NAME,H5_ITER_NATIVE,NULL,cbf_write_nx2cbf__detector_op,op_data)<0) {
+                                    cbf_debug_print3("error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
+                                    error |= CBF_H5ERROR;
+                                } else {
+                                    /* success: extract some data that should have been returned via the op_data argument */
+                                    if (!table->has_offset) {
+                                        CBF_CALL(_cbf_nx2cbf_table__array_intensities(cbf,nx,table));
+                                        CBF_CALL(cbf_require_column(cbf,"offset"));
+                                        CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",0.0));
+                                    }
+                                    if (!table->has_scaling_factor) {
+                                        CBF_CALL(_cbf_nx2cbf_table__array_intensities(cbf,nx,table));
+                                        CBF_CALL(cbf_require_column(cbf,"scaling"));
+                                        CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",1.0));
                                     }
                                     CBF_CALL(_cbf_nx2cbf_table__array_intensities(cbf,nx,table));
                                     CBF_CALL(cbf_require_column(cbf,"linearity"));
                                     CBF_CALL(cbf_set_value(cbf,"scaling_offset"));
                                 }
-                                if (!table->has_offset) {
-                            }
-
-                        } else if (!strcmp(NX_class,"NXpdb")) {
-                            const unsigned int indent = table->indent;
-                            hid_t group = object;
-                            /* debugging output */
-                            if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
-                            /* try to take ownership of the group away from the iteration function
-                               and record it as the current cif data block name  */
-                            if (CBF_SUCCESS!=(error|=cbf_require_datablock(cbf,name))) {
-                                cbf_debug_print(cbf_strerror(found));
-                                cbf_debug_print2("error:  failed to set the '%s' cif datablock in the h5handle\n",name);
-                            } else {
-                                cbf_datablock_name(cbf,&(nx->cbf_datablock));
-                                nx->cbf_saveframe = NULL;
-                                nx->cbf_category = NULL;
-                                nx->cbf_column = NULL;
-                                object = CBF_H5FAIL;
-                                /* The hdf5 handle now owns the group, process it */
-
-                                ++table->indent;
-                                if (H5Literate(group,H5_INDEX_NAME,H5_ITER_NATIVE,NULL,cbf_write_nx2cbf__cbfdb_op,op_data)<0) {
-                                    cbf_debug_print3("error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
-                                    error |= CBF_H5ERROR;
-                                } 
                                 table->indent = indent;
                             }
-
                             /*-----------------------------------------------------------------------------------------------*/
                         } else if (!strcmp(NX_class,"NXgoniometer")) {
                             const unsigned int indent = table->indent;
@@ -30580,7 +30569,6 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                             const H5L_info_t *info,
                             void *op_data){
 
-
         int cbfrow = -1;
 
         int errorcode;
@@ -30838,7 +30826,6 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                     cbf_h5failneg(H5Aget_name(attrib_id,
                                               attrib_name_size+1,attrib_name),
                                   CBF_ARGUMENT);
-
                     cbf_h5ds_store(handle,objinfo.addr,
                                    name,-1,
                                    "H5_Group_attribute",
@@ -30846,7 +30833,6 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                                    attrib_ds,
                                    attrib_type,
                                    attrib_name,1, (void **)&value);
-
                     if (!cbf_cistrcmp(attrib_name,"NX_class")&& value) {
 
                         cbf_reportnez(cbf_rewind_datablock(handle),errorcode);
@@ -31749,7 +31735,14 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
         h5Ovisit.bookmark.row = 0;
         h5Ovisit.bookmark.haverow = 0;
         h5Ovisit.incbf = h5Ovisit.incbfdb = h5Ovisit.incbfsf =h5Ovisit.incbfcat = h5Ovisit.incbfcol = h5Ovisit.innexus = h5Ovisit.innxpdb = 0;
-
+        
+        cbf_failnez(cbf_alloc ((void **) (&(h5Ovisit.hid_path)), NULL,
+                               sizeof(hid_t), 1));
+        cbf_failnez(cbf_alloc ((void **) (&(h5Ovisit.haddr_path)), NULL,
+                               sizeof(haddr_t), 1));
+        h5Ovisit.capacity = 1;
+        h5Ovisit.path_size = 0;
+        
         cbf_failnez(cbf_new_datablock(handle,"H5"));
 
         /* visit the groups in the file, starting with the root group */
@@ -31899,6 +31892,3 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 }
 
 #endif
-
-
-
