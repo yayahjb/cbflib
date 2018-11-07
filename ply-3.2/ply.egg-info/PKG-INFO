@@ -6,6 +6,7 @@ Home-page: http://www.dabeaz.com/ply/
 Author: David Beazley
 Author-email: dave@dabeaz.com
 License: BSD
+Description-Content-Type: UNKNOWN
 Description: 
         PLY is yet another implementation of lex and yacc for Python. Some notable
         features include the fact that its implemented entirely in Python and it

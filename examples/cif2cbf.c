@@ -62,7 +62,8 @@
  *    [-T {read|noread}] [-T {write|nowrite}] \                       *
  *    [-v dictionary]* [-w] [-D]\                                     *
  *    [-O] \                                                          *
- *    [-5 {r|w|rw|rn|wn|rwn|n[oH5]} \                                 *
+ *    [-5 {r|w|rw|rn|wn|rwn|n[oH5]}] \                                *
+ *    [--nxpdb]                                                       *
  *    [--register {manual|plugin}] \                                  *
  *    [--add-minicbf-header] \                                        *
  *    [--minicbf] \                                                   *
@@ -177,6 +178,14 @@
  *     the n parameter will cause the CIF H5 datablock to be deleted  *
  *     on both read and write, for both CIF, CBF and HDF5 files       *
  *                                                                    *
+ *  --nxpdb                                                           *
+ *     when in -5 w (hdf5 write) mode, --nxpdb forced the use of      *
+ *     NXpdb conventions                                              *
+ *                                                                    *
+ *  -O when in -5 w (hdf5 write) mode, -O forces the use of opaque    *
+ *     objects for CBF binaries                                       *
+ *                                                                    *
+ *                                                                    *
  *  --register manual or plugin (default plugin)                      *
  *     controls whether to rely on the HDF5 filter plugin mechanism   *
  *     or to manually register the CBFlib compression for HDF5        *
@@ -229,10 +238,6 @@
  *                                                                    *
  *  --U n                                                             *
  *     test cbf_construct_detector in element_id n                    *
- *                                                                    *
- *  -O when in -5 w (hdf5 write) mode, -O forces the use of opaque    *
- *     objects for CBF binaries                                       *
- *                                                                    *
  *                                                                    *
  *                                                                    *
  **********************************************************************/
@@ -727,6 +732,7 @@ int main (int argc, char *argv [])
     int c;
     int errflg = 0;
     int opaquemode = 0;
+    int nxpdbmode = 0;
     int add_minicbf_header = 0;
     int minicbf = 0;
     int data_last = 0;
@@ -803,6 +809,7 @@ int main (int argc, char *argv [])
      *    [-p {0|1|2|4}] \                                                *
      *    [-v dictionary]* [-w] [-W] \                                    *
      *    [-5 {r|w|rw|rn|wn|rwn|n[oH5]} \                                 *
+     *    [--nxpdb] \                                                     *
      *    [-O] \                                                          *
      *    [--register {manual|plugin}] \                                  *
      *    [--add-minicbf-header] \                                        *
@@ -854,44 +861,38 @@ int main (int argc, char *argv [])
     cbf_failnez(cbf_make_getopt_handle(&opts))
 
     cbf_failnez(cbf_getopt_parse(opts, argc, argv, "-i(input):" \
-                                 "o(output):" \
-                                 "u(update):" \
-                                 "b(byte-direction):" \
-                                 "B(parse-brackets):" \
-                                 "c(compression):" \
-                                 "C(cliphigh):" \
-                                 "D(test-construct-detector)" \
-                                 "d(digest):" \
-                                 "e(encoding):" \
-                                 "I(integer):"  \
-                                 "L(cliplow):"  \
-                                 "m(mime-header):" \
-                                 "p(pad):" \
-                                 "P(parse-level):" \
-                                 "R(real):" \
-                                 "S(white-space):" \
-                                 "T(treble-quotes):" \
-                                 "v(validation-dictionary):" \
-                                 "5(hdf5):" \
-                                 "Z(register):" \
-                                 "U(construct-detector):" \
+                                 "o(output):u(update):" \
+                                 "b(byte-direction):B(parse-brackets):" \
+                                 "c(compression):C(cliphigh):" \
+                                 "D(test-construct-detector)d(digest):" \
+                                 "e(encoding):I(integer):"  \
+                                 "L(cliplow):m(mime-header):" \
+                                 "p(pad):P(parse-level):R(real):" \
+                                 "S(white-space):T(treble-quotes):" \
+                                 "v(validation-dictionary):5(hdf5):" \
+                                 "Z(register):U(construct-detector):" \
                                  "O(opaque)" \
-                                 "w(read-wide)" \
-                                 "W(write-wide)" \
-                                 "\1(add-minicbf-header)" \
-                                 "\2(minicbf)" \
-                                 "\3(data-last)" \
-                                 "\4(elements-of-interest):" \
-                                 "\4(eoi):" \
-                                 "\5(frames-of-interest):" \
-                                 "\5(foi):" \
-                                 "\6(region-of-interest):" \
-                                 "\6(roi):" \
-                                 "\7(help)" \
-                                 "\x8(add-update-data)" \
-                                 "\x9(subtract-update-data)" \
-                                 "\xa(merge-datablocks-by-number)" \
-                                 "\xb(merge-datablocks-by-name)"
+                                 "w(read-wide)W(write-wide)" \
+                                 "\001(add-minicbf-header)" \
+                                 "\002(minicbf)" \
+                                 "\003(data-last)" \
+                                 "\004(elements-of-interest):\004(eoi):" \
+                                 "\005(frames-of-interest):\005(foi):" \
+                                 "\006(region-of-interest):\006(roi):" \
+                                 "\007(help)" \
+                                 "\010(add-update-data)" \
+                                 "\011(subtract-update-data)" \
+                                 "\012(merge-datablocks-by-number)" \
+                                 "\013(merge-datablocks-by-name)" \
+                                 "\014(nxpdb)" \
+                                 "\015(add-minicbf-header)" \
+                                 "\016(minicbf)" \
+                                 "\017(data-last)" \
+                                 "\020(help)" \
+                                 "\021(add-update-data)" \
+                                 "\022(subtract-update-data)" \
+                                 "\023(merge-datablocks-by-number)" \
+                                 "\024(merge-datablocks-by-name)"
                                  ));
 
     if (!cbf_rewind_getopt_option(opts))
@@ -1078,61 +1079,111 @@ int main (int argc, char *argv [])
                     }
                     break;
                     
-                case '\1': /* add minicbf header */
+                case '\001': /* add minicbf header */
                     if (add_minicbf_header) errflg++;
                     add_minicbf_header = 1;
                     break;
                     
-                case '\2': /* minicbf output only */
+                case '\002': /* minicbf output only */
                     if (minicbf) errflg++;
                     minicbf = 1;
                     add_minicbf_header = 1;
                     data_last = 1;
                     break;
                     
-                case '\3': /* place data last */
+                case '\003': /* place data last */
                     if (data_last) errflg++;
                     data_last = 1;
                     break;
                     
-                case '\4': /* elements of interest */
+                case '\004': /* elements of interest */
                     if (eoi) errflg++;
                     eoi = optarg;
                     break;
                     
-                case '\5': /* frames of interest */
+                case '\005': /* frames of interest */
                     if (foi) errflg++;
                     foi = optarg;
                     break;
                     
-                case '\6': /* region of interest */
+                case '\006': /* region of interest */
                     if (roi) errflg++;
                     roi = optarg;
                     break;
                     
-                case '\7': /* help */
+                case '\007': /* help */
                     errflg++;
                     break;
                     
-                case '\x8': /* add-update-data */
+                case '\010': /* add-update-data */
                     if (add_update_data || subtract_update_data) errflg++;
                     add_update_data = 1;
                     break;
                     
-                case '\x9': /* subtract-update-data */
+                case '\011': /* subtract-update-data */
                     if (add_update_data || subtract_update_data) errflg++;
                     subtract_update_data = 1;
                     break;
                     
-                case '\xa': /* merge-datablocks-by-number */
+                case '\012': /* merge-datablocks-by-number */
                     if (merge_datablocks_by_number >= 0) errflg++;
                     merge_datablocks_by_number = 1;
                     break;
                     
-                case '\xb': /* merge-datablocks-by-name */
+                case '\013': /* merge-datablocks-by-name */
                     if (merge_datablocks_by_number >= 0) errflg++;
                     merge_datablocks_by_number = 0;
                     break;
+
+                case '\014': /* nxpdb */
+                    if (nxpdbmode) errflg++;
+                    nxpdbmode = 1;
+                    break;
+
+                case '\015': /* add minicbf header */
+                    if (add_minicbf_header) errflg++;
+                    if (!hdf5mode)add_minicbf_header = 1;
+                    break;
+                    
+                case '\016': /* minicbf output only */
+                    if (minicbf) errflg++;
+                    minicbf = 1;
+                    add_minicbf_header = 1;
+                    data_last = 1;
+                    break;
+                     
+                case '\017':  /* place data last */
+                    if (data_last) errflg++;
+                    data_last = 1;
+                    break;
+
+                    
+                case '\020': /* help */
+                    errflg++;
+                    break;
+                    
+                case '\021': /* add update data */
+                    if (add_update_data || subtract_update_data) errflg++;
+                    add_update_data = 1;
+                    break;
+
+                    
+                case '\022': /* subtract update data */
+                    if (add_update_data || subtract_update_data) errflg++;
+                    subtract_update_data = 1;
+                    break;
+
+                    
+                case '\023': /* merge-datablocks-by-number */
+                    if (merge_datablocks_by_number >= 0) errflg++;
+                    merge_datablocks_by_number = 1;
+                    break;
+
+                case '\024': /* merge-datablocks-by-name */ 
+                    if (merge_datablocks_by_number >= 0) errflg++;
+                    merge_datablocks_by_number = 0;
+                    break;
+
                     
                 case 'O': /* set Opaque mode */
                     if (opaquemode) errflg++;
@@ -1360,7 +1411,9 @@ int main (int argc, char *argv [])
         fprintf(stderr,
                 "    [-v dictionary]* [-w] [-W]\\\n");
         fprintf(stderr,
-                "    [-5 {r|w|rw|rn|wn|rwn|n[oH5]}\\\n");
+                "    [-5 {r|w|rw|rn|wn|rwn|n[oH5]}]\\\n");
+        fprintf(stderr,
+                "    [--nxpdb]\\\n");
         fprintf(stderr,
                 "    [-O] \\\n");
         fprintf(stderr,
@@ -1377,7 +1430,7 @@ int main (int argc, char *argv [])
                 "    [--{foi|frames-of-interest}  frame[,framehigh] \\\n");
         fprintf(stderr,
                 "    [--{roi|region-of-interest}\n"
-                "    fastlow,fasthigh[,midlow,midhigh[,slowlow,slowhigh[,vallow,valhigh]]]] \\\n");
+                "    fastlow,fasthigh[[,midlow,midhigh[,slowlow,slowhigh]]] \\\n");
         fprintf(stderr,
                 "    [--{add-data-array} \\\n");
         fprintf(stderr,
@@ -2929,8 +2982,13 @@ int main (int argc, char *argv [])
 
     if (hdf5mode&HDF5_WRITE_MODE) {
 
-        if(cbf_create_h5handle(&h5out,cbfout)) {
-            printf (" Couldn't open the HDF5 file %s\n", cbfout);
+        if(nxpdbmode) { 
+            if (cbf_create_h5handle_nxpdb(&h5out,cbfout)) {
+                printf (" Couldn't open the HDF5 file %s for writing\n", cbfout);
+            }
+        } else if (cbf_create_h5handle(&h5out,cbfout)) {
+            printf (" Couldn't open the HDF5 file %s for writing\n", cbfout);
+
         }
 
     } else {
@@ -3007,8 +3065,10 @@ int main (int argc, char *argv [])
     if ( ! devnull ){
         if (hdf5mode&HDF5_WRITE_MODE) {
 
-            cbf_failnez(cbf_write_h5file (cbf, h5out, hdf5register|h5compression|(
-                                          opaquemode?CBF_H5_OPAQUE:0)))
+            cbf_failnez(cbf_write_h5file (cbf, h5out, hdf5register|h5compression|
+                                          (opaquemode?CBF_H5_OPAQUE:0)|
+                                          (nxpdbmode?CBF_H5_NXPDB:0)  |
+                                          (hdf5noH5?CBF_H5_NOH5:0)      ));
 
         } else {
 
@@ -3021,11 +3081,11 @@ int main (int argc, char *argv [])
             if (Wide) {
                 cbf_failnez (cbf_write_widefile (cbf, out, 1, cbforcif,
                                                  mime | (digest&(MSG_DIGEST|MSG_DIGESTNOW)) | padflag | qwflags,
-                                                 encoding | bytedir | term ))
+                                                 encoding | bytedir | term ));
             } else {
                 cbf_failnez (cbf_write_file (cbf, out, 1, cbforcif,
                                              mime | (digest&(MSG_DIGEST|MSG_DIGESTNOW)) | padflag | qwflags,
-                                             encoding | bytedir | term ))
+                                             encoding | bytedir | term ));
             }
         }
 

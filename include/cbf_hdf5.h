@@ -934,6 +934,7 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
     
     typedef struct {
         const char * datablock;
+        const char * saveframe;
         const char * category;
         const char * column;
         unsigned int row;
@@ -991,9 +992,21 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
         const char * nxsource_name;
         const char * nxdata_name;
         const char * nxfilename;
+        const char * dbid_name;
+        const char * sfid_name;
+        const char * catid_name;
+        const char * colid_name;
+                /* Names of corresponding CBF datablock, saveframe, category, column
+                   each case these must have already been created in the cbf and should
+                   not be freed or modified
+                */ 
+        const char * cbf_datablock;
+        const char * cbf_saveframe;
+        const char * cbf_category;
+        const char * cbf_column;
 
 		/* Flags for various options */
-        int flags;
+        unsigned long int flags;
 #ifdef CBF_USE_ULP
 		/* Parameters controlling floating point comparisons */
 		int cmp_double_as_float;
@@ -1017,8 +1030,13 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
         cbf_h5handle h5handle;
         hid_t parent_id;
         haddr_t parent_addr;
+        const char * great_grand_parent_name;
         const char * grand_parent_name;
         const char * parent_name;
+        /* when at column, parent is category,
+           grand-parent is data-block (or save frame if there is a grand parent)
+           and great_grand_parent is data-block for a save_fame */
+
         size_t capacity;
         size_t path_size;
         hid_t *hid_path;
@@ -1028,12 +1046,17 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
                         into a NeXus NXcbf    */
         int incbfdb;   /* set to 1 when we have descended
                         into a NeXus NXcbfdb  */
+        int incbfsf;   /* set to 1 when we have descended
+                        into a NeXus NXcbfsf  */
         int incbfcat;  /* set to 1 when we have descended
                         into a NeXus NXcbfcat */
         int incbfcol;  /* set to 1 when we have descended
                         into a NeXus NXcbfcol */
-        int innexus;   /* set to 1 shen we have descended
+        int innexus;   /* set to 1 when we have descended
                         into a NeXus NXexntry */
+        int innxpdb;   /* set to 1 when we have descended
+                        into a NeXus NXpdb, updated by 1
+                        for each subgroup level */
     }
     cbf_h5Ovisit_struct;
     
@@ -1126,6 +1149,33 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
 	\ingroup section_H5Handle
 	 */
 	int cbf_h5handle_require_sample
+			(const cbf_h5handle nx,
+			 hid_t * const group,
+			 const char * name);
+    
+	/**
+	\brief Get the current id and name of the cbfdb group within the given handle.
+	\ingroup section_H5Handle
+	 */
+	int cbf_h5handle_get_cbfdb
+			(const cbf_h5handle nx,
+			 hid_t * const group,
+			 const char * * const name);
+
+	/**
+	\brief Set the id and name of the cbfdb group within the given handle.
+	\ingroup section_H5Handle
+	 */
+	int cbf_h5handle_set_cbfdb
+			(const cbf_h5handle nx,
+			 const hid_t group,
+                                      const char * const name);
+    
+	/**
+	\brief Ensure I have a cfbdb in the hdf5 handle.
+	\ingroup section_H5Handle
+	 */
+	int cbf_h5handle_require_cbfdb
 			(const cbf_h5handle nx,
 			 hid_t * const group,
 			 const char * name);
@@ -1862,8 +1912,11 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
     
     /* Create an H5File handle */
     
-    int cbf_create_h5handle(cbf_h5handle *h5handle,
-							const char * h5filename);
+    int cbf_create_h5handle(cbf_h5handle *h5handle, const char * h5filename);
+    
+    /* Create an H5File handle for NXpdb */
+    
+    int cbf_create_h5handle_nxpdb(cbf_h5handle *h5handle, const char * h5filename);
     
     
     /* Require the filename in the H5 file handle */
@@ -1888,7 +1941,7 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
 
     /*  Write cbf to HDF5 file hfile */
     
-	int cbf_write_h5file (cbf_handle handle, cbf_h5handle h5handle, int flags);
+	int cbf_write_h5file (cbf_handle handle, cbf_h5handle h5handle, unsigned long int flags);
     
 	/**
 	\brief Extract the data from a CBF file & put it into a NeXus file.
@@ -1949,6 +2002,25 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
     int cbf_h5type_class_string(H5T_class_t type_class,
                                 char * buffer,
                                 int * atomic, size_t n );
+    
+    
+    /* Store an HDF5 Dataset in CBF handle as a column, using
+     category categoryname, ...
+     If target_row is -1, the new column is appended to any
+     existing column
+     If target row is >= 0, overwrites any existing rows starting
+     at target_row
+     
+     */
+    
+    int cbf_h5ds_store_as_column(cbf_handle handle,
+                             int target_row,
+                       const char * columnname,
+                       const char * categoryname, 
+                       hid_t obj_id,
+                       hid_t space, 
+                       hid_t type,
+                       void ** value);
     
     
     /* Store an HDF5 Dataset in CBF handle, using

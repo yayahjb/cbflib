@@ -4541,6 +4541,19 @@ int cbf_require_datablock (cbf_handle  handle,
 }
 
 
+  /* Find a saveframe, creating it if necessary */
+
+int cbf_require_saveframe (cbf_handle  handle,
+                             const char *saveframename)
+{
+  if (cbf_find_saveframe(handle, saveframename)) {
+
+    cbf_failnez(cbf_new_saveframe(handle, saveframename))
+
+  }
+
+}
+
   /* Find a category, creating it if necessary */
 
 int cbf_require_category (cbf_handle  handle,

@@ -261,14 +261,14 @@ extern "C" {
 /* Version numbers */
 #define CBF_VERS_MAJOR   0   /* For major interface/format changes        */
 #define CBF_VERS_MINOR   9   /* For minor interface/format changes        */
-#define CBF_VERS_RELEASE 5   /* For tweaks, bug-fixes, or development     */
+#define CBF_VERS_RELEASE 6   /* For tweaks, bug-fixes, or development     */
 #define CBF_VERS_SUBRELEASE ""   
                              /* For pre-releases like RC1                 */
                              /* Empty string for real releases.           */
                              /* Must be a quoted string                   */
 #define CBF_APIVERS_CUR  3   /* Number of major interface version         */
 #define CBF_APIVERS_REV  0   /* Interface changes                         */
-#define CBF_APIVERS_AGE  0   /* Number of interfaces added                */
+#define CBF_APIVERS_AGE  1   /* Number of interfaces added                */
 
 #define _CBF_STR2(n) #n
 #define _CBF_STR(n) _CBF_STR2(n)
@@ -608,6 +608,8 @@ _CBF_STR(CBF_VERS_RELEASE) CBF_VERS_SUBRELEASE
                                      CBF compressions                 */
 #define CBF_H5_CBFNONAMES \
                         0x8000  /* Flag to not carry CBF names into HDF5  */
+
+#define CBF_H5_NXPDB   0x10000  /* Flag to use  NXpdb conventions in HDF5 */
 
 
   /* Flags used for logging */
@@ -1599,6 +1601,11 @@ void cbf_flog (cbf_file * file, const char *message, int logflags);
   
 int cbf_require_datablock (cbf_handle  handle,
                              const char *datablockname);
+
+  /* Find a saveframe, creating it if necessary */
+  
+int cbf_require_saveframe (cbf_handle  handle,
+                             const char *saveframename);
 
   /* Find a category, creating it if necessary */
   

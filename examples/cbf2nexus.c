@@ -269,47 +269,47 @@ int outerror(int err)
 {
     
     if ((err&CBF_FORMAT)==CBF_FORMAT)
-        fprintf(stderr, " cif2cbf: The file format is invalid.\n");
+        fprintf(stderr, " cbf2nexus: The file format is invalid.\n");
     if ((err&CBF_ALLOC)==CBF_ALLOC)
         fprintf(stderr, " cif2cbf Memory allocation failed.\n");
     if ((err&CBF_ARGUMENT)==CBF_ARGUMENT)
-        fprintf(stderr, " cif2cbf: Invalid function argument.\n");
+        fprintf(stderr, " cbf2nexus: Invalid function argument.\n");
     if ((err&CBF_ASCII)==CBF_ASCII)
-        fprintf(stderr, " cif2cbf: The value is ASCII (not binary).\n");
+        fprintf(stderr, " cbf2nexus: The value is ASCII (not binary).\n");
     if ((err&CBF_BINARY)==CBF_BINARY)
-        fprintf(stderr, " cif2cbf: The value is binary (not ASCII).\n");
+        fprintf(stderr, " cbf2nexus: The value is binary (not ASCII).\n");
     if ((err&CBF_BITCOUNT)==CBF_BITCOUNT)
-        fprintf(stderr, " cif2cbf: The expected number of bits does"
+        fprintf(stderr, " cbf2nexus: The expected number of bits does"
                 " not match the actual number written.\n");
     if ((err&CBF_ENDOFDATA)==CBF_ENDOFDATA)
-        fprintf(stderr, " cif2cbf: The end of the data was reached"
+        fprintf(stderr, " cbf2nexus: The end of the data was reached"
                 " before the end of the array.\n");
     if ((err&CBF_FILECLOSE)==CBF_FILECLOSE)
-        fprintf(stderr, " cif2cbf: File close error.\n");
+        fprintf(stderr, " cbf2nexus: File close error.\n");
     if ((err&CBF_FILEOPEN)==CBF_FILEOPEN)
-        fprintf(stderr, " cif2cbf: File open error.\n");
+        fprintf(stderr, " cbf2nexus: File open error.\n");
     if ((err&CBF_FILEREAD)==CBF_FILEREAD)
-        fprintf(stderr, " cif2cbf: File read error.\n");
+        fprintf(stderr, " cbf2nexus: File read error.\n");
     if ((err&CBF_FILESEEK)==CBF_FILESEEK)
-        fprintf(stderr, " cif2cbf: File seek error.\n");
+        fprintf(stderr, " cbf2nexus: File seek error.\n");
     if ((err&CBF_FILETELL)==CBF_FILETELL)
-        fprintf(stderr, " cif2cbf: File tell error.\n");
+        fprintf(stderr, " cbf2nexus: File tell error.\n");
     if ((err&CBF_FILEWRITE)==CBF_FILEWRITE)
-        fprintf(stderr, " cif2cbf: File write error.\n");
+        fprintf(stderr, " cbf2nexus: File write error.\n");
     if ((err&CBF_IDENTICAL)==CBF_IDENTICAL)
-        fprintf(stderr, " cif2cbf: A data block with the new name already exists.\n");
+        fprintf(stderr, " cbf2nexus: A data block with the new name already exists.\n");
     if ((err&CBF_NOTFOUND)==CBF_NOTFOUND)
-        fprintf(stderr, " cif2cbf: The data block, category, column or"
+        fprintf(stderr, " cbf2nexus: The data block, category, column or"
                 " row does not exist.\n");
     if ((err&CBF_OVERFLOW)==CBF_OVERFLOW)
-        fprintf(stderr, " cif2cbf: The number read cannot fit into the "
+        fprintf(stderr, " cbf2nexus: The number read cannot fit into the "
                 "destination argument.\n        The destination has been set to the nearest value.\n");
     if ((err& CBF_UNDEFINED)==CBF_UNDEFINED)
-        fprintf(stderr, " cif2cbf: The requested number is not defined (e.g. 0/0).\n");
+        fprintf(stderr, " cbf2nexus: The requested number is not defined (e.g. 0/0).\n");
     if ((err&CBF_NOTIMPLEMENTED)==CBF_NOTIMPLEMENTED)
-        fprintf(stderr, " cif2cbf: The requested functionality is not yet implemented.\n");
+        fprintf(stderr, " cbf2nexus: The requested functionality is not yet implemented.\n");
     if ((err&CBF_H5ERROR)==CBF_H5ERROR)
-        fprintf(stderr, " cif2cbf: HDF5 API error.\n");
+        fprintf(stderr, " cbf2nexus: HDF5 API error.\n");
     return 0;
     
 }

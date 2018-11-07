@@ -2,12 +2,12 @@
 ######################################################################
 #  CMakeLists.txt - cmake build file for make to create CBFlib       #
 #                                                                    #
-# Version 0.9.5 27 April 2014                                        #
+# Version 0.9.6 06 November 2018                                     #
 #                                                                    #
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
 #                                                                    #
-# (C) Copyright 2006 - 2011 Herbert J. Bernstein                     #
+# (C) Copyright 2006 - 2018 Herbert J. Bernstein                     #
 #                                                                    #
 ######################################################################
 
