@@ -1162,6 +1162,9 @@ ifneq ($(CBFLIB_DONT_USE_PYCIFRW),yes)
 #
 build_pycifrw:	$(M4)/Makefile.m4
 	touch build_pycifrw
+ifneq ($(CBFLIB_SAVE_KITS),"")
+	( if [ -d "$(PYCIFRW)" ]; then touch $(PYCIFRW); fi)
+endif
 $(PYCIFRW):	build_pycifrw
 	-rm -rf $(PYCIFRW)
 	-rm -rf $(PYCIFRW).tar.gz
@@ -1175,6 +1178,9 @@ $(PYCIFRW):	build_pycifrw
 #
 build_ply:	$(M4)/Makefile.m4
 	touch build_ply
+ifneq ($(CBFLIB_SAVE_KITS),"")
+	( if [ -d "$(PLY)" ]; then touch $(PLY); fi)
+endif
 $(PLY):	build_ply
 	-rm -rf $(PLY)
 	-rm -rf $(PLY).tar.gz
@@ -1190,6 +1196,9 @@ endif
 
 build_regex:    $(M4)/Makefile.m4
 	touch build_regex
+ifneq ($(CBFLIB_SAVE_KITS),"")
+	( if [ -d "$(REGEX)" ]; then touch $(REGEX); fi)
+endif
 $(REGEX):   build_regex
 	-rm -rf $(REGEX)
 	-rm -rf $(REGEX).tar.gz
@@ -1209,6 +1218,9 @@ $(REGEX)_INSTALL:   $(REGEX)
 #
 build_tiff:	$(M4)/Makefile.m4
 	touch build_tiff
+ifneq ($(CBFLIB_SAVE_KITS),"")
+	( if [ -d "$(TIFF)" ]; then touch $(TIFF); fi)
+endif
 $(TIFF):	build_tiff config.guess config.sub
 	-rm -rf $(TIFF)
 	-rm -rf $(TIFF).tar.gz
@@ -1228,6 +1240,9 @@ ifneq ($(CBFLIB_DONT_USE_LOCAL_HDF5),yes)
 #
 build_hdf5:	$(M4)/Makefile.m4
 	touch build_hdf5
+ifneq ($(CBFLIB_SAVE_KITS),"")
+	( if [ -d "$(HDF5)" ]; then touch $(HDF5); fi)
+endif
 $(HDF5):	build_hdf5
 	-rm -rf $(HDF5)
 	-rm -rf $(HDF5).tar.gz
@@ -1249,6 +1264,9 @@ ifneq ($(CBFLIB_DONT_USE_LZ4),yes)
 #
 build_lz4:	$(M4)/Makefile.m4 $(SOLIB)
 	touch build_lz4
+ifneq ($(CBFLIB_SAVE_KITS),"")
+	( if [ -d "$(LZ4)" ]; then touch $(LZ4); fi)
+endif
 $(LZ4): $(HDF5)	build_lz4
 	-rm -rf $(LZ4)
 	-rm -rf $(LZ4).tar.gz
@@ -1270,6 +1288,9 @@ ifneq ($(CBFLIB_DONT_USE_BSHUF),yes)
 #
 build_BSHUF:	$(M4)/Makefile.m4  $(SOLIB)
 	touch build_BSHUF
+ifneq ($(CBFLIB_SAVE_KITS),"")
+	( if [ -d "$(BSHUF)" ]; then touch $(BSHUF); fi)
+endif
 $(BSHUF): $(HDF5)	build_BSHUF
 	-rm -rf $(BSHUF)
 	-rm -rf $(BSHUF).tar.gz
@@ -1857,8 +1878,6 @@ DATADIRI_INPUT_EXTRA = \
 
 TESTOUTPUT =  adscconverted_flat_orig.cbf \
 	adscconverted_orig.cbf converted_flat_orig.cbf converted_orig.cbf \
-	insulin_pilatus6mconverted_rev_orig.cbf \
-	insulin_pilatus6mconverted_orig_rev22Feb15.cbf.h5\
 	insulin_pilatus6mconverted_orig.cbf.h5.cbf \
 	insulin_pilatus6mconverted_v2_orig.cbf \
 	mb_LP_1_001_orig.cbf testcell_orig.prt \
@@ -1866,7 +1885,7 @@ TESTOUTPUT =  adscconverted_flat_orig.cbf \
 	test_xds_bin_testflatpackedout_orig.out test_fcb_read_testflatout_orig.out \
 	test_fcb_read_testflatpackedout_orig.out \
 	XRD1621_orig.cbf XRD1621_I4encbC100_orig.cbf \
-	minicbf_orig_3Jul14.h5
+	minicbf_orig.h5
 NEWTESTOUTPUT = adscconverted_flat.cbf \
 	adscconverted.cbf converted_flat.cbf converted.cbf \
 	insulin_pilatus6mconverted.cbf \
@@ -1876,13 +1895,11 @@ NEWTESTOUTPUT = adscconverted_flat.cbf \
 	test_xds_bin_testflatpackedout.out test_fcb_read_testflatout.out \
 	test_fcb_read_testflatpackedout.out \
 	XRD1621.cbf XRD1621_I4encbC100.cbf \
-	minicbf.h5
+	$(MINICBF_TEST)/minicbf.h5
 DATADIRO_OUTPUT =  $(DATADIRO)/adscconverted_flat_orig.cbf \
 	$(DATADIRO)/adscconverted_orig.cbf \
 	$(DATADIRO)/converted_flat_orig.cbf \
 	$(DATADIRO)/converted_orig.cbf \
-	$(DATADIRO)/insulin_pilatus6mconverted_rev_orig.cbf \
-	$(DATADIRO)/insulin_pilatus6mconverted_orig_rev22Feb15.cbf.h5 \
 	$(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5.cbf \
 	$(DATADIRO)/insulin_pilatus6mconverted_v2_orig.cbf \
 	$(DATADIRO)/mb_LP_1_001_orig.cbf \
@@ -1893,13 +1910,11 @@ DATADIRO_OUTPUT =  $(DATADIRO)/adscconverted_flat_orig.cbf \
 	$(DATADIRO)/test_fcb_read_testflatpackedout_orig.out \
 	$(DATADIRO)/XRD1621_orig.cbf \
 	$(DATADIRO)/XRD1621_I4encbC100_orig.cbf \
-	$(DATADIRO)/minicbf_orig_3Jul14.h5
+	$(DATADIRO)/minicbf_orig.h5
 DATADIRO_OUTPUT_SIGNATURES =  $(DATADIRO)/adscconverted_flat_orig.cbf$(SEXT) \
 	$(DATADIRO)/adscconverted_orig.cbf$(SEXT) \
 	$(DATADIRO)/converted_flat_orig.cbf$(SEXT) \
 	$(DATADIRO)/converted_orig.cbf$(SEXT) \
-	$(DATADIRO)/insulin_pilatus6mconverted_rev_orig.cbf$(SEXT) \
-	$(DATADIRO)/insulin_pilatus6mconverted_orig_rev22Feb15.cbf.h5$(SEXT) \
 	$(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5.cbf$(SEXT) \
 	$(DATADIRO)/insulin_pilatus6mconverted_v2_orig.cbf$(SEXT) \
 	$(DATADIRO)/mb_LP_1_001_orig.cbf$(SEXT) \
@@ -1910,7 +1925,7 @@ DATADIRO_OUTPUT_SIGNATURES =  $(DATADIRO)/adscconverted_flat_orig.cbf$(SEXT) \
 	$(DATADIRO)/test_fcb_read_testflatpackedout_orig.out$(SEXT) \
 	$(DATADIRO)/XRD1621_orig.cbf$(SEXT) \
 	$(DATADIRO)/XRD1621_I4encbC100_orig.cbf$(SEXT) \
-	$(DATADIRO)/minicbf_orig_3Jul14.h5$(SEXT)
+	$(DATADIRO)/minicbf_orig.h5$(SEXT)
 
 
 	
@@ -1918,8 +1933,6 @@ DATADIRO_OUTPUT_SIGNATURES =  $(DATADIRO)/adscconverted_flat_orig.cbf$(SEXT) \
 
 TESTOUTPUTSIGS = adscconverted_flat_orig.cbf$(SEXT) \
 	adscconverted_orig.cbf$(SEXT) converted_flat_orig.cbf$(SEXT) converted_orig.cbf$(SEXT) \
-	insulin_pilatus6mconverted_rev_orig.cbf$(SEXT) \
-	insulin_pilatus6mconverted_orig_rev22Feb15.cbf.h5$(SEXT) \
 	insulin_pilatus6mconverted_orig.cbf.h5.cbf$(SEXT) \
 	insulin_pilatus6mconverted_v2_orig.cbf$(SEXT) \
 	mb_LP_1_001_orig.cbf$(SEXT) testcell_orig.prt$(SEXT) \
@@ -1928,13 +1941,11 @@ TESTOUTPUTSIGS = adscconverted_flat_orig.cbf$(SEXT) \
 	test_fcb_read_testflatpackedout_orig.out$(SEXT) \
 	XRD1621_orig.cbf$(SEXT) \
 	XRD1621_I4encbC100_orig.cbf$(SEXT) \
-	minicbf_orig_3Jul14.h5$(SEXT)
+	minicbf_orig.h5$(SEXT)
 DATADIRS_OUTPUT_SIGNATURES =  $(DATADIRS)/adscconverted_flat_orig.cbf$(SEXT) \
 	$(DATADIRS)/adscconverted_orig.cbf$(SEXT) \
 	$(DATADIRS)/converted_flat_orig.cbf$(SEXT) \
 	$(DATADIRS)/converted_orig.cbf$(SEXT) \
-	$(DATADIRS)/insulin_pilatus6mconverted_rev_orig.cbf$(SEXT) \
-	$(DATADIRS)/insulin_pilatus6mconverted_orig_rev22Feb15.cbf.h5$(SEXT) \
 	$(DATADIRS)/insulin_pilatus6mconverted_orig.cbf.h5.cbf$(SEXT) \
 	$(DATADIRS)/insulin_pilatus6mconverted_v2_orig.cbf$(SEXT) \
 	$(DATADIRS)/mb_LP_1_001_orig.cbf$(SEXT) \
@@ -1945,7 +1956,7 @@ DATADIRS_OUTPUT_SIGNATURES =  $(DATADIRS)/adscconverted_flat_orig.cbf$(SEXT) \
 	$(DATADIRS)/test_fcb_read_testflatpackedout_orig.out$(SEXT) \
 	$(DATADIRS)/XRD1621_orig.cbf$(SEXT) \
 	$(DATADIRS)/XRD1621_I4encbC100_orig.cbf$(SEXT) \
-	$(DATADIRS)/minicbf_orig_3Jul14.h5$(SEXT)
+	$(DATADIRS)/minicbf_orig.h5$(SEXT)
 
 # Fetch Input Data Files 
 
@@ -1977,16 +1988,16 @@ $(TESTOUTPUTSIGS):	$(DATADIRS) $(DATADIRS_OUTPUT_SIGNATURES)
 #
 # Tests
 #
+
+
 tests:			all $(LIB) $(BIN) symlinksdone basic extra dectristests pycbftests
 tests_sigs_only:	$(LIB) $(BIN) symlinksdone basic extra_sigs_only
-restore_output:		$(NEWTESTOUTPUT) $(DATADIRO)
+restore_output:		$(NEWTESTOUTPUT) $(DATADIRO) $(MINICBF_TEST)/minicbf.h5
 	$(SIGNATURE) < adscconverted_flat.cbf > $(DATADIRO)/adscconverted_flat_orig.cbf$(SEXT)
 	$(SIGNATURE) < adscconverted.cbf > $(DATADIRO)/adscconverted_orig.cbf$(SEXT)
 	$(SIGNATURE) < converted_flat.cbf > $(DATADIRO)/converted_flat_orig.cbf$(SEXT)
 	$(SIGNATURE) < converted.cbf > $(DATADIRO)/converted_orig.cbf$(SEXT)
-	$(SIGNATURE) < insulin_pilatus6mconverted.cbf > $(DATADIRO)/insulin_pilatus6mconverted_rev_orig.cbf$(SEXT)
-	$(SIGNATURE) < insulin_pilatus6mconverted.cbf > $(DATADIRO)/insulin_pilatus6mconverted_orig_rev22Feb15.cbf.h5
-	$(SIGNATURE) < insulin_pilatus6mconverted.cbf > $(DATADIRO)/		insulin_pilatus6mconverted_orig.cbf.h5.cbf
+	$(SIGNATURE) < insulin_pilatus6mconverted.cbf > $(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5.cbf
 	$(SIGNATURE) < insulin_pilatus6mconverted_v2.cbf > $(DATADIRO)/insulin_pilatus6mconverted_v2_orig.cbf$(SEXT)
 	$(SIGNATURE) < mb_LP_1_001.cbf$ > $(DATADIRO)/mb_LP_1_001_orig.cbf$(SEXT)
 	$(SIGNATURE) < testcell.prt > $(DATADIRO)/testcell_orig.prt$(SEXT)
@@ -1996,32 +2007,28 @@ restore_output:		$(NEWTESTOUTPUT) $(DATADIRO)
 	$(SIGNATURE) < test_fcb_read_testflatpackedout.out > $(DATADIRO)/test_fcb_read_testflatpackedout_orig.out$(SEXT)
 	$(SIGNATURE) < XRD1621.cbf > $(DATADIRO)/XRD1621_orig.cbf$(SEXT)
 	$(SIGNATURE) < XRD1621_I4encbC100.cbf > $(DATADIRO)/XRD1621_I4encbC100_orig.cbf$(SEXT)
-	$(SIGNATURE) < minicbf_orig_3Jul14.h5 > $(DATADIRO)/minicbf_orig_3Jul14.h5$(SEXT)
+	$(SIGNATURE) < $(MINICBF_TEST)/minicbf.h5  > $(DATADIRO)/minicbf_orig.h5$(SEXT)
 	cp adscconverted_flat.cbf $(DATADIRO)/adscconverted_flat_orig.cbf$
 	cp adscconverted.cbf $(DATADIRO)/adscconverted_orig.cbf
 	cp converted_flat.cbf $(DATADIRO)/converted_flat_orig.cbf
 	cp converted.cbf $(DATADIRO)/converted_orig.cbf
-	cp insulin_pilatus6mconverted.cbf > $(DATADIRO)/insulin_pilatus6mconverted_rev_orig.cbf
-	cp insulin_pilatus6mconverted.cbf > $(DATADIRO)/insulin_pilatus6mconverted_orig_rev22Feb15.cbf.h5
-	cp insulin_pilatus6mconverted.cbf > $(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5.cbf
-	cp insulin_pilatus6mconverted_v2.cbf > $(DATADIRO)/insulin_pilatus6mconverted_v2_orig.cbf
-	cp mb_LP_1_001.cbf$ > $(DATADIRO)/mb_LP_1_001_orig.cbf
-	cp testcell.prt > $(DATADIRO)/testcell_orig.prt
-	cp test_xds_bin_testflatout.out > $(DATADIRO)/test_xds_bin_testflatout_orig.out
-	cp test_xds_bin_testflatpackedout.out > $(DATADIRO)/test_xds_bin_testflatpackedout_orig.out
-	cp test_fcb_read_testflatout.out > $(DATADIRO)/test_fcb_read_testflatout_orig.out
-	cp test_fcb_read_testflatpackedout.out > $(DATADIRO)/test_fcb_read_testflatpackedout_orig.out
-	cp XRD1621.cbf > $(DATADIRO)/XRD1621_orig.cbf
-	cp XRD1621_I4encbC100.cbf > $(DATADIRO)/XRD1621_I4encbC100_orig.cbf
-	cp minicbf_orig_3Jul14.h5 > $(DATADIRO)/minicbf_orig_3Jul14.h5
+	cp insulin_pilatus6mconverted.cbf  $(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5.cbf
+	cp insulin_pilatus6mconverted_v2.cbf  $(DATADIRO)/insulin_pilatus6mconverted_v2_orig.cbf
+	cp mb_LP_1_001.cbf$  $(DATADIRO)/mb_LP_1_001_orig.cbf
+	cp testcell.prt  $(DATADIRO)/testcell_orig.prt
+	cp test_xds_bin_testflatout.out $(DATADIRO)/test_xds_bin_testflatout_orig.out
+	cp test_xds_bin_testflatpackedout.out $(DATADIRO)/test_xds_bin_testflatpackedout_orig.out
+	cp test_fcb_read_testflatout.out $(DATADIRO)/test_fcb_read_testflatout_orig.out
+	cp test_fcb_read_testflatpackedout.out $(DATADIRO)/test_fcb_read_testflatpackedout_orig.out
+	cp XRD1621.cbf $(DATADIRO)/XRD1621_orig.cbf
+	cp XRD1621_I4encbC100.cbf $(DATADIRO)/XRD1621_I4encbC100_orig.cbf
+	cp minicbf_orig.h5 $(DATADIRO)/minicbf_orig.h5
 
 restore_sigs_only:	$(NEWTESTOUTPUT) $(DATADIRS)
 	$(SIGNATURE) < adscconverted_flat.cbf > $(DATADIRS)/adscconverted_flat_orig.cbf$(SEXT)
 	$(SIGNATURE) < adscconverted.cbf > $(DATADIRS)/adscconverted_orig.cbf$(SEXT)
 	$(SIGNATURE) < converted_flat.cbf > $(DATADIRS)/converted_flat_orig.cbf$(SEXT)
 	$(SIGNATURE) < converted.cbf > $(DATADIRS)/converted_orig.cbf$(SEXT)
-	$(SIGNATURE) < insulin_pilatus6mconverted.cbf > $(DATADIRS)/insulin_pilatus6mconverted_rev_orig.cbf$(SEXT)
-	$(SIGNATURE) < insulin_pilatus6mconverted.cbf > $(DATADIRS)/insulin_pilatus6mconverted_orig_rev22Feb15.cbf.h5$(SEXT)
 	$(SIGNATURE) < insulin_pilatus6mconverted.cbf > $(DATADIRS)/insulin_pilatus6mconverted_orig.cbf.h5.cbf$(SEXT)
 	$(SIGNATURE) < insulin_pilatus6mconverted_v2.cbf > $(DATADIRS)/insulin_pilatus6mconverted_v2_orig.cbf$(SEXT)
 	$(SIGNATURE) < mb_LP_1_001.cbf$ > $(DATADIRS)/mb_LP_1_001_orig.cbf$(SEXT)
@@ -2032,7 +2039,7 @@ restore_sigs_only:	$(NEWTESTOUTPUT) $(DATADIRS)
 	$(SIGNATURE) < test_fcb_read_testflatpackedout.out > $(DATADIRS)/test_fcb_read_testflatpackedout_orig.out$(SEXT)
 	$(SIGNATURE) < XRD1621.cbf > $(DATADIRS)/XRD1621_orig.cbf$(SEXT)
 	$(SIGNATURE) < XRD1621_I4encbC100.cbf > $(DATADIRS)/XRD1621_I4encbC100_orig.cbf$(SEXT)
-	$(SIGNATURE) < minicbf_orig_3Jul14.h5 > $(DATADIRS)/minicbf_orig_3Jul14.h5$(SEXT)
+	$(SIGNATURE) < minicbf_orig.h5 > $(DATADIRS)/minicbf_orig.h5$(SEXT)
 restore_signatures:	restore_output restore_sigs_only
 	
 #
@@ -2061,6 +2068,14 @@ basic:	$(BIN)/makecbf $(BIN)/img2cif $(BIN)/cif2cbf $(TESTINPUT_BASIC)
 #
 # Extra Tests
 #
+$(MINICBF_TEST)/minicbf.h5:
+	cd $(MINICBF_TEST); $(TIME) ../$(BIN)/minicbf2nexus -c zlib \
+	-C config $(HDF5REGISTER) -o minicbf.h5  ../X4_lots_M1S4_1_*.cbf
+mb_LP_1_001.cbf:
+	$(BIN)/adscimg2cbf --no_pad  --cbf_packed,flat mb_LP_1_001.img
+
+
+
 ifneq ($(F90C),)
 extra:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf \
 	$(BIN)/minicbf2nexus $(BIN)/cbf2nexus $(BIN)/nexus2cbf $(BIN)/testcell \
@@ -2136,11 +2151,11 @@ endif
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
 	$(TIME) $(BIN)/cif2cbf -5 w $(HDF5REGISTER) -en -c2 -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconverted_enc2.cbf.h5)
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
-	$(H5DUMP) insulin_pilatus6mconverted_orig_rev22Feb15.cbf.h5 | $(ALLBUTONE) > insulin_pilatus6mconverted_orig_rev22Feb15.cbf.h5.dump)
+	$(H5DUMP) insulin_pilatus6mconverted_orig.cbf.h5 | $(ALLBUTONE) > insulin_pilatus6mconverted_orig.cbf.h5.dump)
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
 	$(H5DUMP) insulin_pilatus6mconverted.cbf.h5 | $(ALLBUTONE)  > insulin_pilatus6mconverted.cbf.h5.dump)
-	-$(DIFF) insulin_pilatus6mconverted_orig_rev22Feb15.cbf.h5.dump insulin_pilatus6mconverted.cbf.h5.dump
-	-rm -f insulin_pilatus6mconverted_orig_rev22Feb15.cbf.h5.dump
+	-$(DIFF) insulin_pilatus6mconverted_orig.cbf.h5.dump insulin_pilatus6mconverted.cbf.h5.dump
+	-rm -f insulin_pilatus6mconverted_orig.cbf.h5.dump
 	-rm -f insulin_pilatus6mconverted.cbf.h5.dump
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
 	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted.cbf.h5 -o insulin_pilatus6mconverted.cbf.h5.cbf)
@@ -2175,7 +2190,7 @@ ifneq ($(CBF_USE_ULP),)
 endif
 	cd $(MINICBF_TEST); $(TIME) ../$(BIN)/minicbf2nexus -c zlib \
 	-C config $(HDF5REGISTER) -o minicbf.h5  ../X4_lots_M1S4_1_*.cbf
-	cd $(MINICBF_TEST); $(TIME) $(H5DUMP) ../minicbf_orig_3Jul14.h5 | $(ALLBUTONE) > minicbf_original.dump
+	cd $(MINICBF_TEST); $(TIME) $(H5DUMP) ../minicbf_orig.h5 | $(ALLBUTONE) > minicbf_original.dump
 	cd $(MINICBF_TEST); $(TIME) $(H5DUMP) minicbf.h5 | $(ALLBUTONE) > minicbf.dump
 	-cd $(MINICBF_TEST); $(DIFF) minicbf_original.dump minicbf.dump
 	cd $(MINICBF_TEST); rm -f minicbf_original.dump
@@ -2391,7 +2406,7 @@ empty:
 	@-rm -f  XRD1621_orig.cbf
 	@-rm -f  XRD1621_I4encbC100_orig.cbf
 	@-rm -f  XRD1621_I4encbC100.cbf
-	@-rm -f  minicbf_orig_3Jul14.h5
+	@-rm -f  minicbf_orig.h5
 	@-rm -f  $(SRC)/fcb_exit_binary.f90
 	@-rm -f  $(SRC)/fcb_next_binary.f90
 	@-rm -f  $(SRC)/fcb_open_cifin.f90
