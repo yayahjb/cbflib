@@ -1,12 +1,13 @@
-Metadata-Version: 1.0
+Metadata-Version: 1.2
 Name: ply
 Version: 3.2
 Summary: Python Lex & Yacc
 Home-page: http://www.dabeaz.com/ply/
 Author: David Beazley
 Author-email: dave@dabeaz.com
+Maintainer: David Beazley
+Maintainer-email: dave@dabeaz.com
 License: BSD
-Description-Content-Type: UNKNOWN
 Description: 
         PLY is yet another implementation of lex and yacc for Python. Some notable
         features include the fact that its implemented entirely in Python and it

@@ -2048,7 +2048,7 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
     
     int cbf_read_h5file(const cbf_handle handle,
                         const cbf_h5handle h5handle,
-                        const int flags);
+                        const unsigned long int flags);
     
     /* get a fast bookmark from the current information in a cbf handle */
     

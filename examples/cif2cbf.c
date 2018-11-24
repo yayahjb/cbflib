@@ -725,9 +725,9 @@ int main (int argc, char *argv [])
     cbf_handle dic = NULL;
     cbf_handle odic;
     cbf_getopt_handle opts;
-    int hdf5mode = 0;
-    int hdf5noH5 = 0;
-    int hdf5register = 0;
+    unsigned long int hdf5mode = 0L;
+    unsigned long int hdf5noH5 = 0L;
+    unsigned long int hdf5register = 0;
     int devnull = 0;
     int c;
     int errflg = 0;

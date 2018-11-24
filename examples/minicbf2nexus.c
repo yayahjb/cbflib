@@ -366,7 +366,7 @@ int main (int argc, char *argv [])
 	int error = CBF_SUCCESS;
     cbf_getopt_handle opts;
 	size_t cifid = 0;
-	int h5_write_flags = 0;
+	unsigned long int h5_write_flags = 0L;
 	const char ** const cifin = memset(malloc(argc*sizeof(char*)),0,argc*sizeof(char*));
 	const char *hdf5out = NULL;
 	const char *config = NULL;

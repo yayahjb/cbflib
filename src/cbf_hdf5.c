@@ -20662,7 +20662,9 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 } else if (H5I_GROUP==type) {
                     /* get NXclass & handle all groups here, should be NXpdb for a cbfcat */
                     const char * NX_class = NULL;
+                    const char * NXpdb_class = NULL;
                     const int found = _cbf_NXclass(object,&NX_class);
+                    const int nxpdb_found = _cbf_Attrval(object,"NXpdb_class", &NXpdb_class);
                     if (CBF_NOTFOUND==found) {
                         /* no NX_class: can't process it, but it's not an error */
                         if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
@@ -20674,31 +20676,33 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                         error |= found;
                     } else {
                         /* I have a group with an NX_class: match on NX_class */
-                        if (!strcmp(NX_class,"NXpdb")) {
+                        if (!strcmp(NX_class,"NXpdb")||
+                                   !strcmp(NX_class,"CBF_cbf") ||
+                                   !strcmp(NX_class,"CBF_cif") ||
+                                   !strcmp(NX_class,"CBF_cbfdb") ||
+                                   !strcmp(NX_class,"CBF_cbfcat") ||
+                                   !strcmp(NX_class,"CBF_cbfsf") ||
+                                   !strcmp(NX_class,"CBF_cbfcol") ||
+                                   ( NXpdb_class &&
+                                     (!strcmp(NXpdb_class,"CBF_cif") ||
+                                      !strcmp(NXpdb_class,"CBF_cbfdb") ||
+                                      !strcmp(NXpdb_class,"CBF_cbfcat") ||
+                                      !strcmp(NXpdb_class,"CBF_cbfsf") ||
+                                      !strcmp(NXpdb_class,"CBF_cbfcol")
+                                     )
+                                   ) )  {
                             const unsigned int indent = table->indent;
-                            hid_t group = object;
                             /* debugging output */
-                            if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
-                            /* try to take ownership of the group away from the iteration function */
-                            if (CBF_SUCCESS!=(error|=cbf_h5handle_set_cbfdb(nx,object,name))) {
-                                if (1) {
-                                    cbf_debug_print(cbf_strerror(found));
-                                    cbf_debug_print2("error:  failed to set the '%s' cif dataset  in the handle\n",name);
-                                }
-                            } else {
-                                object = CBF_H5FAIL;
-                                /* The hdf5 handle now owns the group, process it */
-                                ++table->indent;
-                                if (H5Literate(group,H5_INDEX_NAME,H5_ITER_NATIVE,NULL,cbf_write_nx2cbf__cbfcat_op,op_data)<0) {
-                                    cbf_debug_print3("error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
-                                    error |= CBF_H5ERROR;
-                                } else {
-                                    /* success: extract some data that should have been returned via the op_data argument */
-                                    if (!table->has_offset) {
-                                    }
-                                }
+                            if (NX_class) free((void*)NX_class);
+                            if (NXpdb_class) free((void*)NXpdb_class);
+                            nx->cbf_datablock = NULL;
+                            nx->cbf_saveframe = NULL;
+                            nx->cbf_category = NULL;
+                            nx->cbf_column = NULL;
+                            error |= cbf_read_h5file_group(cbf,nx,nx->flags,(hid_t)object);
+                            if (cbf_H5Ivalid(object)) H5Oclose(object);
+                            return (CBF_SUCCESS==error) ? 0 : -1;
 
-                            }
 
                             /*-----------------------------------------------------------------------------------------------*/
                         } else {
@@ -20781,6 +20785,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     /* get NXclass & handle all groups here, should be NXpdb for a cbfcat */
                     const char * NX_class = NULL;
                     const int found = _cbf_NXclass(object,&NX_class);
+                    const char * NXpdb_class = NULL;
+                    const int nxpdb_found = _cbf_Attrval(object,"NXpdb_class", &NXpdb_class);
                     if (CBF_NOTFOUND==found) {
                         /* no NX_class: can't process it, but it's not an error */
                         if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
@@ -20792,44 +20798,33 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                         error |= found;
 
                         /* I have a group with an NX_class: match on NX_class */
-                    } else if (!cbf_cistrcmp(NX_class,"NXpdb") || !cbf_cistrcmp(NX_class,"CBF_cbfcat")) {
-                        const unsigned int indent = table->indent;
-                        hid_t group = object;
-                        /* debugging output */
-                        if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
-                        /* try to take ownership of the group away from the iteration function 
-                           and record it as the current cif category name  */
-                        if (!(nx->cbf_datablock)) {
-                           cbf_require_datablock(cbf,"(none)");
-                        } else {
-                           cbf_require_datablock(cbf,nx->cbf_datablock);
-                        }
-                        if (nx->cbf_saveframe)  {
-                           cbf_require_saveframe(cbf,nx->cbf_saveframe);
-                        }
-                        if (CBF_SUCCESS!=(error|=cbf_require_category(cbf,name))) {
-                            cbf_debug_print(cbf_strerror(found));
-                            cbf_debug_print2("error:  failed to set the '%s' cif category in the h5handle nx\n",name);
-                        } else {
-                            cbf_category_name(cbf,&(nx->cbf_category));
+                    } else if (!strcmp(NX_class,"NXpdb")||
+                                   !strcmp(NX_class,"CBF_cbf") ||
+                                   !strcmp(NX_class,"CBF_cif") ||
+                                   !strcmp(NX_class,"CBF_cbfdb") ||
+                                   !strcmp(NX_class,"CBF_cbfcat") ||
+                                   !strcmp(NX_class,"CBF_cbfsf") ||
+                                   !strcmp(NX_class,"CBF_cbfcol") ||
+                                   ( NXpdb_class &&
+                                     (!strcmp(NXpdb_class,"CBF_cif") ||
+                                      !strcmp(NXpdb_class,"CBF_cbfdb") ||
+                                      !strcmp(NXpdb_class,"CBF_cbfcat") ||
+                                      !strcmp(NXpdb_class,"CBF_cbfsf") ||
+                                      !strcmp(NXpdb_class,"CBF_cbfcol")
+                                     )
+                                   ) )  {
+                            const unsigned int indent = table->indent;
+                            /* debugging output */
+                            if (NX_class) free((void*)NX_class);
+                            if (NXpdb_class) free((void*)NXpdb_class);
+                            nx->cbf_datablock = NULL;
                             nx->cbf_saveframe = NULL;
+                            nx->cbf_category = NULL;
                             nx->cbf_column = NULL;
-                            object = CBF_H5FAIL;
-                            /* The hdf5 handle now owns the group, process it */
-                            ++table->indent;
-                            if (!cbf_require_category(cbf,name)) {
-                              if (H5Literate(group,H5_INDEX_NAME,H5_ITER_NATIVE,NULL,cbf_write_nx2cbf__cbfcat_op,op_data)<0) {
-                                  cbf_debug_print3("error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
-                                  error |= CBF_H5ERROR;
-                              } else {
-                                  /* success: extract some data that should have been returned via the op_data argument */
-                                  if (!table->has_offset) {
-
-                                  }
-                              }
-                            }
-
-                            }
+                            error |= cbf_read_h5file_group(cbf,nx,nx->flags,(hid_t)object);
+                            if (cbf_H5Ivalid(object)) H5Oclose(object);
+                            return (CBF_SUCCESS==error) ? 0 : -1;
+ 
                             /*-----------------------------------------------------------------------------------------------*/
                         } else {
                             /* unknown NX_class: (probably) not an error */
@@ -21599,7 +21594,9 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 } else if (H5I_GROUP==type) {
                     /* get NXclass & handle all groups here */
                     const char * NX_class = NULL;
+                    const char * NXpdb_class = NULL;
                     const int found = _cbf_NXclass(object,&NX_class);
+                    const int nxpdb_found = _cbf_Attrval(object,"NXpdb_class", &NXpdb_class);
                     if (CBF_NOTFOUND==found) {
                         /* no NX_class: can't process it, but it's not an error */
                         if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
@@ -21665,39 +21662,41 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                             }
                             /*-----------------------------------------------------------------------------------------------*/
 
-                        } else if (!strcmp(NX_class,"NXpdb")) {
+                        } else if (!strcmp(NX_class,"NXpdb")||
+                                   !strcmp(NX_class,"CBF_cbf") || 
+                                   !strcmp(NX_class,"CBF_cif") ||
+                                   !strcmp(NX_class,"CBF_cbfdb") ||
+                                   !strcmp(NX_class,"CBF_cbfcat") ||
+                                   !strcmp(NX_class,"CBF_cbfsf") ||
+                                   !strcmp(NX_class,"CBF_cbfcol") ||
+                                   ( NXpdb_class && 
+                                     (!strcmp(NXpdb_class,"CBF_cif") ||
+                                      !strcmp(NXpdb_class,"CBF_cbfdb") ||
+                                      !strcmp(NXpdb_class,"CBF_cbfcat") ||
+                                      !strcmp(NXpdb_class,"CBF_cbfsf") ||
+                                      !strcmp(NXpdb_class,"CBF_cbfcol") 
+                                     )
+                                   ) )  {
                             const unsigned int indent = table->indent;
-                            hid_t group = object;
                             /* debugging output */
-                            if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
-                            /* try to take ownership of the group away from the iteration function 
-                               and record it as the current cif data block name  */
-                            if (CBF_SUCCESS!=(error|=cbf_require_datablock(cbf,name))) {
-                                cbf_debug_print(cbf_strerror(found));
-                                cbf_debug_print2("error:  failed to set the '%s' cif datablock in the h5handle\n",name);
-                            } else {
-                                cbf_datablock_name(cbf,&(nx->cbf_datablock));
-                                nx->cbf_saveframe = NULL;
-                                nx->cbf_category = NULL;
-                                nx->cbf_column = NULL;
-                                object = CBF_H5FAIL;
-                                /* The hdf5 handle now owns the group, process it */
-                                ++table->indent;
-                                if (!cbf_require_datablock(cbf,name)){
-                                    if (H5Literate(group,H5_INDEX_NAME,H5_ITER_NATIVE,NULL,cbf_write_nx2cbf__cbfdb_op,op_data)<0) {
-                                        cbf_debug_print3("error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
-                                        error |= CBF_H5ERROR;
-                                     }
-                                }
-                                table->indent = indent;
-                            }
+                            if (NX_class) free((void*)NX_class);
+                            if (NXpdb_class) free((void*)NXpdb_class);
+                            nx->cbf_datablock = NULL;
+                            nx->cbf_saveframe = NULL;
+                            nx->cbf_category = NULL;
+                            nx->cbf_column = NULL;
+                            error |= cbf_read_h5file_group(cbf,nx,nx->flags,(hid_t)object);
+                            if (cbf_H5Ivalid(object)) H5Oclose(object);
+                            return (CBF_SUCCESS==error) ? 0 : -1;
+
                             /*-----------------------------------------------------------------------------------------------*/
                         } else {
                             /* unknown NX_class: (probably) not an error */
                             if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,0);
                         }
+                        
                     }
-                    free((void*)NX_class);
+                    if (NX_class)free((void*)NX_class);
                 } else {
                     /* unrecognised object type: can't process it, but it's not an error */
                     if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
@@ -27962,7 +27961,6 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
                                     /* time is in YYYY-MM-DDThh:mm:ss.s* format, should be able to use strcmp to order them */
                                     /* first read the existing timestamp */
                                     const hid_t currType = H5Dget_type(dataset);
-                                    char * buf = malloc(1+ H5Tget_size(currType));
                                     hid_t currMemType = CBF_H5FAIL;
                                     hid_t space = H5Dget_space(dataset);
                                     hsize_t ndims,dims[H5S_MAX_RANK];
@@ -27980,7 +27978,7 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
                                             CBF_CALL(cbf_H5Dwrite2(dataset,0,0,0,&token,type));
                                         }
                                         H5Dvlen_reclaim(currType, space, H5P_DEFAULT, buf);
-                                        free((void*)buf);
+                                        if (buf) free((void*)buf);
                                         cbf_H5Tfree(currType);
                                     } else if (H5Tget_class(currType)==H5T_STRING){
                                         char * buf = (char *)malloc(dims[0]*(H5Tget_size(currType)+1));
@@ -27989,6 +27987,7 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
                                             /* store the oldest timestamp */
                                             CBF_CALL(cbf_H5Dwrite2(dataset,0,0,0,&token,type));
                                         }
+                                        if (buf) free((void*)buf);
                                     }
                                 } else if (CBF_NOTFOUND==found) {
                                     /* create the dataset & write the data */
@@ -31633,11 +31632,13 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 
         return 0;
     }
+
+
     /* Read an HDF5 file */
 
     int cbf_read_h5file(const cbf_handle handle,
                         const cbf_h5handle h5handle,
-                        const int flags) {
+                        const unsigned long int flags) {
 
         cbf_node *node;
 
@@ -31748,6 +31749,69 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
         /* visit the groups in the file, starting with the root group */
 
         cbf_h5failneg(H5Literate(h5handle->hfile,
+                                 H5_INDEX_NAME,
+                                 H5_ITER_INC,
+                                 NULL,
+                                 cbf_object_visit,(void *)&h5Ovisit),CBF_FORMAT);
+
+        return CBF_SUCCESS;
+
+    }
+
+
+
+    /* Read an HDF5 file group */
+
+    int cbf_read_h5file_group(const cbf_handle handle,
+                        const cbf_h5handle h5handle,
+                        const unsigned long int flags,
+                        hid_t group) {
+
+        cbf_node *node;
+
+        cbf_h5Ovisit_struct h5Ovisit;
+        
+        int errorcode = 0;
+
+        if (!handle || !h5handle || !h5handle->hfile ) return CBF_ARGUMENT;
+
+        /* Move the flags into the h5handle */
+
+        h5handle -> flags = flags;
+
+
+        h5Ovisit.handle = handle;
+        h5Ovisit.h5handle = h5handle;
+        h5Ovisit.parent_id = h5handle->hfile;
+        h5Ovisit.parent_addr = 0;
+        h5Ovisit.great_grand_parent_name = NULL;
+        h5Ovisit.grand_parent_name = NULL;
+        h5Ovisit.parent_name = "/";
+        cbf_failnez(cbf_alloc ((void **) (&(h5Ovisit.hid_path)), NULL,sizeof(hid_t), 1));
+        cbf_failnez(cbf_alloc ((void **) (&(h5Ovisit.haddr_path)), NULL,sizeof(haddr_t), 1));
+        h5Ovisit.capacity = 1;
+        h5Ovisit.path_size = 0;
+        h5Ovisit.bookmark.datablock = NULL;
+        h5Ovisit.bookmark.saveframe = NULL;
+        h5Ovisit.bookmark.category = NULL;
+        h5Ovisit.bookmark.column = NULL;
+        h5Ovisit.bookmark.row = 0;
+        h5Ovisit.bookmark.haverow = 0;
+        h5Ovisit.incbf = h5Ovisit.incbfdb = h5Ovisit.incbfsf =h5Ovisit.incbfcat = h5Ovisit.incbfcol = 0;
+        h5Ovisit.innexus = h5Ovisit.innxpdb = 1;
+
+        cbf_failnez(cbf_alloc ((void **) (&(h5Ovisit.hid_path)), NULL,
+                               sizeof(hid_t), 1));
+        cbf_failnez(cbf_alloc ((void **) (&(h5Ovisit.haddr_path)), NULL,
+                               sizeof(haddr_t), 1));
+        h5Ovisit.capacity = 1;
+        h5Ovisit.path_size = 0;
+
+        cbf_failnez(cbf_new_datablock(handle,"H5"));
+
+        /* visit the groups in the file, starting with the root group */
+
+        cbf_h5failneg(H5Literate(group,
                                  H5_INDEX_NAME,
                                  H5_ITER_INC,
                                  NULL,

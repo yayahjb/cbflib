@@ -266,7 +266,7 @@ int main (int argc, char *argv [])
 {
 	int error = CBF_SUCCESS;
     cbf_getopt_handle opts = NULL;
-	int h5_write_flags = 0;
+	unsigned long int h5_write_flags = 0L;
 	int list = 0;
     int noCBFnames = 0;
 	unsigned int frame = 0;

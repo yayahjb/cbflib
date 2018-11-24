@@ -2,7 +2,7 @@
 ######################################################################
 #  Makefile - command file for make to create CBFlib                 #
 #                                                                    #
-# Version 0.9.6 06 Nov 2018                                          #
+# Version 0.9.6 20 Nov 2018                                          #
 #                                                                    #
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
@@ -318,6 +318,7 @@ endif
 
 ifneq ($(CBFLIB_DONT_USE_LOCAL_HDF5),yes)
 HDF5 = hdf5-1.8.18
+HDF5dep = $(HDF5)
 HDF5_INSTALL = $(HDF5)_INSTALL
 HDF5LIBS_LOCAL = $(LIB)/libhdf5.a
 HDF5LIBS_SYSTEM = -lz -ldl
@@ -326,6 +327,7 @@ HDF5SOLIBS_SYSTEM = -lz
 HDF5REGISTER ?= --register plugin
 else
 HDF5 =
+HDF5dep =
 HDF5_INSTALL =
 HDF5LIBS_LOCAL =
 HDF5LIBS_SYSTEM = -L$(HDF5_PREFIX)/lib -lhdf5 -lz -ldl
@@ -342,11 +344,13 @@ ifneq ($(CBFLIB_DONT_USE_LZ4),yes)
 # Definitions to get a version of HDF5Plugin for LZ4
 #
 LZ4 = HDF5Plugin_4Feb17
+LZ4dep = $(LZ4)
 LZ4src = $(LZ4)/src
 LZ4include = $(LZ4)/include
 LZ4SOLIBS = -L$(SOLIB) -lh5zlz4
 else
 LZ4SOLIBS =
+LZ4dep =
 endif
 
 CBFLIB_DONT_USE_BSHUF ?= no
@@ -355,12 +359,14 @@ ifneq ($(CBFLIB_DONT_USE_BSHUF),yes)
 # Definitions to get a version of HDF5Plugin for BSHUFFLE WITH LZ4
 #
 BSHUF = bitshuffle-0.2.2.1_15Jun16
+BSUFdep = $(BSHUF)
 BSHUFsrc = $(BSHUF)/src
 BSHUFinclude = $(BSHUF)/src
 BSHUFSOLIBS = -L$(SOLIB) -lh5zbshuf
 BSHUFFILTER = libbshuf_h5filter
 else
 BSHUFSOLIBS =
+BSHUFdep =
 endif
 
 CBFLIB_DONT_USE_BLOSC ?= no
@@ -369,6 +375,7 @@ ifneq ($(CBFLIB_DONT_USE_BLOSC),yes)
 # Definitions to get a version of HDF5Plugin for BLOSC
 #
 BLOSC = c-blosc_4Sep16.tar.gz
+BLOSCdep = $(BLOSC)
 BLOSCFILTER = hdf5-blosc_2Sep16.tar.gz
 BLOSCsrc = $(BLOSC)/src
 BLOSCinclude = $(BLOSC)/src
@@ -376,6 +383,7 @@ BLOSCSOLIBS = -L$(SOLIB) -lh5zbshuf
 BLOSCFILTER = libbshuf_h5filter
 else
 BLOSCSOLIBS =
+BLOSCdep =
 endif
 
 
@@ -648,7 +656,7 @@ endif
 #
 # Common dependencies
 #
-COMMONDEP = Makefile
+COMMONDEP = $(M4)/Makefile.m4
 
 #
 # Source files
@@ -894,6 +902,7 @@ all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) \
 	$(PYCIFRWDEPS)        \
 	symlinksdone          \
 	$(REGEXDEP)           \
+	$(LIB)                \
 	$(LIB)/libcbf.a       \
 	$(LIB)/libfcb.a       \
 	$(LIB)/libimg.a       \
@@ -1167,9 +1176,6 @@ ifneq ($(CBFLIB_DONT_USE_PYCIFRW),yes)
 #
 build_pycifrw:	$(M4)/Makefile.m4
 	touch build_pycifrw
-ifneq ($(CBFLIB_SAVE_KITS),"")
-	( if [ -d "$(PYCIFRW)" ]; then touch $(PYCIFRW); fi)
-endif
 $(PYCIFRW):	build_pycifrw
 	-rm -rf $(PYCIFRW)
 	-rm -rf $(PYCIFRW).tar.gz
@@ -1183,9 +1189,6 @@ $(PYCIFRW):	build_pycifrw
 #
 build_ply:	$(M4)/Makefile.m4
 	touch build_ply
-ifneq ($(CBFLIB_SAVE_KITS),"")
-	( if [ -d "$(PLY)" ]; then touch $(PLY); fi)
-endif
 $(PLY):	build_ply
 	-rm -rf $(PLY)
 	-rm -rf $(PLY).tar.gz
@@ -1201,9 +1204,6 @@ endif
 
 build_regex:    $(M4)/Makefile.m4
 	touch build_regex
-ifneq ($(CBFLIB_SAVE_KITS),"")
-	( if [ -d "$(REGEX)" ]; then touch $(REGEX); fi)
-endif
 $(REGEX):   build_regex
 	-rm -rf $(REGEX)
 	-rm -rf $(REGEX).tar.gz
@@ -1215,7 +1215,9 @@ $(REGEX):   build_regex
 	(cd $(REGEX); ./configure --prefix=$(REGEX_PREFIX); make install)
 	@-cp $(REGEX_PREFIX)/include/pcreposix.h $(REGEX_PREFIX)/include/regex.h
 $(REGEX)_INSTALL:   $(REGEX)
-	(cd $(REGEX); make distclean; ./configure --prefix=$(CBF_PREFIX); make install)
+	-rm -rf $(REGEX)_install
+	rsync -avz $(REGEX)/ $(REGEX)_install
+	(cd $(REGEX)_install; make distclean; ./configure --prefix=$(CBF_PREFIX); make install)
 	@-cp $(CBF_PREFIX)/include/pcreposix.h $(CBF_PREFIX)/include/regex.h
 
 #
@@ -1223,9 +1225,6 @@ $(REGEX)_INSTALL:   $(REGEX)
 #
 build_tiff:	$(M4)/Makefile.m4
 	touch build_tiff
-ifneq ($(CBFLIB_SAVE_KITS),"")
-	( if [ -d "$(TIFF)" ]; then touch $(TIFF); fi)
-endif
 $(TIFF):	build_tiff config.guess config.sub
 	-rm -rf $(TIFF)
 	-rm -rf $(TIFF).tar.gz
@@ -1236,7 +1235,9 @@ $(TIFF):	build_tiff config.guess config.sub
 	cp config.guess config.sub $(TIFF)/config/
 	(cd $(TIFF); ./configure --prefix=$(TIFF_PREFIX); make install)
 $(TIFF)_INSTALL:    $(TIFF)
-	(cd $(TIFF); make distclean; ./configure --prefix=$(CBF_PREFIX); make install)
+	-rm -rf $(TIFF)_install
+	rsync -avz $(TIFF)/  $(TIFF)_install
+	(cd $(TIFF_install); make distclean; ./configure --prefix=$(CBF_PREFIX); make install)
 
 
 ifneq ($(CBFLIB_DONT_USE_LOCAL_HDF5),yes)
@@ -1245,9 +1246,6 @@ ifneq ($(CBFLIB_DONT_USE_LOCAL_HDF5),yes)
 #
 build_hdf5:	$(M4)/Makefile.m4
 	touch build_hdf5
-ifneq ($(CBFLIB_SAVE_KITS),"")
-	( if [ -d "$(HDF5)" ]; then touch $(HDF5); fi)
-endif
 $(HDF5):	build_hdf5
 	-rm -rf $(HDF5)
 	-rm -rf $(HDF5).tar.gz
@@ -1259,7 +1257,9 @@ $(HDF5):	build_hdf5
 	-rm $(HDF5).tar.gz
 	(cd $(HDF5); ./configure --enable-fortran --enable-using-memchecker  --prefix=$(HDF5_PREFIX)  ; make install)
 $(HDF5)_INSTALL:    $(HDF5)
-	(cd $(HDF5); make distclean; ./configure --enable-fortran --enable-using-memchecker  --prefix=$(CBF_PREFIX)  ; make install)
+	-rm -rf $(HDF5)_install
+	rsync -avz $(HDF5)/ $(HDF5)_install
+	(cd $(HDF5)_install; make distclean; ./configure --enable-fortran --enable-using-memchecker  --prefix=$(CBF_PREFIX)  ; make install)
 endif
 
 
@@ -1267,23 +1267,21 @@ ifneq ($(CBFLIB_DONT_USE_LZ4),yes)
 #
 # LZ4
 #
-build_lz4:	$(M4)/Makefile.m4 $(SOLIB)
+build_lz4:	$(M4)/Makefile.m4 
 	touch build_lz4
-ifneq ($(CBFLIB_SAVE_KITS),"")
-	( if [ -d "$(LZ4)" ]; then touch $(LZ4); fi)
-endif
 $(LZ4): $(HDF5)	build_lz4
 	-rm -rf $(LZ4)
 	-rm -rf $(LZ4).tar.gz
 	$(DOWNLOAD) $(LZ4_URL)
 	tar -xvf $(LZ4).tar.gz
-	touch $(LZ4)
 	-rm $(LZ4).tar.gz
 	(cp $(LZ4include)/lz4.h $(INCLUDE); \
 	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(LZ4src)/lz4.c -o lz4.o; \
 	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(LZ4src)/h5zlz4.c -o h5zlz4.o; \
 	$(CC) -shared lz4.o h5zlz4.o -o $(SOLIB)/libh5zlz4.so; \
 	rm lz4.o h5zlz4.o) 
+	touch build_lz4
+	touch $(LZ4)
 endif
 
 
@@ -1291,18 +1289,14 @@ ifneq ($(CBFLIB_DONT_USE_BSHUF),yes)
 #
 # BSHUF
 #
-build_BSHUF:	$(M4)/Makefile.m4  $(SOLIB)
+build_BSHUF:	$(M4)/Makefile.m4 
 	touch build_BSHUF
-ifneq ($(CBFLIB_SAVE_KITS),"")
-	( if [ -d "$(BSHUF)" ]; then touch $(BSHUF); fi)
-endif
-$(BSHUF): $(HDF5)	build_BSHUF
+$(BSHUF): $(HDF5)  build_BSHUF $(LZ4dep)
 	-rm -rf $(BSHUF)
 	-rm -rf $(BSHUF).tar.gz
 	-rm -rf *.o
 	$(DOWNLOAD) $(BSHUFURL)
 	tar -xvf $(BSHUF).tar.gz
-	touch $(BSHUF)
 	-rm $(BSHUF).tar.gz
 	(cp $(BSHUFinclude)/bitshuffle.h \
 	    $(BSHUFinclude)/bitshuffle_core.h \
@@ -1321,6 +1315,8 @@ $(BSHUF): $(HDF5)	build_BSHUF
 	    $(HDF5SOLIBS_LOCAL) \
 	    $(HDF5SOLIBS_SYSTEM) -o $(SOLIB)/$(BSHUFFILTER).so; \
 	rm bshuf_h5filter.o bitshuffle.o lz4.o iochain.o bshuf_h5plugin.o)
+	touch build_BSHUF
+	touch $(BSHUF)
 endif
 
 
@@ -1345,19 +1341,19 @@ $(CBF_PREFIX)/include/cbflib: $(CBF_PREFIX)/include
 
 
 $(LIB):
-	mkdir $@
+	mkdir -p $@
 
 $(BIN):
-	mkdir $@
+	mkdir -p $@
 
 $(SOLIB):
-	mkdir $@
+	mkdir -p $@
 
 $(JCBF):
-	mkdir $@
+	mkdir -p $@
 
 $(MINICBF_TESTS):
-	mkdir $@
+	mkdir -p $@
 
 #
 # Parser
@@ -1370,9 +1366,10 @@ $(SRC)/cbf_stx.c: $(SRC)/cbf.stx.y
 #
 # CBF library
 #
-$(LIB)/libcbf.a: $(SOURCE) $(HEADERS) $(COMMONDEP) $(LIB) $(HDF5)
+$(LIB)/libcbf.a: $(SOURCE) $(HEADERS) $(COMMONDEP) $(HDF5) $(LZ4DEPS) $(BSHUFDEPS) $(REGEXDEPS)
 	-rm -f $@
 	-rm -f *.o
+	mkdir -p $(LIB)
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) \
 	-DCBF_FILTER_STATIC $(LZ4FLAG) $(BSHUFFLAG)  $(PYCIFRWFLAG) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
 ifneq ($(CBFLIB_DONT_USE_LZ4),yes)
@@ -1394,9 +1391,10 @@ ifneq ($(RANLIB),)
 endif
 	-rm -f *.o
 
-$(SOLIB)/libcbf.so: $(SOURCE) $(HEADERS) $(COMMONDEP) $(SOLIB) $(HDF5)
+$(SOLIB)/libcbf.so: $(SOURCE) $(HEADERS) $(COMMONDEP)  $(HDF5) $(LZ4DEPS) $(BSHUFDEPS)
 	-rm -f $@
 	-rm -f *.o
+	mkdir -p $(SOLIB)
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(LZ4FLAG) $(BSHUFFLAG) $(PYCIFRWFLAG) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
 ifneq ($(CBFLIB_DONT_USE_LZ4),yes)
 ifeq ($(CBFLIB_DONT_USE_BSHUF),yes)
@@ -1418,7 +1416,8 @@ endif
 #
 # IMG library
 #
-$(LIB)/libimg.a: $(SRC)/img.c $(HEADERS) $(COMMONDEP) $(LIB)
+$(LIB)/libimg.a: $(SRC)/img.c $(HEADERS) $(COMMONDEP)
+	mkdir -p $(LIB)
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) -c $(SRC)/img.c
 	$(AR) cr $@ img.o
 ifneq ($(RANLIB),)
@@ -1426,8 +1425,9 @@ ifneq ($(RANLIB),)
 endif
 	rm img.o
 	
-$(SOLIB)/libimg.so: $(SOURCE) $(HEADERS) $(COMMONDEP) $(SOLIB)
+$(SOLIB)/libimg.so: $(SOURCE) $(HEADERS) $(COMMONDEP)
 	-rm -f $@
+	mkdir -p $(SOLIB)
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(SRC)/img.c
 	$(CC) -o $@ img.o $(SOLDFLAGS)
 	rm img.o
@@ -1441,7 +1441,8 @@ CBF_IMG_LIBS:  $(LIB)/libcbf.a $(LIB)/libimg.a
 #
 # FCB library
 #
-$(LIB)/libfcb.a: $(F90SOURCE) $(COMMONDEP) $(LIB) $(HDF5)
+$(LIB)/libfcb.a: $(F90SOURCE) $(COMMONDEP) $(HDF5)
+	mkdir -p $(LIB)
 ifneq ($(F90C),)
 	$(F90C) $(F90FLAGS) -c $(F90SOURCE)
 	$(AR) cr $@ *.o
@@ -1456,6 +1457,7 @@ endif
 $(SOLIB)/libfcb.so: $(F90SOURCE) $(HEADERS) $(COMMONDEP) $(SOLIB)
 ifneq ($(F90C),)
 	-rm -f $@
+	mkdir -p $(SOLIB)
 	$(F90C) $(F90FLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(F90SOURCE)
 	$(F90C) $(F90FLAGS) -o $@ *.o $(SOLDFLAGS)
 	rm *.o
@@ -1494,6 +1496,7 @@ $(PYCBF)/setup_MINGW.py: m4/setup_py.m4
 	   $(M4)/setup_py.m4 > $@)
 
 $(LIB)/_pycbf.$(PYCBFEXT): $(PYCBF)/_pycbf.$(PYCBFEXT)
+	mkdir -p $(LIB)
 	cp $(PYCBF)/_pycbf.$(PYCBFEXT) $(LIB)/_pycbf.$(PYCBFEXT)
 	
 $(PYCBF)/pycbf.pdf: $(PYCBF)/pycbf.w
@@ -1523,6 +1526,7 @@ $(JCBF)/cbflib-$(VERSION).jar: $(JCBF) $(JCBF)/jcbf.i
 	$(JAR) cf $@ org
 
 $(SOLIB)/libcbf_wrap.so: $(JCBF)/cbflib-$(VERSION).jar $(SOLIB)/libcbf.so
+	mkdir -p $(SOLIB)
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) $(JAVAINCLUDES) -c $(JCBF)/jcbf_wrap.c
 	$(CC) -o $@ jcbf_wrap.o $(SOLDFLAGS) -L$(SOLIB) -lcbf $(REGEX_LIBS)
 	rm jcbf_wrap.o
@@ -1554,6 +1558,7 @@ $(EXAMPLES)/test_xds_binary.f90: $(M4)/test_xds_binary.m4 $(M4)/fcblib_defines.m
 #
 $(BIN)/convert_image: $(LIB)/libcbf.a $(EXAMPLES)/convert_image.c $(SRC)/img.c \
 	$(GOPTLIB)	$(GOPTINC)
+	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/convert_image.c $(SRC)/img.c $(GOPTLIB) -L$(LIB) \
 	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -o $@
@@ -1562,6 +1567,7 @@ $(BIN)/convert_image: $(LIB)/libcbf.a $(EXAMPLES)/convert_image.c $(SRC)/img.c \
 #
 $(BIN)/convert_minicbf: $(LIB)/libcbf.a $(EXAMPLES)/convert_minicbf.c \
 	$(GOPTLIB)	$(GOPTINC) $(EXAMPLES)/batch_convert_minicbf.sh
+	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/convert_minicbf.c $(GOPTLIB) -L$(LIB) \
 	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -o $@
@@ -1571,6 +1577,7 @@ $(BIN)/convert_minicbf: $(LIB)/libcbf.a $(EXAMPLES)/convert_minicbf.c \
 # makecbf example program
 #
 $(BIN)/makecbf: $(LIB)/libcbf.a $(EXAMPLES)/makecbf.c $(LIB)/libimg.a
+	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/makecbf.c  -L$(LIB) \
 	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -limg -o $@
@@ -1580,6 +1587,7 @@ $(BIN)/makecbf: $(LIB)/libcbf.a $(EXAMPLES)/makecbf.c $(LIB)/libimg.a
 # adscimg2cbf example program
 #
 $(BIN)/adscimg2cbf: $(LIB)/libcbf.a $(EXAMPLES)/adscimg2cbf.c $(EXAMPLES)/adscimg2cbf_sub.c
+	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) -D_SVID_SOURCE $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/adscimg2cbf.c $(EXAMPLES)/adscimg2cbf_sub.c  -L$(LIB) \
 	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -o $@
@@ -1588,6 +1596,7 @@ $(BIN)/adscimg2cbf: $(LIB)/libcbf.a $(EXAMPLES)/adscimg2cbf.c $(EXAMPLES)/adscim
 # cbf2adscimg example program
 #
 $(BIN)/cbf2adscimg: $(LIB)/libcbf.a $(EXAMPLES)/cbf2adscimg.c $(EXAMPLES)/cbf2adscimg_sub.c
+	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) -D_SVID_SOURCE $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/cbf2adscimg.c $(EXAMPLES)/cbf2adscimg_sub.c  -L$(LIB) \
 	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -o $@
@@ -1596,6 +1605,7 @@ $(BIN)/cbf2adscimg: $(LIB)/libcbf.a $(EXAMPLES)/cbf2adscimg.c $(EXAMPLES)/cbf2ad
 # cbf_standardize_numbers example program
 #
 $(BIN)/cbf_standardize_numbers: $(EXAMPLES)/cbf_standardize_numbers.c $(EXAMPLES)/cbf_standardize_numbers.h
+	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) -D_SVID_SOURCE $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/cbf_standardize_numbers.c $(SRC_FGETLN)  $(REGEX_LIBS_STATIC) $(EXTRALIBS) -o $@
 
@@ -1603,6 +1613,7 @@ $(BIN)/cbf_standardize_numbers: $(EXAMPLES)/cbf_standardize_numbers.c $(EXAMPLES
 # changtestcompression example program
 #
 $(BIN)/changtestcompression: $(LIB)/libcbf.a $(EXAMPLES)/changtestcompression.c
+	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/changtestcompression.c -L$(LIB) \
 	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -o $@
@@ -1612,6 +1623,7 @@ $(BIN)/changtestcompression: $(LIB)/libcbf.a $(EXAMPLES)/changtestcompression.c
 #
 $(BIN)/img2cif: $(LIB)/libcbf.a $(EXAMPLES)/img2cif.c $(LIB)/libimg.a \
 	$(GOPTLIB) 	$(GOTPINC)
+	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/img2cif.c $(GOPTLIB) -L$(LIB) \
 	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -limg -o $@
@@ -1621,6 +1633,7 @@ $(BIN)/img2cif: $(LIB)/libcbf.a $(EXAMPLES)/img2cif.c $(LIB)/libimg.a \
 #
 $(BIN)/cif2cbf: $(LIB)/libcbf.a $(EXAMPLES)/cif2cbf.c $(LIB)/libimg.a \
 	$(GOPTLIB) $(GOPTINC) shared
+	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/cif2cbf.c $(GOPTLIB) -L$(LIB) \
 	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -limg -o $@
@@ -1630,6 +1643,7 @@ $(BIN)/cif2cbf: $(LIB)/libcbf.a $(EXAMPLES)/cif2cbf.c $(LIB)/libimg.a \
 #
 $(BIN)/cbf2nexus: $(LIB)/libcbf.a $(EXAMPLES)/cbf2nexus.c \
 	$(GOPTLIB)	$(GOPTINC) 
+	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/cbf2nexus.c $(GOPTLIB) -L$(LIB) \
 	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -limg -o $@
@@ -1639,6 +1653,7 @@ $(BIN)/cbf2nexus: $(LIB)/libcbf.a $(EXAMPLES)/cbf2nexus.c \
 #
 $(BIN)/minicbf2nexus: $(LIB)/libcbf.a $(EXAMPLES)/minicbf2nexus.c $(LIB)/libimg.a \
 	$(GOPTLIB)	$(GOPTINC) 
+	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/minicbf2nexus.c $(GOPTLIB) -L$(LIB) \
 	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -limg -o $@
@@ -1648,6 +1663,7 @@ $(BIN)/minicbf2nexus: $(LIB)/libcbf.a $(EXAMPLES)/minicbf2nexus.c $(LIB)/libimg.
 #
 $(BIN)/nexus2cbf: $(LIB)/libcbf.a $(EXAMPLES)/nexus2cbf.c \
 	$(GOPTLIB)	$(GOPTINC) $(REGEX)
+	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/nexus2cbf.c $(GOPTLIB) -L$(LIB) \
 	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM)  -limg -o $@
@@ -1657,6 +1673,7 @@ $(BIN)/nexus2cbf: $(LIB)/libcbf.a $(EXAMPLES)/nexus2cbf.c \
 #
 $(BIN)/roi_peaksearch: $(LIB)/libcbf.a $(EXAMPLES)/roi_peaksearch.c \
 	$(EXAMPLES)/dps_peaksearch.c  $(EXAMPLES)/dps_peaksearch.h $(GOPTLIB)	$(GOPTINC)
+	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/roi_peaksearch.c $(EXAMPLES)/dps_peaksearch.c $(GOPTLIB) -L$(LIB) \
 	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM)  -limg -o $@
@@ -1668,6 +1685,7 @@ $(BIN)/roi_peaksearch: $(LIB)/libcbf.a $(EXAMPLES)/roi_peaksearch.c \
 $(BIN)/cbf_template_t: $(DECTRIS_EXAMPLES)/cbf_template_t.c \
 	$(DECTRIS_EXAMPLES)/mx_cbf_t_extras.h \
 	$(DECTRIS_EXAMPLES)/mx_parms.h
+	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) -I $(DECTRIS_EXAMPLES)  $(WARNINGS) \
 	$(DECTRIS_EXAMPLES)/cbf_template_t.c -o $@
 
@@ -1675,6 +1693,7 @@ $(BIN)/cbf_template_t: $(DECTRIS_EXAMPLES)/cbf_template_t.c \
 # testcell example program
 #
 $(BIN)/testcell: $(LIB)/libcbf.a $(EXAMPLES)/testcell.C
+	mkdir -p $(BIN)
 	$(C++) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/testcell.C -L$(LIB) \
 	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -o $@
@@ -1683,6 +1702,7 @@ $(BIN)/testcell: $(LIB)/libcbf.a $(EXAMPLES)/testcell.C
 # cif2c example program
 #
 $(BIN)/cif2c: $(LIB)/libcbf.a $(EXAMPLES)/cif2c.c
+	mkdir -p $(BIN)
 	$(C++) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/cif2c.c -L$(LIB) \
 	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -o $@
@@ -1691,6 +1711,7 @@ $(BIN)/cif2c: $(LIB)/libcbf.a $(EXAMPLES)/cif2c.c
 # sauter_test example program
 #
 $(BIN)/sauter_test: $(LIB)/libcbf.a $(EXAMPLES)/sauter_test.C
+	mkdir -p $(BIN)
 	$(C++) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/sauter_test.C -L$(LIB) \
 	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -o $@
@@ -1700,6 +1721,7 @@ $(BIN)/sauter_test: $(LIB)/libcbf.a $(EXAMPLES)/sauter_test.C
 #
 $(BIN)/sequence_match: $(LIB)/libcbf.a $(EXAMPLES)/sequence_match.c $(LIB)/libimg.a \
 	$(GOPTLIB)	$(GOPTINC)
+	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/sequence_match.c $(GOPTLIB) -L$(LIB) \
 	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -limg -o $@
@@ -1709,6 +1731,7 @@ $(BIN)/sequence_match: $(LIB)/libcbf.a $(EXAMPLES)/sequence_match.c $(LIB)/libim
 #
 $(BIN)/tiff2cbf: $(LIB)/libcbf.a $(EXAMPLES)/tiff2cbf.c \
 	$(GOPTLIB)	$(GOPTINC) $(TIFF)
+	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	-I$(TIFF)/libtiff $(EXAMPLES)/tiff2cbf.c $(GOPTLIB) -L$(LIB) \
 	-lcbf -L$(TIFF_PREFIX)/lib -ltiff $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -limg -o $@
@@ -1718,6 +1741,7 @@ $(BIN)/tiff2cbf: $(LIB)/libcbf.a $(EXAMPLES)/tiff2cbf.c \
 #
 $(BIN)/arvai_test: $(LIB)/libcbf.a $(EXAMPLES)/arvai_test.c $(LIB)/libimg.a \
 	$(GOPTLIB)	$(GOPTINC)
+	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/arvai_test.c $(GOPTLIB) -L$(LIB) \
 	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -limg -o $@
@@ -1726,6 +1750,7 @@ $(BIN)/arvai_test: $(LIB)/libcbf.a $(EXAMPLES)/arvai_test.c $(LIB)/libimg.a \
 # testreals example program
 #
 $(BIN)/testreals: $(LIB)/libcbf.a $(EXAMPLES)/testreals.c
+	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/testreals.c -L$(LIB) \
 	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -o $@
@@ -1734,6 +1759,7 @@ $(BIN)/testreals: $(LIB)/libcbf.a $(EXAMPLES)/testreals.c
 # testflat example program
 #
 $(BIN)/testflat: $(LIB)/libcbf.a $(EXAMPLES)/testflat.c
+	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/testflat.c -L$(LIB) \
 	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -o $@
@@ -1741,6 +1767,7 @@ $(BIN)/testflat: $(LIB)/libcbf.a $(EXAMPLES)/testflat.c
 # testflatpacked example program
 #
 $(BIN)/testflatpacked: $(LIB)/libcbf.a $(EXAMPLES)/testflatpacked.c
+	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/testflatpacked.c -L$(LIB) \
 	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -o $@
@@ -1750,6 +1777,7 @@ ifneq ($(F90C),)
 # test_xds_binary example program
 #
 $(BIN)/test_xds_binary: $(LIB)/libfcb.a $(EXAMPLES)/test_xds_binary.f90
+	mkdir -p $(BIN)
 	$(F90C) $(F90FLAGS) $(F90LDFLAGS) $(EXAMPLES)/test_xds_binary.f90 \
 	-L$(LIB) -lfcb -o $@
 
@@ -1757,6 +1785,7 @@ $(BIN)/test_xds_binary: $(LIB)/libfcb.a $(EXAMPLES)/test_xds_binary.f90
 # test_fcb_read_image example program
 #
 $(BIN)/test_fcb_read_image: $(LIB)/libfcb.a $(EXAMPLES)/test_fcb_read_image.f90
+	mkdir -p $(BIN)
 	$(F90C) $(F90FLAGS) $(F90LDFLAGS) $(EXAMPLES)/test_fcb_read_image.f90 \
 	-L$(LIB) -lfcb -o $@
 endif
@@ -1765,6 +1794,7 @@ endif
 # testcbf (C)
 #
 $(BIN)/ctestcbf: $(EXAMPLES)/testcbf.c $(LIB)/libcbf.a
+	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/testcbf.c -L$(LIB) \
 	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -o $@
@@ -1773,6 +1803,7 @@ $(BIN)/ctestcbf: $(EXAMPLES)/testcbf.c $(LIB)/libcbf.a
 # testcbf (Java)
 #
 $(BIN)/testcbf.class: $(EXAMPLES)/testcbf.java $(JCBF)/cbflib-$(VERSION).jar $(SOLIB)/libcbf_wrap.so
+	mkdir -p $(BIN)
 	$(JAVAC) -cp $(JCBF)/cbflib-$(VERSION).jar -d $(BIN) $(EXAMPLES)/testcbf.java
 	
 ifneq ($(CBF_USE_ULP),)
@@ -1780,6 +1811,7 @@ ifneq ($(CBF_USE_ULP),)
 # testulp test program
 #
 $(BIN)/testulp: $(LIB)/libcbf.a $(EXAMPLES)/testulp.c $(EXAMPLES)/unittest.h
+	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) $(EXAMPLES)/testulp.c -L$(LIB) $(LIB)/libcbf.a $(EXTRALIBS) -o $@.tmp
 	mv $@.tmp $@
 endif
@@ -1788,6 +1820,7 @@ endif
 # testhdf5 test program
 #
 $(BIN)/testhdf5: $(LIB)/libcbf.a $(EXAMPLES)/testhdf5.c $(EXAMPLES)/unittest.h
+	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/testhdf5.c -L$(LIB) $(LIB)/libcbf.a $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM)   -o $@.tmp
 	mv $@.tmp $@
@@ -1796,6 +1829,7 @@ $(BIN)/testhdf5: $(LIB)/libcbf.a $(EXAMPLES)/testhdf5.c $(EXAMPLES)/unittest.h
 # testalloc test program
 #
 $(BIN)/testalloc: $(LIB)/libcbf.a $(EXAMPLES)/testalloc.c $(EXAMPLES)/unittest.h
+	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) $(EXAMPLES)/testalloc.c -L$(LIB) $(LIB)/libcbf.a $(EXTRALIBS) -o $@.tmp
 	mv $@.tmp $@
 	
@@ -1803,6 +1837,7 @@ $(BIN)/testalloc: $(LIB)/libcbf.a $(EXAMPLES)/testalloc.c $(EXAMPLES)/unittest.h
 # test_cbf_airy_disk test program
 #
 $(BIN)/test_cbf_airy_disk: $(LIB)/libcbf.a $(EXAMPLES)/test_cbf_airy_disk.c
+	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) $(EXAMPLES)/test_cbf_airy_disk.c -L$(LIB) $(LIB)/libcbf.a $(EXTRALIBS) -o $@.tmp
 	mv $@.tmp $@
 
@@ -1810,6 +1845,7 @@ $(BIN)/test_cbf_airy_disk: $(LIB)/libcbf.a $(EXAMPLES)/test_cbf_airy_disk.c
 # cbf_testxfelread: test program
 #
 $(BIN)/cbf_testxfelread: $(LIB)/libcbf.a $(EXAMPLES)/cbf_testxfelread.c $(EXAMPLES)/cbf_testxfelread.h
+	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) $(EXAMPLES)/cbf_testxfelread.c -L$(LIB) $(LIB)/libcbf.a $(EXTRALIBS) -o $@.tmp
 	mv $@.tmp $@
 
@@ -2427,8 +2463,11 @@ empty:
 	@-rm -rf $(JCBF)
 	@-rm -f  $(SRC)/cbf_wrap.c 
 	@-rm -rf $(REGEX)
+	@-rm -rf $(REGEX)_install
 	@-rm -rf $(TIFF)
+	@-rm -rf $(TIFF)_install
 	@-rm -rf $(HDF5)
+	@-rm -rf $(HDF5)_install
 	@-rm -rf $(INCLUDE)/tiff*
 	@-rm -rf $(INCLUDE)/H5*
 	@-rm -rf $(INCLUDE)/hdf5*
