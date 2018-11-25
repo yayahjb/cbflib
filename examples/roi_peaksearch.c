@@ -14,49 +14,6 @@ int     convertroi(char *roi, int fastdim, int slowdim,
 
 
 
-static void gethd ( char* field, char* value, char* header )
-{
-    char *hp, *lhp, *fp, *vp;
-    int l, j;
-    char *newfield;
-    
-    /*
-     * Find the last occurance of "field" in "header"
-     */
-    
-    l = strlen (field);
-    newfield = (char*) malloc ( l + 3 );
-    *newfield = 10;
-    strncpy (newfield+1, field, l);
-    *(newfield+l+1) = '=';
-    *(newfield+l+2) = (char) 0;
-    l += 2;
-    
-    lhp = 0;
-    for (hp=header; *hp != '}'; hp++)
-    {
-        for (fp=newfield, j=0; j<l && *(hp+j) == *fp; fp++, j++);
-        if ( j == l ) lhp=hp;
-    }
-    
-    if ( lhp == 0 )
-        value[0] = 0;
-    else
-    {
-        /*
-         * Find the '='.  hp will now point to the '='
-         */
-        for (hp=lhp; *hp!='='; hp++);
-        
-        /*
-         * Copy into the returned value until the ';'
-         */
-        for (lhp=hp+1, vp=value; *lhp!=';' && *lhp!=0; lhp++, vp++) *vp = *lhp;
-        *(vp++)=0;
-    }
-    free (newfield);
-}
-
 
 
 #define        MAX_PEAKS    20000
@@ -77,28 +34,21 @@ void    usage()
 
 int     main (int argc, char **argv)
 {
-    unsigned short *raw;
     unsigned short *out;
     char * filename = NULL;      /* The input file name */
-    char * hp;
     char * maskname = NULL;      /* An optional mask file (e.g. BKGINIT.cbf) */
     char * overlayname = NULL;   /* An optional peak/roi overlay file */
     int        min_spacing = 6;  /* Minimum spacing in pixels between spots */
     int        min_value = 0;    /* Minimum valid value */
     double     ioversig = 2.;    /* Minimum peak height in I/sigma(I) */
-    int    dim, size[10], type;
     int    xsize, ysize;
-    int    istat, lhead;
     char * roi = NULL;
     char * strstrhit;
     int    n_peaks;
     int    i;
-    int    binagain = 0;
     FILE   *fp;
-    FILE   *ovlp;
+    FILE   *ovlp=NULL;
     
-    char  field[128];
-    char  *header;
     
     int nStat = 0;
     
@@ -125,7 +75,7 @@ int     main (int argc, char **argv)
     int    fastlow, fasthigh, slowlow, slowhigh;
     unsigned short    *ushort_data, *up;
     int*   pnData, *ip;
-    int*   pmaskData;
+    int*   pmaskData=NULL;
     int    lastgood;
     int    error;
     
@@ -240,7 +190,6 @@ int     main (int argc, char **argv)
         if(0 == cbf_cistrcmp("--binagain", argv[1])
            || 0 == cbf_cistrcmp("-binagain",argv[1]))
         {
-            binagain = 1;
             argv++;
             argc--;
             continue;
@@ -446,7 +395,7 @@ int     main (int argc, char **argv)
         int heat, min_crossw, min_crossh;
         fprintf(fp, "%7.2f %7.2f  %9.2f\n", peaks[i].x+fastlow, peaks[i].y+slowlow, peaks[i].isigma);
         if (overlayname) {
-            int tempx, tempy;
+            int tempx, tempy=0;
             min_crossw = (peaks[i].peakfw+1)/2-1;
             min_crossh = (peaks[i].peakfh+1)/2-1;
             if (min_crossw<1) min_crossw=1;

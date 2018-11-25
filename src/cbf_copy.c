@@ -974,6 +974,12 @@ extern "C" {
                         unsigned long maxlonguint;
                         
                         double onemore;
+
+                        CBF_UNUSED( onemore );
+
+                        CBF_UNUSED( loword );
+
+                        CBF_UNUSED( hiword );
                         
                         maxlonguint = ~0;
                         
@@ -1853,7 +1859,7 @@ extern "C" {
                                                 /*if (valtemp < minval || valtemp > maxval) {
                                                     
                                                     free(array); free(narray); return CBF_OVERFLOW;
-                                                }*
+                                                }*/
                                                 
                                                 ((signed long long int *)narray)[icount] = (signed long long int)valtemp;
                                             }

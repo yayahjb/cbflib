@@ -1268,6 +1268,7 @@ ifneq ($(CBFLIB_DONT_USE_LZ4),yes)
 build_lz4:	$(M4)/Makefile.m4 
 	touch build_lz4
 $(LZ4): $(HDF5)	build_lz4
+	mkdir -p $(SOLIB)
 	-rm -rf $(LZ4)
 	-rm -rf $(LZ4).tar.gz
 	$(DOWNLOAD) $(LZ4_URL)
@@ -1278,7 +1279,6 @@ $(LZ4): $(HDF5)	build_lz4
 	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(LZ4src)/h5zlz4.c -o h5zlz4.o; \
 	$(CC) -shared lz4.o h5zlz4.o -o $(SOLIB)/libh5zlz4.so; \
 	rm lz4.o h5zlz4.o) 
-	touch build_lz4
 	touch $(LZ4)
 endif
 
@@ -1290,6 +1290,7 @@ ifneq ($(CBFLIB_DONT_USE_BSHUF),yes)
 build_BSHUF:	$(M4)/Makefile.m4 
 	touch build_BSHUF
 $(BSHUF): $(HDF5)  build_BSHUF $(LZ4dep)
+	mkdir -p $(SOLIB)
 	-rm -rf $(BSHUF)
 	-rm -rf $(BSHUF).tar.gz
 	-rm -rf *.o
@@ -1313,7 +1314,6 @@ $(BSHUF): $(HDF5)  build_BSHUF $(LZ4dep)
 	    $(HDF5SOLIBS_LOCAL) \
 	    $(HDF5SOLIBS_SYSTEM) -o $(SOLIB)/$(BSHUFFILTER).so; \
 	rm bshuf_h5filter.o bitshuffle.o lz4.o iochain.o bshuf_h5plugin.o)
-	touch build_BSHUF
 	touch $(BSHUF)
 endif
 

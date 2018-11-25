@@ -737,7 +737,6 @@ int main (int argc, char *argv [])
     int minicbf = 0;
     int data_last = 0;
     const char *cifin, *cbfout, *updatecif;
-    const char *hdf5out;
     const char *dictionary[NUMDICTS];
     int dqrflags[NUMDICTS];
     char *ciftmp=NULL;
@@ -847,7 +846,6 @@ int main (int argc, char *argv [])
     cifin = NULL;
     cbfout = NULL;
     cbfsave = NULL;
-    hdf5out = NULL;
     updatecif = NULL;
     eoi = NULL;
     foi = NULL;
@@ -1359,7 +1357,6 @@ int main (int argc, char *argv [])
         } else {
             if (!cbfout) {
                 cbfout = optarg;
-                hdf5out = "hdf5test.h5";
             } else {
                 errflg++;
             }
@@ -2003,7 +2000,7 @@ int main (int argc, char *argv [])
                     size_t dbsz = strlen(datablock_name);
                     size_t odbsz = strlen(odatablock_name);
                     size_t ndbsz;
-                    size_t idb, kdb;
+                    size_t idb;
                     for (idb = 0; idb < dbsz && idb < odbsz && idb < 69; idb++) {
                         if (toupper(db[idb]) == toupper(odb[idb])) continue;
                         break;

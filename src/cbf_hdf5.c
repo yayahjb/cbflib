@@ -6132,6 +6132,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             hid_t cur_group = CBF_H5FAIL;
             const char * cur_name = NULL;
             int found;
+            CBF_UNUSED( cur_name );
             if (nx->nxdetectors&&nx->num_detectors>0&&!name&&!group){
                 nx->cur_detector = 0;
                 return error;
@@ -6915,6 +6916,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 htri_t svexists, uvexists;
                 int errorsave;
                 char * endptr;
+                CBF_UNUSED( wuvaslong );
+                CBF_UNUSED( wsvaslong );
                 _cbf_strncpy(datasetnameprefix,datasetname,5);
                 datasetnameprefix[5] = '\0';
                 if (!cbf_cistrcmp(datasetnameprefix,"data_")) {
@@ -8265,6 +8268,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         data_dataid       = master_dataid       = CBF_H5FAIL;
         
         dsetid = CBF_H5FAIL;
+
+        CBF_UNUSED( dsetid );
+
+        CBF_UNUSED( nxdetector );
         
         cbf_failnez(cbf_h5handle_require_entry(data_h5handle,0,0));
         
@@ -8994,6 +9001,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                         hsize_t dsmaxdims[1];
                         
                         int havedmn;
+
+                        CBF_UNUSED( havedmn );
                         
                         havedmn = 0;
                         
@@ -9622,6 +9631,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         int errorcode;
 
         size_t len1, len2;
+        
+        CBF_UNUSED( errorcode );
 
         if (!string1 || !string2 || !stringout) return CBF_ARGUMENT;
 
@@ -10585,7 +10596,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
     
         int errorcode = 0;
         
-        int rownum;
+        unsigned int rownum;
         
         if (!h5handle || !axis_id || !parent_path ) return CBF_ARGUMENT;
         
@@ -10737,7 +10748,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         int errorcode = 0;
         
-        int targetrow;
+        unsigned int targetrow;
         
         if (!h5handle || !axis_id || !nexus_path ) return CBF_ARGUMENT;
         
@@ -10976,6 +10987,30 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             hsize_t two = 2;
             
             int isrot;
+
+            CBF_UNUSED( axisrangetot );
+
+            CBF_UNUSED( axisrangeavg );
+
+            CBF_UNUSED( axisequipment );
+
+            CBF_UNUSED( equipmentclass );
+
+            CBF_UNUSED( dprop );
+
+            CBF_UNUSED( dtype );
+
+            CBF_UNUSED( nxaxisrangetotid );
+
+            CBF_UNUSED( nxaxisrangeavgid );
+
+            CBF_UNUSED( nxaxisendpointid );
+
+            CBF_UNUSED( zero );
+
+            CBF_UNUSED( one );
+
+            CBF_UNUSED( two );
             
             cbf_reportnez(cbf_find_datablock(handle, datablock),errorcode);
 
@@ -11190,6 +11225,12 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     double range, scan_range_average;
                     
                     double scan_range_total[2];
+
+                    CBF_UNUSED( maxsize );
+
+                    CBF_UNUSED( chunk );
+
+                    CBF_UNUSED( mtype );
                     
                     cbf_reportnez(cbf_alloc(((void **) &scanarray),NULL,
                                             sizeof(double),scanpoints),errorcode);
@@ -11569,7 +11610,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 
             }
 
-            if (axisendpointpath) cbf_free_text(&axisendpointpath,0);
+            if (axisendpointpath) cbf_free_text((const char **)(&axisendpointpath),0);
             
             if (cbf_H5Ivalid(poiseid)){
             
@@ -11770,6 +11811,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             size_t ii, rank, adim;
             
             double oldvec[dimension];
+
+            CBF_UNUSED( adim );
+
+            CBF_UNUSED( attribsize );
             
             for (ii = 0; ii < dimension; ii++) oldvec[ii] = -1.e38;
             
@@ -12754,7 +12799,17 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         void * datasettextbuffer;
         
-        size_t text_size, old_size, new_size, ii;
+        size_t text_size, old_size, new_size;
+
+        CBF_UNUSED( maxdssize );
+
+        CBF_UNUSED( dssize );
+
+        CBF_UNUSED( memsize );
+
+        CBF_UNUSED( curdim );
+
+        CBF_UNUSED( chunk );
         
         datasetspace = datasettype = memspace = memtype = CBF_H5FAIL;
         
@@ -12989,7 +13044,19 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         void * datasettextbuffer;
         
         size_t text_size, old_size, new_size, ii;
-        
+       
+        CBF_UNUSED( dssize );
+
+        CBF_UNUSED( dsexists );
+
+        CBF_UNUSED( count );
+
+        CBF_UNUSED( stride );
+
+        CBF_UNUSED( ndims );
+
+        CBF_UNUSED( ndatasetspace );
+ 
         datasetspace = datasettype = memspace = memtype = CBF_H5FAIL;
         
         ndatasetspace = ndatasettype = nmemtype = CBF_H5FAIL;
@@ -13764,6 +13831,18 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         hsize_t dsdims[2];
         
         hsize_t dsmaxdims[2];
+
+        CBF_UNUSED( dssize );
+
+        CBF_UNUSED( dsexists );
+
+        CBF_UNUSED( count );
+
+        CBF_UNUSED( stride );
+
+        CBF_UNUSED( ndims );
+
+        CBF_UNUSED( ndatasetspace) ;
         
         datasetspace = datasettype = memspace = memtype = CBF_H5FAIL;
         
@@ -13881,6 +13960,21 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         hsize_t dsdims[1];
 
         hsize_t dsmaxdims[1];
+
+        CBF_UNUSED( memsize );
+
+        CBF_UNUSED( dssize );
+
+        CBF_UNUSED( dsexists );
+
+        CBF_UNUSED( count );
+
+        CBF_UNUSED( stride );
+
+        CBF_UNUSED( ndims );
+
+        CBF_UNUSED( ndatasetspace );
+
 
         datasetspace = datasettype = memspace = memtype = CBF_H5FAIL;
 
@@ -14164,6 +14258,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
         chunk[0] = 1;
 
+        CBF_UNUSED( ndatasetspace );
+
+        CBF_UNUSED( memsize );
+
         /* ensure arguments all given */
 
         if (hid < 0 || !datasetname ||
@@ -14416,6 +14514,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         hsize_t dsdims[1];
         
         hsize_t dsmaxdims[1];
+
+        CBF_UNUSED( memsize );
+
+        CBF_UNUSED( ndatasetspace );
         
         datasetspace = datasettype = memspace = memtype = CBF_H5FAIL;
         
@@ -16407,6 +16509,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     const char * mappedname;
 
                     const char * units;
+
+                    CBF_UNUSED( mappedname );
+
+                    CBF_UNUSED( units );
 
                     if (cbf_cistrcmp((category->child[column])->name,"wavelength")==0){
 
@@ -19091,7 +19197,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                             CBF_CALL(_cbf_nx2cbf_table__diffrn_data_frame(cbf,nx,table));
                             CBF_CALL(cbf_require_column(cbf,"details"));
                             /* write the data */
-                            CBF_CALL(cbf_set_value(cbf,value[0]));
+                            CBF_CALL(cbf_set_value(cbf,value));
                             
                             free((void*)value);
                         }
@@ -20609,6 +20715,17 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                           void * datasettextbuffer;
                           int errorcode=0;
                           hid_t datasetid=object;
+                          CBF_UNUSED( rank );
+                          CBF_UNUSED( datasettext );
+                          CBF_UNUSED( slaberr );
+                          CBF_UNUSED( dsmaxdims );
+                          CBF_UNUSED( maxdssize );
+                          CBF_UNUSED( dssize );
+                          CBF_UNUSED( dsexists );
+                          CBF_UNUSED( memsize );
+                          CBF_UNUSED( curdim );
+                          CBF_UNUSED( chunk );
+                          CBF_UNUSED( slab );
                           datasetspace = (hid_t)-1;
                           datasettype = (hid_t)-1;
                           memspace = (hid_t)-1;

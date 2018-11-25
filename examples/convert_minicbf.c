@@ -615,6 +615,8 @@ int cbf_parse_sls_header(cbf_handle cbf, const char * buffer,
             int yyyy,mm,dd,hr,mn;
             
             double ss;
+
+            CBF_UNUSED( notime );
             
             errflg = 0;
             
@@ -1876,6 +1878,8 @@ int main (int argc, char *argv [])
     cbf_getopt_handle opts;
     
     
+    CBF_UNUSED( transpose );
+
     /* Usage */
     
     cbfin = NULL;
@@ -2110,6 +2114,8 @@ int main (int argc, char *argv [])
             int ignore;
             
             char * bufptr;
+
+            CBF_UNUSED( ignore );
             
             slen = strlen(buf);
             

@@ -310,18 +310,6 @@ extern "C" {
             following the CBF value conventions
     */
     
-    static int cbf_create_bracket_tree(cbf_node * * brackettree, CBF_NODETYPE brackettype) {
-        
-        if (brackettype == CBF_BKT || brackettype == CBF_BRC || brackettype == CBF_PRN) {
-            
-            cbf_failnez(cbf_make_node(brackettree, brackettype, NULL, NULL))
-        
-            return 0;
-            
-        } 
-        
-        return CBF_ARGUMENT;
-    }
     
     /* insert a column number into the buffer for the commentfile */
     
@@ -1009,7 +997,7 @@ extern "C" {
                                size_t   targetdepth, 
                                size_t   targetindex ) {
         
-        int *tokentype;
+        int *tokentype=NULL;
         
         int **vtokentype;
         

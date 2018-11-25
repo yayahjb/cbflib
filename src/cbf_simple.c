@@ -1886,6 +1886,8 @@ extern "C" {
         int error = 0;
         
         long precedence, maxprecedence;
+
+        CBF_UNUSED( error );
         
         maxprecedence = 0;
 
@@ -2039,6 +2041,7 @@ extern "C" {
         
         const char * direction;
         
+        CBF_UNUSED( error );
         
         if ( !handle
             || !array_section_id ) return CBF_ARGUMENT;
@@ -8419,6 +8422,10 @@ extern "C" {
         unsigned int element;
 
         const char *element_id;
+
+        CBF_UNUSED( ncenter1 );
+
+        CBF_UNUSED( ncenter2 );
 
         if (!detector)
 

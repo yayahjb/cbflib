@@ -4552,6 +4552,8 @@ int cbf_require_saveframe (cbf_handle  handle,
 
   }
 
+  return 0;
+
 }
 
   /* Find a category, creating it if necessary */
@@ -7266,6 +7268,10 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     
     long yyyy, mm, dd, hr, mi, se, sf, tz;
 
+    CBF_UNUSED(dtest);
+
+    CBF_UNUSED(ltest);
+
     valuestring = ((char *)node)+1;
     
     tokentype = (((char *)node)[0]);
@@ -8419,6 +8425,8 @@ int cbf_mpint_leftshift_acc(unsigned int * acc, size_t acsize, int shift) {
   unsigned int extrabits, xextrabits, mask;
 
   unsigned int sign;
+
+  CBF_UNUSED(sign);
   
   sign = 1 << (sizeof(unsigned int)*CHAR_BIT-1);
   
