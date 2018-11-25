@@ -30984,7 +30984,12 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                             ((cbf_h5Ovisithandle)op_data)->incbf = 1;
                         }
 
-                        if (!cbf_cistrcmp(value,"NXpdb")) {
+                        if (!cbf_cistrcmp(value,"NXpdb")
+                            || !cbf_cistrcmp(value,"CBF_cbf")
+                            || !cbf_cistrcmp(value,"CBF_cbfdb")
+                            || !cbf_cistrcmp(value,"CBF_cbfsf")
+                            || !cbf_cistrcmp(value,"CBF_cbfcat")
+                            || !cbf_cistrcmp(value,"CBF_cbfcol")) {
 
                             /* The top level (1) NXpdb group may contain one or more
                              NXpdb groups, each of which is a data block.
