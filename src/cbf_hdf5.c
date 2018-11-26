@@ -30923,6 +30923,12 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                     value_nxpdb_class=NULL;
                     cbf_reportnez(_cbf_Attrval(group_id,"NXpdb_class", &value_nxpdb_class),errorcode);
                     cbf_debug_print2("NXpdb_class %s\n",value_nxpdb_class);
+
+                    if (value_nx_class && !(value_nxpdb_class) ) {
+                      value_nxpdb_class=NULL;
+                      cbf_reportnez(_cbf_Attrval(group_id,"NX_class", &value_nxpdb_class),errorcode);
+                      cbf_debug_print2("NXpdb_class %s\n",value_nxpdb_class);
+                    }
                 }
 
                 for (i=0; (ssize_t)i < attrib_num; i++) {
@@ -30996,7 +31002,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                              Each data block is a level 2 NXpdb group which may contain
                              one of more  categories or savefames.  Each level 3 category is
                              a NXpdb group which may contain one or more
-                             columns.  In that case, each column is an level 4 NXpdb group.
+                             columns.  In that case, each column is a level 4 NXpdb group.
                              Each level 3 saveframe is a NXpdb group with an NXpdb_class
                              of CBF_cbfsf which may contain level 4 categories.
                              */

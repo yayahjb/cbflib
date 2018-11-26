@@ -258,7 +258,7 @@ VERSION = 'cbf_version`
 #
 # Directories
 #
-ROOT     = .
+ROOT     = $(PWD)
 LIB      = $(ROOT)/lib
 SOLIB    = $(ROOT)/solib
 JCBF     = $(ROOT)/jcbf
@@ -600,7 +600,7 @@ F90LDFLAGS = -bind_at_load
 SOCFLAGS = -fPIC
 SOLDFLAGS = -dynamiclib -Wl,-rpath,$(CBF_PREFIX)/lib
 JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
-LDPREFIX = DYLD_LIBRARY_PATH=$(SOLIB):$$DYLD_LIBRARY_PATH;
+LDPREFIX = DYLD_LIBRARY_PATH=$(SOLIB):$$DYLD_LIBRARY_PATH;export DYLD_LIBRARY_PATH;
 EXTRALIBS = -lm
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time
@@ -623,7 +623,7 @@ F90LDFLAGS = -bind_at_load
 SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(CBF_PREFIX)/lib
 JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
-LDPREFIX = DYLD_LIBRARY_PATH=$(SOLIB):$$DYLD_LIBRARY_PATH;
+LDPREFIX = DYLD_LIBRARY_PATH=$(SOLIB):$$DYLD_LIBRARY_PATH;export DYLD_LIBRARY_PATH;
 EXTRALIBS = -lm -L$(HOME)/lib -ldmalloc
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time
@@ -647,7 +647,7 @@ F90LDFLAGS =
 SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(CBF_PREFIX)/lib
 JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
-LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$$LD_LIBRARY_PATH;
+LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
 EXTRALIBS = -lm
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time',
@@ -668,7 +668,7 @@ F90LDFLAGS =
 SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(CBF_PREFIX)/lib
 JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
-LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$$LD_LIBRARY_PATH;
+LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
 EXTRALIBS = -lm
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time',
@@ -688,7 +688,7 @@ F90LDFLAGS =
 SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(CBF_PREFIX)/lib
 JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
-LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$$LD_LIBRARY_PATH;
+LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
 EXTRALIBS = -lm
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time',
@@ -709,7 +709,7 @@ F90LDFLAGS =
 SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(CBF_PREFIX)/lib
 JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
-LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$$LD_LIBRARY_PATH;
+LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
 EXTRALIBS = -lm -L$(HOME)/lib -ldmalloc
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time',
@@ -729,7 +729,7 @@ F90LDFLAGS =
 SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(CBF_PREFIX)/lib
 JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
-LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$$LD_LIBRARY_PATH;
+LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
 EXTRALIBS = -lm -L$(HOME)/lib -ldmalloc
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time',
@@ -747,7 +747,7 @@ F90C = xlf90
 F90FLAGS = -g -qsuffix=f=f90
 F90LDFLAGS = 
 M4FLAGS = -Dfcb_bytes_in_rec=131072
-LDPREFIX = LIBPATH=$(SOLIB):$$LIBPATH;
+LDPREFIX = LIBPATH=$(SOLIB):$$LIBPATH;export LIBPATH;
 EXTRALIBS = -lm
 TIME = time',
 cbf_system,`MINGW',`
@@ -766,7 +766,7 @@ F90C = g95
 F90FLAGS = -g
 F90LDFLAGS = 
 M4FLAGS = -Dfcb_bytes_in_rec=4096
-LDPREFIX = PATH=$(SOLIB);$$PATH;
+LDPREFIX = PATH=$(SOLIB);$$PATH;export PATH;
 SOCFLAGS = -D_JNI_IMPLEMENTATION_
 SOLDFLAGS = -shared -Wl,--kill-at
 JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/win32
@@ -800,7 +800,7 @@ F90LDFLAGS =
 SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(CBF_PREFIX)/lib
 JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
-LDPREFIX = PATH=$(SOLIB);$$PATH;
+LDPREFIX = PATH=$(SOLIB);$$PATH;export PATH;
 EXTRALIBS = -L/mingw64/bin -lm
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 PYTHON = python2
@@ -845,7 +845,7 @@ F90LDFLAGS =
 SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(CBF_PREFIX)/lib
 JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
-LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$$LD_LIBRARY_PATH;
+LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
 EXTRALIBS = -lm
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time')`
@@ -2375,7 +2375,7 @@ basic:	$(BIN)/makecbf $(BIN)/img2cif $(BIN)/cif2cbf $(TESTINPUT_BASIC)
 # Extra Tests
 #
 $(MINICBF_TEST)/minicbf.h5:
-	cd $(MINICBF_TEST); $(TIME) ../$(BIN)/minicbf2nexus -c zlib \
+	cd $(MINICBF_TEST); $(TIME) $(BIN)/minicbf2nexus -c zlib \
 	-C config $(HDF5REGISTER) -o minicbf.h5  ../X4_lots_M1S4_1_*.cbf
 mb_LP_1_001.cbf:
 	$(BIN)/adscimg2cbf --no_pad  --cbf_packed,flat mb_LP_1_001.img
@@ -2494,7 +2494,7 @@ endif
 ifneq ($(CBF_USE_ULP),)
 	$(LDPREFIX)  $(TIME) $(BIN)/testulp
 endif
-	$(LDPREFIX) cd $(MINICBF_TEST); $(TIME) ../$(BIN)/minicbf2nexus -c zlib \
+	$(LDPREFIX) cd $(MINICBF_TEST); $(TIME) $(BIN)/minicbf2nexus -c zlib \
 	-C config $(HDF5REGISTER) -o minicbf.h5  ../X4_lots_M1S4_1_*.cbf
 	$(LDPREFIX) cd $(MINICBF_TEST); $(TIME) $(H5DUMP) ../minicbf_orig.h5 | $(ALLBUTONE) > minicbf_original.dump
 	$(LDPREFIX) cd $(MINICBF_TEST); $(TIME) $(H5DUMP) minicbf.h5 | $(ALLBUTONE) > minicbf.dump
@@ -2502,13 +2502,13 @@ endif
 	$(LDPREFIX) cd $(MINICBF_TEST); rm -f minicbf_original.dump
 	$(LDPREFIX) cd $(MINICBF_TEST); rm -f minicbf.dump
 	cd $(MINICBF_TEST); rm -f minicbf.h5
-	$(LDPREFIX) cd $(MINICBF_TEST); $(TIME) ../$(BIN)/cbf2nexus -c zlib \
+	$(LDPREFIX) cd $(MINICBF_TEST); $(TIME) $(BIN)/cbf2nexus -c zlib \
 	--list -o i19-1.h5 ../1191_00005.cbf
-	$(LDPREFIX) cd $(MINICBF_TEST); $(TIME) ../$(BIN)/nexus2cbf \
+	$(LDPREFIX) cd $(MINICBF_TEST); $(TIME) $(BIN)/nexus2cbf \
 	-o i19-1.cbf i19-1.h5
-	$(LDPREFIX) cd $(MINICBF_TEST); $(TIME) ../$(BIN)/cbf2nexus -c zlib \
+	$(LDPREFIX) cd $(MINICBF_TEST); $(TIME) $(BIN)/cbf2nexus -c zlib \
 	--list -o i19-2.h5 i19-1.cbf
-	$(LDPREFIX) cd $(MINICBF_TEST); $(TIME) ../$(BIN)/nexus2cbf \
+	$(LDPREFIX) cd $(MINICBF_TEST); $(TIME) $(BIN)/nexus2cbf \
 	-o i19-2.cbf i19-2.h5
 	$(LDPREFIX) cd $(MINICBF_TEST); $(TIME) $(H5DUMP) i19-1.h5 | $(ALLBUTONE) > i19-1.dump
 	$(LDPREFIX) cd $(MINICBF_TEST); $(TIME) $(H5DUMP) i19-2.h5 | $(ALLBUTONE) > i19-2.dump
@@ -2620,11 +2620,11 @@ pycbftests:  $(PYCBF)/_pycbf.$(PYCBFEXT) $(BIN)/cbf_standardize_numbers
 	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_test3.py)
 	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_test4.py)
 	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_testfelaxes.py fel_test1.cbf |\
-		../$(BIN)/cbf_standardize_numbers - 4 > fel_test1.out)
+		$(BIN)/cbf_standardize_numbers - 4 > fel_test1.out)
 	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_testfelaxes.py fel_test2.cbf |\
-		../$(BIN)/cbf_standardize_numbers - 4 > fel_test2.out)
+		$(BIN)/cbf_standardize_numbers - 4 > fel_test2.out)
 	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_testfelaxes.py ../hit-20140306005258847.cbf |\
-		../$(BIN)/cbf_standardize_numbers - 4 > fel_test3.out)
+		$(BIN)/cbf_standardize_numbers - 4 > fel_test3.out)
 	-$(BIN)/cbf_standardize_numbers $(PYCBF)/fel_test1_orig.out 4 | \
 		$(DIFF) $(PYCBF)/fel_test1.out -
 	-$(BIN)/cbf_standardize_numbers $(PYCBF)/fel_test2_orig.out 4 | \
