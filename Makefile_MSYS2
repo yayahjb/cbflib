@@ -2091,11 +2091,11 @@ basic:	$(BIN)/makecbf $(BIN)/img2cif $(BIN)/cif2cbf $(TESTINPUT_BASIC)
 	$(LDPREFIX)  $(BIN)/makecbf example.mar2300 makecbf.cbf
 	$(LDPREFIX)  $(BIN)/img2cif -c flatpacked -m headers -d digest \
 	-e base64  example.mar2300  img2cif_packed.cif
-	$(BIN)/img2cif -c canonical -m headers -d digest \
+	$(LDPREFIX)  $(BIN)/img2cif -c canonical -m headers -d digest \
 	-e base64  example.mar2300  img2cif_canonical.cif
-	$(BIN)/img2cif -c flatpacked -m headers -d digest \
+	$(LDPREFIX)  $(BIN)/img2cif -c flatpacked -m headers -d digest \
 	-e none  example.mar2300  img2cif_packed.cbf
-	$(BIN)/img2cif -c canonical -m headers -d digest \
+	$(LDPREFIX)  $(BIN)/img2cif -c canonical -m headers -d digest \
 	-e none  example.mar2300  img2cif_canonical.cbf
 	$(LDPREFIX)  $(BIN)/cif2cbf -e none -c flatpacked \
 	img2cif_canonical.cif cif2cbf_packed.cbf
@@ -2110,10 +2110,10 @@ basic:	$(BIN)/makecbf $(BIN)/img2cif $(BIN)/cif2cbf $(TESTINPUT_BASIC)
 # Extra Tests
 #
 $(MINICBF_TEST)/minicbf.h5:
-	cd $(MINICBF_TEST); $(TIME) $(BIN)/minicbf2nexus -c zlib \
+	cd $(MINICBF_TEST); $(LDPREFIX)  $(TIME) $(BIN)/minicbf2nexus -c zlib \
 	-C config $(HDF5REGISTER) -o minicbf.h5  ../X4_lots_M1S4_1_*.cbf
 mb_LP_1_001.cbf:
-	$(BIN)/adscimg2cbf --no_pad  --cbf_packed,flat mb_LP_1_001.img
+	$(LDPREFIX) $(BIN)/adscimg2cbf --no_pad  --cbf_packed,flat mb_LP_1_001.img
 
 
 
@@ -2173,7 +2173,7 @@ endif
 	-$(LDPREFIX)  $(TIME) $(BIN)/convert_minicbf -p $(TEMPLATES)/template_pilatus6m_2463x2527.cbf -d pilatus6m insulin_pilatus6m.cbf insulin_pilatus6mconverted_v2.cbf
 	-cmp insulin_pilatus6mconverted_v2.cbf insulin_pilatus6mconverted_v2_orig.cbf
 	(CBF_CONVERT_MINICBF_PATH=$(BIN); export CBF_CONVERT_MINICBF_PATH; \
-	    $(EXAMPLES)/batch_convert_minicbf.sh "." "minicbf_test" \
+	     $(LDPREFIX) $(EXAMPLES)/batch_convert_minicbf.sh "." "minicbf_test" \
 	    "X4_lots_M1S4_1_*.cbf"  $(TEMPLATES)/template_X4_lots_M1S4.cbf)
 	-$(LDPREFIX)  (HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
 	$(TIME) $(BIN)/cif2cbf -5 w -O $(HDF5REGISTER) -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconverted.cbf.h5)
