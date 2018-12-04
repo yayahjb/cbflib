@@ -578,6 +578,11 @@ LDFLAGS =
 F90C = gfortran
 F90FLAGS = -g -fno-range-check
 F90LDFLAGS = -bind_at_load
+SOCFLAGS = -fPIC
+SOLDFLAGS = -dynamiclib -Wl,-rpath,$(CBF_PREFIX)/lib
+JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
+LDPREFIX = DYLD_LIBRARY_PATH=$(SOLIB):$$DYLD_LIBRARY_PATH;export DYLD_LIBRARY_PATH;
+RUNLDPREFIX = DYLD_LIBRARY_PATH=$(CBF_PREFIX)/lib:$$DYLD_LIBRARY_PATH;export DYLD_LIBRARY_PATH;
 EXTRALIBS = -lm
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time
@@ -601,6 +606,7 @@ SOCFLAGS = -fPIC
 SOLDFLAGS = -dynamiclib -Wl,-rpath,$(CBF_PREFIX)/lib
 JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
 LDPREFIX = DYLD_LIBRARY_PATH=$(SOLIB):$$DYLD_LIBRARY_PATH;export DYLD_LIBRARY_PATH;
+RUNLDPREFIX = DYLD_LIBRARY_PATH=$(CBF_PREFIX)/lib:$$DYLD_LIBRARY_PATH;export DYLD_LIBRARY_PATH;
 EXTRALIBS = -lm
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time
@@ -624,6 +630,7 @@ SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(CBF_PREFIX)/lib
 JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
 LDPREFIX = DYLD_LIBRARY_PATH=$(SOLIB):$$DYLD_LIBRARY_PATH;export DYLD_LIBRARY_PATH;
+RUNLDPREFIX = DYLD_LIBRARY_PATH=$(CBF_PREFIX)/lib:$$DYLD_LIBRARY_PATH;export DYLD_LIBRARY_PATH;
 EXTRALIBS = -lm -L$(HOME)/lib -ldmalloc
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time
@@ -648,6 +655,7 @@ SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(CBF_PREFIX)/lib
 JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
 LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
+RUNLDPREFIX = LD_LIBRARY_PATH=$(CBF_PREFIX)/lib:$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
 EXTRALIBS = -lm
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time',
@@ -669,6 +677,7 @@ SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(CBF_PREFIX)/lib
 JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
 LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
+RUNLDPREFIX = LD_LIBRARY_PATH=$(CBF_PREFIX)/lib:$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
 EXTRALIBS = -lm
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time',
@@ -689,6 +698,7 @@ SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(CBF_PREFIX)/lib
 JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
 LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
+RUNLDPREFIX = LD_LIBRARY_PATH=$(CBF_PREFIX)/lib:$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
 EXTRALIBS = -lm
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time',
@@ -710,6 +720,7 @@ SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(CBF_PREFIX)/lib
 JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
 LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
+RUNLDPREFIX = LD_LIBRARY_PATH=$(CBF_PREFIX)/lib:$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
 EXTRALIBS = -lm -L$(HOME)/lib -ldmalloc
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time',
@@ -730,6 +741,7 @@ SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(CBF_PREFIX)/lib
 JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
 LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
+RUNLDPREFIX = LD_LIBRARY_PATH=$(CBF_PREFIX)/lib:$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
 EXTRALIBS = -lm -L$(HOME)/lib -ldmalloc
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time',
@@ -748,6 +760,7 @@ F90FLAGS = -g -qsuffix=f=f90
 F90LDFLAGS = 
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 LDPREFIX = LIBPATH=$(SOLIB):$$LIBPATH;export LIBPATH;
+RUNLDPREFIX = LIBPATH=$(CBF_PREFIX)/lib:$$LIBPATH;export LIBPATH;
 EXTRALIBS = -lm
 TIME = time',
 cbf_system,`MINGW',`
@@ -766,7 +779,8 @@ F90C = g95
 F90FLAGS = -g
 F90LDFLAGS = 
 M4FLAGS = -Dfcb_bytes_in_rec=4096
-LDPREFIX = PATH=$(SOLIB);$$PATH;export PATH;
+LDPREFIX = PATH=$(SOLIB):$$PATH;export PATH;
+RUNLDPREFIX = PATH=$(CBF_PREFIX)/lib:$$PATH;export PATH;
 SOCFLAGS = -D_JNI_IMPLEMENTATION_
 SOLDFLAGS = -shared -Wl,--kill-at
 JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/win32
@@ -801,6 +815,7 @@ SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(CBF_PREFIX)/lib
 JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
 LDPREFIX = PATH=$(SOLIB);$$PATH;export PATH;
+RUNLDPREFIX = PATH=$(CBF_PREFIX)/lib:$$PATH;export PATH;
 EXTRALIBS = -L/mingw64/bin -lm
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 PYTHON = python2
@@ -822,6 +837,9 @@ LDFLAGS =
 F90C    =
 F90FLAGS =
 M4FLAGS = -Dfcb_bytes_in_rec=4096
+JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
+LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
+RUNLDPREFIX = LD_LIBRARY_PATH=$(CBF_PREFIX)/LIB:$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
 EXTRALIBS = -lm
 TIME    =
 SHAR    = shar
@@ -846,6 +864,7 @@ SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(CBF_PREFIX)/lib
 JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
 LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
+RUNLDPREFIX = LD_LIBRARY_PATH=$(CBF_PREFIX)/LIB:$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
 EXTRALIBS = -lm
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time')`
@@ -1294,6 +1313,11 @@ Makefile: $(M4)/Makefile.m4
 	m4 -P $(PYCIFRWDEF) -Dcbf_system=default $(M4)/Makefile.m4 > Makefile.tmp
 	mv Makefile.tmp Makefile 
 
+cbflib.ini: $(M4)/Makefile.m4
+	echo  "$(LDPREFIX)" > cbflib.ini
+	echo  "HDF5_PLUGIN_PATH=$(SOLIB):$$HDF5_PLUGIN_PATH" >> cbflib.ini
+	echo  "export HDF5_PLUGIN_PATH" >> cbflib.ini
+
 symlinksdone:
 	chmod a+x .symlinks
 	chmod a+x .undosymlinks
@@ -1339,6 +1363,10 @@ baseinstall:  all $(CBF_PREFIX) $(CBF_PREFIX)/lib $(CBF_PREFIX)/bin \
 	-cp $(CBF_PREFIX)/lib/libfcb.so $(CBF_PREFIX)/lib/libfcb_old.so
 	cp $(SOLIB)/libfcb.so $(CBF_PREFIX)/lib/libfcb.so
 	$(LN) $(CBF_PREFIX)/lib/libfcb.so $(CBF_PREFIX)/lib/lib_fcb.so
+	-cp $(CBF_PREFIX)/bin/cbflib.ini $(CBF_PREFIX)/bin/cbflib.ini_old
+	echo  "$(RUNLDPREFIX)" > $(CBF_PREFIX)/bin/cbflib.ini
+	echo  "HDF5_PLUGIN_PATH=$(CBF_PREFIX)/lib:$$HDF5_PLUGIN_PATH" >> $(CBF_PREFIX)/bin/cbflib.ini
+	echo  "export HDF5_PLUGIN_PATH" >> $(CBF_PREFIX)/bin/cbflib.ini
 	-cp $(CBF_PREFIX)/bin/adscimg2cbf $(CBF_PREFIX)/bin/adscimg2cbf_old
 	cp $(BIN)/adscimg2cbf $(CBF_PREFIX)/bin/adscimg2cbf
 	-cp $(CBF_PREFIX)/bin/cbf2adscimg $(CBF_PREFIX)/bin/cbf2adscimg_old
@@ -1502,7 +1530,7 @@ $(TIFF):	build_tiff config.guess config.sub
 $(TIFF)_INSTALL:    $(TIFF)
 	-rm -rf $(TIFF)_install
 	rsync -avz $(TIFF)/  $(TIFF)_install
-	(cd $(TIFF_install); make distclean; ./configure --prefix=$(CBF_PREFIX); make install)
+	(cd $(TIFF)_install; make distclean; ./configure --prefix=$(CBF_PREFIX); make install)
 
 
 ifneq ($(CBFLIB_DONT_USE_LOCAL_HDF5),yes)
@@ -2337,7 +2365,7 @@ restore_output:		$(NEWTESTOUTPUT) $(DATADIRO) $(MINICBF_TEST)/minicbf.h5
 	cp test_fcb_read_testflatpackedout.out $(DATADIRO)/test_fcb_read_testflatpackedout_orig.out
 	cp XRD1621.cbf $(DATADIRO)/XRD1621_orig.cbf
 	cp XRD1621_I4encbC100.cbf $(DATADIRO)/XRD1621_I4encbC100_orig.cbf
-	cp minicbf_orig.h5 $(DATADIRO)/minicbf_orig.h5
+	cp $(MINICBF_TEST)/minicbf.h5 $(DATADIRO)/minicbf_orig.h5
 
 restore_sigs_only:	$(NEWTESTOUTPUT) $(DATADIRS)
 	$(SIGNATURE) < adscconverted_flat.cbf > $(DATADIRS)/adscconverted_flat_orig.cbf$(SEXT)
@@ -2355,7 +2383,7 @@ restore_sigs_only:	$(NEWTESTOUTPUT) $(DATADIRS)
 	$(SIGNATURE) < test_fcb_read_testflatpackedout.out > $(DATADIRS)/test_fcb_read_testflatpackedout_orig.out$(SEXT)
 	$(SIGNATURE) < XRD1621.cbf > $(DATADIRS)/XRD1621_orig.cbf$(SEXT)
 	$(SIGNATURE) < XRD1621_I4encbC100.cbf > $(DATADIRS)/XRD1621_I4encbC100_orig.cbf$(SEXT)
-	$(SIGNATURE) < minicbf_orig.h5 > $(DATADIRS)/minicbf_orig.h5$(SEXT)
+	$(SIGNATURE) < $(MINICBF_TEST)/minicbf.h5 > $(DATADIRS)/minicbf_orig.h5$(SEXT)
 restore_signatures:	restore_output restore_sigs_only
 	
 #
@@ -2522,7 +2550,7 @@ endif
 	-cd $(MINICBF_TEST); $(DIFF) minicbf_original.dump minicbf.dump
 	$(LDPREFIX) cd $(MINICBF_TEST); rm -f minicbf_original.dump
 	$(LDPREFIX) cd $(MINICBF_TEST); rm -f minicbf.dump
-	cd $(MINICBF_TEST); rm -f minicbf.h5
+	#cd $(MINICBF_TEST); rm -f minicbf.h5
 	$(LDPREFIX) cd $(MINICBF_TEST); $(TIME) $(BIN)/cbf2nexus -c zlib \
 	--list -o i19-1.h5 ../1191_00005.cbf
 	$(LDPREFIX) cd $(MINICBF_TEST); $(TIME) $(BIN)/nexus2cbf \
