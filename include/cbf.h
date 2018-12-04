@@ -362,8 +362,8 @@ _CBF_STR(CBF_VERS_RELEASE) CBF_VERS_SUBRELEASE
 
   /* API version and assumed dictionary version */
   
-#define CBF_API_VERSION     "CBFlib v0.9.5"
-#define CBF_DIC_VERSION     "CBF: VERSION 1.7.10"
+#define CBF_API_VERSION     "CBFlib v0.9.6"
+#define CBF_DIC_VERSION     "CBF: VERSION 1.7.11"
 
   /* Maximum line length */
 

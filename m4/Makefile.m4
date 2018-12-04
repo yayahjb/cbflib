@@ -2185,6 +2185,7 @@ DATADIRI_INPUT_EXTRA = \
 TESTOUTPUT =  adscconverted_flat_orig.cbf \
 	adscconverted_orig.cbf converted_flat_orig.cbf converted_orig.cbf \
 	insulin_pilatus6mconverted_orig.cbf.h5.cbf \
+	insulin_pilatus6mconverted_orig.cbf.h5 \
 	insulin_pilatus6mconverted_v2_orig.cbf \
 	mb_LP_1_001_orig.cbf testcell_orig.prt \
 	test_xds_bin_testflatout_orig.out \
@@ -2195,6 +2196,8 @@ TESTOUTPUT =  adscconverted_flat_orig.cbf \
 NEWTESTOUTPUT = adscconverted_flat.cbf \
 	adscconverted.cbf converted_flat.cbf converted.cbf \
 	insulin_pilatus6mconverted.cbf \
+	insulin_pilatus6mconverted.cbf.h5 \
+	insulin_pilatus6mconverted.cbf.h5.cbf \
 	insulin_pilatus6mconverted_v2.cbf \
 	mb_LP_1_001.cbf testcell.prt \
 	test_xds_bin_testflatout.out \
@@ -2207,6 +2210,7 @@ DATADIRO_OUTPUT =  $(DATADIRO)/adscconverted_flat_orig.cbf \
 	$(DATADIRO)/converted_flat_orig.cbf \
 	$(DATADIRO)/converted_orig.cbf \
 	$(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5.cbf \
+	$(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5 \
 	$(DATADIRO)/insulin_pilatus6mconverted_v2_orig.cbf \
 	$(DATADIRO)/mb_LP_1_001_orig.cbf \
 	$(DATADIRO)/testcell_orig.prt \
@@ -2222,6 +2226,7 @@ DATADIRO_OUTPUT_SIGNATURES =  $(DATADIRO)/adscconverted_flat_orig.cbf$(SEXT) \
 	$(DATADIRO)/converted_flat_orig.cbf$(SEXT) \
 	$(DATADIRO)/converted_orig.cbf$(SEXT) \
 	$(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5.cbf$(SEXT) \
+	$(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5$(SEXT) \
 	$(DATADIRO)/insulin_pilatus6mconverted_v2_orig.cbf$(SEXT) \
 	$(DATADIRO)/mb_LP_1_001_orig.cbf$(SEXT) \
 	$(DATADIRO)/testcell_orig.prt$(SEXT) \
@@ -2239,6 +2244,7 @@ DATADIRO_OUTPUT_SIGNATURES =  $(DATADIRO)/adscconverted_flat_orig.cbf$(SEXT) \
 
 TESTOUTPUTSIGS = adscconverted_flat_orig.cbf$(SEXT) \
 	adscconverted_orig.cbf$(SEXT) converted_flat_orig.cbf$(SEXT) converted_orig.cbf$(SEXT) \
+	insulin_pilatus6mconverted_orig.cbf.h5$(SEXT) \
 	insulin_pilatus6mconverted_orig.cbf.h5.cbf$(SEXT) \
 	insulin_pilatus6mconverted_v2_orig.cbf$(SEXT) \
 	mb_LP_1_001_orig.cbf$(SEXT) testcell_orig.prt$(SEXT) \
@@ -2252,6 +2258,7 @@ DATADIRS_OUTPUT_SIGNATURES =  $(DATADIRS)/adscconverted_flat_orig.cbf$(SEXT) \
 	$(DATADIRS)/adscconverted_orig.cbf$(SEXT) \
 	$(DATADIRS)/converted_flat_orig.cbf$(SEXT) \
 	$(DATADIRS)/converted_orig.cbf$(SEXT) \
+	$(DATADIRS)/insulin_pilatus6mconverted_orig.cbf.h5$(SEXT) \
 	$(DATADIRS)/insulin_pilatus6mconverted_orig.cbf.h5.cbf$(SEXT) \
 	$(DATADIRS)/insulin_pilatus6mconverted_v2_orig.cbf$(SEXT) \
 	$(DATADIRS)/mb_LP_1_001_orig.cbf$(SEXT) \
@@ -2303,7 +2310,8 @@ restore_output:		$(NEWTESTOUTPUT) $(DATADIRO) $(MINICBF_TEST)/minicbf.h5
 	$(SIGNATURE) < adscconverted.cbf > $(DATADIRO)/adscconverted_orig.cbf$(SEXT)
 	$(SIGNATURE) < converted_flat.cbf > $(DATADIRO)/converted_flat_orig.cbf$(SEXT)
 	$(SIGNATURE) < converted.cbf > $(DATADIRO)/converted_orig.cbf$(SEXT)
-	$(SIGNATURE) < insulin_pilatus6mconverted.cbf > $(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5.cbf
+	$(SIGNATURE) < insulin_pilatus6mconverted.cbf.h5 > $(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5$(SEXT)
+	$(SIGNATURE) < insulin_pilatus6mconverted.cbf.h5.cbf > $(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5.cbf$(SEXT)
 	$(SIGNATURE) < insulin_pilatus6mconverted_v2.cbf > $(DATADIRO)/insulin_pilatus6mconverted_v2_orig.cbf$(SEXT)
 	$(SIGNATURE) < mb_LP_1_001.cbf$ > $(DATADIRO)/mb_LP_1_001_orig.cbf$(SEXT)
 	$(SIGNATURE) < testcell.prt > $(DATADIRO)/testcell_orig.prt$(SEXT)
@@ -2318,7 +2326,8 @@ restore_output:		$(NEWTESTOUTPUT) $(DATADIRO) $(MINICBF_TEST)/minicbf.h5
 	cp adscconverted.cbf $(DATADIRO)/adscconverted_orig.cbf
 	cp converted_flat.cbf $(DATADIRO)/converted_flat_orig.cbf
 	cp converted.cbf $(DATADIRO)/converted_orig.cbf
-	cp insulin_pilatus6mconverted.cbf  $(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5.cbf
+	cp insulin_pilatus6mconverted.cbf.h5  $(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5
+	cp insulin_pilatus6mconverted.cbf.h5.cbf  $(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5.cbf
 	cp insulin_pilatus6mconverted_v2.cbf  $(DATADIRO)/insulin_pilatus6mconverted_v2_orig.cbf
 	cp mb_LP_1_001.cbf$  $(DATADIRO)/mb_LP_1_001_orig.cbf
 	cp testcell.prt  $(DATADIRO)/testcell_orig.prt
@@ -2335,7 +2344,8 @@ restore_sigs_only:	$(NEWTESTOUTPUT) $(DATADIRS)
 	$(SIGNATURE) < adscconverted.cbf > $(DATADIRS)/adscconverted_orig.cbf$(SEXT)
 	$(SIGNATURE) < converted_flat.cbf > $(DATADIRS)/converted_flat_orig.cbf$(SEXT)
 	$(SIGNATURE) < converted.cbf > $(DATADIRS)/converted_orig.cbf$(SEXT)
-	$(SIGNATURE) < insulin_pilatus6mconverted.cbf > $(DATADIRS)/insulin_pilatus6mconverted_orig.cbf.h5.cbf$(SEXT)
+	$(SIGNATURE) < insulin_pilatus6mconverted.cbf.h5 > $(DATADIRS)/insulin_pilatus6mconverted_orig.cbf.h5$(SEXT)
+	$(SIGNATURE) < insulin_pilatus6mconverted.cbf.h5.cbf > $(DATADIRS)/insulin_pilatus6mconverted_orig.cbf.h5.cbf$(SEXT)
 	$(SIGNATURE) < insulin_pilatus6mconverted_v2.cbf > $(DATADIRS)/insulin_pilatus6mconverted_v2_orig.cbf$(SEXT)
 	$(SIGNATURE) < mb_LP_1_001.cbf$ > $(DATADIRS)/mb_LP_1_001_orig.cbf$(SEXT)
 	$(SIGNATURE) < testcell.prt > $(DATADIRS)/testcell_orig.prt$(SEXT)
@@ -2464,29 +2474,40 @@ endif
 	-rm -f insulin_pilatus6mconverted_orig.cbf.h5.dump
 	-rm -f insulin_pilatus6mconverted.cbf.h5.dump
 	-$(LDPREFIX)  (HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
-	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted.cbf.h5 -o insulin_pilatus6mconverted.cbf.h5.cbf)
-	-cmp insulin_pilatus6mconverted.cbf.h5.cbf insulin_pilatus6mconverted_orig.cbf.h5.cbf
+	$(TIME) $(BIN)/cif2cbf  -eq -cI -i insulin_pilatus6mconverted_orig.cbf.h5.cbf -o insulin_pilatus6mconverted_orig.cbf.h5.eqcI.cbf)
 	-$(LDPREFIX)  (HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
-	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_encp.cbf.h5 -o insulin_pilatus6mconverted_encp.cbf.h5.cbf)
-	-cmp insulin_pilatus6mconverted_encp.cbf.h5.cbf insulin_pilatus6mconverted_orig.cbf.h5.cbf
+	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted.cbf.h5 -o insulin_pilatus6mconverted.cbf.h5.cbf; \
+	 $(BIN)/cif2cbf  -eq -cI -i insulin_pilatus6mconverted.cbf.h5.cbf -o insulin_pilatus6mconverted.cbf.h5.eqcI.cbf)
+	-cmp insulin_pilatus6mconverted.cbf.h5.eqcI.cbf insulin_pilatus6mconverted_orig.cbf.h5.eqcI.cbf
 	-$(LDPREFIX)  (HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
-	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_encb.cbf.h5 -o insulin_pilatus6mconverted_encb.cbf.h5.cbf)
-	-cmp insulin_pilatus6mconverted_encb.cbf.h5.cbf insulin_pilatus6mconverted_orig.cbf.h5.cbf
+	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_encp.cbf.h5 -o insulin_pilatus6mconverted_encp.cbf.h5.cbf; \
+	 $(BIN)/cif2cbf  -eq -cI -i insulin_pilatus6mconverted_encp.cbf.h5.cbf -o insulin_pilatus6mconverted_encp.cbf.h5.eqcI.cbf)
+	-cmp insulin_pilatus6mconverted_encp.cbf.h5.eqcI.cbf insulin_pilatus6mconverted_orig.cbf.h5.eqcI.cbf
 	-$(LDPREFIX)  (HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
-	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_encI.cbf.h5 -o insulin_pilatus6mconverted_encI.cbf.h5.cbf)
-	-cmp insulin_pilatus6mconverted_encI.cbf.h5.cbf insulin_pilatus6mconverted_orig.cbf.h5.cbf
+	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_encb.cbf.h5 -o insulin_pilatus6mconverted_encb.cbf.h5.cbf; \
+	 $(BIN)/cif2cbf  -eq -cI -i insulin_pilatus6mconverted_encp.cbf.h5.cbf -o insulin_pilatus6mconverted_encp.cbf.h5.eqcI.cbf)
+	-cmp insulin_pilatus6mconverted_encb.cbf.h5.eqcI.cbf insulin_pilatus6mconverted_orig.cbf.h5.eqcI.cbf
 	-$(LDPREFIX)  (HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
-	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_encc.cbf.h5 -o insulin_pilatus6mconverted_encc.cbf.h5.cbf)
-	-cmp insulin_pilatus6mconverted_encc.cbf.h5.cbf insulin_pilatus6mconverted_orig.cbf.h5.cbf
+	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_encI.cbf.h5 -o insulin_pilatus6mconverted_encI.cbf.h5.cbf; \
+	 $(BIN)/cif2cbf  -eq -cI -i insulin_pilatus6mconverted_encI.cbf.h5.cbf -o insulin_pilatus6mconverted_encI.cbf.h5.eqcI.cbf)
+	-cmp insulin_pilatus6mconverted_encI.cbf.h5.eqcI.cbf insulin_pilatus6mconverted_orig.cbf.h5.eqcI.cbf
 	-$(LDPREFIX)  (HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
-	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_encz.cbf.h5 -o insulin_pilatus6mconverted_encz.cbf.h5.cbf)
-	-cmp insulin_pilatus6mconverted_encz.cbf.h5.cbf insulin_pilatus6mconverted_orig.cbf.h5.cbf
+	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_encc.cbf.h5 -o insulin_pilatus6mconverted_encc.cbf.h5.cbf; \
+	 $(BIN)/cif2cbf  -eq -cI -i insulin_pilatus6mconverted_encc.cbf.h5.cbf -o insulin_pilatus6mconverted_encc.cbf.h5.eqcI.cbf)
+	-cmp insulin_pilatus6mconverted_encc.cbf.h5.eqcI.cbf insulin_pilatus6mconverted_orig.cbf.h5.eqcI.cbf
 	-$(LDPREFIX)  (HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
-	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_encl.cbf.h5 -o insulin_pilatus6mconverted_encl.cbf.h5.cbf)
-	-cmp insulin_pilatus6mconverted_encl.cbf.h5.cbf insulin_pilatus6mconverted_orig.cbf.h5.cbf
+	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_encz.cbf.h5 -o insulin_pilatus6mconverted_encz.cbf.h5.cbf; \
+	 $(BIN)/cif2cbf  -eq -cI -i insulin_pilatus6mconverted_encz.cbf.h5.cbf -o insulin_pilatus6mconverted_encz.cbf.h5.eqcI.cbf)
+	-cmp insulin_pilatus6mconverted_encz.cbf.h5.eqcI.cbf insulin_pilatus6mconverted_orig.cbf.h5.eqcI.cbf
 	-$(LDPREFIX)  (HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
-	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_enc2.cbf.h5 -o insulin_pilatus6mconverted_enc2.cbf.h5.cbf)
-	-cmp insulin_pilatus6mconverted_enc2.cbf.h5.cbf insulin_pilatus6mconverted_orig.cbf.h5.cbf
+	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_encl.cbf.h5 -o insulin_pilatus6mconverted_encl.cbf.h5.cbf; \
+	 $(BIN)/cif2cbf  -eq -cI -i insulin_pilatus6mconverted_encl.cbf.h5.cbf -o insulin_pilatus6mconverted_encl.cbf.h5.eqcI.cbf)
+	-cmp insulin_pilatus6mconverted_encl.cbf.h5.eqcI.cbf insulin_pilatus6mconverted_orig.cbf.h5.eqcI.cbf
+	-$(LDPREFIX)  (HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
+	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_enc2.cbf.h5 -o insulin_pilatus6mconverted_enc2.cbf.h5.cbf; \
+	 $(BIN)/cif2cbf  -eq -cI -i insulin_pilatus6mconverted_enc2.cbf.h5.cbf -o insulin_pilatus6mconverted_enc2.cbf.h5.eqcI.cbf)
+	-cmp insulin_pilatus6mconverted_enc2.cbf.h5.eqcI.cbf insulin_pilatus6mconverted_orig.cbf.h5.eqcI.cbf
+	-rm -f insulin_pilatus6mconverted*.cbf.h5.eqcI.cbf
 	$(LDPREFIX)  $(TINE) $(BIN)/test_cbf_airy_disk
 	$(LDPREFIX)  $(TIME) $(BIN)/cbf_testxfelread
 	$(LDPREFIX)  $(TIME) $(BIN)/testalloc
