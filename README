@@ -1,8 +1,21 @@
+   +------------------------------------------------------------------------+
+   | [IUCr  | [CIF   |              |          | Get CBFlib at              |
+   | Home   | Home   | [CBF/imgCIF] | [CBFlib] | SourceForge.net. Fast,     |
+   | Page]  | Page]  |              |          | secure and Free Open       |
+   |        |        |              |          | Source software downloads  |
+   +------------------------------------------------------------------------+
+
+     ----------------------------------------------------------------------
+
+            | IUCr Home Page | CIF Home Page | CBF/imgCIF | CBFlib |
+ | NOTICE | doc/GPL | doc/LGPL | imgCIF dictionary | SourceForge CBFlib site |
+                       | Click Here to Make a Donation |
+
                                      CBFlib
 
                                      README
 
-             Information for CBFlib 0.9.5 release of 27 April 2014
+            Information for CBFlib 0.9.6 release of 4 December 2018
 
                                        by
                                  Paul J. Ellis
@@ -13,7 +26,7 @@
                                 Bernstein + Sons
                       yaya at bernstein-plus-sons dot com
 
-                (c) Copyright 2006 -- 2014 Herbert J. Bernstein
+                 © Copyright 2006 -- 2018 Herbert J. Bernstein
 
      ----------------------------------------------------------------------
 
@@ -22,9 +35,9 @@
     ALTERNATIVELY YOU MAY REDISTRIBUTE THE CBFLIB API UNDER THE TERMS OF THE
                                      LGPL.
 
-    All functions in the src, include and examples directories are included 
-    in the term "API" unless explicitly placed under a diferent license in 
-              the header comments of that particular source code.
+   All functions in the src, include and examples directories are included in
+    the term "API" unless explicitly placed under a diferent license in the
+                header comments of that particular source code.
 
      ----------------------------------------------------------------------
 
@@ -39,12 +52,24 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    under grants DBI-0610407, DBI-0315281 and EF-0312612, the U. S. National
    Institutes of Health (NIH) under grants 1R15GM078077 from NIGMS and
    1R13RR023192 from NCRR and funding from the International Union for
-   Crystallography (IUCr). The content is solely the responsibility of the
-   authors and does not necessarily represent the official views of DOE, NSF,
-   NIH, NIGMS, NCRR or IUCr. Recent work on integration among CBF, HDF5 and
-   NeXus supported in part by Pandata ODI (EU 7th Framework Programme)
+   Crystallography (IUCr) and Dectris, Ltd. The content is solely the
+   responsibility of the authors and does not necessarily represent the
+   official views of DOE, NSF, NIH, NIGMS, NCRR, IUCr or Dectris. Recent work
+   on integration among CBF, HDF5 and NeXus supported in part by Pandata ODI
+   (EU 7th Framework Programme)
 
      ----------------------------------------------------------------------
+
+   CBFlib 0.9.6 is the full release supporting the integration of CBF and
+   NeXus, including support for the NeXus NXpdb embedding of CIF files in
+   NeXus files. *** IMPORTANT: Because of the requirements of dynamic loading
+   to support the compressions used by the Dectris NeXus/HDF5 format, all
+   applications require setting of library and plugin paths. See the
+   initialization file cbflib.ini, which should be sourced before running any
+   applications ***. The primary development source is at
+   https://github.com/yayahjb/cbflib. The branch pdb_in_nexus, which was used
+   for much of this development has been merged, is now deprecated, and will
+   be removed in the near future.
 
    CBFlib 0.9.5 is the full release resulting from the interim effort on
    0.9.4, reflecting significant and unfortunately somewhat disruptive
@@ -178,30 +203,32 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    space, for a full installation with complete tests. Read the instructions
    below carefully, if space is a problem.
 
-   A gizpped tarball of this release is available on sourceforge at
+   You may download clone the git repository with
+   git clone https://github.com/yayahjb/cbflib.git
+   or a gizpped tarball of this release is available on sourceforge at
 
-   http://downloads.sf.net/cbflib/CBFlib-0.9.5.tar.gz
+   http://downloads.sf.net/cbflib/CBFlib-0.9.6.tar.gz
 
    In addition,
-   http://downloads.sf.net/cbflib/CBFlib_0.9.5_Data_Files_Input.tar.gz (13
+   http://downloads.sf.net/cbflib/CBFlib_0.9.6_Data_Files_Input.tar.gz (13
    MB) is a "gzipped" tar of the input data files needed to test the API,
-   http://downloads.sf.net/cbflib/CBFlib_0.9.5_Data_Files_Output.tar.gz (34
+   http://downloads.sf.net/cbflib/CBFlib_0.9.6_Data_Files_Output.tar.gz (34
    MB) is a "gzipped" tar of the output data files needed to test the API,
    and, if space is at a premium,
-   http://downloads.sf.net/cbflib/CBFlib_0.9.5_Data_Files_Output_Sigs_Only.tar.gz
+   http://downloads.sf.net/cbflib/CBFlib_0.9.6_Data_Files_Output_Sigs_Only.tar.gz
    (1KB) is a "gzipped" tar of only the MD5 signatures of the output data
-   files needed to test the API. Place the CBFlib_0.9.5.tar.gz file in the
+   files needed to test the API. Place the CBFlib_0.9.6.tar.gz file in the
    directory that is intended to contain up to 4 new directories, named
-   CBFlib_0.9.5 (the "top-level" directory), CBFlib_0.9.5_Data_Files_Input
-   and either CBFlib_0.9.5_Data_Files_Output or
-   CBFlib_0.9.5_Data_Files_Output_Sigs_Only. If you have wget on your
+   CBFlib_0.9.6 (the "top-level" directory), CBFlib_0.9.6_Data_Files_Input
+   and either CBFlib_0.9.6_Data_Files_Output or
+   CBFlib_0.9.6_Data_Files_Output_Sigs_Only. If you have wget on your
    machine, you only need to download the source tarball. If you do not have
    wget, you will need to download all the tarballs into the same directory
 
-   Uncompress CBFlib_0.9.5.tar.gz with gunzip and unpack it with tar:
+   Uncompress CBFlib_0.9.6.tar.gz with gunzip and unpack it with tar:
 
-      gunzip CBFlib_0.9.5.tar.gz
-      tar xvf CBFLIB_0.9.5.tar
+      gunzip CBFlib_0.9.6.tar.gz
+      tar xvf CBFLIB_0.9.6.tar
 
    To run the test programs, you will also need Paul Ellis's sample MAR345
    image, example.mar2300, Chris Nielsen's sample ADSC Quantum 315 image,
@@ -210,7 +237,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    file, 9ins.cif, and 3 special test files testflatin.cbf,
    testflatpackedin.cbf and testrealin.cbf, and several files related to
    NeXus and FEL testing. All these files will be dowloaded and extracted by
-   the Makefile from CBFlib_0.9.5_Data_Files_Input. Do not download copies
+   the Makefile from CBFlib_0.9.6_Data_Files_Input. Do not download copies
    into the top level directory.
 
    After unpacking the archives, the top-level directory should contain a
@@ -278,18 +305,15 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
      * To use the newer and more popular POSIX pcre regex. If neither
        CBF_NO_REGEX nor CBF_REGEXLIB_REGEX is defined, pcreposix.h is used.
 
-   The default in the supplied Makefiles is to use regex.h. The default in
-   the CMakeLists.txt is to use pcreposix.h.
-
   Cmake
 
    A partial preliminary CMakeLists.txt has been included in this kit. It is
    not yet complete, but on machines for which the Makefiles are not
    appropriate, it is worth a try. To use in, create a directory named
-   CBFlib-0.9.5-build on the same level as CBFlib-0.9.5, and in the new,
+   CBFlib-0.9.6-build on the same level as CBFlib-0.9.6, and in the new,
    empty build directory, try
 
-     cmake ../CBFlib-0.9.5
+     cmake ../CBFlib-0.9.6
      make all
      make test
     
@@ -302,10 +326,10 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    shared library or other shared libraries when tests are run prior to those
    libraries having been installed in locations known to your system's
    loader. This is handled automatically in the Makefiles, but we do not yet
-   have a reliable way to do so for cmake ctest tests. Until this is
-   resolved, you may need to set various system-dependent environment
-   variables such as DYLD_LIBRARY_PATH, LD_LIBRARY_PATH or PATH. We hope to
-   resolve this for an upcoming release.
+   have a reliable way to do so for cmake ctest tests. You may need to set
+   various system-dependent environment variables such as DYLD_LIBRARY_PATH,
+   LD_LIBRARY_PATH or PATH. The bash script in the kit cbflib.ini should be
+   sourced before testing.
 
    Please refer to the manual doc/CBFlib.html for more detailed information.
 
@@ -313,4 +337,4 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-   Updated 27 April 2014.  yayahjb at gmail dot com
+   Updated 4 December 2018. yayahjb at gmail dot com

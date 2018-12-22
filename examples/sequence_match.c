@@ -438,8 +438,10 @@ int main (int argc, char *argv [])
     int leftintmpused, rightintmpused;
     
     const char * optarg;
+
+    CBF_UNUSED( leftdevnull );
     
-    /* Extract options */
+    /* Ex options */
     
     leftinstr = NULL;
     rightinstr = NULL;

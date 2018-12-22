@@ -6,6 +6,7 @@
 //
 //
 
+#include "cbf.h"
 #include "cbf_standardize_numbers.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -41,6 +42,8 @@ int main (int argc, char ** argv) {
     int spacestarted;
     int digits = 6;
     double number, anumber, ascale, fpart;
+    CBF_UNUSED( bracket );
+    CBF_UNUSED( fpart );
     
     if (argc > 3 || argc < 2) {
         usage();

@@ -318,6 +318,8 @@ int cbf_compress_byte_offset (void         *source,
         CBF_UNUSED(dimslow);
         
         CBF_UNUSED(padding);
+
+        CBF_UNUSED(borrow);
         
         /* Is the element size valid? */
         
@@ -1097,6 +1099,10 @@ static int cbf_decompress_byte_offset_slow (void         *destination,
         CBF_UNUSED(dimslow);
         
         CBF_UNUSED(padding);
+
+        CBF_UNUSED(carry);
+
+        CBF_UNUSED(errorcode);
         
         /* prepare the errorcode */
         

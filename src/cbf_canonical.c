@@ -1839,6 +1839,10 @@ int cbf_compress_canonical (void         *source,
     CBF_UNUSED( dimslow );
     
     CBF_UNUSED( padding );
+
+    CBF_UNUSED( node );
+
+    CBF_UNUSED( endcode );
     
     /* Is the element size valid? */
     
@@ -2212,6 +2216,8 @@ int cbf_decompress_canonical (void         *destination,
     CBF_UNUSED( dimslow );
     
     CBF_UNUSED( padding );
+
+    CBF_UNUSED( count64 );
     
     /* Is the element size valid? */
     

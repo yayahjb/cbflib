@@ -2023,6 +2023,25 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
                        void ** value);
     
     
+    /* Store an HDF5 Dataset in CBF handle as a column, using
+     category categoryname, ...
+     If target_row is -1, the new column is appended to any
+     existing column
+     If target row is >= 0, overwrites any existing rows starting
+     at target_row
+     
+     */
+    
+    int cbf_h5ds_store_as_column(cbf_handle handle,
+                             int target_row,
+                       const char * columnname,
+                       const char * categoryname, 
+                       hid_t obj_id,
+                       hid_t space, 
+                       hid_t type,
+                       void ** value);
+    
+    
     /* Store an HDF5 Dataset in CBF handle, using
      category categoryname, ...*/
     
@@ -2048,7 +2067,7 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
     
     int cbf_read_h5file(const cbf_handle handle,
                         const cbf_h5handle h5handle,
-                        const int flags);
+                        const unsigned long int flags);
     
     /* get a fast bookmark from the current information in a cbf handle */
     

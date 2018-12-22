@@ -578,7 +578,7 @@ int cbf_compress_nibble_offset (void         *source,
         
         int dmode[CBF_NIBBLE_RUN],maxmode,minmode,newmode,nextmaxmode,tempmode;
         
-        int iint, ii, kint[CBF_NIBBLE_RUN], inrun, lagby;
+        int iint, ii, kint[CBF_NIBBLE_RUN], inrun=0, lagby;
         
         char * border;
         
@@ -601,6 +601,10 @@ int cbf_compress_nibble_offset (void         *source,
         int usedmode;
         
         int *termflag[17];
+
+        CBF_UNUSED( termflag );
+
+        CBF_UNUSED( borrow );
         
         CBF_UNUSED( compression );
         
@@ -1053,6 +1057,8 @@ int cbf_decompress_nibble_offset (void         *destination,
         size_t numread,bitsread;
         
         int succnt, sucmode;
+
+        CBF_UNUSED( errorcode );
         
         CBF_UNUSED( compressedsize );
         

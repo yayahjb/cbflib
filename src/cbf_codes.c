@@ -604,7 +604,9 @@ extern "C" {
         int count_enc=0;
         int new_l =0;
         
-        CBF_UNUSED(size);
+        CBF_UNUSED( size );
+
+        CBF_UNUSED( tmp );
         
         tmp[2] = '\0';
         txt = (unsigned char *) malloc(sizeof(char) *maxlen + 1);
@@ -1324,6 +1326,8 @@ extern "C" {
         size_t all = 0;
         
         CBF_UNUSED( size );
+
+        CBF_UNUSED( mah );
         
         /* Initialize the MD5 context*/
         if (digest)

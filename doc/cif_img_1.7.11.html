@@ -34,7 +34,7 @@ data_cif_img.dic
 #            Extending the Macromolecular CIF Dictionary (mmCIF)             #
 #                                                                            #
 #                             Version 1.7.11                                 #
-#                              of 2014-07-05                                 #
+#                              of 2018-12-03                                 #
 #    ###################################################################     #
 #    # *** WARNING *** THIS IS A DRAFT FOR DISCUSSSION *** WARNING *** #     #
 #    #                 SUBJECT TO CHANGE WITHOUT NOTICE                #     #
@@ -221,6 +221,9 @@ data_cif_img.dic
 #
 #        category  <a href="#diffrn_radiation">DIFFRN_RADIATION</a>
 #
+#                  <a href="#_diffrn_radiation.beam_width">_diffrn_radiation.beam_width</a>
+#                  <a href="#_diffrn_radiation.beam_height">_diffrn_radiation.beam_height</a>
+#                  <a href="#_diffrn_radiation.beam_flux">_diffrn_radiation.beam_flux</a>
 #                  <a href="#_diffrn_radiation.collimation">_diffrn_radiation.collimation</a>
 #                  <a href="#_diffrn_radiation.diffrn_id">_diffrn_radiation.diffrn_id</a>
 #                  <a href="#_diffrn_radiation.div_x_source" >_diffrn_radiation.div_x_source</a>
@@ -284,6 +287,12 @@ data_cif_img.dic
 #                  <a href="#_diffrn_scan_axis.reference_displacement" >_diffrn_scan_axis.reference_displacement</a>
 #                  <a href="#_diffrn_scan_axis.scan_id" >_diffrn_scan_axis.scan_id</a>
 #                  <a href="#_diffrn_scan_axis.variant" >_diffrn_scan_axis.variant</a>
+#
+#        category  <a href="#diffrn_scan_collection">DIFFRN_SCAN_COLLECTION</a>
+#
+#                  <a href="#_diffrn_scan_collection.scan_id" >_diffrn_scan_collection.scan_id</a>
+#                  <a href="#_diffrn_scan_collection.type" >_diffrn_scan_collection.type</a>
+#                  <a href="#_diffrn_scan_collection.translation_width" >_diffrn_scan_collection.translation_width</a>
 #
 #        category  <a href="#diffrn_scan_frame">DIFFRN_SCAN_FRAME</a>
 #
@@ -667,6 +676,20 @@ data_cif_img.dic
         </td>
       </tr>
 
+      <tr>
+        <td colspan=2>
+        <table border=2>
+        <tr>
+          <td rowspan=1 bgcolor="cyan">&nbsp;</td>
+          <td valign="top"><a href="#diffrn_scan_collection">DIFFRN_SCAN_COLLECTION</a></td>
+          <td>
+            Data items in the <a href="#diffrn_scan_collection">DIFFRN_SCAN_COLLECTION</a> category describe
+            the type of collection strategy involved in each scan..
+          </td>
+        </tr>
+        </table>
+        </td>
+      </tr>
       <tr>
         <td colspan=2>
         <table border=2>
@@ -7077,6 +7100,42 @@ save_diffrn_radiation
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      save_
 
+save_<a name="_diffrn_radiation.beam_width">_diffrn_radiation.beam_width</a>
+    _item_description.description
+;              Full width at half max of the beam incident on the sample
+               in the plane of polarization (or horizontally if unpolarized)
+;
+    _item.name                  '<a href="#_diffrn_radiation.beam_width">_diffrn_radiation.beam_width</a>'
+    _item.category_id             diffrn_radiation
+    _item.mandatory_code          no
+    _item_type.code               float
+    _item_units.code              micrometres
+     save_
+
+save_<a name="_diffrn_radiation.beam_height">_diffrn_radiation.beam_height</a>
+    _item_description.description
+;              Full width at half max of the beam incident on the sample
+               orthogonal plane of polarization (or vertically  if unpolarized)
+;
+    _item.name                  '<a href="#_diffrn_radiation.beam_width">_diffrn_radiation.beam_width</a>'
+    _item.category_id             diffrn_radiation
+    _item.mandatory_code          no
+    _item_type.code               float
+    _item_units.code              micrometres
+     save_
+
+save_<a name="_diffrn_radiation.flux">_diffrn_radiation.beam_flux</a>
+    _item_description.description
+;              The average flux integrated over the beam incident on the sample.
+;
+    _item.name                  '<a href="#_diffrn_radiation.beam_flux">_diffrn_radiation.beam_flux</a>'
+    _item.category_id             diffrn_radiation
+    _item.mandatory_code          no
+    _item_type.code               float
+    _item_units.code              'photons per second'
+     save_
+
+
 save_<A name="_diffrn_radiation.collimation">_diffrn_radiation.collimation</a>
     _item_description.description
 ;              The collimation or focusing applied to the radiation.
@@ -8579,12 +8638,14 @@ save_<a name="_diffrn_scan.id" >_diffrn_scan.id</a>
     _item.mandatory_code
        '<a href="#_diffrn_scan.id" >_diffrn_scan.id</a>'                 diffrn_scan             yes
        '<a href="#_diffrn_scan_axis.scan_id" >_diffrn_scan_axis.scan_id</a>'       diffrn_scan_axis        yes
+       '<a href="#_diffrn_scan_collection.scan_id" >_diffrn_scan_collection.scan_id</a>'       diffrn_scan_collection        implicit
        '<a href="#_diffrn_scan_frame.scan_id" >_diffrn_scan_frame.scan_id</a>'      diffrn_scan_frame       yes
     _item_type.code               code
      loop_
     _item_linked.child_name
     _item_linked.parent_name
        '<a href="#_diffrn_scan_axis.scan_id" >_diffrn_scan_axis.scan_id</a>'          '<a href="#_diffrn_scan.id" >_diffrn_scan.id</a>'
+       '<a href="#_diffrn_scan_collection.scan_id" >_diffrn_scan_axis.scan_id</a>'          '<a href="#_diffrn_scan.id" >_diffrn_scan.id</a>'
        '<a href="#_diffrn_scan_frame.scan_id" >_diffrn_scan_frame.scan_id</a>'         '<a href="#_diffrn_scan.id" >_diffrn_scan.id</a>'
      save_
 
@@ -9078,6 +9139,97 @@ save_<a name="_diffrn_scan_axis.variant" >_diffrn_scan_axis.variant</a>
     _item.mandatory_code          implicit
     _item_type.code               code
      save_
+
+
+
+##########################
+# <a name="diffrn_scan_collection">DIFFRN_SCAN_COLLECTION</a> #
+##########################
+
+save_diffrn_scan_collection
+    _category.description
+;           Data items in the <a href="#diffrn_scan_collection">DIFFRN_SCAN_COLLECTION</a> category describe
+            the collection strategy for each scan.
+
+            This category is a preliminary version being developed as synchrotron and xfel
+            collection strategies evolve. 
+;
+    _category.id                   diffrn_scan_collection
+    _category.mandatory_code       no
+    _category.NX_mapping_details
+;
+    
+    _diffrn_scan_collection.type  COLLECTIONTYPE
+    _diffrn_scan_collection.translation_width TRANSLATION_WIDTH
+    
+    --> 
+    
+    /entry:NXentry
+      /CBF_cbf:NXpdb
+        /image1:NXpdb
+          @NXpdb="CBF_cbfdb"
+          /diffrn_scan_collection:NXpdb
+            @NXpdb="CBF_cbfcat"
+              /type=["COLLECTIONTYP"]
+              /translation_width=["TRANSLATION_WIDTH"]
+
+;
+     loop_
+    _category_key.name
+                                  '<a href="#_diffrn_scan_collection.scan_id" >_diffrn_scan_collection.scan_id</a>'
+     loop_
+    _category_group.id            'inclusive_group'
+                                  'diffrn_group'
+     save_
+
+
+save_<a name="_diffrn_scan_collection.scan_id" >_diffrn_scan_collection.scan_id</a>
+    _item_description.description
+;             The value of <a href="#_diffrn_scan_collection.scan_id" >_diffrn_scan_collection.scan_id</a> identifies the scan
+              containing this frame.
+
+              This item is a pointer to <a href="#_diffrn_scan.id" >_diffrn_scan.id</a> in the
+              <a href="#diffrn_scan">DIFFRN_SCAN</a> category.
+
+              In the case of a single scan dataset, the value is implicit.
+;
+    _item.name             '<a href="#_diffrn_scan_collection.scan_id">_diffrn_scan_collection.scan_id</a>'
+    _item.category_id        diffrn_scan_collection
+    _item.mandatory_code     implicit
+    _item_type.code          code
+     save_
+     
+save_<a name="_diffrn_scan_collection.type" >_diffrn_scan_collection.type</a>
+    _item_description.description
+;             The value of <a href="#_diffrn_scan_collection.type" >_diffrn_scan_collection.type</a> identifies
+              strategy used in this scan, e.g. `rotation', 'raster', 'vector', 'still', etc.
+
+              The default is 'rotation'. 
+;
+    _item.name                  '<a href="#_diffrn_scan_collection.type">_diffrn_scan_collection.type</a>'
+    _item.category_id             diffrn_scan_collection
+    _item.mandatory_code          implicit
+    _item_default.value           'rotation'
+    _item_type.code               text
+     save_
+
+save_<a name="_diffrn_scan_collection.translation_width" >_diffrn_scan_collection.translation_width</a>
+    _item_description.description
+;             The value of <a href="#_diffrn_scan_collection.translation_width" >_diffrn_scan_collection.translation_width</a>
+              gives the average single step translation in micrometres in collection strategies 
+              for which this information is appropriate, e.g. 'vector'.
+              
+;
+    _item.name                  '<a href="#_diffrn_scan_collection.type">_diffrn_scan_collection.type</a>'
+    _item.category_id             diffrn_scan_collection
+    _item.mandatory_code          no
+    _item_default.value           0.0
+    _item_type.code               float
+    _item_units.code              micrometres
+
+     save_
+
+
 
 
 
@@ -11156,6 +11308,7 @@ save_<a name="_diffrn_frame_data.details" >_diffrn_frame_data.details</a>
      'metres'                 'metres'
      'centimetres'            'centimetres (metres * 10^<sup>( -2)</sup>^)'
      'millimetres'            'millimetres (metres * 10^<sup>( -3)</sup>^)'
+     'micrometres'            'micrometres (metres * 10^<sup>( -6)</sup>^)'
      'nanometres'             'nanometres  (metres * 10^<sup>( -9)</sup>^)'
      'angstroms'              '\%Angstroms   (metres * 10^<sup>(-10)</sup>^)'
      'picometres'             'picometres  (metres * 10^<sup>(-12)</sup>^)'
@@ -11378,7 +11531,7 @@ save_<a name="_diffrn_frame_data.details" >_diffrn_frame_data.details</a>
     _dictionary_history.update
     _dictionary_history.revision
     
-    1.7.11   2014-07-05
+    1.7.11   2018-12-03
     
 ;   Changes for CBFlib 0.9.6 release (HJB)
     
@@ -11391,6 +11544,12 @@ save_<a name="_diffrn_frame_data.details" >_diffrn_frame_data.details</a>
     + Change to uniform use of data_ARRAYID_BINARYID
     + Add <a href="#_array_structure_list.array_section_id">_array_structure_list.array_section_id</a>
     + Add <a href="#_map_segment.mask_array_section_id">_map_segment.mask_array_section_id</a>
+    + Add <a href="#_diffrn_scan_collection.scan_id">_diffrn_scan_collection.scan_id</a>
+    + Add <a href="#_diffrn_scan_collection.type">_diffrn_scan_collection.type</a>
+    + Add <a href="#_diffrn_scan_collection.translation_width">_diffrn_scan_collection.translation_width</a>
+    + Add <a href="#_map_segment._diffrn_radiation.beam_width">_diffrn_radiation.beam_width</a>
+    + Add <a href="#_map_segment._diffrn_radiation.beam_height">_diffrn_radiation.beam_heigth</a>
+    + Add <a href="#_map_segment._diffrn_radiation.beam_flux">_diffrn_radiation.beam_flux</a>
     
 ;
 

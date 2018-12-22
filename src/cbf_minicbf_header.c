@@ -403,6 +403,8 @@ extern "C" {
         const char * oscillations;
         
         int result;
+
+        CBF_UNUSED( precedence );
         
         /* check the arguments */
         

@@ -255,6 +255,7 @@ extern "C" {
     
 #include "cbf.h"
 #include "cbf_alloc.h"
+#include "cbf_string.h"
 #include "cbf_context.h"
     
 #include <stdlib.h>
@@ -616,6 +617,8 @@ extern "C" {
         size_t ii;
         
         FILE * control_file, temp_file;
+
+        CBF_UNUSED( temp_file );
         
         if (tmpdir) tmpdir[tmpdir_len]='\0';
         
@@ -710,6 +713,8 @@ extern "C" {
         
         char * cbf_tmp_dir;
         FILE * result;
+
+        CBF_UNUSED( result );
         
         if (!cbf_tmp_dir_conv || !cbf_tmp_dir_len) return CBF_ARGUMENT;
         
