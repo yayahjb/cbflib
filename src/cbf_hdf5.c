@@ -27239,6 +27239,7 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
                         }
                     }
                     cbf_H5Dfree(dset);
+                    dset = CBF_H5FAIL;
                 }
             }
         }
@@ -28071,6 +28072,7 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
                                     cbf_debug_print2("error: %s\n",cbf_strerror(found));
                                 }
                                 cbf_H5Dfree(dataset);
+                                dataset = CBF_H5FAIL;
                                 found =  cbf_H5Dfind2(h5handle->nxid,&dataset,"end_time",0,0,0,type);
                                 if (CBF_SUCCESS==found) {
                                     /* comparison with existing data, to extract latest time */
@@ -28114,6 +28116,7 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
                                     cbf_debug_print2("error: %s\n",cbf_strerror(found));
                                 }
                                 cbf_H5Dfree(dataset);
+                                dataset=CBF_H5FAIL;
                                 cbf_H5Tfree(type);
                             } else if (!cbf_cistrcmp("Pixel_size",token)) {
                                 CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
@@ -28130,6 +28133,7 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
                                     }
                                     CBF_CALL(cbf_H5Arequire_string(h5data,"units",token));
                                     cbf_H5Dfree(h5data);
+                                    h5data=CBF_H5FAIL;
                                 }
                                 /* Get next useful token, just skip over useless stuff */
                                 CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
@@ -28147,6 +28151,7 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
                                     }
                                     CBF_CALL(cbf_H5Arequire_string(h5data,"units",token));
                                     cbf_H5Dfree(h5data);
+                                    h5data=CBF_H5FAIL;
                                 }
                             } else if (!cbf_cistrcmp("Silicon",token)) {
                                 CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
@@ -28167,6 +28172,7 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
                                             }
                                             CBF_CALL(cbf_H5Arequire_string(h5data,"units",token));
                                             cbf_H5Dfree(h5data);
+                                            h5data=CBF_H5FAIL;
                                         }
                                     } else noMatch = 1;
                                 } else noMatch = 1;
@@ -28187,6 +28193,7 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
                                     CBF_CALL(cbf_H5Dinsert(h5data,off,0,cnt,buf,&detector_distance,H5T_NATIVE_DOUBLE));
                                     CBF_CALL(cbf_H5Arequire_string(h5data,"units",token));
                                     cbf_H5Dfree(h5data);
+                                    h5data=CBF_H5FAIL;
                                 } else {
                                     error |= CBF_H5DIFFERENT;
                                     cbf_debug_print("error: expected units of 'm' for 'Detector_distance'");
@@ -28237,6 +28244,7 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
                                 CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
                                 CBF_CALL(cbf_H5Arequire_string(h5data,"units",token));
                                 cbf_H5Dfree(h5data);
+                                h5data=CBF_H5FAIL;
                             } else if (!cbf_cistrcmp("Exposure_period",token)) {
                                 hid_t h5data = CBF_H5FAIL;
                                 hid_t h5location = detector;
@@ -28256,6 +28264,7 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
                                 CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
                                 CBF_CALL(cbf_H5Arequire_string(h5data,"units",token));
                                 cbf_H5Dfree(h5data);
+                                h5data=CBF_H5FAIL;
                             } else if (!cbf_cistrcmp("Tau",token)) {
                                 hid_t h5data = CBF_H5FAIL;
                                 hid_t h5location = detector;
@@ -28267,6 +28276,7 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
                                 CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
                                 CBF_CALL(cbf_H5Arequire_string(h5data,"units",token));
                                 cbf_H5Dfree(h5data);
+                                h5data=CBF_H5FAIL;
                             } else if (!cbf_cistrcmp("Count_cutoff",token)) {
                                 /* store the string for later interpretation */
                                 CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
@@ -28283,6 +28293,7 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
                                 CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
                                 CBF_CALL(cbf_H5Arequire_string(h5data,"units",token));
                                 cbf_H5Dfree(h5data);
+                                h5data=CBF_H5FAIL;
                             } else if (!cbf_cistrcmp("Gain_setting",token)) {
                                 int error = CBF_SUCCESS;
                                 /* [1,end): gain setting string */
@@ -28316,6 +28327,7 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
                                 }
                                 cbf_H5Gfree(beam);
                                 cbf_H5Dfree(h5data);
+                                h5data=CBF_H5FAIL;
                             } else if (!cbf_cistrcmp("Beam_xy",token)) {
                                 /*
                                 Extract x & y positions from the header, put them into the file later.
@@ -28358,7 +28370,9 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
                                     CBF_CALL(cbf_H5Arequire_string(h5data, "units", "s-1"));
                                     /* cleanup temporary dataset */
                                     cbf_H5Dfree(h5data);
+                                    h5data=CBF_H5FAIL;
                                     cbf_H5Gfree(h5location);
+                                    h5location=CBF_H5FAIL;
                                 }
                             } else if (!cbf_cistrcmp("Filter_transmission",token)) {
                                 CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
@@ -28374,6 +28388,7 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
                                                                               num, cmp_double,cmp_params));
                                     /* cleanup temporary dataset */
                                     cbf_H5Gfree(h5location);
+                                    h5location=CBF_H5FAIL;
                                 }
                             } else if (!cbf_cistrcmp("Polarization",token)) {
                                 hid_t sample = CBF_H5FAIL; /* DO NOT FREE THIS! */
@@ -28407,8 +28422,10 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
                                     CBF_CALL(cbf_H5Drequire(h5location,&h5data,h5name,2,max,chunk,buf,h5type));
                                     CBF_CALL(cbf_H5Dinsert(h5data,offset,0,count,buf,polarisation,H5T_NATIVE_DOUBLE));
                                     cbf_H5Dfree(h5data);
+                                    h5data=CBF_H5FAIL;
                                 }
                                 cbf_H5Gfree(h5location);
+                                h5location=CBF_H5FAIL;
                             } else if (!cbf_cistrcmp("Alpha",token)) {
 #define _CBF_CONVERT_AXIS(axisName) \
 CBFM_PROLOG { \
@@ -28460,8 +28477,8 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,dot,axisItem,cmp_double,cm
                             } else { \
 CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp_params)); \
                             } \
-        cbf_H5Dfree(h5data); \
-        cbf_H5Gfree(axes); \
+        cbf_H5Dfree(h5data); h5data=CBF_H5FAIL;\
+        cbf_H5Gfree(axes); axes=CBF_H5FAIL;\
                             } \
 } CBFM_EPILOG
                                 _CBF_CONVERT_AXIS("Alpha");
@@ -28525,14 +28542,14 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                             CBF_CALL(CBFM_H5Drequire_scalar_F64LE2(detector, &h5data, "beam_center_x",
                                                                       beam_x*pixel_x, cmp_double, cmp_params));
                             CBF_CALL(cbf_H5Arequire_string(h5data,"units","m"));
-                            cbf_H5Dfree(h5data);
+                            cbf_H5Dfree(h5data); h5data=CBF_H5FAIL;
                         }
                         { /* write beam_center_y */
                             hid_t h5data = CBF_H5FAIL;
                             CBF_CALL(CBFM_H5Drequire_scalar_F64LE2(detector, &h5data, "beam_center_y",
                                                                       beam_y*pixel_y, cmp_double, cmp_params));
                             CBF_CALL(cbf_H5Arequire_string(h5data,"units","m"));
-                            cbf_H5Dfree(h5data);
+                            cbf_H5Dfree(h5data); h5data=CBF_H5FAIL;
                         }
                         {
                             /* Detector axes
@@ -28581,7 +28598,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                                 CBF_CALL(CBFM_H5Arequire_cmp2(h5data,"offset",1,vdims,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,offset,
                                                                  vbuf,cmp_double,cmp_params));
                                 /* cleanup temporary datasets */
-                                cbf_H5Dfree(h5data);
+                                cbf_H5Dfree(h5data); h5data=CBF_H5FAIL;
                                 cbf_debug_print2("'detector/%s' written\n",axis_translation);
                             }
                             { /* Rotation-specific */
@@ -28608,11 +28625,11 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                                 CBF_CALL(CBFM_H5Arequire_cmp2(h5data,"vector",1,vdims,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,
                                                                  vector, vbuf,cmp_double,cmp_params));
                                 /* cleanup temporary datasets */
-                                cbf_H5Dfree(h5data);
+                                cbf_H5Dfree(h5data); h5data=CBF_H5FAIL;
                                 free((void*)axis_path);
                                 cbf_debug_print2("'detector/%s' written\n",axis_rotation);
                             }
-                            cbf_H5Gfree(axis_group);
+                            cbf_H5Gfree(axis_group); axis_group=CBF_H5FAIL;
                             { /* tie everything to the detector */
                                 const char * path_parts[7];
                                 const char * axis_path;
@@ -28629,7 +28646,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                                 free((void*)axis_path);
                             }
                         }
-                        cbf_H5Gfree(pilatusDiagnostics);
+                        cbf_H5Gfree(pilatusDiagnostics); pilatusDiagnostics=CBF_H5FAIL;
                     }
                 }
             }
@@ -28697,7 +28714,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                         CBF_CALL(cbf_H5Arequire_string(h5axis,"depends_on",axis_path));
                         free((void*)axis_path);
                     }
-                    cbf_H5Dfree(h5axis);
+                    cbf_H5Dfree(h5axis); h5axis=CBF_H5FAIL;
                 }
                 if (1) {
                     hid_t h5axis = CBF_H5FAIL;
@@ -28754,7 +28771,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                         CBF_CALL(cbf_H5Arequire_string(h5axis,"depends_on",axis_path));
                         free((void*)axis_path);
                     }
-                    cbf_H5Dfree(h5axis);
+                    cbf_H5Dfree(h5axis); h5axis=CBF_H5FAIL;
                 }
                 CBF_CALL(cbf_write_cbf2nx__link_h5data(handle, h5handle));
             }

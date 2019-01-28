@@ -1,5 +1,5 @@
 m4_define(`cbf_version',`0.9.6')m4_dnl
-m4_define(`cbf_date',`20 Nov 2018')m4_dnl
+m4_define(`cbf_date',`27 Jan 2019')m4_dnl
 m4_ifelse(cbf_system,`',`m4_define(`cbf_system',`LINUX')')
 `######################################################################
 #  Makefile - command file for make to create CBFlib                 #
@@ -319,7 +319,8 @@ ifneq ($(HDF5_PREFIX),$(PWD))
 endif
 
 ifneq ($(CBFLIB_DONT_USE_LOCAL_HDF5),yes)
-HDF5 = hdf5-1.8.18
+#HDF5 = hdf5-1.8.18
+HDF5 = hdf5-1.10.4
 HDF5dep = $(HDF5)
 HDF5_INSTALL = $(HDF5)_INSTALL
 HDF5LIBS_LOCAL = $(LIB)/libhdf5.a
@@ -854,8 +855,11 @@ RANLIB  = ',
 #########################################################
 CC	= gcc
 C++	= g++
-#CFLAGS  = -g -O0 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing -DCBFDEBUG=1
+ifneq ($(CBFDEBUG),)
+CFLAGS  = -g -O0 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing -DCBFDEBUG=1
+else
 CFLAGS  = -g -O3 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing
+endif
 LDFLAGS =
 F90C = gfortran
 F90FLAGS = -g -fno-range-check
