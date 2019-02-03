@@ -319,8 +319,8 @@ ifneq ($(HDF5_PREFIX),$(PWD))
 endif
 
 ifneq ($(CBFLIB_DONT_USE_LOCAL_HDF5),yes)
-#HDF5 = hdf5-1.8.18
-HDF5 = hdf5-1.10.4
+HDF5 = hdf5-1.8.18
+#HDF5 = hdf5-1.10.4
 HDF5dep = $(HDF5)
 HDF5_INSTALL = $(HDF5)_INSTALL
 HDF5LIBS_LOCAL = $(LIB)/libhdf5.a
