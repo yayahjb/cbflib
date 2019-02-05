@@ -13661,6 +13661,14 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         if (hid < 0 || !datasetname || !datasettext
             || errorcode) return CBF_ARGUMENT;
 
+        /* convert a dataset beginning with '@' to an attribute */
+
+        if (datasetname[0] == '@') {
+
+            return cbf_apply_h5text_attribute(hid,datasetname+1,datasettext,errorcode);
+
+        }
+
         dsexists = H5Lexists(hid,datasetname,H5P_DEFAULT);
 
         if ( dsexists >=0 && dsexists ) {
@@ -16751,6 +16759,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         /* now, for each column, make it into an array dataset, or a group.  For NXpdb
            and for text values use an array dataset, otherwise make the column into
            a group.
+
+           Columns with a name starting with '@' are made into attributes.
+           
+
         */
 
 
@@ -16775,10 +16787,18 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
                         }
 
-                        if (cbf_add_h5text_dataset_slab(h5handle->catid,
+                        if ((column_node->name)[0] == '@') {
+
+                           cbf_failnez(cbf_add_h5text_attribute_slab(h5handle->catid,
+                               h5handle->catid, column_node->name+1,text+1,"@","",(hsize_t)colrow,errorcode));
+
+                        } else {
+
+                          if (cbf_add_h5text_dataset_slab(h5handle->catid,
                                                               column_node->name,
                                                               text+1,
                                                               colrow,errorcode)) break;
+                        }
                     }
                 } else {
 
@@ -16801,47 +16821,91 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         if (!(h5handle->flags&CBF_H5_NXPDB) )
         for (column= 0; column < category->children; column++)
         {
+
             /* save the column name in the read bookmark */
 
             (h5handle->bookmark).column = (category->child[column])->name;
 
+            /* If a column name begins with '@' convert the value to
+               and attribute for the catergory group */
 
-            cbf_h5failneg(h5handle->colid=H5Gcreatex(h5handle->catid,
+            if ( ((h5handle->bookmark).column)[0] == '@' ) {
+
+              if (category->child [column]->children >= 1 ) {
+
+                const char *text;
+
+                cbf_failnez (cbf_get_columnrow (&text, category->child [column], row));
+
+                if (!text) text =" .";
+
+                cbf_failnez(cbf_apply_h5text_attribute(h5handle->catid,((h5handle->bookmark).column)+1,
+                text+1,errorcode) );
+
+                continue;
+
+              }
+
+            }
+
+            if ( ! ((category->child[column])->name) || ((category->child[column])->name)[0] != '@' ) {
+
+                cbf_h5failneg(h5handle->colid=H5Gcreatex(h5handle->catid,
                                                      (category->child[column])->name?
                                                      (category->child[column])->name:"_(null)_"),
-                          CBF_FORMAT);
+                                                      CBF_FORMAT);
 
 
+              if (h5handle->flags&CBF_H5_NXPDB) {
 
-            if (h5handle->flags&CBF_H5_NXPDB) {
-
-              cbf_failnez(cbf_apply_h5text_attribute(h5handle->colid,
+                cbf_failnez(cbf_apply_h5text_attribute(h5handle->colid,
                                                    "NX_class","NXpdb",errorcode));
 
-              cbf_failnez(cbf_apply_h5text_attribute(h5handle->colid,
+                cbf_failnez(cbf_apply_h5text_attribute(h5handle->colid,
                                                "NXpdb_class", "CBF_cbfcol",0));
 
 
 
-            } else {
+              } else {
 
-            cbf_failnez(cbf_apply_h5text_attribute(h5handle->colid,
+                cbf_failnez(cbf_apply_h5text_attribute(h5handle->colid,
                                                    "NX_class","CBF_cbfcol",errorcode));
+              }
+
             }
 
-            /* For each row, create a dataset */
+            /* For each row, create a dataset (or attribute if the name starts with '@'  */
 
             for (row=0; row < category->child [column]->children; row++)
             {
+                const char * text = 0;
 
                 (h5handle->bookmark).row = row;
 
-                cbf_failnez(cbf_write_h5value(handle,
+                if (((category->child [column])->name)[0]=='@') {
+
+                   if(cbf_get_columnrow (&text, category->child [column], row)) {
+
+                                text = " .";
+
+                   }
+
+                   cbf_failnez(cbf_apply_h5text_attribute(h5handle->catid,((category->child [column])->name)+1,
+                       text+1,errorcode  ) );
+
+                } else {
+
+                    cbf_failnez(cbf_write_h5value(handle,
                                               category->child [column],
                                               row,h5handle));
+               }
             }
 
-            cbf_h5failneg(H5Gclose(h5handle->colid),CBF_ARGUMENT);
+            if (((category->child [column])->name)[0] != '@') {
+
+                cbf_h5failneg(H5Gclose(h5handle->colid),CBF_ARGUMENT);
+
+            }
 
             h5handle->colid = CBF_H5FAIL;
         }

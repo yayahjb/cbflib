@@ -1552,11 +1552,11 @@ $(HDF5):	build_hdf5
 	cp config.sub $(HDF5)/bin/config.sub
 	touch $(HDF5)
 	-rm $(HDF5).tar.gz
-	(cd $(HDF5); ./configure --enable-fortran --enable-using-memchecker  --prefix=$(HDF5_PREFIX)  ; make install)
+	(cd $(HDF5); ./configure --enable-debug=all --enable-trace --enable-fortran --enable-using-memchecker  --prefix=$(HDF5_PREFIX)  ; make install)
 $(HDF5)_INSTALL:    $(HDF5)
 	-rm -rf $(HDF5)_install
 	rsync -avz $(HDF5)/ $(HDF5)_install
-	(cd $(HDF5)_install; make distclean; ./configure --enable-fortran --enable-using-memchecker  --prefix=$(CBF_PREFIX)  ; make install)
+	(cd $(HDF5)_install; make distclean; ./configure --enable-debug=all --enable-trace --enable-fortran --enable-using-memchecker  --prefix=$(CBF_PREFIX)  ; make install)
 endif
 
 
