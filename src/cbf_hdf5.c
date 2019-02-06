@@ -16808,8 +16808,17 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
                     }
 
-                    cbf_failnez(cbf_add_h5text_dataset(h5handle->catid,
-                                                    column_node->name,text+1,errorcode)) 
+                    if ((column_node->name)[0] == '@') {
+
+                       cbf_failnez(cbf_apply_h5text_attribute(h5handle->catid,
+                               column_node->name+1,text+1,errorcode))
+
+                    } else {
+
+                       cbf_failnez(cbf_add_h5text_dataset(h5handle->catid,
+                                                    column_node->name,text+1,errorcode))
+                    }
+ 
                 }
 
             }
