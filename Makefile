@@ -318,14 +318,14 @@ endif
 
 ifneq ($(CBFLIB_DONT_USE_LOCAL_HDF5),yes)
 HDF5 = hdf5-1.8.18
-#HDF5 = hdf5-1.10.4
+#HDF5 = hdf5-1.10.5
 HDF5dep = $(HDF5)
 HDF5_INSTALL = $(HDF5)_INSTALL
 HDF5LIBS_LOCAL = $(LIB)/libhdf5.a
 HDF5LIBS_SYSTEM = -lz -ldl
 HDF5SOLIBS_LOCAL = -L$(LIB) -lhdf5
 HDF5SOLIBS_SYSTEM = -lz
-HDF5REGISTER ?= --register plugin
+HDF5REGISTER ?= --register manual
 else
 HDF5 =
 HDF5dep =
@@ -618,7 +618,7 @@ BSHUFURL    = http://downloads.sf.net/cbflib/$(BSHUF).tar.gz
 #
 # Include directories
 #
-INCLUDES = -I$(INCLUDE) -I$(SRC) -I$(HDF5_PREFIX)/include
+INCLUDES = -I$(INCLUDE) -I$(SRC) -I$(HDF5_PREFIX)/include -I$(HDF5)/hdf5/include
 
 #
 # runtime library path export commands
@@ -1268,11 +1268,20 @@ $(HDF5):	build_hdf5
 	cp config.sub $(HDF5)/bin/config.sub
 	touch $(HDF5)
 	-rm $(HDF5).tar.gz
-	(cd $(HDF5); ./configure --enable-debug=all --enable-trace --enable-fortran --enable-using-memchecker  --prefix=$(HDF5_PREFIX)  ; make install)
+	echo  "first level HDF5 install in "$(HDF5_PREFIX)
+	(cd $(ROOT)/$(HDF5); ./configure --enable-debug=all --enable-trace --enable-fortran --enable-using-memchecker  ;\
+	make install; \
+	rsync -avz $(ROOT)/$(HDF5)/hdf5/bin/ $(HDF5_PREFIX)/bin; \
+	rsync -avz $(ROOT)/$(HDF5)/hdf5/lib/ $(HDF5_PREFIX)/lib; \
+	rsync -avz $(ROOT)/$(HDF5)/hdf5/include/ $(HDF5_PREFIX)/include; \
+	cd $(HDF5_PREFIX)/bin; $(ROOT)/$(HDF5)/hdf5/bin/h5redeploy -force )
 $(HDF5)_INSTALL:    $(HDF5)
 	-rm -rf $(HDF5)_install
-	rsync -avz $(HDF5)/ $(HDF5)_install
-	(cd $(HDF5)_install; make distclean; ./configure --enable-debug=all --enable-trace --enable-fortran --enable-using-memchecker  --prefix=$(CBF_PREFIX)  ; make install)
+	echo "final HDF5 install in "$(CBF_PREFIX)
+	rsync -avz $(ROOT)/$(HDF5)/hdf5/bin/ $(CBF_PREFIX)/bin; \
+	rsync -avz $(ROOT)/$(HDF5)/hdf5/lib/ $(CBF_PREFIX)/lib; \
+	rsync -avz $(ROOT)/$(HDF5)/hdf5/include/ $(CBF_PREFIX)/include; \
+	cd $(CBF_PREFIX)/bin; $(ROOT)/$(HDF5)/hdf5/bin/h5redeploy -force )
 endif
 
 
