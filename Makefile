@@ -1281,7 +1281,7 @@ $(HDF5)_INSTALL:    $(HDF5)
 	rsync -avz $(ROOT)/$(HDF5)/hdf5/bin/ $(CBF_PREFIX)/bin; \
 	rsync -avz $(ROOT)/$(HDF5)/hdf5/lib/ $(CBF_PREFIX)/lib; \
 	rsync -avz $(ROOT)/$(HDF5)/hdf5/include/ $(CBF_PREFIX)/include; \
-	cd $(CBF_PREFIX)/bin; $(ROOT)/$(HDF5)/hdf5/bin/h5redeploy -force )
+	cd $(CBF_PREFIX)/bin; $(ROOT)/$(HDF5)/hdf5/bin/h5redeploy -force
 endif
 
 
