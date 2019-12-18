@@ -2,12 +2,12 @@
 ######################################################################
 #  Makefile - command file for make to create CBFlib                 #
 #                                                                    #
-# Version 0.9.6 27 Jan 2019                                          #
+# Version 0.9.6 18 Dec 2019                                          #
 #                                                                    #
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
 #                                                                    #
-# (C) Copyright 2006 - 2015 Herbert J. Bernstein                     #
+# (C) Copyright 2006 - 2019 Herbert J. Bernstein                     #
 #                                                                    #
 ######################################################################
 
@@ -317,8 +317,8 @@ ifneq ($(HDF5_PREFIX),$(PWD))
 endif
 
 ifneq ($(CBFLIB_DONT_USE_LOCAL_HDF5),yes)
-HDF5 = hdf5-1.8.18
-#HDF5 = hdf5-1.10.5
+#HDF5 = hdf5-1.8.18
+HDF5 = hdf5-1.10.5
 HDF5dep = $(HDF5)
 HDF5_INSTALL = $(HDF5)_INSTALL
 HDF5LIBS_LOCAL = $(LIB)/libhdf5.a
@@ -392,7 +392,8 @@ endif
 #
 # Definition of python to use
 #
-PYTHON = python
+#PYTHON = python
+PYTHON = python2
 
 
 #
@@ -426,8 +427,8 @@ endif
 
 # Program to use to retrieve a URL
 
-#DOWNLOAD = wget -N
-DOWNLOAD   ?= curl -O -L
+DOWNLOAD = wget -N
+#DOWNLOAD   ?= curl -O -L
 
 # Flag to control symlinks versus copying
 
@@ -583,7 +584,8 @@ F90LDFLAGS =
 SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(CBF_PREFIX)/lib
 JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
-LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
+LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$(LIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
+#LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
 RUNLDPREFIX = LD_LIBRARY_PATH=$(CBF_PREFIX)/LIB:$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
 EXTRALIBS = -lm
 M4FLAGS = -Dfcb_bytes_in_rec=131072

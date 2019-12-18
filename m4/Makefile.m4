@@ -1,5 +1,5 @@
 m4_define(`cbf_version',`0.9.6')m4_dnl
-m4_define(`cbf_date',`27 Jan 2019')m4_dnl
+m4_define(`cbf_date',`18 Dec 2019')m4_dnl
 m4_ifelse(cbf_system,`',`m4_define(`cbf_system',`LINUX')')
 `######################################################################
 #  Makefile - command file for make to create CBFlib                 #
@@ -9,7 +9,7 @@ m4_ifelse(cbf_system,`',`m4_define(`cbf_system',`LINUX')')
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
 #                                                                    #
-# (C) Copyright 2006 - 2015 Herbert J. Bernstein                     #
+# (C) Copyright 2006 - 2019 Herbert J. Bernstein                     #
 #                                                                    #
 ######################################################################
 
@@ -319,15 +319,15 @@ ifneq ($(HDF5_PREFIX),$(PWD))
 endif
 
 ifneq ($(CBFLIB_DONT_USE_LOCAL_HDF5),yes)
-HDF5 = hdf5-1.8.18
-#HDF5 = hdf5-1.10.4
+#HDF5 = hdf5-1.8.18
+HDF5 = hdf5-1.10.5
 HDF5dep = $(HDF5)
 HDF5_INSTALL = $(HDF5)_INSTALL
 HDF5LIBS_LOCAL = $(LIB)/libhdf5.a
 HDF5LIBS_SYSTEM = -lz -ldl
 HDF5SOLIBS_LOCAL = -L$(LIB) -lhdf5
 HDF5SOLIBS_SYSTEM = -lz
-HDF5REGISTER ?= --register plugin
+HDF5REGISTER ?= --register manual
 else
 HDF5 =
 HDF5dep =
@@ -394,7 +394,8 @@ endif
 #
 # Definition of python to use
 #
-PYTHON = python
+#PYTHON = python
+PYTHON = python2
 
 
 #
@@ -428,8 +429,8 @@ endif
 
 # Program to use to retrieve a URL
 
-#DOWNLOAD = wget -N
-DOWNLOAD   ?= curl -O -L
+DOWNLOAD = wget -N
+#DOWNLOAD   ?= curl -O -L
 
 # Flag to control symlinks versus copying
 
@@ -802,7 +803,7 @@ RANLIB  =  ranlib',
 cbf_system,`MSYS2',`
 #########################################################
 #
-#  Appropriate compiler definitions for MYSY2
+#  Appropriate compiler definitions for MSYS2
 #
 #########################################################
 CC	= gcc
@@ -867,7 +868,8 @@ F90LDFLAGS =
 SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(CBF_PREFIX)/lib
 JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
-LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
+LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$(LIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
+#LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
 RUNLDPREFIX = LD_LIBRARY_PATH=$(CBF_PREFIX)/LIB:$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
 EXTRALIBS = -lm
 M4FLAGS = -Dfcb_bytes_in_rec=131072
@@ -902,7 +904,7 @@ BSHUFURL    = http://downloads.sf.net/cbflib/$(BSHUF).tar.gz
 #
 # Include directories
 #
-INCLUDES = -I$(INCLUDE) -I$(SRC) -I$(HDF5_PREFIX)/include
+INCLUDES = -I$(INCLUDE) -I$(SRC) -I$(HDF5_PREFIX)/include -I$(HDF5)/hdf5/include
 
 #
 # runtime library path export commands
@@ -1552,11 +1554,20 @@ $(HDF5):	build_hdf5
 	cp config.sub $(HDF5)/bin/config.sub
 	touch $(HDF5)
 	-rm $(HDF5).tar.gz
-	(cd $(HDF5); ./configure --enable-debug=all --enable-trace --enable-fortran --enable-using-memchecker  --prefix=$(HDF5_PREFIX)  ; make install)
+	echo  "first level HDF5 install in "$(HDF5_PREFIX)
+	(cd $(ROOT)/$(HDF5); ./configure --enable-debug=all --enable-trace --enable-fortran --enable-using-memchecker  ;\
+	make install; \
+	rsync -avz $(ROOT)/$(HDF5)/hdf5/bin/ $(HDF5_PREFIX)/bin; \
+	rsync -avz $(ROOT)/$(HDF5)/hdf5/lib/ $(HDF5_PREFIX)/lib; \
+	rsync -avz $(ROOT)/$(HDF5)/hdf5/include/ $(HDF5_PREFIX)/include; \
+	cd $(HDF5_PREFIX)/bin; $(ROOT)/$(HDF5)/hdf5/bin/h5redeploy -force )
 $(HDF5)_INSTALL:    $(HDF5)
 	-rm -rf $(HDF5)_install
-	rsync -avz $(HDF5)/ $(HDF5)_install
-	(cd $(HDF5)_install; make distclean; ./configure --enable-debug=all --enable-trace --enable-fortran --enable-using-memchecker  --prefix=$(CBF_PREFIX)  ; make install)
+	echo "final HDF5 install in "$(CBF_PREFIX)
+	rsync -avz $(ROOT)/$(HDF5)/hdf5/bin/ $(CBF_PREFIX)/bin; \
+	rsync -avz $(ROOT)/$(HDF5)/hdf5/lib/ $(CBF_PREFIX)/lib; \
+	rsync -avz $(ROOT)/$(HDF5)/hdf5/include/ $(CBF_PREFIX)/include; \
+	cd $(CBF_PREFIX)/bin; $(ROOT)/$(HDF5)/hdf5/bin/h5redeploy -force
 endif
 
 
