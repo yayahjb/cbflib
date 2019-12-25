@@ -2841,19 +2841,22 @@ if (CBF_SUCCESS==found) {
             error |= CBF_ARGUMENT;
         } else {
             /* check if the link exists */
-            const htri_t l = H5Lexists(location, name, H5P_DEFAULT);
+            htri_t l;
+            l = H5Lexists(location, name, H5P_DEFAULT);
             if (l < 0) {
                 cbf_debug_print2("error: Could not check if link '%s' exists\n",name);
                 error |= CBF_H5ERROR;
-            } else if (!l) {
+            } else if (l == 0) {
                 error |= CBF_NOTFOUND;
             } else {
                 /* check if the linked object exists */
-                const htri_t e = H5Oexists_by_name(location, name, H5P_DEFAULT);
+                htri_t e;
+                e = H5Oexists_by_name(location, name, H5P_DEFAULT);
+                cbf_debug_print2("H5Dfind2 H5Oexists_by_name result %d\n",(int)e);
                 if (e < 0) {
                     cbf_debug_print2("Could not check if object '%s' exists\n",name);
                     error |= CBF_H5ERROR;
-                } else if (!e) {
+                } else if (e == 0) {
                     /* The link exists but the object doesn't - try to remove the link & tell the caller that there is no dataset */
                     if (H5Ldelete(location, name, H5P_DEFAULT) < 0) {
                         cbf_debug_print2("Could not remove dead link '%s'\n",name);
@@ -2990,22 +2993,27 @@ if (CBF_SUCCESS==found) {
      const hid_t type /**< The type of each data element in the file. */)
     {
         int error = CBF_SUCCESS;
-        if (rank < 0) {
+        if (rank < 0 || rank > 32)  {
             error |= CBF_ARGUMENT;
         } else {
         int found = CBF_SUCCESS;
             hid_t dset = CBF_H5FAIL; /* always free'able */
-            hid_t * dsetp = dataset ? dataset : &dset; /* always usable */
+            hid_t * dsetp = dataset;
+            if (!dataset) dsetp = &dset; /* always usable */
         found = cbf_H5Dfind2(location,dsetp,name,rank,max,buf,type);
         if (CBF_SUCCESS == found) {
             /* cbf_H5Dfind already checked the dimensions & type, so I don't need to do anything here */
         } else if (CBF_NOTFOUND==found) {
             /* create a suitable dataset */
-                hsize_t * const _buf = (buf || !rank) ? NULL : malloc(rank*sizeof(hsize_t)); /* always free'able */
-                hsize_t * const dim = buf ? buf : _buf; /* always usable */
+            hsize_t * const _buf = (buf || !rank) ? NULL : malloc(rank*sizeof(hsize_t)); /* always free'able */
+            hsize_t * dim;
+            hsize_t * dummy;
+            dim = buf;
+            if (!dim) dim=&dummy;
             hsize_t * it;
-            for (it = dim; it != dim+rank; ++it) *it = 0;
-                CBF_CALL2(cbf_H5Dcreate(location,dsetp,name,rank,dim,max,chunk,type),error);
+            it = dim; *it = 0;
+            if (rank > 0) for (it = dim+1; it != dim+rank; ++it) *it = 0;
+            CBF_CALL2(cbf_H5Dcreate(location,dsetp,name,rank,dim,max,chunk,type),error);
             free((void*)_buf);
         } else {
             error |= found;
@@ -27198,15 +27206,18 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
                 const char * axis_path = key->axis.path[i];
                 const char * axis_rot_path = NULL;
                 const char axis_root[] = ".";
+                hid_t dset = CBF_H5FAIL;
+                cbf_debug_print2("converting axis %s\n",axis_name); 
                 while (CBF_SUCCESS==error && axis_name && strcmp(axis_name,".") && axis_path) {
-                    hid_t dset = CBF_H5FAIL;
                     const hsize_t max[] = {H5S_UNLIMITED};
                     const hsize_t cnk[] = {1};
                     hsize_t buf[] = {0};
+                    dset = CBF_H5FAIL;
+                    cbf_debug_print2("requiring dataset %s\n",axis_path);
                     CBF_CALL(cbf_H5Drequire(h5handle->hfile,&dset,axis_path,1,max,cnk,buf,H5T_IEEE_F64LE));
                     CBF_CALL(cbf_find_column(handle,"id"));
                     CBF_CALL(cbf_find_row(handle,axis_name));
-                    if (CBF_SUCCESS==error) {
+                    if (CBF_SUCCESS==error && dset > 0) {
                         cbf_axis_data_t axis_settings = cbf_axis_data_init();
                         cbf_read_axis_row(&axis_settings,category,handle->row);
                         ++matched;
@@ -27227,7 +27238,7 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
                                 /* TODO: make up a new axis path & store it for future reference */
                                 axis_path = NULL;
                                 cbf_debug_print("conversion of axes not in detector or goniometer axis groups is not implemented - need to define a path for them\n");
-                                cbf_debug_print2("problematic axus %s\n",axis_name);
+                                cbf_debug_print2("problematic axis %s\n",axis_name);
                                 error |= CBF_NOTIMPLEMENTED;
                             }
                         }
