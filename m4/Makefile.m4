@@ -297,7 +297,7 @@ ifneq ($(CBFLIB_DONT_USE_PYCIFRW),yes)
 #
 # Definitions to get versions of PyCifRW and PLY
 #
-PYCIFRW = PyCifRW-4.1
+PYCIFRW ?= PyCifRW-4.1
 PLY = ply-3.2
 PYCIFRWFLAG = -DCBF_USE_PYCIFRW
 endif
@@ -305,7 +305,7 @@ endif
 #
 # Definition to get a version of tifflib to support tiff2cbf
 #
-TIFF = tiff-4.0.6_rev_3Nov16
+TIFF ?= tiff-4.0.6_rev_3Nov16
 TIFF_PREFIX ?= $(PWD)
 TIFF_INSTALL = $(TIFF)_INSTALL
 
@@ -319,8 +319,9 @@ ifneq ($(HDF5_PREFIX),$(PWD))
 endif
 
 ifneq ($(CBFLIB_DONT_USE_LOCAL_HDF5),yes)
+HDF5 ?= hdf5-1.10.6
 #HDF5 = hdf5-1.8.18
-HDF5 = hdf5-1.10.5
+#HDF5 = hdf5-1.10.5
 HDF5dep = $(HDF5)
 HDF5_INSTALL = $(HDF5)_INSTALL
 HDF5LIBS_LOCAL = $(LIB)/libhdf5.a
@@ -346,7 +347,7 @@ ifneq ($(CBFLIB_DONT_USE_LZ4),yes)
 #
 # Definitions to get a version of HDF5Plugin for LZ4
 #
-LZ4 = HDF5Plugin_4Feb17
+LZ4 ?= HDF5Plugin_4Feb17
 LZ4dep = $(LZ4)
 LZ4src = $(LZ4)/src
 LZ4include = $(LZ4)/include
@@ -361,7 +362,7 @@ ifneq ($(CBFLIB_DONT_USE_BSHUF),yes)
 #
 # Definitions to get a version of HDF5Plugin for BSHUFFLE WITH LZ4
 #
-BSHUF = bitshuffle-0.2.2.1_15Jun16
+BSHUF ?= bitshuffle-0.2.2.1_15Jun16
 BSUFdep = $(BSHUF)
 BSHUFsrc = $(BSHUF)/src
 BSHUFinclude = $(BSHUF)/src
@@ -377,7 +378,7 @@ ifneq ($(CBFLIB_DONT_USE_BLOSC),yes)
 #
 # Definitions to get a version of HDF5Plugin for BLOSC
 #
-BLOSC = c-blosc_4Sep16.tar.gz
+BLOSC = ?c-blosc_4Sep16.tar.gz
 BLOSCdep = $(BLOSC)
 BLOSCFILTER = hdf5-blosc_2Sep16.tar.gz
 BLOSCsrc = $(BLOSC)/src
@@ -395,7 +396,7 @@ endif
 # Definition of python to use
 #
 #PYTHON = python
-PYTHON = python2
+PYTHON ?= python2
 
 
 #
@@ -408,7 +409,7 @@ endif
 
 REGEX_LIBDIR ?= $(REGEX_PREFIX)/lib
 ifneq ($(CBFLIB_DONT_USE_LOCAL_REGEX),yes)
-REGEX = pcre-8.38
+REGEX ?= pcre-8.38
 REGEXDEP = $(REGEX)
 REGEX_INSTALL = $(REGEX)_INSTALL
 REGEX_LIB ?= pcreposix
@@ -429,7 +430,7 @@ endif
 
 # Program to use to retrieve a URL
 
-DOWNLOAD = wget -N
+DOWNLOAD ?= wget -N
 #DOWNLOAD   ?= curl -O -L
 
 # Flag to control symlinks versus copying
