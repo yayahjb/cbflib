@@ -1331,7 +1331,7 @@ int img_read_mar345header (img_handle img, FILE *file, int *org_data)
 
           *C = '\0';
           
-      for (C = C64+strlen(C64)-1; (C != C64-1 && *C == ' '); C-- ) *C = '\0';
+      for (C = C64+strlen(C64); (C > C64 && *--C == ' '); ) *C = '\0';
 
       C = C64 + strcspn (C64, " ");
 
