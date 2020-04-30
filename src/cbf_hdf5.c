@@ -304,6 +304,11 @@ extern "C" {
      int real,
      const char *byteorder);
 
+    int cbf_read_h5file_group(const cbf_handle handle,
+                        const cbf_h5handle h5handle,
+                        const unsigned long int flags,
+                        hid_t group);
+
     /* CBF column -- NeXus DataSet Mapping Tables
      applicable to categories that map to
      datasets or to attributes
@@ -17951,7 +17956,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
         char svndate[] = CBF_SVN_DATE_STRING;
 
-        char buffer[140];
+        char buffer[140] = {0};
 
         int ii, irev, idate;
 
@@ -18033,7 +18038,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
         char svndate[] = CBF_SVN_DATE_STRING;
 
-        char buffer[140];
+        char buffer[140] = {0};
 
         int ii, irev, idate;
 
@@ -19021,6 +19026,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             } else {
                 const htri_t vlstr = H5Tis_variable_str(data_type);
                 char * * lvalue = NULL;
+                char * llvalue = NULL;
                 int freelvalue = 0;
                 if (vlstr<0) {
                     cbf_debug_print("Couldn't check for a variable-length string");
@@ -19038,7 +19044,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 } else {
                     /* I have a fixed-length string */
                     const size_t len = H5Tget_size(data_type);
-                    char * llvalue = NULL;
                     if (!len) {
                         cbf_debug_print("Couldn't get length of string");
                         error |= CBF_H5ERROR;
