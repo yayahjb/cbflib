@@ -809,7 +809,7 @@ cbf_system,`MSYS2',`
 #########################################################
 CC	= gcc
 C++	= g++
-CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing
+CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -DH5_HAVE_WIN32_API -DH5_HAVE_MINGW -fno-strict-aliasing
 LDFLAGS =
 F90C = gfortran
 F90FLAGS = -g -fno-range-check
@@ -1556,7 +1556,10 @@ $(HDF5):	build_hdf5
 	touch $(HDF5)
 	-rm $(HDF5).tar.gz
 	echo  "first level HDF5 install in "$(HDF5_PREFIX)
-	(cd $(ROOT)/$(HDF5); ./configure --enable-debug=all --enable-trace --enable-fortran --enable-using-memchecker  ;\
+	(cd $(ROOT)/$(HDF5); \
+	CFLAGS="$(CFLAGS)"; export CFLAGS; mkdir -p $(ROOT)/$(HDF5)/hdf5 \
+	./configure --prefix=$(ROOT)/$(HDF5)/hdf5 --enable-build-mode=debug \
+	--enable-trace --enable-fortran --enable-using-memchecker  ;\
 	make install; \
 	rsync -avz $(ROOT)/$(HDF5)/hdf5/bin/ $(HDF5_PREFIX)/bin; \
 	rsync -avz $(ROOT)/$(HDF5)/hdf5/lib/ $(HDF5_PREFIX)/lib; \
