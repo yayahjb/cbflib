@@ -300,6 +300,7 @@ ifneq ($(CBFLIB_DONT_USE_PYCIFRW),yes)
 PYCIFRW ?= PyCifRW-4.1
 PLY = ply-3.2
 PYCIFRWFLAG = -DCBF_USE_PYCIFRW
+PYCIFRW_PREFIX ?= $(HOME)/.local
 endif
 
 #
@@ -567,6 +568,7 @@ INSTALLSETUP_PY = installsetup.py
 #
 # Set the compiler and flags
 #
+MSYS2=no
 'm4_ifelse(cbf_system,`OSX',`
 #########################################################
 #
@@ -807,6 +809,13 @@ cbf_system,`MSYS2',`
 #  Appropriate compiler definitions for MSYS2
 #
 #########################################################
+MSYS2	= yes
+REGEX_LIBS_STATIC = $(REGEX_LIBS)
+ifneq ($(CBFLIB_DONT_USE_LOCAL_HDF5),yes)
+HDF5LIBS_LOCAL = -L $(LIB) -lhdf5
+else
+HDF5LIBS_LOCAL =
+endif
 CC	= gcc
 C++	= g++
 CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -DH5_HAVE_WIN32_API -DH5_HAVE_MINGW -fno-strict-aliasing
@@ -1482,7 +1491,9 @@ $(PYCIFRW):	build_pycifrw
 	$(DOWNLOAD) $(PYCIFRWURL)
 	tar -xvf $(PYCIFRW).tar.gz
 	-rm $(PYCIFRW).tar.gz
-	(cd $(PYCIFRW); $(PYTHON) setup.py install --user )
+	(cd $(PYCIFRW); PYTHONPATH=$(PYCIFRW_PREFIX)/lib/python; export PYTHONPATH; \
+	mkdir -p $(PYCIFRW_PREFIX)/lib/python/site-packages; \
+	$(PYTHON) setup.py install --home=$(PYCIFRW_PREFIX) )
 
 #
 # PLY
@@ -1495,7 +1506,9 @@ $(PLY):	build_ply
 	$(DOWNLOAD) $(PLYURL)
 	tar -xvf $(PLY).tar.gz
 	-rm $(PLY).tar.gz
-	(cd $(PLY); $(PYTHON) setup.py install --user ) 
+	(cd $(PLY); PYTHONPATH=$(PYCIFRW_PREFIX)/lib/python; export PYTHONPATH; \
+	mkdir -p $(PYCIFRW_PREFIX)/lib/python/site-packages; \
+	$(PYTHON) setup.py install --home=$(PYCIFRW_PREFIX) )
 endif
 
 #
@@ -1512,12 +1525,15 @@ $(REGEX):   build_regex
 	touch $(REGEX)
 	-rm $(REGEX).tar.gz
 	cp config.guess config.sub $(REGEX)
-	(cd $(REGEX); ./configure --prefix=$(REGEX_PREFIX); make install)
+	(cd $(REGEX); \
+	prefix=$(REGEX_PREFIX); export prefix; \
+	./configure --prefix=$(REGEX_PREFIX); make install)
 	@-cp $(REGEX_PREFIX)/include/pcreposix.h $(REGEX_PREFIX)/include/regex.h
 $(REGEX)_INSTALL:   $(REGEX)
 	-rm -rf $(REGEX)_install
 	rsync -avz $(REGEX)/ $(REGEX)_install
-	(cd $(REGEX)_install; make distclean; ./configure --prefix=$(CBF_PREFIX); make install)
+	(cd $(REGEX)_install; prefix=$(CBF_PREFIX); export prefix; \
+	make distclean; ./configure --prefix=$(CBF_PREFIX); make install )
 	@-cp $(CBF_PREFIX)/include/pcreposix.h $(CBF_PREFIX)/include/regex.h
 
 #
@@ -1533,11 +1549,13 @@ $(TIFF):	build_tiff config.guess config.sub
 	touch $(TIFF)
 	-rm $(TIFF).tar.gz
 	cp config.guess config.sub $(TIFF)/config/
-	(cd $(TIFF); ./configure --prefix=$(TIFF_PREFIX); make install)
+	(cd $(TIFF); prefix=$(TIFF_PREFIX); export prefix; \
+	./configure --prefix=$(TIFF_PREFIX); make install)
 $(TIFF)_INSTALL:    $(TIFF)
 	-rm -rf $(TIFF)_install
 	rsync -avz $(TIFF)/  $(TIFF)_install
-	(cd $(TIFF)_install; make distclean; ./configure --prefix=$(CBF_PREFIX); make install)
+	(cd $(TIFF)_install; make distclean; prefix=$(CBF_PREFIX); export prefix; \
+	./configure --prefix=$(CBF_PREFIX); make install)
 
 
 ifneq ($(CBFLIB_DONT_USE_LOCAL_HDF5),yes)
@@ -1557,7 +1575,8 @@ $(HDF5):	build_hdf5
 	-rm $(HDF5).tar.gz
 	echo  "first level HDF5 install in "$(HDF5_PREFIX)
 	(cd $(ROOT)/$(HDF5); \
-	CFLAGS="$(CFLAGS)"; export CFLAGS; mkdir -p $(ROOT)/$(HDF5)/hdf5 \
+	CFLAGS="$(CFLAGS)"; export CFLAGS; \
+	mkdir -p hdf5; prefix=$(ROOT)/$(HDF5)/hdf5; export prefix; \
 	./configure --prefix=$(ROOT)/$(HDF5)/hdf5 --enable-build-mode=debug \
 	--enable-trace --enable-fortran --enable-using-memchecker  ;\
 	make install; \
