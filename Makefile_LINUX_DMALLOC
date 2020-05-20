@@ -1293,14 +1293,6 @@ ifneq ($(CBFLIB_DONT_USE_LOCAL_HDF5),yes)
 # HDF5
 #
 
-ifneq ($(CBFLIB_DONT_USE_LOCAL_HDF5),yes)
-HDF5LIBS_LOCAL = -L $(LIB) -lhdf5 -lhdf5.DLL
-HDF5SOLIBS_SYSTEM = -lz
-else
-HDF5LIBS_LOCAL =
-HDF5SOLIBS_SYSTEM = -L$(HDF5_PREFIX)/lib -lhdf5 -lhdf5.DLL -lz
-endif
-
 build_hdf5:	$(M4)/Makefile.m4
 	touch build_hdf5
 $(HDF5):	build_hdf5
