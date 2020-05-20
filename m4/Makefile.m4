@@ -1,5 +1,5 @@
 m4_define(`cbf_version',`0.9.6')m4_dnl
-m4_define(`cbf_date',`18 Dec 2019')m4_dnl
+m4_define(`cbf_date',`19 May 2020')m4_dnl
 m4_ifelse(cbf_system,`',`m4_define(`cbf_system',`LINUX')')
 `######################################################################
 #  Makefile - command file for make to create CBFlib                 #
@@ -9,7 +9,7 @@ m4_ifelse(cbf_system,`',`m4_define(`cbf_system',`LINUX')')
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
 #                                                                    #
-# (C) Copyright 2006 - 2019 Herbert J. Bernstein                     #
+# (C) Copyright 2006 - 2020 Herbert J. Bernstein                     #
 #                                                                    #
 ######################################################################
 
@@ -284,6 +284,13 @@ CBF_PREFIX  ?= $(HOME)
 #
 CLEANTESTS = yes
 
+'m4_ifelse(cbf_system,`MSYS2',`
+MSYS2=yes
+CBFLIB_DONT_USE_LOCAL_HDF5?=yes',`
+MSYS2=no
+CBFLIB_DONT_USE_LOCAL_HDF5?=no
+')`
+
 CBFLIB_DONT_HAVE_FGETLN ?= yes
 ifeq ($(CBFLIB_DONT_HAVE_FGETLN),yes)
 SRC_FGETLN = $(SRC)/fgetln.c
@@ -315,9 +322,6 @@ TIFF_INSTALL = $(TIFF)_INSTALL
 # Definitions to get a version of HDF5
 #
 HDF5_PREFIX ?= $(PWD)
-ifneq ($(HDF5_PREFIX),$(PWD))
-	CBFLIB_DONT_USE_LOCAL_HDF5 ?=  yes
-endif
 
 ifneq ($(CBFLIB_DONT_USE_LOCAL_HDF5),yes)
 HDF5 ?= hdf5-1.10.6
@@ -325,19 +329,32 @@ HDF5 ?= hdf5-1.10.6
 #HDF5 = hdf5-1.10.5
 HDF5dep = $(HDF5)
 HDF5_INSTALL = $(HDF5)_INSTALL
+ifneq ($(MSYS2),yes)
 HDF5LIBS_LOCAL = $(LIB)/libhdf5.a
 HDF5LIBS_SYSTEM = -lz -ldl
 HDF5SOLIBS_LOCAL = -L$(LIB) -lhdf5
 HDF5SOLIBS_SYSTEM = -lz
+else
+HDF5LIBS_LOCAL = -L $(LIB) -lhdf5 -lhdf5.dll
+HDF5LIBS_SYSTEM = -lz -ldl
+HDF5SOLIBS_LOCAL = -L$(LIB) -lhdf5 -lhdf5.dll
+HDF5SOLIBS_SYSTEM = -lz
+endif
 HDF5REGISTER ?= --register manual
 else
 HDF5 =
 HDF5dep =
 HDF5_INSTALL =
 HDF5LIBS_LOCAL =
+ifneq ($(MSYS2),yes)
 HDF5LIBS_SYSTEM = -L$(HDF5_PREFIX)/lib -lhdf5 -lz -ldl
 HDF5SOLIBS_LOCAL =
 HDF5SOLIBS_SYSTEM = -L$(HDF5_PREFIX)/lib -lhdf5 -lz
+else
+HDF5LIBS_SYSTEM = -L$(HDF5_PREFIX)/lib -lhdf5 -lhdf5.dll -lz -ldl
+HDF5SOLIBS_LOCAL =
+HDF5SOLIBS_SYSTEM = -L$(HDF5_PREFIX)/lib -lhdf5 -lhdf5.dll -lz
+endif
 HDF5REGISTER ?= --register manual
 endif
 H5DUMP = $(HDF5_PREFIX)/bin/h5dump
@@ -408,6 +425,7 @@ ifneq ($(REGEX_PREFIX),$(PWD))
 CBFLIB_DONT_USE_LOCAL_REGEX ?=  yes
 endif
 
+
 REGEX_LIBDIR ?= $(REGEX_PREFIX)/lib
 ifneq ($(CBFLIB_DONT_USE_LOCAL_REGEX),yes)
 REGEX ?= pcre-8.38
@@ -415,8 +433,13 @@ REGEXDEP = $(REGEX)
 REGEX_INSTALL = $(REGEX)_INSTALL
 REGEX_LIB ?= pcreposix
 REGEX_LIB2 ?= pcre
+ifneq ($(MSYS2),yes)
 REGEX_LIBS ?= -L $(REGEX_LIBDIR) -l$(REGEX_LIB) -l$(REGEX_LIB2)
 REGEX_LIBS_STATIC = $(LIB)/libpcreposix.a $(LIB)/libpcre.a
+else
+REGEX_LIBS ?= -L $(REGEX_LIBDIR) -l$(REGEX_LIB) -l$(REGEX_LIB).dll -l$(REGEX_LIB2) -l$(REGEX_LIB2).dll
+REGEX_LIBS_STATIC = $(REGEX_LIBS)
+endif
 REGEX_INCLUDES ?= -I $(REGEX_PREFIX)
 else
 REGEX =
@@ -568,7 +591,6 @@ INSTALLSETUP_PY = installsetup.py
 #
 # Set the compiler and flags
 #
-MSYS2=no
 'm4_ifelse(cbf_system,`OSX',`
 #########################################################
 #
@@ -809,26 +831,21 @@ cbf_system,`MSYS2',`
 #  Appropriate compiler definitions for MSYS2
 #
 #########################################################
-MSYS2	= yes
-REGEX_LIBS_STATIC = $(REGEX_LIBS)
-ifneq ($(CBFLIB_DONT_USE_LOCAL_HDF5),yes)
-HDF5LIBS_LOCAL = -L $(LIB) -lhdf5
-else
-HDF5LIBS_LOCAL =
-endif
+
 CC	= gcc
 C++	= g++
-CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -DH5_HAVE_WIN32_API -DH5_HAVE_MINGW -fno-strict-aliasing
+CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -DH5_HAVE_WIN32_API \
+  -DH5_HAVE_MINGW -DH5_USE_110_API -fno-strict-aliasing
 LDFLAGS =
 F90C = gfortran
-F90FLAGS = -g -fno-range-check
+F90FLAGS = -g -fno-range-check -fallow-invalid-boz
 F90LDFLAGS = 
 SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(CBF_PREFIX)/lib
 JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
-LDPREFIX = PATH=$(SOLIB);$$PATH;export PATH;
+LDPREFIX = PATH=$(SOLIB):$$PATH;export PATH;
 RUNLDPREFIX = PATH=$(CBF_PREFIX)/lib:$$PATH;export PATH;
-EXTRALIBS = -L/mingw64/bin -lm
+EXTRALIBS = -L/mingw32/bin -lm -lws2_32
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 PYTHON = python2
 PYCBFEXT = dll
@@ -934,8 +951,14 @@ INCLUDE_CBF_ULP_H =	$(INCLUDE)/cbf_ulp.h
 BIN_TESTULP       = $(BIN)/testulp
 else
 SRC_CBF_ULP_C =
-INCLUDE_CBF_ULP_H =
+INCLUyDE_CBF_ULP_H =
 BIN_TESTULP =
+endif
+
+ifneq ($(MSYS2),yes)
+SRC_REALPATH =
+else
+SRC_REALPATH = $(SRC)/realpath.c
 endif
 
 
@@ -996,7 +1019,7 @@ SOURCE   =  $(SRC)/cbf.c               \
 	$(SRC)/cbff.c              \
 	$(SRC)/md5c.c              \
 	$(SRC)/img.c               \
-	$(SRC_FGETLN)
+	$(SRC_FGETLN) $(SRC_REALPATH)
 
 ifneq ($(CBFLIB_DONT_USE_PYCIFRW),yes)
 PYSOURCE  = $(SRC)/drel_lex.py		   \
@@ -1562,6 +1585,15 @@ ifneq ($(CBFLIB_DONT_USE_LOCAL_HDF5),yes)
 #
 # HDF5
 #
+
+ifneq ($(CBFLIB_DONT_USE_LOCAL_HDF5),yes)
+HDF5LIBS_LOCAL = -L $(LIB) -lhdf5 -lhdf5.DLL
+HDF5SOLIBS_SYSTEM = -lz
+else
+HDF5LIBS_LOCAL =
+HDF5SOLIBS_SYSTEM = -L$(HDF5_PREFIX)/lib -lhdf5 -lhdf5.DLL -lz
+endif
+
 build_hdf5:	$(M4)/Makefile.m4
 	touch build_hdf5
 $(HDF5):	build_hdf5
@@ -1977,7 +2009,9 @@ $(BIN)/cbf2nexus: $(LIB)/libcbf.a $(EXAMPLES)/cbf2nexus.c \
 	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/cbf2nexus.c $(GOPTLIB) -L$(LIB) \
-	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -limg -o $@
+	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) \
+	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) \
+	-limg -o $@
 
 #
 # minicbf2nexus example program
@@ -2143,7 +2177,9 @@ ifneq ($(CBF_USE_ULP),)
 #
 $(BIN)/testulp: $(LIB)/libcbf.a $(EXAMPLES)/testulp.c $(EXAMPLES)/unittest.h
 	mkdir -p $(BIN)
-	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) $(EXAMPLES)/testulp.c -L$(LIB) $(LIB)/libcbf.a $(EXTRALIBS) -o $@.tmp
+	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) \
+	  $(WARNINGS) $(EXAMPLES)/testulp.c -L$(LIB) $(LIB)/libcbf.a \
+	  $(REGEX_LIBS_STATIC) $(EXTRALIBS) -o $@.tmp
 	mv $@.tmp $@
 endif
 
@@ -2152,8 +2188,10 @@ endif
 #
 $(BIN)/testhdf5: $(LIB)/libcbf.a $(EXAMPLES)/testhdf5.c $(EXAMPLES)/unittest.h
 	mkdir -p $(BIN)
-	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
-	$(EXAMPLES)/testhdf5.c -L$(LIB) $(LIB)/libcbf.a $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM)   -o $@.tmp
+	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) \
+	  $(WARNINGS) $(EXAMPLES)/testhdf5.c -L$(LIB) $(LIB)/libcbf.a \
+	  $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) \
+          -o $@.tmp
 	mv $@.tmp $@
 
 #
@@ -2161,7 +2199,9 @@ $(BIN)/testhdf5: $(LIB)/libcbf.a $(EXAMPLES)/testhdf5.c $(EXAMPLES)/unittest.h
 #
 $(BIN)/testalloc: $(LIB)/libcbf.a $(EXAMPLES)/testalloc.c $(EXAMPLES)/unittest.h
 	mkdir -p $(BIN)
-	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) $(EXAMPLES)/testalloc.c -L$(LIB) $(LIB)/libcbf.a $(EXTRALIBS) -o $@.tmp
+	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) \
+	  $(WARNINGS) $(EXAMPLES)/testalloc.c -L$(LIB) $(LIB)/libcbf.a \
+	  $(REGEX_LIBS_STATIC) $(EXTRALIBS) -o $@.tmp
 	mv $@.tmp $@
 	
 #
@@ -2169,7 +2209,9 @@ $(BIN)/testalloc: $(LIB)/libcbf.a $(EXAMPLES)/testalloc.c $(EXAMPLES)/unittest.h
 #
 $(BIN)/test_cbf_airy_disk: $(LIB)/libcbf.a $(EXAMPLES)/test_cbf_airy_disk.c
 	mkdir -p $(BIN)
-	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) $(EXAMPLES)/test_cbf_airy_disk.c -L$(LIB) $(LIB)/libcbf.a $(EXTRALIBS) -o $@.tmp
+	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) \
+	  $(WARNINGS) $(EXAMPLES)/test_cbf_airy_disk.c -L$(LIB) $(LIB)/libcbf.a \
+	  $(REGEX_LIBS_STATIC) $(EXTRALIBS) -o $@.tmp
 	mv $@.tmp $@
 
 #
@@ -2177,7 +2219,9 @@ $(BIN)/test_cbf_airy_disk: $(LIB)/libcbf.a $(EXAMPLES)/test_cbf_airy_disk.c
 #
 $(BIN)/cbf_testxfelread: $(LIB)/libcbf.a $(EXAMPLES)/cbf_testxfelread.c $(EXAMPLES)/cbf_testxfelread.h
 	mkdir -p $(BIN)
-	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) $(EXAMPLES)/cbf_testxfelread.c -L$(LIB) $(LIB)/libcbf.a $(EXTRALIBS) -o $@.tmp
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	  $(EXAMPLES)/cbf_testxfelread.c -L$(LIB) $(LIB)/libcbf.a \
+	  $(REGEX_LIBS_STATIC) $(EXTRALIBS) -o $@.tmp
 	mv $@.tmp $@
 
 #
