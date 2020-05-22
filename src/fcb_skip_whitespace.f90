@@ -65,11 +65,14 @@
 		     END IF
 		  ELSE
 		     SELECT CASE (LINE(IC))
-		     CASE (Z'5C')      ! backslash
+		     !CASE (Z'5C')      ! backslash
+		     CASE (92)
 			IC = IC+1      ! force skip of next character
-		     CASE (Z'28')      ! open paren
+		     !CASE (Z'28')      ! open paren
+		     CASE (40)
 			COMMENT_LEVEL = COMMENT_LEVEL+1;
-		     CASE (Z'29')      ! close paren
+		     !CASE (Z'29')      ! close paren
+		     CASE (41)
 			COMMENT_LEVEL = COMMENT_LEVEL-1;
 		     END SELECT
 		     IC = IC+1;
