@@ -848,7 +848,7 @@ RUNLDPREFIX = PATH=$(CBF_PREFIX)/lib:$$PATH;export PATH;
 EXTRALIBS = -L/mingw32/bin -lm -lws2_32
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 PYTHON = python2
-PYCBFEXT = dll
+PYCBFEXT = pyd
 TIME = time',
 cbf_system,`IRIX_gcc',`
 
