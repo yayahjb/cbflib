@@ -283,9 +283,8 @@ CBF_PREFIX  ?= $(HOME)
 CLEANTESTS = yes
 
 
-MSYS2=no
-CBFLIB_DONT_USE_LOCAL_HDF5?=no
-
+MSYS2=yes
+CBFLIB_DONT_USE_LOCAL_HDF5?=yes
 
 CBFLIB_DONT_HAVE_FGETLN ?= yes
 ifeq ($(CBFLIB_DONT_HAVE_FGETLN),yes)
@@ -359,17 +358,12 @@ else
 H5DUMP = /MINGW32/bin/h5dump
 endif
 
-
 CBFLIB_DONT_USE_LZ4 ?= no
 ifneq ($(CBFLIB_DONT_USE_LZ4),yes)
 #
 # Definitions to get a version of HDF5Plugin for LZ4
 #
-ifneq ($(MSYS2),yes)
-LZ4 ?= HDF5Plugin_4Feb17
-else
 LZ4 ?= HDF5-External-Filter-Plugins
-endif
 LZ4dep = $(LZ4)
 LZ4src = $(LZ4)/src
 LZ4include = $(LZ4)/include
@@ -596,29 +590,30 @@ INSTALLSETUP_PY = installsetup.py
 # Set the compiler and flags
 #
 
+#########################################################
+#
+#  Appropriate compiler definitions for MSYS2
+#
+#########################################################
 
-#########################################################
-#
-#  Appropriate compiler definitions for IRIX w. gcc
-#  No f90
-#  use default paths for utilities
-#
-#########################################################
-CC      = gcc
-C++     = g++
-CFLAGS  = -g -O2  -Wall
+CC	= gcc
+C++	= g++
+CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -DH5_HAVE_WIN32_API \
+  -DH5_HAVE_MINGW -DH5_USE_110_API -fno-strict-aliasing
 LDFLAGS =
-F90C    =
-F90FLAGS =
-M4FLAGS = -Dfcb_bytes_in_rec=4096
+F90C = gfortran
+F90FLAGS = -g -fno-range-check -fallow-invalid-boz
+F90LDFLAGS = 
+SOCFLAGS = -fPIC
+SOLDFLAGS = -shared -Wl,-rpath,$(CBF_PREFIX)/lib
 JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
-LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
-RUNLDPREFIX = LD_LIBRARY_PATH=$(CBF_PREFIX)/LIB:$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
-EXTRALIBS = -lm
-TIME    =
-SHAR    = shar
-AR      =  ar
-RANLIB  = 
+LDPREFIX = PATH=$(SOLIB):$$PATH;export PATH;
+RUNLDPREFIX = PATH=$(CBF_PREFIX)/lib:$$PATH;export PATH;
+EXTRALIBS = -L/mingw32/bin -lm -lws2_32
+M4FLAGS = -Dfcb_bytes_in_rec=131072
+PYTHON = python2
+PYCBFEXT = pyd
+TIME = time
 
 ifneq ($(NOFORTRAN),)
 F90C =
@@ -642,11 +637,7 @@ endif
 REGEX_URL	?= http://downloads.sf.net/cbflib/$(REGEX).tar.gz
 TIFF_URL	?= http://downloads.sf.net/cbflib/$(TIFF).tar.gz
 HDF5_URL	?= http://downloads.sf.net/cbflib/$(HDF5).tar.gz
-ifneq ($(MSYS2),yes)
-LZ4_URL		= http://downloads.sf.net/cbflib/$(LZ4).tar.gz
-else
-LZ4_URL		= http://www.github.com/yayahjb/$(LZ4).git
-endif
+LZ4_URL      = http://www.github.com/yayahjb/$(LZ4).git
 BSHUFURL    = http://downloads.sf.net/cbflib/$(BSHUF).tar.gz
 
 
@@ -1349,20 +1340,9 @@ build_lz4:	$(M4)/Makefile.m4
 $(LZ4): $(HDF5)	build_lz4
 	mkdir -p $(SOLIB)
 	-rm -rf $(LZ4)
-ifneq ($(MSYS2),yes)
 	-rm -rf $(LZ4).tar.gz
-	$(DOWNLOAD) $(LZ4_URL)
-	tar -xvf $(LZ4).tar.gz
-	-rm $(LZ4).tar.gz
-	(cp $(LZ4include)/lz4.h $(INCLUDE); \
-	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(LZ4src)/lz4.c -o lz4.o; \
-	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(LZ4src)/h5zlz4.c -o h5zlz4.o; \
-	$(CC) -shared lz4.o h5zlz4.o -o $(SOLIB)/libh5zlz4.so; \
-	rm lz4.o h5zlz4.o)
-else
 	git clone $(LZ4_URL)
 	(cd $(LZ4); mkdir build; cd build; cmake .. -G 'MSYS Makefiles' -DENABLE_LZ4_PLUGIN="yes"; make all; cp plugins/* $(SOLIB))
-endif 
 	touch $(LZ4)
 endif
 
@@ -1455,11 +1435,7 @@ $(LIB)/libcbf.a: $(SOURCE) $(HEADERS) $(COMMONDEP) $(HDF5) $(LZ4DEPS) $(BSHUFDEP
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) \
 	-DCBF_FILTER_STATIC $(LZ4FLAG) $(BSHUFFLAG)  $(PYCIFRWFLAG) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
 ifneq ($(CBFLIB_DONT_USE_LZ4),yes)
-ifneq ($(MSYS2),yes)
-	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) -DCBF_FILTER_STATIC -c $(LZ4src)/h5zlz4.c -o h5zlz4.o
-else
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) -DCBF_FILTER_STATIC -c $(LZ4)/LZ4/src/H5Zlz4.c -o h5zlz4.o
-endif
 endif
 ifneq ($(CBFLIB_DONT_USE_BSHUF),yes)
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) -DCBF_FILTER_STATIC -c $(BSHUFsrc)/bitshuffle.c  -o bitshuffle.o
@@ -1480,11 +1456,7 @@ $(SOLIB)/libcbf.so: $(SOURCE) $(HEADERS) $(COMMONDEP)  $(HDF5) $(LZ4DEPS) $(BSHU
 	mkdir -p $(SOLIB)
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(LZ4FLAG) $(BSHUFFLAG) $(PYCIFRWFLAG) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
 ifneq ($(CBFLIB_DONT_USE_LZ4),yes)
-ifneq ($(MSYS2),yes)
-	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) $(SOCFLAGS) -DCBF_FILTER_STATIC -c $(LZ4src)/h5zlz4.c -o h5zlz4.o
-else
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) $(SOCFLAGS) -DCBF_FILTER_STATIC -c $(LZ4)/LZ4/src/H5Zlz4.c -o h5zlz4.o
-endif
 endif
 ifneq ($(CBFLIB_DONT_USE_BSHUF),yes)
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) $(SOCFLAGS) -DCBF_FILTER_STATIC -c $(BSHUFsrc)/bitshuffle.c -o bitshuffle..o
@@ -1912,7 +1884,7 @@ $(BIN)/testhdf5: $(LIB)/libcbf.a $(EXAMPLES)/testhdf5.c $(EXAMPLES)/unittest.h
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) \
 	  $(WARNINGS) $(EXAMPLES)/testhdf5.c -L$(LIB) $(LIB)/libcbf.a \
 	  $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) \
-	  -o $@.tmp
+          -o $@.tmp
 	mv $@.tmp $@
 
 #
