@@ -1680,7 +1680,7 @@ static int FUNC \
         if ( v < 0 ) {
                     cbf_debug_print("H5Iis_valid call failed.\n");
                 }
-        return (ID >= 0 && v > 0);
+        return (ID >= 0 && v > 0)?1:0;
     }
 
     /*
@@ -2844,6 +2844,7 @@ if (CBF_SUCCESS==found) {
         int error = CBF_SUCCESS;
         if (!cbf_H5Ivalid(location) || !dataset || !name || rank<0) {
             error |= CBF_ARGUMENT;
+            return error;
         } else {
             /* check if the link exists */
             htri_t l;
@@ -2909,7 +2910,7 @@ if (CBF_SUCCESS==found) {
                                             error |= CBF_H5DIFFERENT;
                                         }
                                     }
-                                    free((void*)_buf);
+                                    if (_buf) free((void*)_buf);
                                 }
                             }
                             cbf_H5Sfree(currSpace);
@@ -2932,10 +2933,10 @@ if (CBF_SUCCESS==found) {
                             }
                             /* return the dataset & transfer ownership of it to the caller, or keep it to free it later */
                             if (CBF_SUCCESS==error) {
-                                *dataset = g;
+                                if (dataset) *dataset = g;
                                 g = CBF_H5FAIL;
                             } else {
-                                *dataset = CBF_H5FAIL;
+                                if (dataset) *dataset = CBF_H5FAIL;
                             }
                         }
                     }
@@ -2998,8 +2999,9 @@ if (CBF_SUCCESS==found) {
      const hid_t type /**< The type of each data element in the file. */)
     {
         int error = CBF_SUCCESS;
-        if (rank < 0 || rank > 32)  {
+        if (rank < 0 || rank > 32 || !dataset )  {
             error |= CBF_ARGUMENT;
+            return error;
         } else {
         int found = CBF_SUCCESS;
             hid_t dset = CBF_H5FAIL; /* always free'able */
@@ -3019,7 +3021,7 @@ if (CBF_SUCCESS==found) {
             it = dim; *it = 0;
             if (rank > 0) for (it = dim+1; it != dim+rank; ++it) *it = 0;
             CBF_CALL2(cbf_H5Dcreate(location,dsetp,name,rank,dim,max,chunk,type),error);
-            free((void*)_buf);
+            if (_buf) free((void*)_buf);
         } else {
             error |= found;
             /* maybe report the failure? */
@@ -3097,7 +3099,7 @@ if (CBF_SUCCESS==found) {
                 if (cbf_H5Ivalid(newSpace)) H5Sclose(newSpace);
             }
             if (cbf_H5Ivalid(oldSpace)) H5Sclose(oldSpace);
-            free((void*)_buf);
+            if (_buf) free((void*)_buf);
         }
         return error;
     }
@@ -3794,7 +3796,7 @@ if (CBF_SUCCESS==found) {
                             cbf_debug_print4("data doesn't match ('%s' vs '%s') for dataset '%s'\n",data,value,name);
                 }
             /* 'data' is either allocated by me or by the HDF5 library: always free it */
-                free((void*)data);
+                if (data) free((void*)data);
                     }
                     H5Tclose(currType);
         } else if (CBF_NOTFOUND==found) {
@@ -4052,7 +4054,7 @@ if (CBF_SUCCESS==found) {
 
         /* if I am at the end of the stream, free the buffer & return 0 */
         if (feof(stream)) {
-            free((void*)(*buf));
+            if (buf && *buf) free((void*)(*buf));
             *buf = 0;
             *n = 0;
             return '\n'==*pre ? cbf_configError_success : cbf_configError_unexpectedEOF;
@@ -15524,10 +15526,14 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
             elsize = (bits+7)/8;
 
+	    uncompressedarray = 0;
+
             cbf_reportnez(cbf_alloc(((void **) &uncompressedarray),NULL,
-                                    elsize,dimover),errorcode);
+                                    elsize,dimover+32),errorcode);
 
             nelems_read = 0;
+
+	    if (errorcode || !uncompressedarray) return CBF_ALLOC;
 
             /* Get the data */
 
@@ -15553,6 +15559,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                                &text_dimslow,
                                                &text_padding),errorcode);
             }
+
+	    if (errorcode) return errorcode;
 
             if (nelems_read < dimover) {
 
