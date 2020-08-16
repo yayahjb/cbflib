@@ -290,6 +290,22 @@ extern "C" {
     H5PL_type_t   H5PLget_plugin_type(void) {return H5PL_TYPE_FILTER;}
     const void *H5PLget_plugin_info(void) {return CBF_H5Z_CBF;}
 #endif
+
+    static cbf_memcpy_as_cbf(void** dstbuf, void** srcbuf, const size_t nbytes) {
+        if (!dstbuf || !srcbuf || !nbytes ||  !(*srcbuf) ) return  CBF_ARGUMENT;
+        if (cbf_alloc(dstbuf,NULL,nbytes,1))  return CBF_ALLOC;
+        memcpy(*dstbuf, *srcbuf, nbytes);
+        return 0; 
+    }
+
+    static cbf_memcpy_as_h5(void** dstbuf, void** srcbuf, const size_t nbytes) {
+        if (!dstbuf || !srcbuf || !nbytes ||  !(*srcbuf) ) return  CBF_ARGUMENT;
+        *dstbuf=H5allocate_memory(nbytes,0);
+        if (!(*dstbuf))  return CBF_ALLOC;
+        memcpy(*dstbuf, *srcbuf, nbytes);
+        return 0; 
+    }
+
     
     static size_t cbf_h5z_filter(unsigned int flags,
                                  size_t cd_nelmts,
@@ -324,6 +340,7 @@ extern "C" {
             /* decompression */
             
             const char *line;
+            void *     cbfbuf;
             int        textencoding;
             size_t     textsize;
             long       textid;
@@ -352,7 +369,10 @@ extern "C" {
             vcharacters = NULL;
             onbytes = tempfile->characters_size;
             if (tempfile->characters_base) vcharacters = (void *)(tempfile->characters_base);
-            tempfile->characters_base = tempfile->characters = *buf;
+            cbf_memcpy_as_cbf(&cbfbuf,buf,nbytes);
+            H5free_memory(*buf);
+            *buf=NULL;
+            tempfile->characters_base = tempfile->characters = cbfbuf;
             tempfile->characters_used = tempfile->characters_size = nbytes;
 #ifdef CBFDEBUG
             {int ii;
@@ -369,7 +389,9 @@ extern "C" {
 #endif
             
             if (errorcode) {
+                /* *buf=NULL; */
                 *buf_size=0;
+                /* cbf_free_file(&tempfile); */
                 return 0;
             }
             
@@ -379,7 +401,9 @@ extern "C" {
                 fprintf(stderr,"bad line %s \n",line);
 #endif
                 errorcode |= CBF_FORMAT;
+                /* *buf=NULL; */
                 *buf_size = 0;
+                /* cbf_free_file(&tempfile); */
                 return 0;
             }
             if (cbf_read_line(tempfile,&line)||
@@ -388,7 +412,9 @@ extern "C" {
                 fprintf(stderr,"bad line %s \n",line);
 #endif
                 errorcode |= CBF_FORMAT;
+                /* *buf=NULL; */
                 *buf_size = 0;
+                /* cbf_free_file(&tempfile); */
                 return 0;
             }
             if (cbf_read_line(tempfile,&line)||
@@ -397,7 +423,9 @@ extern "C" {
                 fprintf(stderr,"bad line %s \n",line);
 #endif
                 errorcode |= CBF_FORMAT;
+                /* *buf=NULL; */
                 *buf_size = 0;
+                /* cbf_free_file(&tempfile); */
                 return 0;
             }
             cbf_reportnez(cbf_parse_mimeheader(tempfile,
@@ -415,7 +443,12 @@ extern "C" {
                                                &textdimmid,
                                                &textdimslow,
                                                &textpadding),errorcode);
-            if (errorcode) return 0;
+            if (errorcode) {
+                /* *buf=NULL; */
+                *buf_size = 0;
+                /* cbf_free_file(&tempfile); */
+                return 0;
+            }
             if (textdimslow < 1) textdimslow = 1;
             if (textdimmid  < 1) textdimmid  = 1;
             if (textdimfast < 1) textdimfast = 1;
@@ -476,7 +509,9 @@ extern "C" {
                     fprintf(stderr," padding: %d %d\n",(int)textpadding, cd_values[CBF_H5Z_FILTER_CBF_PADDING]);
                 }
 #endif
+                /* *buf = NULL; */
                 *buf_size = 0;
+                /* cbf_free_file(&tempfile); */
                 return 0;
             }
             
@@ -491,7 +526,9 @@ extern "C" {
                                                      textcompression,
                                                      tempfile),errorcode);
             if (errorcode) {
+                /* *buf = NULL; */
                 *buf_size = 0;
+                /* cbf_free_file(&tempfile); */
                 return 0;
             }
             
@@ -510,8 +547,9 @@ extern "C" {
 #ifdef CBFDEBUG
                     fprintf(stderr," mismatched digests %s %s\n",textdigest,digest);
 #endif
-                    
+                    /* *buf = NULL; */
                     *buf_size = 0;
+                    /* cbf_free_file(&tempfile) */;
                     return 0;
                     
                 }
@@ -523,8 +561,9 @@ extern "C" {
             /* allocate a new buffer */
             if (cbf_alloc((void **) &destination,NULL,
                           nelem*elsize,1)) {
-                
+                /* *buf = NULL; */
                 *buf_size = 0;
+                /* cbf_free_file(&tempfile); */
                 return 0;
                 
             }
@@ -561,11 +600,20 @@ extern "C" {
             }
 #endif
             
-            if (errorcode) cbf_free((void **) (&destination), NULL);
+            if (errorcode) {
+
+              cbf_free((void **) (&destination), NULL);
+              /* *buf = NULL; */
+              *buf_size = 0;
+              /* cbf_free_file(&tempfile); */
+              return 0;
+            }
             
             *buf_size = nelem_read*elsize;
+
+            cbf_memcpy_as_h5(buf,&destination,nelem_read*elsize);
             
-            *buf=destination;
+            cbf_free((void **) &destination,NULL);
             
             tempfile->characters_base = tempfile->characters = vcharacters;
             
@@ -868,9 +916,10 @@ extern "C" {
                     tempfile->characters_base[binary_size_pos+ip]= text[ip];
                 }
                 
-                cbf_reportnez (cbf_flush_characters (tempfile), errorcode)
-                *buf = tempfile->characters_base;
+                cbf_reportnez (cbf_flush_characters (tempfile), errorcode);
                 *buf_size = tempfile->characters+tempfile->characters_used-tempfile->characters_base;
+                cbf_memcpy_as_h5(buf,&(tempfile->characters_base),*buf_size);
+                H5free_memory(oldbuf);
 #ifdef CBFDEBUG
                 {int ii;
                     fprintf(stderr,"\nCompressed data as characters\n:");
@@ -891,7 +940,6 @@ extern "C" {
                     
                 }
 #endif
-                tempfile->characters_base = oldbuf;
                 cbf_free_file(&tempfile);
                 return *buf_size;
             }

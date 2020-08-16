@@ -366,7 +366,7 @@ ifneq ($(CBFLIB_DONT_USE_LZ4),yes)
 # Definitions to get a version of HDF5Plugin for LZ4
 #
 ifneq ($(MSYS2),yes)
-LZ4 ?= HDF5Plugin_4Feb17
+LZ4 ?= HDF5Plugin_14Aug20
 else
 LZ4 ?= HDF5-External-Filter-Plugins
 endif
@@ -1325,7 +1325,7 @@ $(HDF5):	build_hdf5
 	(cd $(ROOT)/$(HDF5); \
 	CFLAGS="$(CFLAGS)"; export CFLAGS; \
 	mkdir -p hdf5; prefix=$(ROOT)/$(HDF5)/hdf5; export prefix; \
-	./configure --prefix=$(ROOT)/$(HDF5)/hdf5 --enable-build-mode=debug \
+	./configure --prefix=$(ROOT)/$(HDF5)/hdf5 --enable-build-mode=production \
 	--enable-trace --enable-fortran --enable-using-memchecker  ;\
 	make install; \
 	rsync -avz $(ROOT)/$(HDF5)/hdf5/bin/ $(HDF5_PREFIX)/bin; \
@@ -1712,7 +1712,7 @@ $(BIN)/img2cif: $(LIB)/libcbf.a $(EXAMPLES)/img2cif.c $(LIB)/libimg.a \
 	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/img2cif.c $(GOPTLIB) -L$(LIB) \
-	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -limg -o $@
+	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -lhdf5 -limg -o $@
 
 #
 # cif2cbf example program
@@ -1722,7 +1722,7 @@ $(BIN)/cif2cbf: $(LIB)/libcbf.a $(EXAMPLES)/cif2cbf.c $(LIB)/libimg.a \
 	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/cif2cbf.c $(GOPTLIB) -L$(LIB) \
-	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -limg -o $@
+	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -lhdf5 -limg -o $@
 
 #
 # cbf2nexus example program
@@ -1733,8 +1733,7 @@ $(BIN)/cbf2nexus: $(LIB)/libcbf.a $(EXAMPLES)/cbf2nexus.c \
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/cbf2nexus.c $(GOPTLIB) -L$(LIB) \
 	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) \
-	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) \
-	-limg -o $@
+	-lhdf5 -limg -o $@
 
 #
 # minicbf2nexus example program
@@ -1744,7 +1743,7 @@ $(BIN)/minicbf2nexus: $(LIB)/libcbf.a $(EXAMPLES)/minicbf2nexus.c $(LIB)/libimg.
 	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/minicbf2nexus.c $(GOPTLIB) -L$(LIB) \
-	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -limg -o $@
+	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -lhdf5 -limg -o $@
 	
 #
 # nexus2cbf example program
@@ -1754,7 +1753,7 @@ $(BIN)/nexus2cbf: $(LIB)/libcbf.a $(EXAMPLES)/nexus2cbf.c \
 	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/nexus2cbf.c $(GOPTLIB) -L$(LIB) \
-	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM)  -limg -o $@
+	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM)  -lhdf5 -limg -o $@
 
 #
 # roi_peaksearch example program
