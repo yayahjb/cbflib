@@ -2006,7 +2006,7 @@ $(BIN)/img2cif: $(LIB)/libcbf.a $(EXAMPLES)/img2cif.c $(LIB)/libimg.a \
 # cif2cbf example program
 #
 $(BIN)/cif2cbf: $(LIB)/libcbf.a $(EXAMPLES)/cif2cbf.c $(LIB)/libimg.a \
-	$(GOPTLIB) $(GOPTINC) shared
+	$(GOPTLIB) $(GOPTINC)
 	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/cif2cbf.c $(GOPTLIB) -L$(LIB) \
@@ -2016,7 +2016,7 @@ $(BIN)/cif2cbf: $(LIB)/libcbf.a $(EXAMPLES)/cif2cbf.c $(LIB)/libimg.a \
 # cbf2nexus example program
 #
 $(BIN)/cbf2nexus: $(LIB)/libcbf.a $(EXAMPLES)/cbf2nexus.c \
-	$(GOPTLIB)	$(GOPTINC) 
+	$(GOPTLIB) $(GOPTINC) 
 	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/cbf2nexus.c $(GOPTLIB) -L$(LIB) \
@@ -2027,7 +2027,7 @@ $(BIN)/cbf2nexus: $(LIB)/libcbf.a $(EXAMPLES)/cbf2nexus.c \
 # minicbf2nexus example program
 #
 $(BIN)/minicbf2nexus: $(LIB)/libcbf.a $(EXAMPLES)/minicbf2nexus.c $(LIB)/libimg.a \
-	$(GOPTLIB)	$(GOPTINC) 
+	$(GOPTLIB) $(GOPTINC) 
 	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/minicbf2nexus.c $(GOPTLIB) -L$(LIB) \
@@ -2037,7 +2037,7 @@ $(BIN)/minicbf2nexus: $(LIB)/libcbf.a $(EXAMPLES)/minicbf2nexus.c $(LIB)/libimg.
 # nexus2cbf example program
 #
 $(BIN)/nexus2cbf: $(LIB)/libcbf.a $(EXAMPLES)/nexus2cbf.c \
-	$(GOPTLIB)	$(GOPTINC) $(REGEX)
+	$(GOPTLIB) $(GOPTINC) $(REGEX)
 	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/nexus2cbf.c $(GOPTLIB) -L$(LIB) \

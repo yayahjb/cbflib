@@ -283,9 +283,8 @@ CBF_PREFIX  ?= $(HOME)
 CLEANTESTS = yes
 
 
-MSYS2=no
-CBFLIB_DONT_USE_LOCAL_HDF5?=no
-
+MSYS2=yes
+CBFLIB_DONT_USE_LOCAL_HDF5?=yes
 
 CBFLIB_DONT_HAVE_FGETLN ?= yes
 ifeq ($(CBFLIB_DONT_HAVE_FGETLN),yes)
@@ -598,28 +597,27 @@ INSTALLSETUP_PY = installsetup.py
 
 #########################################################
 #
-#  Appropriate compiler definitions for default (Linux)
+#  Appropriate compiler definitions for MSYS2
 #
 #########################################################
+
 CC	= gcc
 C++	= g++
-ifneq ($(CBFDEBUG),)
-CFLAGS  = -g -O0 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing -DCBFDEBUG=1
-else
-CFLAGS  = -g -O3 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing
-endif
+CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -DH5_HAVE_WIN32_API \
+  -DH5_HAVE_MINGW -DH5_USE_110_API -fno-strict-aliasing
 LDFLAGS =
 F90C = gfortran
-F90FLAGS = -g -fno-range-check
+F90FLAGS = -g -fno-range-check -fallow-invalid-boz
 F90LDFLAGS = 
 SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(CBF_PREFIX)/lib
 JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
-LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$(LIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
-#LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
-RUNLDPREFIX = LD_LIBRARY_PATH=$(CBF_PREFIX)/LIB:$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
-EXTRALIBS = -lm
+LDPREFIX = PATH=$(SOLIB):$$PATH;export PATH;
+RUNLDPREFIX = PATH=$(CBF_PREFIX)/lib:$$PATH;export PATH;
+EXTRALIBS = -L/mingw32/bin -lm -lws2_32
 M4FLAGS = -Dfcb_bytes_in_rec=131072
+PYTHON = python2
+PYCBFEXT = pyd
 TIME = time
 
 ifneq ($(NOFORTRAN),)
@@ -1718,7 +1716,7 @@ $(BIN)/img2cif: $(LIB)/libcbf.a $(EXAMPLES)/img2cif.c $(LIB)/libimg.a \
 # cif2cbf example program
 #
 $(BIN)/cif2cbf: $(LIB)/libcbf.a $(EXAMPLES)/cif2cbf.c $(LIB)/libimg.a \
-	$(GOPTLIB) $(GOPTINC)
+	$(GOPTLIB) $(GOPTINC) shared
 	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/cif2cbf.c $(GOPTLIB) -L$(LIB) \
@@ -1728,7 +1726,7 @@ $(BIN)/cif2cbf: $(LIB)/libcbf.a $(EXAMPLES)/cif2cbf.c $(LIB)/libimg.a \
 # cbf2nexus example program
 #
 $(BIN)/cbf2nexus: $(LIB)/libcbf.a $(EXAMPLES)/cbf2nexus.c \
-	$(GOPTLIB) $(GOPTINC) 
+	$(GOPTLIB) $(GOPTINC) shared
 	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/cbf2nexus.c $(GOPTLIB) -L$(LIB) \
@@ -1739,7 +1737,7 @@ $(BIN)/cbf2nexus: $(LIB)/libcbf.a $(EXAMPLES)/cbf2nexus.c \
 # minicbf2nexus example program
 #
 $(BIN)/minicbf2nexus: $(LIB)/libcbf.a $(EXAMPLES)/minicbf2nexus.c $(LIB)/libimg.a \
-	$(GOPTLIB) $(GOPTINC) 
+	$(GOPTLIB)	$(GOPTINC) 
 	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/minicbf2nexus.c $(GOPTLIB) -L$(LIB) \
@@ -1749,7 +1747,7 @@ $(BIN)/minicbf2nexus: $(LIB)/libcbf.a $(EXAMPLES)/minicbf2nexus.c $(LIB)/libimg.
 # nexus2cbf example program
 #
 $(BIN)/nexus2cbf: $(LIB)/libcbf.a $(EXAMPLES)/nexus2cbf.c \
-	$(GOPTLIB) $(GOPTINC) $(REGEX)
+	$(GOPTLIB)	$(GOPTINC) $(REGEX)
 	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/nexus2cbf.c $(GOPTLIB) -L$(LIB) \
