@@ -429,71 +429,72 @@ It appeared to work with the file img2cif\_packed.cif which is built
 when you build CBFlib, hence that file is hardwired in.
 
 @O pycbf_test1.py
-@{
+@{from __future__ import print_function
+
 import pycbf
 object = pycbf.cbf_handle_struct() # FIXME
 object.read_file("../img2cif_packed.cif",pycbf.MSG_DIGEST)
 object.rewind_datablock()
-print "Found",object.count_datablocks(),"blocks"
+print("Found",object.count_datablocks(),"blocks")
 object.select_datablock(0)
-print "Zeroth is named",object.datablock_name()
+print("Zeroth is named",object.datablock_name())
 object.rewind_category()
 categories = object.count_categories()
 for i in range(categories):
-    print "Category:",i,
+    print("Category:",i, end=' ')
     object.select_category(i)
     category_name = object.category_name()
-    print "Name:",category_name,
+    print("Name:",category_name, end=' ')
     rows=object.count_rows()
-    print "Rows:",rows,
+    print("Rows:",rows, end=' ')
     cols = object.count_columns()
-    print "Cols:",cols
+    print("Cols:",cols)
     loop=1
     object.rewind_column()
     while loop is not 0:
         column_name = object.column_name()
-        print "column name \"",column_name,"\"",
+        print("column name \"",column_name,"\"", end=' ')
         try:
            object.next_column()
         except:
            break
-    print
+    print()
     for j in range(rows):
         object.select_row(j)
         object.rewind_column()
-        print "row:",j
+        print("row:",j)
         for k in range(cols):
             name=object.column_name()
-            print "col:",name,
+            print("col:",name, end=' ')
             object.select_column(k)
             typeofvalue=object.get_typeofvalue()
-            print "type:",typeofvalue
+            print("type:",typeofvalue)
             if typeofvalue.find("bnry") > -1:
-                print "Found the binary!!",
+                print("Found the binary!!", end=' ')
                 s=object.get_integerarray_as_string()
-                print type(s)
-                print dir(s)
-                print len(s)
+                print(type(s))
+                print(dir(s))
+                print(len(s))
                 try:
                    import Numeric
-                   d = Numeric.fromstring(s,Numeric.UInt32) 
+                   d = Numeric.fromstring(s,Numeric.UInt32)
                    # Hard wired Unsigned Int32
-                   print d.shape
-                   print d[0:10],d[d.shape[0]/2],d[-1]
+                   print(d.shape)
+                   print(d[0:10],d[d.shape[0]/2],d[-1])
                    d=Numeric.reshape(d,(2300,2300))
 #                   from matplotlib import pylab
 #                   pylab.imshow(d,vmin=0,vmax=1000)
 #                   pylab.show()
                 except ImportError:
-                   print "You need to get Numeric and matplotlib to see the data"
+                   print("You need to get Numeric and matplotlib to see the data")
             else:
                 value=object.get_value()
-                print "Val:",value,i
-    print
+                print("Val:",value,i)
+    print()
 del(object)
 #
-print dir()
-#object.free_handle(handle) 
+print(dir())
+#object.free_handle(handle)
 @}
 
 
@@ -508,15 +509,19 @@ for apparent existence of
 a single member function.
 
 @O pycbf_test2.py
-@{
+@{from __future__ import print_function
+
 import pycbf
 obj = pycbf.cbf_handle_struct()
 obj.read_file("../adscconverted.cbf",0)
 obj.select_datablock(0)
 g = obj.construct_goniometer()
-print "Rotation axis is",g.get_rotation_axis()
+print("Rotation axis is",g.get_rotation_axis())
 d = obj.construct_detector(0)
-print "Beam center is",d.get_beam_center()
+print("Beam center is",d.get_beam_center())
+print("Detector slow axis is", d.get_detector_axis_slow())
+print("Detector fast axis is", d.get_detector_axis_fast())
+print("Detector axes (fast, slow) are", d.get_detector_axes_fs())
 @}
 
 
@@ -525,7 +530,8 @@ It appears to work - eventually. Surprising
 \subsection{Test cases for the generics}
 
 @O pycbf_test3.py
-@{
+@{from __future__ import print_function
+
 import pycbf, unittest
 class GenericTests(unittest.TestCase):
 
@@ -538,7 +544,7 @@ class GenericTests(unittest.TestCase):
                           'little_endian')
 
     def test_get_local_real_format(self):
-        self.assertEqual( pycbf.get_local_real_format(), 
+        self.assertEqual( pycbf.get_local_real_format(),
                           'ieee 754-1985')
 
     def test_compute_cell_volume(self):
