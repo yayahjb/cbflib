@@ -23,7 +23,7 @@
                                 Bernstein + Sons
                       yaya at bernstein-plus-sons dot com
 
-     (c) Copyright 2006, 2007, 2008, 2011, 2013, 2014 Herbert J. Bernstein
+      © Copyright 2006, 2007, 2008, 2011, 2013, 2014 Herbert J. Bernstein
 
      ----------------------------------------------------------------------
 
@@ -2746,17 +2746,17 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    of the item at the current column and row. The strings that may be
    returned are:
 
-     "null" for a null value indicated by a "." or a "?"                   
-     "bnry" for a binary value                                             
-     "word" for an unquoted string                                         
-     "dblq" for a double-quoted string                                     
-     "sglq" for a single-quoted string                                     
-     "text" for a semicolon-quoted string (multiline text field)           
-     "prns" for a parenthesis-bracketed string (multiline text field)      
-     "brcs" for a brace-bracketed string (multiline text field)            
-     "bkts" for a square-bracket-bracketed string (multiline text field)   
-     "tsqs" for a treble-single-quote quoted string (multiline text field) 
-     "tdqs" for a treble-double-quote quoted string (multiline text field) 
+"null" for a null value indicated by a "." or a "?"                   
+"bnry" for a binary value                                             
+"word" for an unquoted string                                         
+"dblq" for a double-quoted string                                     
+"sglq" for a single-quoted string                                     
+"text" for a semicolon-quoted string (multiline text field)           
+"prns" for a parenthesis-bracketed string (multiline text field)      
+"brcs" for a brace-bracketed string (multiline text field)            
+"bkts" for a square-bracket-bracketed string (multiline text field)   
+"tsqs" for a treble-single-quote quoted string (multiline text field) 
+"tdqs" for a treble-double-quote quoted string (multiline text field) 
 
    Not all types are valid for all type of CIF files. In partcular the types
    "prns", "brcs", "bkts" were introduced with DDLm and are not valid in DDL1
@@ -2806,17 +2806,17 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    row to the type specified by the ASCII character string given by
    typeofvalue. The strings that may be used are:
 
-     "null" for a null value indicated by a "." or a "?"                   
-     "bnry" for a binary value                                             
-     "word" for an unquoted string                                         
-     "dblq" for a double-quoted string                                     
-     "sglq" for a single-quoted string                                     
-     "text" for a semicolon-quoted string (multiline text field)           
-     "prns" for a parenthesis-bracketed string (multiline text field)      
-     "brcs" for a brace-bracketed string (multiline text field)            
-     "bkts" for a square-bracket-bracketed string (multiline text field)   
-     "tsqs" for a treble-single-quote quoted string (multiline text field) 
-     "tdqs" for a treble-double-quote quoted string (multiline text field) 
+"null" for a null value indicated by a "." or a "?"                   
+"bnry" for a binary value                                             
+"word" for an unquoted string                                         
+"dblq" for a double-quoted string                                     
+"sglq" for a single-quoted string                                     
+"text" for a semicolon-quoted string (multiline text field)           
+"prns" for a parenthesis-bracketed string (multiline text field)      
+"brcs" for a brace-bracketed string (multiline text field)            
+"bkts" for a square-bracket-bracketed string (multiline text field)   
+"tsqs" for a treble-single-quote quoted string (multiline text field) 
+"tdqs" for a treble-double-quote quoted string (multiline text field) 
 
    Not all types may be used for all values. Not all types are valid for all
    type of CIF files. In partcular the types "prns", "brcs", "bkts" were
@@ -3189,10 +3189,11 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    An additional restriction in the current version of CBFlib is that values
    too large to fit in an int are not correctly decompressed. As an example,
    if the machine with 32-bit ints is reading an array containing a value
-   outside the range 0 .. 2^32-1 (unsigned) or -2^31 .. 2^31-1 (signed), the
-   array will not be correctly decompressed. This restriction will be removed
-   in a future release. For cbf_get_realarray, only IEEE format is supported.
-   No conversion to other floating point formats is done at this time.
+   outside the range 0 .. 2^^32-1 (unsigned) or -2^^31 .. 2^^31-1 (signed),
+   the array will not be correctly decompressed. This restriction will be
+   removed in a future release. For cbf_get_realarray, only IEEE format is
+   supported. No conversion to other floating point formats is done at this
+   time.
 
    ARGUMENTS
 
@@ -4050,7 +4051,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      DESCRIPTION
 
-     cbf_get_wavelength sets *wavelength to the current wavelength in AA.
+     cbf_get_wavelength sets *wavelength to the current wavelength in Å.
 
      ARGUMENTS
 
@@ -4073,12 +4074,12 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      DESCRIPTION
 
-     cbf_set_wavelength sets the current wavelength in AA to wavelength.
+     cbf_set_wavelength sets the current wavelength in Å to wavelength.
 
      ARGUMENTS
 
-       handle       CBF handle.       
-       wavelength   Wavelength in AA. 
+       handle       CBF handle.      
+       wavelength   Wavelength in Å. 
 
      RETURN VALUE
 
@@ -4740,19 +4741,19 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      cbf_get_image, cbf_get_image_fs and cbf_get_image_sf read the image
      array for element number element_number into an array. The array
-     consists of ndimslow *ndimfast elements of elsize bytes each, starting
-     at array. The elements are signed if elsign is non-0 and unsigned
+     consists of ndimslow×ndimfast elements of elsize bytes each, starting at
+     array. The elements are signed if elsign is non-0 and unsigned
      otherwise. cbf_get_real_image, cbf_get_real_image_fs and
      cbf_get_real_image_sf read the image array of IEEE doubles or floats for
      element number element_number into an array. A real array is always
      signed. cbf_get_3d_image, cbf_get_3d_image_fs and cbf_get_3d_image_sf
      read the 3D image array for element number element_number into an array.
-     The array consists of ndimslow *ndimmid *ndimfast elements of elsize
-     bytes each, starting at array. The elements are signed if elsign is
-     non-0 and unsigned otherwise. cbf_get_real_3d_image,
-     cbf_get_real_3d_image_fs, cbf_get_real_3d_image_sf reads the 3D image
-     array of IEEE doubles or floats for element number element_number into
-     an array. A real array is always signed.
+     The array consists of ndimslow×ndimmid×ndimfast elements of elsize bytes
+     each, starting at array. The elements are signed if elsign is non-0 and
+     unsigned otherwise. cbf_get_real_3d_image, cbf_get_real_3d_image_fs,
+     cbf_get_real_3d_image_sf reads the 3D image array of IEEE doubles or
+     floats for element number element_number into an array. A real array is
+     always signed.
 
      The _fs calls give the dimensions in a fast-to-slow order. The calls
      with no suffix and the calls _sf calls give the dimensions in
@@ -4767,12 +4768,12 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
      array dimensions and ndimfast should be set to 1 both in the call and in
      the imgCIF data being processed.
 
-     If any element in the binary data canOt fit into the destination
+     If any element in the binary data can t fit into the destination
      element, the destination is set the nearest possible value.
 
      If the value is not binary, the function returns CBF_ASCII.
 
-     If the requested number of elements canOt be read, the function will
+     If the requested number of elements can t be read, the function will
      read as many as it can and then return CBF_ENDOFDATA.
 
      Currently, the destination array must consist of chars, shorts or ints
@@ -4859,21 +4860,21 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
      DESCRIPTION
 
      cbf_set_image, cbf_set_image_fs and cbf_set_image_sf write the image
-     array for element number element_number. The array consists of ndimfast
-     *ndimslow elements of elsize bytes each, starting at array. The elements
-     are signed if elsign is non-zero and unsigned otherwise.
+     array for element number element_number. The array consists of
+     ndimfast×ndimslow elements of elsize bytes each, starting at array. The
+     elements are signed if elsign is non-zero and unsigned otherwise.
      cbf_set_real_image, cbf_set_real_image_fs and cbf_set_real_image_sf
      write the image array for element number element_number. The array
-     consists of ndimfast *ndimslow IEEE double or float elements of elsize
+     consists of ndimfast×ndimslow IEEE double or float elements of elsize
      bytes each, starting at array. cbf_set_3d_image, cbf_set_3d_image_fs and
      cbf_set_3d_image_sf write the 3D image array for element number
-     element_number. The array consists of ndimfast *ndimmid *ndimslow
-     elements of elsize bytes each, starting at array. The elements are
-     signed if elsign is non-0 and unsigned otherwise. cbf_set_real_3d_image,
+     element_number. The array consists of ndimfast×ndimmid×ndimslow elements
+     of elsize bytes each, starting at array. The elements are signed if
+     elsign is non-0 and unsigned otherwise. cbf_set_real_3d_image,
      cbf_set_real_3d_image_fs and cbf_set_real_3d_image_sf writes the 3D
      image array for element number element_number. The array consists of
-     ndimfast *ndimmid *ndimslow IEEE double or float elements of elsize
-     bytes each, starting at array.
+     ndimfast×ndimmid×ndimslow IEEE double or float elements of elsize bytes
+     each, starting at array.
 
      The _fs calls give the dimensions in a fast-to-slow order. The calls
      with no suffix and the calls _sf calls give the dimensions in
@@ -5247,7 +5248,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
      to the 3 components of the of the reciprocal-space vector corresponding
      to the real-space vector (real1, real2, real3). The reciprocal-space
      vector is oriented to correspond to the goniometer setting with all axes
-     at 0. The value wavelength is the wavlength in AA and the value ratio
+     at 0. The value wavelength is the wavlength in Å and the value ratio
      specifies the current goniometer setting and varies from 0.0 at the
      beginning of the exposur e to 1.0 at the end, irrespective of the actual
      rotation range.
@@ -5261,7 +5262,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
        goniometer    Goniometer handle.                                       
        reserved      Unused. Any value other than 0 is invalid.               
        ratio         Goniometer setting. 0 = beginning of exposure, 1 = end.  
-       wavelength    Wavelength in AA.                                        
+       wavelength    Wavelength in Å.                                         
        real1         x component of the real-space vector.                    
        real2         y component of the real-space vector.                    
        real3         z component of the real-space vector.                    
@@ -5802,19 +5803,18 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      DESCRIPTION
 
-     cbf_set_pixel_size and cbf_set_pixel_size_sf set the item in the
-     &quote;size&quote; column of the "array_structure_list" category at the
-     row which matches axis axis_number of the detector element
-     element_number converting the double pixel size psize from meters to
-     millimeters in storing it in the "size" column for the axis axis_number
-     of the detector element element_number. The axis_number is numbered from
-     1, starting with the slowest axis. cbf_set_pixel_size_fs sets the item
-     in the &quote;size&quote; column of the "array_structure_list" category
-     at the row which matches axis axis_number of the detector element
-     element_number converting the double pixel size psize from meters to
-     millimeters in storing it in the "size" column for the axis axis_number
-     of the detector element element_number. The axis_number is numbered from
-     1, starting with the fastest axis.
+     cbf_set_pixel_size and cbf_set_pixel_size_sf set the item in the "size"
+     column of the "array_structure_list" category at the row which matches
+     axis axis_number of the detector element element_number converting the
+     double pixel size psize from meters to millimeters in storing it in the
+     "size" column for the axis axis_number of the detector element
+     element_number. The axis_number is numbered from 1, starting with the
+     slowest axis. cbf_set_pixel_size_fs sets the item in the "size" column
+     of the "array_structure_list" category at the row which matches axis
+     axis_number of the detector element element_number converting the double
+     pixel size psize from meters to millimeters in storing it in the "size"
+     column for the axis axis_number of the detector element element_number.
+     The axis_number is numbered from 1, starting with the fastest axis.
 
      If a negative axis number is given, the order of axes is reversed, so
      that -1 specifies the slowest axis for cbf_get_pixel_size_fs and the
@@ -5898,11 +5898,11 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
      DESCRIPTION
 
      cbf_get_unit_cell sets cell[0:2] to the double values of the cell edge
-     lengths a, b and c in AAngstroms, cell[3:5] to the double values of the
-     cell angles a, b and g in degrees, cell_esd[0:2] to the double values of
+     lengths a, b and c in Ångstroms, cell[3:5] to the double values of the
+     cell angles α, β and γ in degrees, cell_esd[0:2] to the double values of
      the estimated strandard deviations of the cell edge lengths a, b and c
-     in AAngstroms, cell_esd[3:5] to the double values of the estimated
-     standard deviations of the the cell angles a, b and g in degrees.
+     in Ångstroms, cell_esd[3:5] to the double values of the estimated
+     standard deviations of the the cell angles α, β and γ in degrees.
 
      The values returned are retrieved from the first row of the "cell"
      category. The value of "_cell.entry_id" is ignored.
@@ -5951,12 +5951,12 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
      DESCRIPTION
 
      cbf_set_unit_cell sets the cell parameters to the double values given in
-     cell[0:2] for the cell edge lengths a, b and c in AAngstroms, the double
-     values given in cell[3:5] for the cell angles a, b and g in degrees, the
+     cell[0:2] for the cell edge lengths a, b and c in Ångstroms, the double
+     values given in cell[3:5] for the cell angles α, β and γ in degrees, the
      double values given in cell_esd[0:2] for the estimated strandard
-     deviations of the cell edge lengths a, b and c in AAngstroms, and the
+     deviations of the cell edge lengths a, b and c in Ångstroms, and the
      double values given in cell_esd[3:5] for the estimated standard
-     deviations of the the cell angles a, b and g in degrees.
+     deviations of the the cell angles α, β and γ in degrees.
 
      The values are placed in the first row of the "cell" category. If no
      value has been given for "_cell.entry_id", it is set to the value of the
@@ -6006,13 +6006,13 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
      DESCRIPTION
 
      cbf_get_reciprocal_cell sets cell[0:2] to the double values of the
-     reciprocal cell edge lengths a*, b* and c* in AAngstroms-1, cell[3:5] to
-     the double values of the reciprocal cell angles a*, b* and g* in
+     reciprocal cell edge lengths a^*, b^* and c^* in Ångstroms^-1, cell[3:5]
+     to the double values of the reciprocal cell angles α^*, β^* and γ^* in
      degrees, cell_esd[0:2] to the double values of the estimated strandard
-     deviations of the reciprocal cell edge lengths a*, b* and c* in
-     AAngstroms-1, cell_esd[3:5] to the double values of the estimated
-     standard deviations of the the reciprocal cell angles a*, b* and g* in
-     degrees.
+     deviations of the reciprocal cell edge lengths a^*, b^* and c^* in
+     Ångstroms^-1, cell_esd[3:5] to the double values of the estimated
+     standard deviations of the the reciprocal cell angles α^*, β^* and γ^*
+     in degrees.
 
      The values returned are retrieved from the first row of the "cell"
      category. The value of "_cell.entry_id" is ignored.
@@ -6063,12 +6063,12 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      cbf_set_reciprocal_cell sets the reciprocal cell parameters to the
      double values given in cell[0:2] for the reciprocal cell edge lengths
-     a*, b* and c* in AAngstroms-1, the double values given in cell[3:5] for
-     the reciprocal cell angles a*, b* and g* in degrees, the double values
-     given in cell_esd[0:2] for the estimated strandard deviations of the
-     reciprocal cell edge lengths a*, b* and c* in AAngstroms, and the double
-     values given in cell_esd[3:5] for the estimated standard deviations of
-     the reciprocal cell angles a*, b* and g* in degrees.
+     a^*, b^* and c^* in Ångstroms^-1, the double values given in cell[3:5]
+     for the reciprocal cell angles α^*, β^* and γ^* in degrees, the double
+     values given in cell_esd[0:2] for the estimated strandard deviations of
+     the reciprocal cell edge lengths a^*, b^* and c^* in Ångstroms, and the
+     double values given in cell_esd[3:5] for the estimated standard
+     deviations of the reciprocal cell angles α^*, β^* and γ^* in degrees.
 
      The values are placed in the first row of the "cell" category. If no
      value has been given for "_cell.entry_id", it is set to the value of the
@@ -6117,8 +6117,8 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      cbf_compute_cell_volume sets *volume to point to the volume of the unit
      cell computed from the double values in cell[0:2] for the cell edge
-     lengths a, b and c in AAngstroms and the double values given in
-     cell[3:5] for the cell angles a, b and g in degrees.
+     lengths a, b and c in Ångstroms and the double values given in cell[3:5]
+     for the cell angles α, β and γ in degrees.
 
      ARGUMENTS
 
@@ -6151,11 +6151,11 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      cbf_compute_reciprocal_cell sets rcell to point to the array of
      reciprocal cell parameters computed from the double values cell[0:2]
-     giving the cell edge lengths a, b and c in AAngstroms, and the double
-     values cell[3:5] giving the cell angles a, b and g in degrees. The
-     double values rcell[0:2] will be set to the reciprocal cell lengths a*,
-     b* and c* in AAngstroms-1 and the double values rcell[3:5] will be set
-     to the reciprocal cell angles a*, b* and g* in degrees.
+     giving the cell edge lengths a, b and c in Ångstroms, and the double
+     values cell[3:5] giving the cell angles α, β and γ in degrees. The
+     double values rcell[0:2] will be set to the reciprocal cell lengths a^*,
+     b^* and c^* in Ångstroms^-1 and the double values rcell[3:5] will be set
+     to the reciprocal cell angles α^*, β^* and γ^* in degrees.
 
      ARGUMENTS
 
@@ -7197,7 +7197,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      The conversion from a 32-bit integer I32 to 16-bit XDS pixel I16 is done
      as per W. Kabsch as follows: The value I32 is limited to the range -1023
-     =< I32 =< 1048576. If I32 is outside that range it is truncated to the
+     ≤ I32 ≤ 1048576. If I32 is outside that range it is truncated to the
      closer boundary. The generate I16, the 16-bit result, if I32 > 32767, it
      is divided by 32 (producing a number between 1024 and 32768), and then
      negated (producing a number between -1024 and -32768).
@@ -7402,7 +7402,7 @@ H5T_NATIVE_FLOAT H5T_NATIVE_DOUBLE H5T_NATIVE_LDOUBLE
 
      This will be called with:
 
-         Type       Name                      Description                     
+     Type         Name     Description                                        
      const void * expected A pointer to the array of requested values that    
                            was passed to the function.                        
      const void * existing An array of existing values read from the object.  
@@ -10543,7 +10543,7 @@ H5T_NATIVE_FLOAT H5T_NATIVE_DOUBLE H5T_NATIVE_LDOUBLE
      define the binary identifier which should match the "binary_id" defined
      in the header, and bytes which define the length of the binary section.
 
-        Octet    Hex  Decimal              Purpose               
+     Octet       Hex  Decimal Purpose                            
         1          0C   12      (ctrl-L) End of Page             
         2          1A   26      (ctrl-Z) Stop listings in MS-DOS 
         3          04   04      (Ctrl-D) Stop listings in UNIX   
@@ -10705,8 +10705,8 @@ H5T_NATIVE_FLOAT H5T_NATIVE_DOUBLE H5T_NATIVE_LDOUBLE
      error iteslf.
 
      At the start of the compression, CBFlib constructs a table containing a
-     set of symbols, one for each of the 2^n direct codes from -2^(n-1) ..
-     2^(n-1)-1, one for a stop code, and one for each of the maxbits -n
+     set of symbols, one for each of the 2^^n direct codes from -2^^(n-1) ..
+     2^^(n-1)-1, one for a stop code, and one for each of the maxbits -n
      indirect codes, where n is chosen at compress time and maxbits is the
      maximum number of bits in an error. CBFlib then assigns to each symbol a
      bit-code, using a shorter bit code for the more common symbols and a
@@ -10718,18 +10718,19 @@ H5T_NATIVE_FLOAT H5T_NATIVE_DOUBLE H5T_NATIVE_LDOUBLE
 
      The structure of the compressed data is:
 
-     Byte                                             Value                   
-       1 .. 8                         Number of elements (64-bit              
-                                    little-endian number)                     
-       9 .. 16                        Minimum element                         
-       17 .. 24                       Maximum element                         
-       25 .. 32                       (reserved for future use)               
-       33                             Number of bits directly coded, n        
-       34                             Maximum number of bits encoded, maxbits 
-       35 .. 35+2^n-1                 Number of bits in each direct code      
-       35+2^n                         Number of bits in the stop code         
-       35+2^n+1 .. 35+2^n+maxbits-n   Number of bits in each indirect code    
-       35+2^n+maxbits-n+1 ..          Coded data                              
+     Byte                             Value                                   
+       1 .. 8                           Number of elements (64-bit            
+                                      little-endian number)                   
+       9 .. 16                          Minimum element                       
+       17 .. 24                         Maximum element                       
+       25 .. 32                         (reserved for future use)             
+       33                               Number of bits directly coded, n      
+       34                               Maximum number of bits encoded,       
+                                      maxbits                                 
+       35 .. 35+2^^n-1                  Number of bits in each direct code    
+       35+2^^n                          Number of bits in the stop code       
+       35+2^^n+1 .. 35+2^^n+maxbits-n   Number of bits in each indirect code  
+       35+2^^n+maxbits-n+1 ..           Coded data                            
 
     3.3.2 CCP4-style compression
 
@@ -10758,7 +10759,7 @@ H5T_NATIVE_FLOAT H5T_NATIVE_DOUBLE H5T_NATIVE_LDOUBLE
      The first 3 bits in the header gives the logarithm base 2 of the numer
      of offsets that follow the header. For example, if a header has a zero
      in bits, only one offset follows the header. If those same bits contain
-     the number n, the number of offsets in the block is 2n.
+     the number n, the number of offsets in the block is 2^n.
 
      The following 3 bits (flat and version 1) or 4 bits (version 2) contains
      a number giving an index into a table of bit-lengths for the offsets.
@@ -10909,7 +10910,7 @@ H5T_NATIVE_FLOAT H5T_NATIVE_DOUBLE H5T_NATIVE_LDOUBLE
 
      The structure of the compressed data is:
 
-             Byte                          Value                        
+          Byte       Value                                              
             1 .. 8     Number of elements (64-bit little-endian number) 
             9 .. 16    Minumum element (currently unused)               
             17 .. 24   Maximum element (currently unused)               
@@ -10961,16 +10962,16 @@ H5T_NATIVE_FLOAT H5T_NATIVE_DOUBLE H5T_NATIVE_LDOUBLE
       1. Start with a base pixel value of 0.
       2. Compute the difference delta between the next pixel value and the
          base pixel value.
-      3. If -127 =< delta =< 127, output delta as one byte, make the current
+      3. If -127 ≤ delta ≤ 127, output delta as one byte, make the current
          pixel value the base pixel value and return to step 2.
       4. Otherwise output -128 (80 hex).
-      5. We still have to output delta. If -32767 =< delta =< 32767, output
+      5. We still have to output delta. If -32767 ≤ delta ≤ 32767, output
          delta as a little_endian 16-bit quantity, make the current pixel
          value the base pixel value and return to step 2.
       6. Otherwise output -32768 (8000 hex, little_endian, i.e. 00 then 80)
-      7. We still have to output delta. If -2147483647 =< delta =<
-         2147483647, output delta as a little_endian 32 bit quantity, make
-         the current pixel value the base pixel value and return to step 2.
+      7. We still have to output delta. If -2147483647 ≤ delta ≤ 2147483647,
+         output delta as a little_endian 32 bit quantity, make the current
+         pixel value the base pixel value and return to step 2.
       8. Otherwise output -2147483648 (80000000 hex, little_endian, i.e. 00,
          then 00, then 00, then 80) and then output the pixel value as a
          little-endian 64 bit quantity, make the current pixel value the base
@@ -10980,17 +10981,17 @@ H5T_NATIVE_FLOAT H5T_NATIVE_DOUBLE H5T_NATIVE_LDOUBLE
 
       1. Start with a base pixel value of 0.
       2. Read the next byte as delta
-      3. If -127 =< delta =< 127, add delta to the base pixel value, make
-         that the new base pixel value, place it on the output array and
-         return to step 2.
+      3. If -127 ≤ delta ≤ 127, add delta to the base pixel value, make that
+         the new base pixel value, place it on the output array and return to
+         step 2.
       4. If delta is 80 hex, read the next two bytes as a little_endian
          16-bit number and make that delta.
-      5. If -32767 =< delta =< 32767, add delta to the base pixel value, make
+      5. If -32767 ≤ delta ≤ 32767, add delta to the base pixel value, make
          that the new base pixel value, place it on the output array and
          return to step 2.
       6. If delta is 8000 hex, read the next 4 bytes as a little_endian
          32-bit number and make that delta
-      7. If -2147483647 =< delta =< 2147483647, add delta to the base pixel
+      7. If -2147483647 ≤ delta ≤ 2147483647, add delta to the base pixel
          value, make that the new base pixel value, place it on the output
          array and return to step 2.
       8. If delta is 80000000 hex, read the next 8 bytes as a little_endian
@@ -11099,33 +11100,33 @@ H5T_NATIVE_FLOAT H5T_NATIVE_DOUBLE H5T_NATIVE_LDOUBLE
      presented in one if three forms, a single dibit a0, two dibits a0, a1,
      or two dibits and a nibble a0, a1, b:
 
-               +-----------------------------------------------+
-               |  a0 a1 b   | octet |         meaning          |
-               |------------+-------+--------------------------|
-               | 00 00 0000 | 0x00  | reset to zero            |
-               |------------+-------+--------------------------|
-               | 01         | 0x01  | up 1 mode                |
-               |------------+-------+--------------------------|
-               | 10         | 0x02  | dibit mode               |
-               |------------+-------+--------------------------|
-               | 11         | 0x03  | up n modes               |
-               |------------+-------+--------------------------|
-               | 00 01      | 0x04  | nibble mode              |
-               |------------+-------+--------------------------|
-               | 00 11      | 0x0C  | 6-bit mode               |
-               |------------+-------+--------------------------|
-               | 00 10      | 0x08  | byte mode                |
-               |------------+-------+--------------------------|
-               | 00 00 0011 | 0x30  | 12-bit word mode         |
-               |------------+-------+--------------------------|
-               | 00 00 0001 | 0x10  | 16-bit word mode         |
-               |------------+-------+--------------------------|
-               | 00 00 0010 | 0x20  | 32-bit word mode         |
-               |------------+-------+--------------------------|
-               | 00 00 0100 | 0x40  | 64-bit word mode         |
-               |------------+-------+--------------------------|
-               | 00 00 1100 | 0xC0  | specify starting address |
-               +-----------------------------------------------+
++-----------------------------------------------+
+| a0 a1 b    | octet | meaning                  |
+|------------+-------+--------------------------|
+| 00 00 0000 | 0x00  | reset to zero            |
+|------------+-------+--------------------------|
+| 01         | 0x01  | up 1 mode                |
+|------------+-------+--------------------------|
+| 10         | 0x02  | dibit mode               |
+|------------+-------+--------------------------|
+| 11         | 0x03  | up n modes               |
+|------------+-------+--------------------------|
+| 00 01      | 0x04  | nibble mode              |
+|------------+-------+--------------------------|
+| 00 11      | 0x0C  | 6-bit mode               |
+|------------+-------+--------------------------|
+| 00 10      | 0x08  | byte mode                |
+|------------+-------+--------------------------|
+| 00 00 0011 | 0x30  | 12-bit word mode         |
+|------------+-------+--------------------------|
+| 00 00 0001 | 0x10  | 16-bit word mode         |
+|------------+-------+--------------------------|
+| 00 00 0010 | 0x20  | 32-bit word mode         |
+|------------+-------+--------------------------|
+| 00 00 0100 | 0x40  | 64-bit word mode         |
+|------------+-------+--------------------------|
+| 00 00 1100 | 0xC0  | specify starting address |
++-----------------------------------------------+
 
      The reset to zero is followed by a new mode octet A reset to zero resets
      the prior value for delta to zero
@@ -11144,23 +11145,23 @@ H5T_NATIVE_FLOAT H5T_NATIVE_DOUBLE H5T_NATIVE_LDOUBLE
      giving little-endian offsets from the currently accumulated value. If
      the offset is one of the following in the indicated mode
 
-                  +------------------------------------------+
-                  | dibit mode       | 0x2                   |
-                  |------------------+-----------------------|
-                  | nibble mode      | 0x8                   |
-                  |------------------+-----------------------|
-                  | 6-bit mode       | 0x20                  |
-                  |------------------+-----------------------|
-                  | byte mode        | 0x80                  |
-                  |------------------+-----------------------|
-                  | 12-bit word mode | 0x800                 |
-                  |------------------+-----------------------|
-                  | 16-bit word mode | 0x8000                |
-                  |------------------+-----------------------|
-                  | 32-bit word mode | 0x8000 0000           |
-                  |------------------+-----------------------|
-                  | 64-bit word mode | 0x8000 0000 0000 0000 |
-                  +------------------------------------------+
++------------------------------------------+
+| dibit mode       | 0x2                   |
+|------------------+-----------------------|
+| nibble mode      | 0x8                   |
+|------------------+-----------------------|
+| 6-bit mode       | 0x20                  |
+|------------------+-----------------------|
+| byte mode        | 0x80                  |
+|------------------+-----------------------|
+| 12-bit word mode | 0x800                 |
+|------------------+-----------------------|
+| 16-bit word mode | 0x8000                |
+|------------------+-----------------------|
+| 32-bit word mode | 0x8000 0000           |
+|------------------+-----------------------|
+| 64-bit word mode | 0x8000 0000 0000 0000 |
++------------------------------------------+
 
      it is followed by the new mode as 1 or 2 dibits or 2 dibits and a nibble
      a1 a1 b. If a1 is 1 or 2 or 3, that is the new mode. If a1 is zero and
@@ -11214,7 +11215,7 @@ H5T_NATIVE_FLOAT H5T_NATIVE_DOUBLE H5T_NATIVE_LDOUBLE
      of this array:
 
 +------------------------------------------------------------------------------+
-|             symbol             | value |               meaning               |
+| symbol                         | value | meaning                             |
 |--------------------------------+-------+-------------------------------------|
 | CBF_H5Z_FILTER_CBF_NELMTS      | 11    | size of cd_values                   |
 |--------------------------------+-------+-------------------------------------|
@@ -12204,4 +12205,4 @@ src/                      include/             m4/                  Description
 
      ----------------------------------------------------------------------
 
-     Updated 22 February 2015. Contact:  yaya at bernstein-plus-sons dot com
+     Updated 22 February 2015. Contact: yaya at bernstein-plus-sons dot com

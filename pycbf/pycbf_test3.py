@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 import pycbf, unittest
 class GenericTests(unittest.TestCase):
@@ -11,7 +12,7 @@ class GenericTests(unittest.TestCase):
                           'little_endian')
 
     def test_get_local_real_format(self):
-        self.assertEqual( pycbf.get_local_real_format(), 
+        self.assertEqual( pycbf.get_local_real_format(),
                           'ieee 754-1985')
 
     def test_compute_cell_volume(self):

@@ -26,7 +26,7 @@ typedef cbf_positioner_struct *cbf_positioner;
        // DO NOT CONSTRUCT WITHOUT A CBFHANDLE
        cbf_failnez(CBF_ARGUMENT);
        return NULL; /* Should never be executed */
-       } 
+       }
 
     ~cbf_positioner_struct(){ // Destructor
        cbf_failnez(cbf_free_positioner(self));

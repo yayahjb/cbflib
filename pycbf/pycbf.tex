@@ -1,13 +1,18 @@
 \newcommand{\NWtarget}[2]{#2}
 \newcommand{\NWlink}[2]{#2}
-\newcommand{\NWtxtMacroDefBy}{Macro defined by}
-\newcommand{\NWtxtMacroRefIn}{Macro referenced in}
-\newcommand{\NWtxtMacroNoRef}{Macro never referenced}
+\newcommand{\NWtxtMacroDefBy}{Fragment defined by}
+\newcommand{\NWtxtMacroRefIn}{Fragment referenced in}
+\newcommand{\NWtxtMacroNoRef}{Fragment never referenced}
 \newcommand{\NWtxtDefBy}{Defined by}
 \newcommand{\NWtxtRefIn}{Referenced in}
 \newcommand{\NWtxtNoRef}{Not referenced}
 \newcommand{\NWtxtFileDefBy}{File defined by}
+\newcommand{\NWtxtIdentsUsed}{Uses:}
+\newcommand{\NWtxtIdentsNotUsed}{Never used}
+\newcommand{\NWtxtIdentsDefed}{Defines:}
 \newcommand{\NWsep}{${\diamond}$}
+\newcommand{\NWnotglobal}{(not defined globally)}
+\newcommand{\NWuseHyperlinks}{}
 % pycbf.w
 % nuweb source file used to create pycbf documentation
 %
@@ -145,19 +150,19 @@ package in order to give the author easy access to binary cif files.
 \section*{Index of file names}
 
 {\small\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
-\item \verb@"linux.sh"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb63a}{63a}.}
-\item \verb@"makeflatascii.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb63b}{63b}.}
+\item \verb@"linux.sh"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb66a}{66a}.}
+\item \verb@"makeflatascii.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb66b}{66b}.}
 \item \verb@"make_pycbf.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb10}{10}.}
 \item \verb@"pycbf.i"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb5b}{5b}\NWlink{nuweb9}{, 9}.
 }
-\item \verb@"pycbf_test1.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb64}{64}.}
-\item \verb@"pycbf_test2.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb65}{65}.}
-\item \verb@"pycbf_test3.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb66a}{66a}.}
-\item \verb@"setup.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb62a}{62a}.}
-\item \verb@"win32.bat"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb62b}{62b}.}
-\item \verb@"xmas/readmarheader.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb66b}{66b}.}
-\item \verb@"xmas/xmasheaders.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb72}{72}.}
-\item \verb@"xmas/xmas_cif_template.cif"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb76}{76}.}
+\item \verb@"pycbf_test1.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb67}{67}.}
+\item \verb@"pycbf_test2.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb68}{68}.}
+\item \verb@"pycbf_test3.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb69}{69}.}
+\item \verb@"setup.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb65a}{65a}.}
+\item \verb@"win32.bat"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb65b}{65b}.}
+\item \verb@"xmas/readmarheader.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb70}{70}.}
+\item \verb@"xmas/xmasheaders.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb75}{75}.}
+\item \verb@"xmas/xmas_cif_template.cif"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb79}{79}.}
 \end{list}}
 
 
@@ -327,8 +332,8 @@ So the SWIG file will start off by including the header files needed
 for compilation.  Note the defintion of constants to be passed as
 arguments in calls in the form pycbf.CONSTANTNAME
 
-\begin{flushleft} \small \label{scrap1}
-$\langle\,$Constants used for compression\nobreak\ {\footnotesize \NWtarget{nuweb3a}{3a}}$\,\rangle\equiv$
+\begin{flushleft} \small\label{scrap1}\raggedright\small
+\NWtarget{nuweb3a}{} $\langle\,${\itshape Constants used for compression}\nobreak\ {\footnotesize {3a}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
@@ -357,14 +362,17 @@ $\langle\,$Constants used for compression\nobreak\ {\footnotesize \NWtarget{nuwe
 \mbox{}\verb@#define CBF_NO_EXPAND   0x0400  /* Flag to try not to expand          */@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
-\vspace{-1ex}
-\footnotesize\addtolength{\baselineskip}{-1ex}
+\vspace{-1.5ex}
+\footnotesize
 \begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
 \item \NWtxtMacroRefIn\ \NWlink{nuweb9}{9}.
+
+\item{}
 \end{list}
+\vspace{4ex}
 \end{flushleft}
-\begin{flushleft} \small \label{scrap2}
-$\langle\,$Constants used for headers\nobreak\ {\footnotesize \NWtarget{nuweb3b}{3b}}$\,\rangle\equiv$
+\begin{flushleft} \small\label{scrap2}\raggedright\small
+\NWtarget{nuweb3b}{} $\langle\,${\itshape Constants used for headers}\nobreak\ {\footnotesize {3b}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
@@ -381,14 +389,17 @@ $\langle\,$Constants used for headers\nobreak\ {\footnotesize \NWtarget{nuweb3b}
 \mbox{}\verb@#define PAD_4K          0x0080  /* Pad binaries with 4095 0's         */@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
-\vspace{-1ex}
-\footnotesize\addtolength{\baselineskip}{-1ex}
+\vspace{-1.5ex}
+\footnotesize
 \begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
 \item \NWtxtMacroRefIn\ \NWlink{nuweb9}{9}.
+
+\item{}
 \end{list}
+\vspace{4ex}
 \end{flushleft}
-\begin{flushleft} \small \label{scrap3}
-$\langle\,$Constants used to control CIF parsing\nobreak\ {\footnotesize \NWtarget{nuweb4a}{4a}}$\,\rangle\equiv$
+\begin{flushleft} \small\label{scrap3}\raggedright\small
+\NWtarget{nuweb4a}{} $\langle\,${\itshape Constants used to control CIF parsing}\nobreak\ {\footnotesize {4a}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
@@ -425,14 +436,17 @@ $\langle\,$Constants used to control CIF parsing\nobreak\ {\footnotesize \NWtarg
 \mbox{}\verb@#define CIF             0x0001  /* Use MIME-encoded binary sections   */@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
-\vspace{-1ex}
-\footnotesize\addtolength{\baselineskip}{-1ex}
+\vspace{-1.5ex}
+\footnotesize
 \begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
 \item \NWtxtMacroRefIn\ \NWlink{nuweb9}{9}.
+
+\item{}
 \end{list}
+\vspace{4ex}
 \end{flushleft}
-\begin{flushleft} \small \label{scrap4}
-$\langle\,$Constants used for encoding\nobreak\ {\footnotesize \NWtarget{nuweb4b}{4b}}$\,\rangle\equiv$
+\begin{flushleft} \small\label{scrap4}\raggedright\small
+\NWtarget{nuweb4b}{} $\langle\,${\itshape Constants used for encoding}\nobreak\ {\footnotesize {4b}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
@@ -453,11 +467,14 @@ $\langle\,$Constants used for encoding\nobreak\ {\footnotesize \NWtarget{nuweb4b
 \mbox{}\verb@#define ENC_DEFAULT (ENC_BASE64 | ENC_LFTERM | ENC_FORWARD)@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
-\vspace{-1ex}
-\footnotesize\addtolength{\baselineskip}{-1ex}
+\vspace{-1.5ex}
+\footnotesize
 \begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
 \item \NWtxtMacroRefIn\ \NWlink{nuweb9}{9}.
+
+\item{}
 \end{list}
+\vspace{4ex}
 \end{flushleft}
 \subsection{Exceptions}
 
@@ -483,8 +500,8 @@ In any case - the SWIG exception handling is defined via the following.
 It could have retained the old style if(status = action) but then
 harder to see what to return...
 
-\begin{flushleft} \small \label{scrap5}
-$\langle\,$Exception handling\nobreak\ {\footnotesize \NWtarget{nuweb5a}{5a}}$\,\rangle\equiv$
+\begin{flushleft} \small\label{scrap5}\raggedright\small
+\NWtarget{nuweb5a}{} $\langle\,${\itshape Exception handling}\nobreak\ {\footnotesize {5a}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
@@ -512,14 +529,17 @@ $\langle\,$Exception handling\nobreak\ {\footnotesize \NWtarget{nuweb5a}{5a}}$\,
 \mbox{}\verb@                         { c; } return err; }}@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
-\vspace{-1ex}
-\footnotesize\addtolength{\baselineskip}{-1ex}
+\vspace{-1.5ex}
+\footnotesize
 \begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
 \item \NWtxtMacroRefIn\ \NWlink{nuweb9}{9}.
+
+\item{}
 \end{list}
+\vspace{4ex}
 \end{flushleft}
-\begin{flushleft} \small \label{scrap6}
-\verb@"pycbf.i"@\nobreak\ {\footnotesize \NWtarget{nuweb5b}{5b} }$\equiv$
+\begin{flushleft} \small\label{scrap6}\raggedright\small
+\NWtarget{nuweb5b}{} \verb@"pycbf.i"@\nobreak\ {\footnotesize {5b}}$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
@@ -750,26 +770,29 @@ $\langle\,$Exception handling\nobreak\ {\footnotesize \NWtarget{nuweb5a}{5a}}$\,
 \mbox{}\verb@%} // End of code which is not wrapped but needed to compile@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
-\vspace{-1ex}
-\footnotesize\addtolength{\baselineskip}{-1ex}
+\vspace{-1.5ex}
+\footnotesize
 \begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
 \item \NWtxtFileDefBy\ \NWlink{nuweb5b}{5b}\NWlink{nuweb9}{, 9}.
+
+\item{}
 \end{list}
+\vspace{4ex}
 \end{flushleft}
-\begin{flushleft} \small \label{scrap7}
-\verb@"pycbf.i"@\nobreak\ {\footnotesize \NWtarget{nuweb9}{9} }$\equiv$
+\begin{flushleft} \small\label{scrap7}\raggedright\small
+\NWtarget{nuweb9}{} \verb@"pycbf.i"@\nobreak\ {\footnotesize {9}}$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
-\mbox{}\verb@@\hbox{$\langle\,$Constants used for compression\nobreak\ {\footnotesize \NWlink{nuweb3a}{3a}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\hbox{$\langle\,${\itshape Constants used for compression}\nobreak\ {\footnotesize \NWlink{nuweb3a}{3a}}$\,\rangle$}\verb@@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@@\hbox{$\langle\,$Constants used for headers\nobreak\ {\footnotesize \NWlink{nuweb3b}{3b}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\hbox{$\langle\,${\itshape Constants used for headers}\nobreak\ {\footnotesize \NWlink{nuweb3b}{3b}}$\,\rangle$}\verb@@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@@\hbox{$\langle\,$Constants used to control CIF parsing\nobreak\ {\footnotesize \NWlink{nuweb4a}{4a}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\hbox{$\langle\,${\itshape Constants used to control CIF parsing}\nobreak\ {\footnotesize \NWlink{nuweb4a}{4a}}$\,\rangle$}\verb@@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@@\hbox{$\langle\,$Constants used for encoding\nobreak\ {\footnotesize \NWlink{nuweb4b}{4b}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\hbox{$\langle\,${\itshape Constants used for encoding}\nobreak\ {\footnotesize \NWlink{nuweb4b}{4b}}$\,\rangle$}\verb@@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@@\hbox{$\langle\,$Exception handling\nobreak\ {\footnotesize \NWlink{nuweb5a}{5a}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\hbox{$\langle\,${\itshape Exception handling}\nobreak\ {\footnotesize \NWlink{nuweb5a}{5a}}$\,\rangle$}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@%include "cbfgenericwrappers.i"@\\
 \mbox{}\verb@@\\
@@ -785,11 +808,14 @@ $\langle\,$Exception handling\nobreak\ {\footnotesize \NWtarget{nuweb5a}{5a}}$\,
 \mbox{}\verb@@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
-\vspace{-1ex}
-\footnotesize\addtolength{\baselineskip}{-1ex}
+\vspace{-1.5ex}
+\footnotesize
 \begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
 \item \NWtxtFileDefBy\ \NWlink{nuweb5b}{5b}\NWlink{nuweb9}{, 9}.
+
+\item{}
 \end{list}
+\vspace{4ex}
 \end{flushleft}
 Despite the temptation to just throw everything from the c header files
 into the interface, a short experience suggested we are better off to pull 
@@ -845,7 +871,9 @@ error prone and involved less typing for the author.
 %     email: wright@esrf.fr
 %
 % Revised for CBFlib 0.9 releases, Herbert J. Bernstein, 23 Aug 2010
-% Revised for CBFlin 0.9.2.8, Herbert J. Bernstein, 12 December 2012
+% Revised for CBFlib 0.9.2.8, Herbert J. Bernstein, 12 December 2012
+% Revised for CBFlib 0.9.3.2, Herbert J. Bernstein, 4 November 2013
+% Revised for CBFlib 0.9.5.8, Herbert J. Bernstein, 5 August 2015
 %
 %######################################################################
 %#                                                                    #
@@ -900,14 +928,15 @@ error prone and involved less typing for the author.
 The program that does the conversion from CBFlib.txt to the SWIG
 input files is a python script named make\_pycbf.py.
 
-\begin{flushleft} \small \label{scrap8}
-\verb@"make_pycbf.py"@\nobreak\ {\footnotesize \NWtarget{nuweb10}{10} }$\equiv$
+\begin{flushleft} \small\label{scrap8}\raggedright\small
+\NWtarget{nuweb10}{} \verb@"make_pycbf.py"@\nobreak\ {\footnotesize {10}}$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
+\mbox{}\verb@from __future__ import print_function@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@print "\\begin{verbatim}"@\\
-\mbox{}\verb@print "This output comes from make_pycbf.py which generates the wrappers"@\\
-\mbox{}\verb@print "pycbf Copyright (C) 2005  Jonathan Wright, no warranty, LGPL"@\\
+\mbox{}\verb@print("\\begin{verbatim}")@\\
+\mbox{}\verb@print("This output comes from make_pycbf.py which generates the wrappers")@\\
+\mbox{}\verb@print("pycbf Copyright (C) 2005  Jonathan Wright, no warranty, LGPL")@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@######################################################################@\\
@@ -961,7 +990,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@######################################################################@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@# Get the ascii text as a list of strings @\\
+\mbox{}\verb@# Get the ascii text as a list of strings@\\
 \mbox{}\verb@lines = open("CBFlib.txt","r").readlines()@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@# Variables to hold the useful things we find in the file@\\
@@ -986,7 +1015,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@      on=10 # Only try for ten lines after it say PROTOTYPE@\\
 \mbox{}\verb@      continue@\\
 \mbox{}\verb@   if line.find("#include")>=0: # why?@\\
-\mbox{}\verb@      continue @\\
+\mbox{}\verb@      continue@\\
 \mbox{}\verb@   if line.find("int cbf_")>=0: # We found a function@\\
 \mbox{}\verb@      # keep going up to DESCRIPTION@\\
 \mbox{}\verb@      prototypes+=""+lines[i].rstrip()+" "@\\
@@ -997,7 +1026,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@         prototypes+=lines[i].rstrip()+" " # lose the \n@\\
 \mbox{}\verb@         # print lines[i].rstrip()@\\
 \mbox{}\verb@         check+=1@\\
-\mbox{}\verb@         if check>20:@\\
+\mbox{}\verb@         if check>50:@\\
 \mbox{}\verb@            raise Exception("Runaway prototype "+prototypes)@\\
 \mbox{}\verb@      on=1 # Keep reading docstring@\\
 \mbox{}\verb@      continue@\\
@@ -1061,7 +1090,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@                  newline=newline+breakon+word@\\
 \mbox{}\verb@               else:@\\
 \mbox{}\verb@                  out = out+newline+breakon+"\n"+indent*" "@\\
-\mbox{}\verb@                  newline=word       @\\
+\mbox{}\verb@                  newline=word@\\
 \mbox{}\verb@            out += newline+"\n"@\\
 \mbox{}\verb@         else:@\\
 \mbox{}\verb@            out += "\n"@\\
@@ -1087,7 +1116,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@   for inp in input:@\\
 \mbox{}\verb@      takes += inp+","@\\
 \mbox{}\verb@   if len(takes)>0:@\\
-\mbox{}\verb@      doc += myformat(takes[:-1],70,indent = 10,breakon=",")   @\\
+\mbox{}\verb@      doc += myformat(takes[:-1],70,indent = 10,breakon=",")@\\
 \mbox{}\verb@   else:@\\
 \mbox{}\verb@      doc += "\n"@\\
 \mbox{}\verb@   doc += "\nC prototype: "+myformat(prototype,65,indent=16,breakon=",")@\\
@@ -1101,38 +1130,38 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_integerarrayparameters":["""@\\
-\mbox{}\verb@%apply int *OUTPUT {int *compression,int *binary_id, @\\
-\mbox{}\verb@                    int *elsize, int *elsigned, int *elunsigned, @\\
-\mbox{}\verb@                    int *elements, int *minelement, int *maxelement} @\\
+\mbox{}\verb@%apply int *OUTPUT {int *compression,int *binary_id,@\\
+\mbox{}\verb@                    int *elsize, int *elsigned, int *elunsigned,@\\
+\mbox{}\verb@                    int *elements, int *minelement, int *maxelement}@\\
 \mbox{}\verb@                  get_integerarrayparameters;@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@    void get_integerarrayparameters(int *compression,int *binary_id, @\\
-\mbox{}\verb@                        int *elsize, int *elsigned, int *elunsigned, @\\
+\mbox{}\verb@    void get_integerarrayparameters(int *compression,int *binary_id,@\\
+\mbox{}\verb@                        int *elsize, int *elsigned, int *elunsigned,@\\
 \mbox{}\verb@                        int *elements, int *minelement, int *maxelement){@\\
 \mbox{}\verb@        unsigned int  comp;@\\
 \mbox{}\verb@        size_t elsiz, elem;@\\
-\mbox{}\verb@        cbf_failnez(cbf_get_integerarrayparameters(self, @\\
-\mbox{}\verb@         &comp,binary_id, &elsiz, elsigned, elunsigned, &elem, @\\
+\mbox{}\verb@        cbf_failnez(cbf_get_integerarrayparameters(self,@\\
+\mbox{}\verb@         &comp,binary_id, &elsiz, elsigned, elunsigned, &elem,@\\
 \mbox{}\verb@          minelement, maxelement));@\\
 \mbox{}\verb@        *compression = comp; /* FIXME - does this convert in C? */@\\
 \mbox{}\verb@        *elsize = elsiz;@\\
 \mbox{}\verb@        *elements = elem;@\\
 \mbox{}\verb@        }@\\
-\mbox{}\verb@""","get_integerarrayparameters",[],["int compression","int binary_id", @\\
-\mbox{}\verb@     "int elsize", "int elsigned", "int elunsigned", @\\
+\mbox{}\verb@""","get_integerarrayparameters",[],["int compression","int binary_id",@\\
+\mbox{}\verb@     "int elsize", "int elsigned", "int elunsigned",@\\
 \mbox{}\verb@     "int elements", "int minelement", "int maxelement"]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_integerarrayparameters_wdims":["""@\\
 \mbox{}\verb@%cstring_output_allocate_size(char **bo, int *bolen, free(*$1));@\\
-\mbox{}\verb@%apply int *OUTPUT {int *compression,int *binary_id, @\\
-\mbox{}\verb@                    int *elsize, int *elsigned, int *elunsigned, @\\
+\mbox{}\verb@%apply int *OUTPUT {int *compression,int *binary_id,@\\
+\mbox{}\verb@                    int *elsize, int *elsigned, int *elunsigned,@\\
 \mbox{}\verb@                    int *elements, int *minelement, int *maxelement,@\\
-\mbox{}\verb@                    int *dimfast, int *dimmid, int *dimslow, int *padding} @\\
+\mbox{}\verb@                    int *dimfast, int *dimmid, int *dimslow, int *padding}@\\
 \mbox{}\verb@                  get_integerarrayparameters_wdims;@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@    void get_integerarrayparameters_wdims(int *compression,int *binary_id, @\\
-\mbox{}\verb@                        int *elsize, int *elsigned, int *elunsigned, @\\
+\mbox{}\verb@    void get_integerarrayparameters_wdims(int *compression,int *binary_id,@\\
+\mbox{}\verb@                        int *elsize, int *elsigned, int *elunsigned,@\\
 \mbox{}\verb@                        int *elements, int *minelement, int *maxelement,@\\
 \mbox{}\verb@                        char **bo, int *bolen,@\\
 \mbox{}\verb@                        int *dimfast, int *dimmid, int *dimslow, int *padding@\\
@@ -1141,8 +1170,8 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        size_t elsiz, elem, df,dm,ds,pd;@\\
 \mbox{}\verb@        const char * byteorder;@\\
 \mbox{}\verb@        char * bot;@\\
-\mbox{}\verb@        cbf_failnez(cbf_get_integerarrayparameters_wdims(self, @\\
-\mbox{}\verb@         &comp,binary_id, &elsiz, elsigned, elunsigned, &elem, @\\
+\mbox{}\verb@        cbf_failnez(cbf_get_integerarrayparameters_wdims(self,@\\
+\mbox{}\verb@         &comp,binary_id, &elsiz, elsigned, elunsigned, &elem,@\\
 \mbox{}\verb@          minelement, maxelement, &byteorder,&df,&dm,&ds,&pd ));@\\
 \mbox{}\verb@        *bolen = strlen(byteorder);@\\
 \mbox{}\verb@        if (!(bot = (char *)malloc(*bolen))) {cbf_failnez(CBF_ALLOC)}@\\
@@ -1155,24 +1184,24 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        *dimmid = dm;@\\
 \mbox{}\verb@        *dimslow = ds;@\\
 \mbox{}\verb@        *padding = pd;@\\
-\mbox{}\verb@        @\\
+\mbox{}\verb@@\\
 \mbox{}\verb@        }@\\
-\mbox{}\verb@""","get_integerarrayparameters_wdims",[],["int compression","int binary_id", @\\
-\mbox{}\verb@     "int elsize", "int elsigned", "int elunsigned", @\\
+\mbox{}\verb@""","get_integerarrayparameters_wdims",[],["int compression","int binary_id",@\\
+\mbox{}\verb@     "int elsize", "int elsigned", "int elunsigned",@\\
 \mbox{}\verb@     "int elements", "int minelement", "int maxelement", "char **bo", "int *bolen",@\\
 \mbox{}\verb@     "int dimfast", "int dimmid", "int dimslow", "int padding"]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_integerarrayparameters_wdims_fs":["""@\\
 \mbox{}\verb@%cstring_output_allocate_size(char **bo, int *bolen, free(*$1));@\\
-\mbox{}\verb@%apply int *OUTPUT {int *compression,int *binary_id, @\\
-\mbox{}\verb@                    int *elsize, int *elsigned, int *elunsigned, @\\
+\mbox{}\verb@%apply int *OUTPUT {int *compression,int *binary_id,@\\
+\mbox{}\verb@                    int *elsize, int *elsigned, int *elunsigned,@\\
 \mbox{}\verb@                    int *elements, int *minelement, int *maxelement,@\\
-\mbox{}\verb@                    int *dimfast, int *dimmid, int *dimslow, int *padding} @\\
+\mbox{}\verb@                    int *dimfast, int *dimmid, int *dimslow, int *padding}@\\
 \mbox{}\verb@                  get_integerarrayparameters_wdims_fs;@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@    void get_integerarrayparameters_wdims_fs(int *compression,int *binary_id, @\\
-\mbox{}\verb@                        int *elsize, int *elsigned, int *elunsigned, @\\
+\mbox{}\verb@    void get_integerarrayparameters_wdims_fs(int *compression,int *binary_id,@\\
+\mbox{}\verb@                        int *elsize, int *elsigned, int *elunsigned,@\\
 \mbox{}\verb@                        int *elements, int *minelement, int *maxelement,@\\
 \mbox{}\verb@                        char **bo, int *bolen,@\\
 \mbox{}\verb@                        int *dimfast, int *dimmid, int *dimslow, int *padding@\\
@@ -1181,38 +1210,38 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        size_t elsiz, elem, df,dm,ds,pd;@\\
 \mbox{}\verb@        const char * byteorder;@\\
 \mbox{}\verb@        char * bot;@\\
-\mbox{}\verb@        cbf_failnez(cbf_get_integerarrayparameters_wdims_fs(self, @\\
-\mbox{}\verb@         &comp,binary_id, &elsiz, elsigned, elunsigned, &elem, @\\
+\mbox{}\verb@        cbf_failnez(cbf_get_integerarrayparameters_wdims_fs(self,@\\
+\mbox{}\verb@         &comp,binary_id, &elsiz, elsigned, elunsigned, &elem,@\\
 \mbox{}\verb@          minelement, maxelement, &byteorder,&df,&dm,&ds,&pd ));@\\
 \mbox{}\verb@        *bolen = strlen(byteorder);@\\
 \mbox{}\verb@        if (!(bot = (char *)malloc(*bolen))) {cbf_failnez(CBF_ALLOC)}@\\
 \mbox{}\verb@        strncpy(bot,byteorder,*bolen);@\\
 \mbox{}\verb@        *bo = bot;@\\
-\mbox{}\verb@        *compression = comp; @\\
+\mbox{}\verb@        *compression = comp;@\\
 \mbox{}\verb@        *elsize = elsiz;@\\
 \mbox{}\verb@        *elements = elem;@\\
 \mbox{}\verb@        *dimfast = df;@\\
 \mbox{}\verb@        *dimmid = dm;@\\
 \mbox{}\verb@        *dimslow = ds;@\\
 \mbox{}\verb@        *padding = pd;@\\
-\mbox{}\verb@        @\\
+\mbox{}\verb@@\\
 \mbox{}\verb@        }@\\
-\mbox{}\verb@""","get_integerarrayparameters_wdims_fs",[],["int compression","int binary_id", @\\
-\mbox{}\verb@     "int elsize", "int elsigned", "int elunsigned", @\\
+\mbox{}\verb@""","get_integerarrayparameters_wdims_fs",[],["int compression","int binary_id",@\\
+\mbox{}\verb@     "int elsize", "int elsigned", "int elunsigned",@\\
 \mbox{}\verb@     "int elements", "int minelement", "int maxelement", "char **bo", "int *bolen",@\\
 \mbox{}\verb@      "int dimfast", "int dimmid", "int dimslow", "int padding"]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_integerarrayparameters_wdims_sf":["""@\\
 \mbox{}\verb@%cstring_output_allocate_size(char **bo, int *bolen, free(*$1));@\\
-\mbox{}\verb@%apply int *OUTPUT {int *compression,int *binary_id, @\\
-\mbox{}\verb@                    int *elsize, int *elsigned, int *elunsigned, @\\
+\mbox{}\verb@%apply int *OUTPUT {int *compression,int *binary_id,@\\
+\mbox{}\verb@                    int *elsize, int *elsigned, int *elunsigned,@\\
 \mbox{}\verb@                    int *elements, int *minelement, int *maxelement,@\\
-\mbox{}\verb@                    int *dimslow, int *dimmid, int *dimfast, int *padding} @\\
+\mbox{}\verb@                    int *dimslow, int *dimmid, int *dimfast, int *padding}@\\
 \mbox{}\verb@                  get_integerarrayparameters_wdims_sf;@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@    void get_integerarrayparameters_wdims_sf(int *compression,int *binary_id, @\\
-\mbox{}\verb@                        int *elsize, int *elsigned, int *elunsigned, @\\
+\mbox{}\verb@    void get_integerarrayparameters_wdims_sf(int *compression,int *binary_id,@\\
+\mbox{}\verb@                        int *elsize, int *elsigned, int *elunsigned,@\\
 \mbox{}\verb@                        int *elements, int *minelement, int *maxelement,@\\
 \mbox{}\verb@                        char **bo, int *bolen,@\\
 \mbox{}\verb@                        int *dimslow, int *dimmid, int *dimfast, int *padding@\\
@@ -1221,8 +1250,8 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        size_t elsiz, elem, df,dm,ds,pd;@\\
 \mbox{}\verb@        const char * byteorder;@\\
 \mbox{}\verb@        char * bot;@\\
-\mbox{}\verb@        cbf_failnez(cbf_get_integerarrayparameters_wdims_sf(self, @\\
-\mbox{}\verb@         &comp,binary_id, &elsiz, elsigned, elunsigned, &elem, @\\
+\mbox{}\verb@        cbf_failnez(cbf_get_integerarrayparameters_wdims_sf(self,@\\
+\mbox{}\verb@         &comp,binary_id, &elsiz, elsigned, elunsigned, &elem,@\\
 \mbox{}\verb@          minelement, maxelement, &byteorder,&ds,&dm,&df,&pd ));@\\
 \mbox{}\verb@        *bolen = strlen(byteorder);@\\
 \mbox{}\verb@        if (!(bot = (char *)malloc(*bolen))) {cbf_failnez(CBF_ALLOC)}@\\
@@ -1235,44 +1264,44 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        *dimmid = dm;@\\
 \mbox{}\verb@        *dimslow = ds;@\\
 \mbox{}\verb@        *padding = pd;@\\
-\mbox{}\verb@        @\\
+\mbox{}\verb@@\\
 \mbox{}\verb@        }@\\
-\mbox{}\verb@""","get_integerarrayparameters_wdims_sf",[],["int compression","int binary_id", @\\
-\mbox{}\verb@     "int elsize", "int elsigned", "int elunsigned", @\\
+\mbox{}\verb@""","get_integerarrayparameters_wdims_sf",[],["int compression","int binary_id",@\\
+\mbox{}\verb@     "int elsize", "int elsigned", "int elunsigned",@\\
 \mbox{}\verb@     "int elements", "int minelement", "int maxelement", "char **bo", "int *bolen",@\\
 \mbox{}\verb@      "int dimslow", "int dimmid", "int dimfast", "int padding"]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_realarrayparameters":["""@\\
-\mbox{}\verb@%apply int *OUTPUT {int *compression,int *binary_id, @\\
+\mbox{}\verb@%apply int *OUTPUT {int *compression,int *binary_id,@\\
 \mbox{}\verb@                    int *elsize, int *elements} get_realarrayparameters;@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@    void get_realarrayparameters(int *compression,int *binary_id, @\\
+\mbox{}\verb@    void get_realarrayparameters(int *compression,int *binary_id,@\\
 \mbox{}\verb@                                 int *elsize, int *elements){@\\
 \mbox{}\verb@        unsigned int  comp;@\\
 \mbox{}\verb@        size_t elsiz, elem;@\\
-\mbox{}\verb@        cbf_failnez(cbf_get_realarrayparameters(self, @\\
+\mbox{}\verb@        cbf_failnez(cbf_get_realarrayparameters(self,@\\
 \mbox{}\verb@                                 &comp ,binary_id, &elsiz, &elem ));@\\
 \mbox{}\verb@        *compression = comp; /* FIXME - does this convert in C? */@\\
 \mbox{}\verb@        *elsize = elsiz;@\\
 \mbox{}\verb@        *elements = elem;@\\
 \mbox{}\verb@        }@\\
-\mbox{}\verb@""","get_realarrayparameters",[],["int compression","int binary_id", @\\
+\mbox{}\verb@""","get_realarrayparameters",[],["int compression","int binary_id",@\\
 \mbox{}\verb@     "int elsize", "int elements"]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_realarrayparameters_wdims":["""@\\
 \mbox{}\verb@%cstring_output_allocate_size(char **bo, int *bolen, free(*$1));@\\
-\mbox{}\verb@%apply int *OUTPUT {int *compression,int *binary_id, @\\
-\mbox{}\verb@                    int *elsize, @\\
+\mbox{}\verb@%apply int *OUTPUT {int *compression,int *binary_id,@\\
+\mbox{}\verb@                    int *elsize,@\\
 \mbox{}\verb@                    int *elements,@\\
-\mbox{}\verb@                    int *dimslow, int *dimmid, int *dimfast, int *padding} @\\
+\mbox{}\verb@                    int *dimslow, int *dimmid, int *dimfast, int *padding}@\\
 \mbox{}\verb@                  get_realarrayparameters_wdims;@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@    void get_realarrayparameters_wdims(int *compression,int *binary_id, @\\
-\mbox{}\verb@                        int *elsize, @\\
-\mbox{}\verb@                        int *elements, @\\
+\mbox{}\verb@    void get_realarrayparameters_wdims(int *compression,int *binary_id,@\\
+\mbox{}\verb@                        int *elsize,@\\
+\mbox{}\verb@                        int *elements,@\\
 \mbox{}\verb@                        char **bo, int *bolen,@\\
 \mbox{}\verb@                        int *dimfast, int *dimmid, int *dimslow, int *padding@\\
 \mbox{}\verb@                        ){@\\
@@ -1280,8 +1309,8 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        size_t elsiz, elem, df,dm,ds,pd;@\\
 \mbox{}\verb@        const char * byteorder;@\\
 \mbox{}\verb@        char * bot;@\\
-\mbox{}\verb@        cbf_failnez(cbf_get_realarrayparameters_wdims(self, @\\
-\mbox{}\verb@         &comp,binary_id, &elsiz, &elem, @\\
+\mbox{}\verb@        cbf_failnez(cbf_get_realarrayparameters_wdims(self,@\\
+\mbox{}\verb@         &comp,binary_id, &elsiz, &elem,@\\
 \mbox{}\verb@         &byteorder,&df,&dm,&ds,&pd ));@\\
 \mbox{}\verb@        *bolen = strlen(byteorder);@\\
 \mbox{}\verb@        if (!(bot = (char *)malloc(*bolen))) {cbf_failnez(CBF_ALLOC)}@\\
@@ -1294,25 +1323,25 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        *dimmid = dm;@\\
 \mbox{}\verb@        *dimslow = ds;@\\
 \mbox{}\verb@        *padding = pd;@\\
-\mbox{}\verb@        @\\
+\mbox{}\verb@@\\
 \mbox{}\verb@        }@\\
-\mbox{}\verb@""","get_realarrayparameters_wdims",[],["int compression","int binary_id", @\\
-\mbox{}\verb@     "int elsize", @\\
+\mbox{}\verb@""","get_realarrayparameters_wdims",[],["int compression","int binary_id",@\\
+\mbox{}\verb@     "int elsize",@\\
 \mbox{}\verb@     "int elements", "char **bo", "int *bolen",@\\
 \mbox{}\verb@     "int dimfast", "int dimmid", "int dimslow", "int padding"]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_realarrayparameters_wdims_fs":["""@\\
 \mbox{}\verb@%cstring_output_allocate_size(char **bo, int *bolen, free(*$1));@\\
-\mbox{}\verb@%apply int *OUTPUT {int *compression,int *binary_id, @\\
-\mbox{}\verb@                    int *elsize, @\\
+\mbox{}\verb@%apply int *OUTPUT {int *compression,int *binary_id,@\\
+\mbox{}\verb@                    int *elsize,@\\
 \mbox{}\verb@                    int *elements,@\\
-\mbox{}\verb@                    int *dimslow, int *dimmid, int *dimfast, int *padding} @\\
+\mbox{}\verb@                    int *dimslow, int *dimmid, int *dimfast, int *padding}@\\
 \mbox{}\verb@                  get_realarrayparameters_wdims_fs;@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@    void get_realarrayparameters_wdims_fs(int *compression,int *binary_id, @\\
-\mbox{}\verb@                        int *elsize, @\\
-\mbox{}\verb@                        int *elements, @\\
+\mbox{}\verb@    void get_realarrayparameters_wdims_fs(int *compression,int *binary_id,@\\
+\mbox{}\verb@                        int *elsize,@\\
+\mbox{}\verb@                        int *elements,@\\
 \mbox{}\verb@                        char **bo, int *bolen,@\\
 \mbox{}\verb@                        int *dimfast, int *dimmid, int *dimslow, int *padding@\\
 \mbox{}\verb@                        ){@\\
@@ -1320,8 +1349,8 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        size_t elsiz, elem, df,dm,ds,pd;@\\
 \mbox{}\verb@        const char * byteorder;@\\
 \mbox{}\verb@        char * bot;@\\
-\mbox{}\verb@        cbf_failnez(cbf_get_realarrayparameters_wdims_fs(self, @\\
-\mbox{}\verb@         &comp,binary_id, &elsiz, &elem, @\\
+\mbox{}\verb@        cbf_failnez(cbf_get_realarrayparameters_wdims_fs(self,@\\
+\mbox{}\verb@         &comp,binary_id, &elsiz, &elem,@\\
 \mbox{}\verb@         &byteorder,&df,&dm,&ds,&pd ));@\\
 \mbox{}\verb@        *bolen = strlen(byteorder);@\\
 \mbox{}\verb@        if (!(bot = (char *)malloc(*bolen))) {cbf_failnez(CBF_ALLOC)}@\\
@@ -1334,25 +1363,25 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        *dimmid = dm;@\\
 \mbox{}\verb@        *dimslow = ds;@\\
 \mbox{}\verb@        *padding = pd;@\\
-\mbox{}\verb@        @\\
+\mbox{}\verb@@\\
 \mbox{}\verb@        }@\\
-\mbox{}\verb@""","get_realarrayparameters_wdims_fs",[],["int compression","int binary_id", @\\
-\mbox{}\verb@     "int elsize", @\\
+\mbox{}\verb@""","get_realarrayparameters_wdims_fs",[],["int compression","int binary_id",@\\
+\mbox{}\verb@     "int elsize",@\\
 \mbox{}\verb@     "int elements", "char **bo", "int *bolen",@\\
 \mbox{}\verb@      "int dimfast", "int dimmid", "int dimslow", "int padding"]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_realarrayparameters_wdims_sf":["""@\\
 \mbox{}\verb@%cstring_output_allocate_size(char **bo, int *bolen, free(*$1));@\\
-\mbox{}\verb@%apply int *OUTPUT {int *compression,int *binary_id, @\\
-\mbox{}\verb@                    int *elsize, @\\
+\mbox{}\verb@%apply int *OUTPUT {int *compression,int *binary_id,@\\
+\mbox{}\verb@                    int *elsize,@\\
 \mbox{}\verb@                    int *elements,@\\
-\mbox{}\verb@                    int *dimslow, int *dimmid, int *dimfast, int *padding} @\\
+\mbox{}\verb@                    int *dimslow, int *dimmid, int *dimfast, int *padding}@\\
 \mbox{}\verb@                  get_realarrayparameters_wdims_sf;@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@    void get_realarrayparameters_wdims_sf(int *compression,int *binary_id, @\\
-\mbox{}\verb@                        int *elsize, @\\
-\mbox{}\verb@                        int *elements, @\\
+\mbox{}\verb@    void get_realarrayparameters_wdims_sf(int *compression,int *binary_id,@\\
+\mbox{}\verb@                        int *elsize,@\\
+\mbox{}\verb@                        int *elements,@\\
 \mbox{}\verb@                        char **bo, int *bolen,@\\
 \mbox{}\verb@                        int *dimslow, int *dimmid, int *dimfast, int *padding@\\
 \mbox{}\verb@                        ){@\\
@@ -1360,8 +1389,8 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        size_t elsiz, elem, df,dm,ds,pd;@\\
 \mbox{}\verb@        const char * byteorder;@\\
 \mbox{}\verb@        char * bot;@\\
-\mbox{}\verb@        cbf_failnez(cbf_get_realarrayparameters_wdims_sf(self, @\\
-\mbox{}\verb@         &comp,binary_id, &elsiz, &elem, @\\
+\mbox{}\verb@        cbf_failnez(cbf_get_realarrayparameters_wdims_sf(self,@\\
+\mbox{}\verb@         &comp,binary_id, &elsiz, &elem,@\\
 \mbox{}\verb@         &byteorder,&ds,&dm,&df,&pd ));@\\
 \mbox{}\verb@        *bolen = strlen(byteorder);@\\
 \mbox{}\verb@        if (!(bot = (char *)malloc(*bolen))) {cbf_failnez(CBF_ALLOC)}@\\
@@ -1374,10 +1403,10 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        *dimmid = dm;@\\
 \mbox{}\verb@        *dimslow = ds;@\\
 \mbox{}\verb@        *padding = pd;@\\
-\mbox{}\verb@        @\\
+\mbox{}\verb@@\\
 \mbox{}\verb@        }@\\
-\mbox{}\verb@""","get_realarrayparameters_wdims_sf",[],["int compression","int binary_id", @\\
-\mbox{}\verb@     "int elsize", @\\
+\mbox{}\verb@""","get_realarrayparameters_wdims_sf",[],["int compression","int binary_id",@\\
+\mbox{}\verb@     "int elsize",@\\
 \mbox{}\verb@     "int elements", "char **bo", "int *bolen",@\\
 \mbox{}\verb@      "int dimslow", "int dimmid", "int dimfast", "int padding"]],@\\
 \mbox{}\verb@@\\
@@ -1385,7 +1414,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@"cbf_get_integerarray":["""@\\
 \mbox{}\verb@// Ensure we free the local temporary@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@%cstring_output_allocate_size(char ** s, int *slen, free(*$1))@\\
+\mbox{}\verb@%bytestring_output_allocate_size(char ** s, int *slen, free(*$1))@\\
 \mbox{}\verb@       get_integerarray_as_string;@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@// Get the length correct@\\
@@ -1403,7 +1432,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@        if ((array=malloc(elsize*elements))) {@\\
 \mbox{}\verb@              /* cbf_failnez (cbf_select_column(cbf,colnum)) */@\\
-\mbox{}\verb@               cbf_failnez (cbf_get_integerarray(self, &binary_id, @\\
+\mbox{}\verb@               cbf_failnez (cbf_get_integerarray(self, &binary_id,@\\
 \mbox{}\verb@                            (void *)array, elsize, elsigned,@\\
 \mbox{}\verb@                            elements, &elements_read));@\\
 \mbox{}\verb@@\\
@@ -1419,7 +1448,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@"cbf_get_image":["""@\\
 \mbox{}\verb@// Ensure we free the local temporary@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@%cstring_output_allocate_size(char ** s, int *slen, free(*$1))@\\
+\mbox{}\verb@%bytestring_output_allocate_size(char ** s, int *slen, free(*$1))@\\
 \mbox{}\verb@       get_image_as_string;@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@// Get the length correct@\\
@@ -1430,7 +1459,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        int reserved = 0;@\\
 \mbox{}\verb@        *slen = 0; /* Initialise in case of problems */@\\
 \mbox{}\verb@        if ((array=malloc(elsize*ndimfast*ndimslow))) {@\\
-\mbox{}\verb@               cbf_failnez (cbf_get_image(self, @\\
+\mbox{}\verb@               cbf_failnez (cbf_get_image(self,@\\
 \mbox{}\verb@               reserved, (unsigned int)element_number,@\\
 \mbox{}\verb@               (void *)array, (size_t)elsize, elsign,@\\
 \mbox{}\verb@               (size_t) ndimslow, (size_t)ndimfast));@\\
@@ -1440,14 +1469,14 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        *slen = elsize*ndimfast*ndimslow;@\\
 \mbox{}\verb@        *s = (char *) array;@\\
 \mbox{}\verb@      }@\\
-\mbox{}\verb@""","get_image_as_string",["int element_number", @\\
+\mbox{}\verb@""","get_image_as_string",["int element_number",@\\
 \mbox{}\verb@    "int elsize", "int elsign", "int ndimslow", "int ndimfast"],["(Binary)String"] ],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_image_fs":["""@\\
 \mbox{}\verb@// Ensure we free the local temporary@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@%cstring_output_allocate_size(char ** s, int *slen, free(*$1))@\\
+\mbox{}\verb@%bytestring_output_allocate_size(char ** s, int *slen, free(*$1))@\\
 \mbox{}\verb@       get_image_fs_as_string;@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@// Get the length correct@\\
@@ -1458,7 +1487,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        int reserved = 0;@\\
 \mbox{}\verb@        *slen = 0; /* Initialise in case of problems */@\\
 \mbox{}\verb@        if ((array=malloc(elsize*ndimfast*ndimslow))) {@\\
-\mbox{}\verb@               cbf_failnez (cbf_get_image_fs(self, @\\
+\mbox{}\verb@               cbf_failnez (cbf_get_image_fs(self,@\\
 \mbox{}\verb@               reserved, (unsigned int)element_number,@\\
 \mbox{}\verb@               (void *)array, (size_t)elsize, elsign,@\\
 \mbox{}\verb@               (size_t) ndimfast, (size_t)ndimslow));@\\
@@ -1468,14 +1497,14 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        *slen = elsize*ndimfast*ndimslow;@\\
 \mbox{}\verb@        *s = (char *) array;@\\
 \mbox{}\verb@      }@\\
-\mbox{}\verb@""","get_image_fs_as_string",["int element_number", @\\
+\mbox{}\verb@""","get_image_fs_as_string",["int element_number",@\\
 \mbox{}\verb@    "int elsize", "int elsign", "int ndimfast", "int ndimslow"],["(Binary)String"] ],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_image_sf":["""@\\
 \mbox{}\verb@// Ensure we free the local temporary@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@%cstring_output_allocate_size(char ** s, int *slen, free(*$1))@\\
+\mbox{}\verb@%bytestring_output_allocate_size(char ** s, int *slen, free(*$1))@\\
 \mbox{}\verb@       get_image_fs_as_string;@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@// Get the length correct@\\
@@ -1486,7 +1515,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        int reserved = 0;@\\
 \mbox{}\verb@        *slen = 0; /* Initialise in case of problems */@\\
 \mbox{}\verb@        if ((array=malloc(elsize*ndimfast*ndimslow))) {@\\
-\mbox{}\verb@               cbf_failnez (cbf_get_image_sf(self, @\\
+\mbox{}\verb@               cbf_failnez (cbf_get_image_sf(self,@\\
 \mbox{}\verb@               reserved, (unsigned int)element_number,@\\
 \mbox{}\verb@               (void *)array, (size_t)elsize, elsign,@\\
 \mbox{}\verb@               (size_t) ndimslow, (size_t)ndimfast));@\\
@@ -1496,14 +1525,14 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        *slen = elsize*ndimfast*ndimslow;@\\
 \mbox{}\verb@        *s = (char *) array;@\\
 \mbox{}\verb@      }@\\
-\mbox{}\verb@""","get_image_sf_as_string",["int element_number", @\\
+\mbox{}\verb@""","get_image_sf_as_string",["int element_number",@\\
 \mbox{}\verb@    "int elsize", "int elsign", "int ndimslow", "int ndimfast"],["(Binary)String"] ],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_real_image":["""@\\
 \mbox{}\verb@// Ensure we free the local temporary@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@%cstring_output_allocate_size(char ** s, int *slen, free(*$1))@\\
+\mbox{}\verb@%bytestring_output_allocate_size(char ** s, int *slen, free(*$1))@\\
 \mbox{}\verb@       get_real_image_as_string;@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@// Get the length correct@\\
@@ -1514,7 +1543,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        int reserved = 0;@\\
 \mbox{}\verb@        *slen = 0; /* Initialise in case of problems */@\\
 \mbox{}\verb@        if ((array=malloc(elsize*ndimfast*ndimslow))) {@\\
-\mbox{}\verb@               cbf_failnez (cbf_get_real_image(self, @\\
+\mbox{}\verb@               cbf_failnez (cbf_get_real_image(self,@\\
 \mbox{}\verb@               reserved, (unsigned int)element_number,@\\
 \mbox{}\verb@               (void *)array, (size_t)elsize,@\\
 \mbox{}\verb@               (size_t) ndimslow, (size_t)ndimfast));@\\
@@ -1524,14 +1553,14 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        *slen = elsize*ndimfast*ndimslow;@\\
 \mbox{}\verb@        *s = (char *) array;@\\
 \mbox{}\verb@      }@\\
-\mbox{}\verb@""","get_real_image_as_string",["int element_number", @\\
+\mbox{}\verb@""","get_real_image_as_string",["int element_number",@\\
 \mbox{}\verb@    "int elsize", "int ndimslow", "int ndimfast"],["(Binary)String"] ],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_real_image_fs":["""@\\
 \mbox{}\verb@// Ensure we free the local temporary@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@%cstring_output_allocate_size(char ** s, int *slen, free(*$1))@\\
+\mbox{}\verb@%bytestring_output_allocate_size(char ** s, int *slen, free(*$1))@\\
 \mbox{}\verb@       get_real_image_fs_as_string;@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@// Get the length correct@\\
@@ -1542,7 +1571,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        int reserved = 0;@\\
 \mbox{}\verb@        *slen = 0; /* Initialise in case of problems */@\\
 \mbox{}\verb@        if ((array=malloc(elsize*ndimfast*ndimslow))) {@\\
-\mbox{}\verb@               cbf_failnez (cbf_get_real_image_fs(self, @\\
+\mbox{}\verb@               cbf_failnez (cbf_get_real_image_fs(self,@\\
 \mbox{}\verb@               reserved, (unsigned int)element_number,@\\
 \mbox{}\verb@               (void *)array, (size_t)elsize,@\\
 \mbox{}\verb@               (size_t) ndimfast, (size_t)ndimslow));@\\
@@ -1552,14 +1581,14 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        *slen = elsize*ndimfast*ndimslow;@\\
 \mbox{}\verb@        *s = (char *) array;@\\
 \mbox{}\verb@      }@\\
-\mbox{}\verb@""","get_real_image_fs_as_string",["int element_number", @\\
+\mbox{}\verb@""","get_real_image_fs_as_string",["int element_number",@\\
 \mbox{}\verb@    "int elsize", "int ndimfast", "int ndimslow"],["(Binary)String"] ],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_real_image_sf":["""@\\
 \mbox{}\verb@// Ensure we free the local temporary@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@%cstring_output_allocate_size(char ** s, int *slen, free(*$1))@\\
+\mbox{}\verb@%bytestring_output_allocate_size(char ** s, int *slen, free(*$1))@\\
 \mbox{}\verb@       get_real_image_sf_as_string;@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@// Get the length correct@\\
@@ -1570,7 +1599,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        int reserved = 0;@\\
 \mbox{}\verb@        *slen = 0; /* Initialise in case of problems */@\\
 \mbox{}\verb@        if ((array=malloc(elsize*ndimfast*ndimslow))) {@\\
-\mbox{}\verb@               cbf_failnez (cbf_get_real_image_sf(self, @\\
+\mbox{}\verb@               cbf_failnez (cbf_get_real_image_sf(self,@\\
 \mbox{}\verb@               reserved, (unsigned int)element_number,@\\
 \mbox{}\verb@               (void *)array, (size_t)elsize,@\\
 \mbox{}\verb@               (size_t) ndimslow, (size_t)ndimfast));@\\
@@ -1580,14 +1609,14 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        *slen = elsize*ndimfast*ndimslow;@\\
 \mbox{}\verb@        *s = (char *) array;@\\
 \mbox{}\verb@      }@\\
-\mbox{}\verb@""","get_real_image_sf_as_string",["int element_number", @\\
+\mbox{}\verb@""","get_real_image_sf_as_string",["int element_number",@\\
 \mbox{}\verb@    "int elsize", "int ndimslow", "int ndimfast"],["(Binary)String"] ],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_3d_image":["""@\\
 \mbox{}\verb@// Ensure we free the local temporary@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@%cstring_output_allocate_size(char ** s, int *slen, free(*$1))@\\
+\mbox{}\verb@%bytestring_output_allocate_size(char ** s, int *slen, free(*$1))@\\
 \mbox{}\verb@       get_3d_image_as_string;@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@// Get the length correct@\\
@@ -1598,7 +1627,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        int reserved = 0;@\\
 \mbox{}\verb@        *slen = 0; /* Initialise in case of problems */@\\
 \mbox{}\verb@        if ((array=malloc(elsize*ndimfast*ndimmid*ndimslow))) {@\\
-\mbox{}\verb@               cbf_failnez (cbf_get_3d_image(self, @\\
+\mbox{}\verb@               cbf_failnez (cbf_get_3d_image(self,@\\
 \mbox{}\verb@               reserved, (unsigned int)element_number,@\\
 \mbox{}\verb@               (void *)array, (size_t)elsize, elsign,@\\
 \mbox{}\verb@               (size_t) ndimslow, (size_t)ndimmid, (size_t)ndimfast));@\\
@@ -1608,14 +1637,14 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        *slen = elsize*ndimfast*ndimmid*ndimslow;@\\
 \mbox{}\verb@        *s = (char *) array;@\\
 \mbox{}\verb@      }@\\
-\mbox{}\verb@""","get_3d_image_as_string",["int element_number", @\\
+\mbox{}\verb@""","get_3d_image_as_string",["int element_number",@\\
 \mbox{}\verb@    "int elsize", "int elsign", "int ndimslow", "int ndimmid", "int ndimfast"],["(Binary)String"] ],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_3d_image_fs":["""@\\
 \mbox{}\verb@// Ensure we free the local temporary@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@%cstring_output_allocate_size(char ** s, int *slen, free(*$1))@\\
+\mbox{}\verb@%bytestring_output_allocate_size(char ** s, int *slen, free(*$1))@\\
 \mbox{}\verb@       get_3d_image_fs_as_string;@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@// Get the length correct@\\
@@ -1626,7 +1655,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        int reserved = 0;@\\
 \mbox{}\verb@        *slen = 0; /* Initialise in case of problems */@\\
 \mbox{}\verb@        if ((array=malloc(elsize*ndimfast*ndimmid*ndimslow))) {@\\
-\mbox{}\verb@               cbf_failnez (cbf_get_3d_image_fs(self, @\\
+\mbox{}\verb@               cbf_failnez (cbf_get_3d_image_fs(self,@\\
 \mbox{}\verb@               reserved, (unsigned int)element_number,@\\
 \mbox{}\verb@               (void *)array, (size_t)elsize, elsign,@\\
 \mbox{}\verb@               (size_t) ndimfast, (size_t)ndimmid, (size_t)ndimslow));@\\
@@ -1636,14 +1665,14 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        *slen = elsize*ndimfast*ndimmid*ndimslow;@\\
 \mbox{}\verb@        *s = (char *) array;@\\
 \mbox{}\verb@      }@\\
-\mbox{}\verb@""","get_3d_image_fs_as_string",["int element_number", @\\
+\mbox{}\verb@""","get_3d_image_fs_as_string",["int element_number",@\\
 \mbox{}\verb@    "int elsize", "int elsign", "int ndimfast", "int ndimmid", "int ndimslow"],["(Binary)String"] ],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_3d_image_sf":["""@\\
 \mbox{}\verb@// Ensure we free the local temporary@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@%cstring_output_allocate_size(char ** s, int *slen, free(*$1))@\\
+\mbox{}\verb@%bytestring_output_allocate_size(char ** s, int *slen, free(*$1))@\\
 \mbox{}\verb@       get_3d_image_sf_as_string;@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@// Get the length correct@\\
@@ -1654,7 +1683,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        int reserved = 0;@\\
 \mbox{}\verb@        *slen = 0; /* Initialise in case of problems */@\\
 \mbox{}\verb@        if ((array=malloc(elsize*ndimfast*ndimmid*ndimslow))) {@\\
-\mbox{}\verb@               cbf_failnez (cbf_get_3d_image_sf(self, @\\
+\mbox{}\verb@               cbf_failnez (cbf_get_3d_image_sf(self,@\\
 \mbox{}\verb@               reserved, (unsigned int)element_number,@\\
 \mbox{}\verb@               (void *)array, (size_t)elsize, elsign,@\\
 \mbox{}\verb@               (size_t) ndimslow, (size_t)ndimmid, (size_t)ndimfast));@\\
@@ -1664,14 +1693,14 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        *slen = elsize*ndimfast*ndimmid*ndimslow;@\\
 \mbox{}\verb@        *s = (char *) array;@\\
 \mbox{}\verb@      }@\\
-\mbox{}\verb@""","get_3d_image_sf_as_string",["int element_number", @\\
+\mbox{}\verb@""","get_3d_image_sf_as_string",["int element_number",@\\
 \mbox{}\verb@    "int elsize", "int elsign", "int ndimslow", "int ndimmid", "int ndimfast"],["(Binary)String"] ],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_real_3d_image":["""@\\
 \mbox{}\verb@// Ensure we free the local temporary@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@%cstring_output_allocate_size(char ** s, int *slen, free(*$1))@\\
+\mbox{}\verb@%bytestring_output_allocate_size(char ** s, int *slen, free(*$1))@\\
 \mbox{}\verb@       get_real_3d_image_as_string;@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@// Get the length correct@\\
@@ -1682,7 +1711,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        int reserved = 0;@\\
 \mbox{}\verb@        *slen = 0; /* Initialise in case of problems */@\\
 \mbox{}\verb@        if ((array=malloc(elsize*ndimfast*ndimmid*ndimslow))) {@\\
-\mbox{}\verb@               cbf_failnez (cbf_get_real_3d_image(self, @\\
+\mbox{}\verb@               cbf_failnez (cbf_get_real_3d_image(self,@\\
 \mbox{}\verb@               reserved, (unsigned int)element_number,@\\
 \mbox{}\verb@               (void *)array, (size_t)elsize,@\\
 \mbox{}\verb@               (size_t) ndimslow, (size_t)ndimmid, (size_t)ndimfast));@\\
@@ -1692,14 +1721,14 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        *slen = elsize*ndimfast*ndimmid*ndimslow;@\\
 \mbox{}\verb@        *s = (char *) array;@\\
 \mbox{}\verb@      }@\\
-\mbox{}\verb@""","get_real_3d_image_as_string",["int element_number", @\\
+\mbox{}\verb@""","get_real_3d_image_as_string",["int element_number",@\\
 \mbox{}\verb@    "int elsize", "int ndimslow", "int ndimmid", "int ndimfast"],["(Binary)String"] ],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_real_3d_image_fs":["""@\\
 \mbox{}\verb@// Ensure we free the local temporary@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@%cstring_output_allocate_size(char ** s, int *slen, free(*$1))@\\
+\mbox{}\verb@%bytestring_output_allocate_size(char ** s, int *slen, free(*$1))@\\
 \mbox{}\verb@       get_real_3d_image_fs_as_string;@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@// Get the length correct@\\
@@ -1710,7 +1739,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        int reserved = 0;@\\
 \mbox{}\verb@        *slen = 0; /* Initialise in case of problems */@\\
 \mbox{}\verb@        if ((array=malloc(elsize*ndimfast*ndimmid*ndimslow))) {@\\
-\mbox{}\verb@               cbf_failnez (cbf_get_real_3d_image_fs(self, @\\
+\mbox{}\verb@               cbf_failnez (cbf_get_real_3d_image_fs(self,@\\
 \mbox{}\verb@               reserved, (unsigned int)element_number,@\\
 \mbox{}\verb@               (void *)array, (size_t)elsize,@\\
 \mbox{}\verb@               (size_t) ndimfast, (size_t)ndimmid, (size_t)ndimslow));@\\
@@ -1720,13 +1749,13 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        *slen = elsize*ndimfast*ndimmid*ndimslow;@\\
 \mbox{}\verb@        *s = (char *) array;@\\
 \mbox{}\verb@      }@\\
-\mbox{}\verb@""","get_real_3d_image_fs_as_string",["int element_number", @\\
+\mbox{}\verb@""","get_real_3d_image_fs_as_string",["int element_number",@\\
 \mbox{}\verb@    "int elsize", "int ndimfast", "int ndimmid", "int ndimslow"],["(Binary)String"] ],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_real_3d_image_sf":["""@\\
 \mbox{}\verb@// Ensure we free the local temporary@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@%cstring_output_allocate_size(char ** s, int *slen, free(*$1))@\\
+\mbox{}\verb@%bytestring_output_allocate_size(char ** s, int *slen, free(*$1))@\\
 \mbox{}\verb@       get_real_3d_image_sf_as_string;@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@// Get the length correct@\\
@@ -1737,7 +1766,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        int reserved = 0;@\\
 \mbox{}\verb@        *slen = 0; /* Initialise in case of problems */@\\
 \mbox{}\verb@        if ((array=malloc(elsize*ndimfast*ndimmid*ndimslow))) {@\\
-\mbox{}\verb@               cbf_failnez (cbf_get_real_3d_image_sf(self, @\\
+\mbox{}\verb@               cbf_failnez (cbf_get_real_3d_image_sf(self,@\\
 \mbox{}\verb@               reserved, (unsigned int)element_number,@\\
 \mbox{}\verb@               (void *)array, (size_t)elsize,@\\
 \mbox{}\verb@               (size_t) ndimslow, (size_t)ndimmid, (size_t)ndimfast));@\\
@@ -1747,14 +1776,14 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        *slen = elsize*ndimfast*ndimmid*ndimslow;@\\
 \mbox{}\verb@        *s = (char *) array;@\\
 \mbox{}\verb@      }@\\
-\mbox{}\verb@""","get_real_3d_image_sf_as_string",["int element_number", @\\
+\mbox{}\verb@""","get_real_3d_image_sf_as_string",["int element_number",@\\
 \mbox{}\verb@    "int elsize", "int ndimslow", "int ndimmid", "int ndimfast"],["(Binary)String"] ],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_realarray":["""@\\
 \mbox{}\verb@// Ensure we free the local temporary@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@%cstring_output_allocate_size(char ** s, int *slen, free(*$1))@\\
+\mbox{}\verb@%bytestring_output_allocate_size(char ** s, int *slen, free(*$1))@\\
 \mbox{}\verb@       get_realarray_as_string;@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@// Get the length correct@\\
@@ -1771,7 +1800,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@        if ((array=malloc(elsize*elements))) {@\\
 \mbox{}\verb@              /* cbf_failnez (cbf_select_column(cbf,colnum)) */@\\
-\mbox{}\verb@               cbf_failnez (cbf_get_realarray(self, &binary_id, @\\
+\mbox{}\verb@               cbf_failnez (cbf_get_realarray(self, &binary_id,@\\
 \mbox{}\verb@                            (void *)array, elsize,@\\
 \mbox{}\verb@                            elements, &elements_read));@\\
 \mbox{}\verb@@\\
@@ -1785,12 +1814,12 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_set_integerarray":["""@\\
-\mbox{}\verb@    /* CBFlib must NOT modify the data string which belongs to the scripting @\\
+\mbox{}\verb@    /* CBFlib must NOT modify the data string which belongs to the scripting@\\
 \mbox{}\verb@       language we will get and check the length via a typemap */@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@%apply (char *STRING, int LENGTH) { (char *data, int len) } set_integerarray;@\\
+\mbox{}\verb@%apply (char *DATASTRING, int LENGTH) { (char *data, int len) } set_integerarray;@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@    void set_integerarray(unsigned int compression, int binary_id, @\\
+\mbox{}\verb@    void set_integerarray(unsigned int compression, int binary_id,@\\
 \mbox{}\verb@             char *data, int len, int elsize, int elsigned, int elements){@\\
 \mbox{}\verb@        /* safety check on args */@\\
 \mbox{}\verb@        size_t els, ele;@\\
@@ -1799,26 +1828,26 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@           array = data;@\\
 \mbox{}\verb@           els = elsize;@\\
 \mbox{}\verb@           ele = elements;@\\
-\mbox{}\verb@           cbf_failnez(cbf_set_integerarray (self, compression, binary_id, @\\
-\mbox{}\verb@           (void *) data,  (size_t) elsize, elsigned, (size_t) elements)); @\\
+\mbox{}\verb@           cbf_failnez(cbf_set_integerarray (self, compression, binary_id,@\\
+\mbox{}\verb@           (void *) data,  (size_t) elsize, elsigned, (size_t) elements));@\\
 \mbox{}\verb@        }else{@\\
 \mbox{}\verb@           cbf_failnez(CBF_ARGUMENT);@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@    }@\\
 \mbox{}\verb@""","set_integerarray",@\\
-\mbox{}\verb@[ "int compression", "int binary_id","(binary) String data", @\\
+\mbox{}\verb@[ "int compression", "int binary_id","(binary) String data",@\\
 \mbox{}\verb@ "int elsize", "int elsigned","int elements"],[]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_set_integerarray_wdims":["""@\\
 \mbox{}\verb@    /* CBFlib must NOT modify the data string nor the byteorder string@\\
-\mbox{}\verb@       which belongs to the scripting @\\
+\mbox{}\verb@       which belongs to the scripting@\\
 \mbox{}\verb@       language we will get and check the length via a typemap */@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@%apply (char *STRING, int LENGTH) { (char *data, int len) } set_integerarray_wdims;@\\
+\mbox{}\verb@%apply (char *DATASTRING, int LENGTH) { (char *data, int len) } set_integerarray_wdims;@\\
 \mbox{}\verb@%apply (char *STRING, int LENGTH) { (char *bo, int bolen) } set_integerarray_wdims;@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@    void set_integerarray_wdims(unsigned int compression, int binary_id, @\\
+\mbox{}\verb@    void set_integerarray_wdims(unsigned int compression, int binary_id,@\\
 \mbox{}\verb@             char *data, int len, int elsize, int elsigned, int elements,@\\
 \mbox{}\verb@             char *bo, int bolen, int dimfast, int dimmid, int dimslow, int padding){@\\
 \mbox{}\verb@        /* safety check on args */@\\
@@ -1831,27 +1860,27 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@           ele = elements;@\\
 \mbox{}\verb@           strncpy(byteorder,bo,bolen<15?bolen:14);@\\
 \mbox{}\verb@           byteorder[bolen<15?bolen:14] = 0;@\\
-\mbox{}\verb@           cbf_failnez(cbf_set_integerarray_wdims (self, compression, binary_id, @\\
+\mbox{}\verb@           cbf_failnez(cbf_set_integerarray_wdims (self, compression, binary_id,@\\
 \mbox{}\verb@           (void *) data,  (size_t) elsize, elsigned, (size_t) elements, (const char *)byteorder,@\\
-\mbox{}\verb@           (size_t)dimfast, (size_t)dimmid, (size_t)dimslow, (size_t)padding)); @\\
+\mbox{}\verb@           (size_t)dimfast, (size_t)dimmid, (size_t)dimslow, (size_t)padding));@\\
 \mbox{}\verb@        }else{@\\
 \mbox{}\verb@           cbf_failnez(CBF_ARGUMENT);@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@    }@\\
 \mbox{}\verb@""","set_integerarray_wdims",@\\
-\mbox{}\verb@[ "int compression", "int binary_id","(binary) String data", @\\
+\mbox{}\verb@[ "int compression", "int binary_id","(binary) String data",@\\
 \mbox{}\verb@ "int elsize", "int elsigned", "int elements", "String byteorder", "int dimfast", "int dimmid", "int dimslow", "int padding"],[]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_set_integerarray_wdims_sf":["""@\\
 \mbox{}\verb@    /* CBFlib must NOT modify the data string nor the byteorder string@\\
-\mbox{}\verb@       which belongs to the scripting @\\
+\mbox{}\verb@       which belongs to the scripting@\\
 \mbox{}\verb@       language we will get and check the length via a typemap */@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@%apply (char *STRING, int LENGTH) { (char *data, int len) } set_integerarray_wdims_sf;@\\
+\mbox{}\verb@%apply (char *DATASTRING, int LENGTH) { (char *data, int len) } set_integerarray_wdims_sf;@\\
 \mbox{}\verb@%apply (char *STRING, int LENGTH) { (char *bo, int bolen) } set_integerarray_wdims_sf;@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@    void set_integerarray_wdims_sf(unsigned int compression, int binary_id, @\\
+\mbox{}\verb@    void set_integerarray_wdims_sf(unsigned int compression, int binary_id,@\\
 \mbox{}\verb@             char *data, int len, int elsize, int elsigned, int elements,@\\
 \mbox{}\verb@             char *bo, int bolen, int dimslow, int dimmid, int dimfast, int padding){@\\
 \mbox{}\verb@        /* safety check on args */@\\
@@ -1864,26 +1893,26 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@           ele = elements;@\\
 \mbox{}\verb@           strncpy(byteorder,bo,bolen<15?bolen:14);@\\
 \mbox{}\verb@           byteorder[bolen<15?bolen:14] = 0;@\\
-\mbox{}\verb@           cbf_failnez(cbf_set_integerarray_wdims_sf (self, compression, binary_id, @\\
+\mbox{}\verb@           cbf_failnez(cbf_set_integerarray_wdims_sf (self, compression, binary_id,@\\
 \mbox{}\verb@           (void *) data,  (size_t) elsize, elsigned, (size_t) elements, (const char *)byteorder,@\\
-\mbox{}\verb@           (size_t)dimslow, (size_t)dimmid, (size_t)dimfast, (size_t)padding)); @\\
+\mbox{}\verb@           (size_t)dimslow, (size_t)dimmid, (size_t)dimfast, (size_t)padding));@\\
 \mbox{}\verb@        }else{@\\
 \mbox{}\verb@           cbf_failnez(CBF_ARGUMENT);@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@    }@\\
 \mbox{}\verb@""","set_integerarray_wdims_sf",@\\
-\mbox{}\verb@[ "int compression", "int binary_id","(binary) String data", @\\
+\mbox{}\verb@[ "int compression", "int binary_id","(binary) String data",@\\
 \mbox{}\verb@ "int elsize","int elsigned","int elements", "String byteorder", "int dimslow", "int dimmid", "int dimfast", "int padding"],[]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_set_integerarray_wdims_fs":["""@\\
 \mbox{}\verb@    /* CBFlib must NOT modify the data string nor the byteorder string@\\
-\mbox{}\verb@       which belongs to the scripting @\\
+\mbox{}\verb@       which belongs to the scripting@\\
 \mbox{}\verb@       language we will get and check the length via a typemap */@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@%apply (char *STRING, int LENGTH) { (char *data, int len) } set_integerarray_wdims_fs;@\\
+\mbox{}\verb@%apply (char *DATASTRING, int LENGTH) { (char *data, int len) } set_integerarray_wdims_fs;@\\
 \mbox{}\verb@%apply (char *STRING, int LENGTH) { (char *bo, int bolen) } set_integerarray_wdims_fs;@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@    void set_integerarray_wdims_fs(unsigned int compression, int binary_id, @\\
+\mbox{}\verb@    void set_integerarray_wdims_fs(unsigned int compression, int binary_id,@\\
 \mbox{}\verb@             char *data, int len, int elsize, int elsigned, int elements,@\\
 \mbox{}\verb@             char *bo, int bolen, int dimfast, int dimmid, int dimslow, int padding){@\\
 \mbox{}\verb@        /* safety check on args */@\\
@@ -1896,25 +1925,25 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@           ele = elements;@\\
 \mbox{}\verb@           strncpy(byteorder,bo,bolen<15?bolen:14);@\\
 \mbox{}\verb@           byteorder[bolen<15?bolen:14] = 0;@\\
-\mbox{}\verb@           cbf_failnez(cbf_set_integerarray_wdims_fs (self, compression, binary_id, @\\
+\mbox{}\verb@           cbf_failnez(cbf_set_integerarray_wdims_fs (self, compression, binary_id,@\\
 \mbox{}\verb@           (void *) data,  (size_t) elsize, elsigned, (size_t) elements, (const char *)byteorder,@\\
-\mbox{}\verb@           (size_t)dimfast, (size_t)dimmid, (size_t)dimslow, (size_t)padding)); @\\
+\mbox{}\verb@           (size_t)dimfast, (size_t)dimmid, (size_t)dimslow, (size_t)padding));@\\
 \mbox{}\verb@        }else{@\\
 \mbox{}\verb@           cbf_failnez(CBF_ARGUMENT);@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@    }@\\
 \mbox{}\verb@""","set_integerarray_wdims_fs",@\\
-\mbox{}\verb@[ "int compression", "int binary_id","(binary) String data", @\\
+\mbox{}\verb@[ "int compression", "int binary_id","(binary) String data",@\\
 \mbox{}\verb@ "int elsize","int elsigned","int elements", "String byteorder", "int dimfast", "int dimmid", "int dimslow", "int padding"],[]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_set_realarray":["""@\\
-\mbox{}\verb@    /* CBFlib must NOT modify the data string which belongs to the scripting @\\
+\mbox{}\verb@    /* CBFlib must NOT modify the data string which belongs to the scripting@\\
 \mbox{}\verb@       language we will get and check the length via a typemap */@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@%apply (char *STRING, int LENGTH) { (char *data, int len) } set_realarray;@\\
+\mbox{}\verb@%apply (char *DATASTRING, int LENGTH) { (char *data, int len) } set_realarray;@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@    void set_realarray(unsigned int compression, int binary_id, @\\
+\mbox{}\verb@    void set_realarray(unsigned int compression, int binary_id,@\\
 \mbox{}\verb@             char *data, int len, int elsize, int elements){@\\
 \mbox{}\verb@        /* safety check on args */@\\
 \mbox{}\verb@        size_t els, ele;@\\
@@ -1923,26 +1952,26 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@           array = data;@\\
 \mbox{}\verb@           els = elsize;@\\
 \mbox{}\verb@           ele = elements;@\\
-\mbox{}\verb@           cbf_failnez(cbf_set_realarray (self, compression, binary_id, @\\
-\mbox{}\verb@           (void *) data,  (size_t) elsize, (size_t) elements)); @\\
+\mbox{}\verb@           cbf_failnez(cbf_set_realarray (self, compression, binary_id,@\\
+\mbox{}\verb@           (void *) data,  (size_t) elsize, (size_t) elements));@\\
 \mbox{}\verb@        }else{@\\
 \mbox{}\verb@           cbf_failnez(CBF_ARGUMENT);@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@    }@\\
 \mbox{}\verb@""","set_realarray",@\\
-\mbox{}\verb@[ "int compression", "int binary_id","(binary) String data", @\\
+\mbox{}\verb@[ "int compression", "int binary_id","(binary) String data",@\\
 \mbox{}\verb@ "int elsize","int elements"],[]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_set_realarray_wdims":["""@\\
 \mbox{}\verb@    /* CBFlib must NOT modify the data string nor the byteorder string@\\
-\mbox{}\verb@       which belongs to the scripting @\\
+\mbox{}\verb@       which belongs to the scripting@\\
 \mbox{}\verb@       language we will get and check the length via a typemap */@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@%apply (char *STRING, int LENGTH) { (char *data, int len) } set_realarray_wdims;@\\
+\mbox{}\verb@%apply (char *DATASTRING, int LENGTH) { (char *data, int len) } set_realarray_wdims;@\\
 \mbox{}\verb@%apply (char *STRING, int LENGTH) { (char *bo, int bolen) } set_realarray_wdims;@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@    void set_realarray_wdims(unsigned int compression, int binary_id, @\\
+\mbox{}\verb@    void set_realarray_wdims(unsigned int compression, int binary_id,@\\
 \mbox{}\verb@             char *data, int len, int elsize, int elements,@\\
 \mbox{}\verb@             char *bo, int bolen, int dimfast, int dimmid, int dimslow, int padding){@\\
 \mbox{}\verb@        /* safety check on args */@\\
@@ -1955,27 +1984,27 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@           ele = elements;@\\
 \mbox{}\verb@           strncpy(byteorder,bo,bolen<15?bolen:14);@\\
 \mbox{}\verb@           byteorder[bolen<15?bolen:14] = 0;@\\
-\mbox{}\verb@           cbf_failnez(cbf_set_realarray_wdims (self, compression, binary_id, @\\
+\mbox{}\verb@           cbf_failnez(cbf_set_realarray_wdims (self, compression, binary_id,@\\
 \mbox{}\verb@           (void *) data,  (size_t) elsize, (size_t) elements, (const char *)byteorder,@\\
-\mbox{}\verb@           (size_t)dimfast, (size_t)dimmid, (size_t)dimslow, (size_t)padding)); @\\
+\mbox{}\verb@           (size_t)dimfast, (size_t)dimmid, (size_t)dimslow, (size_t)padding));@\\
 \mbox{}\verb@        }else{@\\
 \mbox{}\verb@           cbf_failnez(CBF_ARGUMENT);@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@    }@\\
 \mbox{}\verb@""","set_realarray_wdims",@\\
-\mbox{}\verb@[ "int compression", "int binary_id","(binary) String data", @\\
+\mbox{}\verb@[ "int compression", "int binary_id","(binary) String data",@\\
 \mbox{}\verb@ "int elsize","int elements", "String byteorder", "int dimfast", "int dimmid", "int dimslow", "int padding"],[]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_set_realarray_wdims_sf":["""@\\
 \mbox{}\verb@    /* CBFlib must NOT modify the data string nor the byteorder string@\\
-\mbox{}\verb@       which belongs to the scripting @\\
+\mbox{}\verb@       which belongs to the scripting@\\
 \mbox{}\verb@       language we will get and check the length via a typemap */@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@%apply (char *STRING, int LENGTH) { (char *data, int len) } set_realarray_wdims_sf;@\\
+\mbox{}\verb@%apply (char *DATASTRING, int LENGTH) { (char *data, int len) } set_realarray_wdims_sf;@\\
 \mbox{}\verb@%apply (char *STRING, int LENGTH) { (char *bo, int bolen) } set_realarray_wdims_sf;@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@    void set_realarray_wdims_sf(unsigned int compression, int binary_id, @\\
+\mbox{}\verb@    void set_realarray_wdims_sf(unsigned int compression, int binary_id,@\\
 \mbox{}\verb@             char *data, int len, int elsize, int elements,@\\
 \mbox{}\verb@             char *bo, int bolen, int dimslow, int dimmid, int dimfast, int padding){@\\
 \mbox{}\verb@        /* safety check on args */@\\
@@ -1988,27 +2017,27 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@           ele = elements;@\\
 \mbox{}\verb@           strncpy(byteorder,bo,bolen<15?bolen:14);@\\
 \mbox{}\verb@           byteorder[bolen<15?bolen:14] = 0;@\\
-\mbox{}\verb@           cbf_failnez(cbf_set_realarray_wdims_sf (self, compression, binary_id, @\\
+\mbox{}\verb@           cbf_failnez(cbf_set_realarray_wdims_sf (self, compression, binary_id,@\\
 \mbox{}\verb@           (void *) data,  (size_t) elsize, (size_t) elements, (const char *)byteorder,@\\
-\mbox{}\verb@           (size_t) dimslow, (size_t) dimmid, (size_t) dimfast, (size_t)padding)); @\\
+\mbox{}\verb@           (size_t) dimslow, (size_t) dimmid, (size_t) dimfast, (size_t)padding));@\\
 \mbox{}\verb@        }else{@\\
 \mbox{}\verb@           cbf_failnez(CBF_ARGUMENT);@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@    }@\\
 \mbox{}\verb@""","set_realarray_wdims_sf",@\\
-\mbox{}\verb@[ "int compression", "int binary_id","(binary) String data", @\\
+\mbox{}\verb@[ "int compression", "int binary_id","(binary) String data",@\\
 \mbox{}\verb@ "int elsize","int elements", "String byteorder", "int dimslow", "int dimmid", "int dimfast", "int padding"],[]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_set_realarray_wdims_fs":["""@\\
 \mbox{}\verb@    /* CBFlib must NOT modify the data string nor the byteorder string@\\
-\mbox{}\verb@       which belongs to the scripting @\\
+\mbox{}\verb@       which belongs to the scripting@\\
 \mbox{}\verb@       language we will get and check the length via a typemap */@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@%apply (char *STRING, int LENGTH) { (char *data, int len) } set_realarray_wdims_fs;@\\
+\mbox{}\verb@%apply (char *DATASTRING, int LENGTH) { (char *data, int len) } set_realarray_wdims_fs;@\\
 \mbox{}\verb@%apply (char *STRING, int LENGTH) { (char *bo, int bolen) } set_realarray_wdims_fs;@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@    void set_realarray_wdims_fs(unsigned int compression, int binary_id, @\\
+\mbox{}\verb@    void set_realarray_wdims_fs(unsigned int compression, int binary_id,@\\
 \mbox{}\verb@             char *data, int len, int elsize, int elements,@\\
 \mbox{}\verb@             char *bo, int bolen, int dimfast, int dimmid, int dimslow, int padding){@\\
 \mbox{}\verb@        /* safety check on args */@\\
@@ -2021,26 +2050,26 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@           ele = elements;@\\
 \mbox{}\verb@           strncpy(byteorder,bo,bolen<15?bolen:14);@\\
 \mbox{}\verb@           byteorder[bolen<15?bolen:14] = 0;@\\
-\mbox{}\verb@           cbf_failnez(cbf_set_realarray_wdims_fs (self, compression, binary_id, @\\
+\mbox{}\verb@           cbf_failnez(cbf_set_realarray_wdims_fs (self, compression, binary_id,@\\
 \mbox{}\verb@           (void *) data,  (size_t) elsize, (size_t) elements, (const char *)byteorder,@\\
-\mbox{}\verb@           (size_t) dimfast, (size_t) dimmid, (size_t) dimslow, (size_t)padding)); @\\
+\mbox{}\verb@           (size_t) dimfast, (size_t) dimmid, (size_t) dimslow, (size_t)padding));@\\
 \mbox{}\verb@        }else{@\\
 \mbox{}\verb@           cbf_failnez(CBF_ARGUMENT);@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@    }@\\
 \mbox{}\verb@""","set_realarray_wdims_fs",@\\
-\mbox{}\verb@[ "int compression", "int binary_id","(binary) String data", @\\
+\mbox{}\verb@[ "int compression", "int binary_id","(binary) String data",@\\
 \mbox{}\verb@ "int elsize","int elements", "String byteorder", "int dimfast", "int dimmid", "int dimslow", "int padding"],[]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_set_image":["""@\\
-\mbox{}\verb@    /* CBFlib must NOT modify the data string which belongs to the scripting @\\
+\mbox{}\verb@    /* CBFlib must NOT modify the data string which belongs to the scripting@\\
 \mbox{}\verb@       language we will get and check the length via a typemap */@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@%apply (char *STRING, int LENGTH) { (char *data, int len) } set_image;@\\
+\mbox{}\verb@%apply (char *DATASTRING, int LENGTH) { (char *data, int len) } set_image;@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@    void set_image(unsigned int element_number,@\\
-\mbox{}\verb@             unsigned int compression, @\\
+\mbox{}\verb@             unsigned int compression,@\\
 \mbox{}\verb@             char *data, int len, int elsize, int elsign, int ndimslow, int ndimfast){@\\
 \mbox{}\verb@        /* safety check on args */@\\
 \mbox{}\verb@        size_t els;@\\
@@ -2051,24 +2080,24 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@           els = elsize;@\\
 \mbox{}\verb@           reserved = 0;@\\
 \mbox{}\verb@           cbf_failnez(cbf_set_image (self, reserved, element_number, compression,@\\
-\mbox{}\verb@           (void *) data,  (size_t) elsize, elsign, (size_t) ndimslow, (size_t)ndimfast)); @\\
+\mbox{}\verb@           (void *) data,  (size_t) elsize, elsign, (size_t) ndimslow, (size_t)ndimfast));@\\
 \mbox{}\verb@        }else{@\\
 \mbox{}\verb@           cbf_failnez(CBF_ARGUMENT);@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@    }@\\
 \mbox{}\verb@""","set_image",@\\
-\mbox{}\verb@[ "int element_number","int compression","(binary) String data", @\\
+\mbox{}\verb@[ "int element_number","int compression","(binary) String data",@\\
 \mbox{}\verb@ "int elsize", "int elsign", "int dimslow", "int dimfast"],[]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_set_image_fs":["""@\\
-\mbox{}\verb@    /* CBFlib must NOT modify the data string which belongs to the scripting @\\
+\mbox{}\verb@    /* CBFlib must NOT modify the data string which belongs to the scripting@\\
 \mbox{}\verb@       language we will get and check the length via a typemap */@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@%apply (char *STRING, int LENGTH) { (char *data, int len) } set_image;@\\
+\mbox{}\verb@%apply (char *DATASTRING, int LENGTH) { (char *data, int len) } set_image;@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@    void set_image_fs(unsigned int element_number,@\\
-\mbox{}\verb@             unsigned int compression, @\\
+\mbox{}\verb@             unsigned int compression,@\\
 \mbox{}\verb@             char *data, int len, int elsize, int elsign, int ndimfast, int ndimslow){@\\
 \mbox{}\verb@        /* safety check on args */@\\
 \mbox{}\verb@        size_t els;@\\
@@ -2079,24 +2108,24 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@           els = elsize;@\\
 \mbox{}\verb@           reserved = 0;@\\
 \mbox{}\verb@           cbf_failnez(cbf_set_image (self, reserved, element_number, compression,@\\
-\mbox{}\verb@           (void *) data,  (size_t) elsize, elsign, (size_t) ndimfast, (size_t)ndimslow)); @\\
+\mbox{}\verb@           (void *) data,  (size_t) elsize, elsign, (size_t) ndimfast, (size_t)ndimslow));@\\
 \mbox{}\verb@        }else{@\\
 \mbox{}\verb@           cbf_failnez(CBF_ARGUMENT);@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@    }@\\
 \mbox{}\verb@""","set_image_fs",@\\
-\mbox{}\verb@[ "int element_number","int compression","(binary) String data", @\\
+\mbox{}\verb@[ "int element_number","int compression","(binary) String data",@\\
 \mbox{}\verb@ "int elsize", "int elsign", "int dimfast", "int dimslow"],[]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_set_image_sf":["""@\\
-\mbox{}\verb@    /* CBFlib must NOT modify the data string which belongs to the scripting @\\
+\mbox{}\verb@    /* CBFlib must NOT modify the data string which belongs to the scripting@\\
 \mbox{}\verb@       language we will get and check the length via a typemap */@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@%apply (char *STRING, int LENGTH) { (char *data, int len) } set_image_sf;@\\
+\mbox{}\verb@%apply (char *DATASTRING, int LENGTH) { (char *data, int len) } set_image_sf;@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@    void set_image_sf(unsigned int element_number,@\\
-\mbox{}\verb@             unsigned int compression, @\\
+\mbox{}\verb@             unsigned int compression,@\\
 \mbox{}\verb@             char *data, int len, int elsize, int elsign, int ndimslow, int ndimfast){@\\
 \mbox{}\verb@        /* safety check on args */@\\
 \mbox{}\verb@        size_t els;@\\
@@ -2107,24 +2136,24 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@           els = elsize;@\\
 \mbox{}\verb@           reserved = 0;@\\
 \mbox{}\verb@           cbf_failnez(cbf_set_image_sf (self, reserved, element_number, compression,@\\
-\mbox{}\verb@           (void *) data,  (size_t) elsize, elsign, (size_t) ndimslow, (size_t)ndimfast)); @\\
+\mbox{}\verb@           (void *) data,  (size_t) elsize, elsign, (size_t) ndimslow, (size_t)ndimfast));@\\
 \mbox{}\verb@        }else{@\\
 \mbox{}\verb@           cbf_failnez(CBF_ARGUMENT);@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@    }@\\
 \mbox{}\verb@""","set_image_sf",@\\
-\mbox{}\verb@[ "int element_number","int compression","(binary) String data", @\\
+\mbox{}\verb@[ "int element_number","int compression","(binary) String data",@\\
 \mbox{}\verb@ "int elsize", "int elsign", "int dimslow", "int dimfast"],[]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_set_real_image":["""@\\
-\mbox{}\verb@    /* CBFlib must NOT modify the data string which belongs to the scripting @\\
+\mbox{}\verb@    /* CBFlib must NOT modify the data string which belongs to the scripting@\\
 \mbox{}\verb@       language we will get and check the length via a typemap */@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@%apply (char *STRING, int LENGTH) { (char *data, int len) } set_real_image;@\\
+\mbox{}\verb@%apply (char *DATASTRING, int LENGTH) { (char *data, int len) } set_real_image;@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@    void set_real_image(unsigned int element_number,@\\
-\mbox{}\verb@             unsigned int compression, @\\
+\mbox{}\verb@             unsigned int compression,@\\
 \mbox{}\verb@             char *data, int len, int elsize, int ndimslow, int ndimfast){@\\
 \mbox{}\verb@        /* safety check on args */@\\
 \mbox{}\verb@        size_t els;@\\
@@ -2135,24 +2164,24 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@           els = elsize;@\\
 \mbox{}\verb@           reserved = 0;@\\
 \mbox{}\verb@           cbf_failnez(cbf_set_real_image (self, reserved, element_number, compression,@\\
-\mbox{}\verb@           (void *) data,  (size_t) elsize, (size_t) ndimslow, (size_t)ndimfast)); @\\
+\mbox{}\verb@           (void *) data,  (size_t) elsize, (size_t) ndimslow, (size_t)ndimfast));@\\
 \mbox{}\verb@        }else{@\\
 \mbox{}\verb@           cbf_failnez(CBF_ARGUMENT);@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@    }@\\
 \mbox{}\verb@""","set_real_image",@\\
-\mbox{}\verb@[ "int element_number","int compression","(binary) String data", @\\
+\mbox{}\verb@[ "int element_number","int compression","(binary) String data",@\\
 \mbox{}\verb@ "int elsize", "int dimslow", "int dimfast"],[]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_set_real_image_fs":["""@\\
-\mbox{}\verb@    /* CBFlib must NOT modify the data string which belongs to the scripting @\\
+\mbox{}\verb@    /* CBFlib must NOT modify the data string which belongs to the scripting@\\
 \mbox{}\verb@       language we will get and check the length via a typemap */@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@%apply (char *STRING, int LENGTH) { (char *data, int len) } set_real_image;@\\
+\mbox{}\verb@%apply (char *DATASTRING, int LENGTH) { (char *data, int len) } set_real_image;@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@    void set_real_image_fs(unsigned int element_number,@\\
-\mbox{}\verb@             unsigned int compression, @\\
+\mbox{}\verb@             unsigned int compression,@\\
 \mbox{}\verb@             char *data, int len, int elsize, int ndimfast, int ndimslow){@\\
 \mbox{}\verb@        /* safety check on args */@\\
 \mbox{}\verb@        size_t els;@\\
@@ -2163,24 +2192,24 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@           els = elsize;@\\
 \mbox{}\verb@           reserved = 0;@\\
 \mbox{}\verb@           cbf_failnez(cbf_set_real_image_fs (self, reserved, element_number, compression,@\\
-\mbox{}\verb@           (void *) data,  (size_t) elsize, (size_t) ndimfast, (size_t)ndimslow)); @\\
+\mbox{}\verb@           (void *) data,  (size_t) elsize, (size_t) ndimfast, (size_t)ndimslow));@\\
 \mbox{}\verb@        }else{@\\
 \mbox{}\verb@           cbf_failnez(CBF_ARGUMENT);@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@    }@\\
 \mbox{}\verb@""","set_real_image_fs",@\\
-\mbox{}\verb@[ "int element_number","int compression","(binary) String data", @\\
+\mbox{}\verb@[ "int element_number","int compression","(binary) String data",@\\
 \mbox{}\verb@ "int elsize", "int dimfast", "int dimslow"],[]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_set_real_image_sf":["""@\\
-\mbox{}\verb@    /* CBFlib must NOT modify the data string which belongs to the scripting @\\
+\mbox{}\verb@    /* CBFlib must NOT modify the data string which belongs to the scripting@\\
 \mbox{}\verb@       language we will get and check the length via a typemap */@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@%apply (char *STRING, int LENGTH) { (char *data, int len) } set_real_image_sf;@\\
+\mbox{}\verb@%apply (char *DATASTRING, int LENGTH) { (char *data, int len) } set_real_image_sf;@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@    void set_real_image_sf(unsigned int element_number,@\\
-\mbox{}\verb@             unsigned int compression, @\\
+\mbox{}\verb@             unsigned int compression,@\\
 \mbox{}\verb@             char *data, int len, int elsize, int ndimslow, int ndimfast){@\\
 \mbox{}\verb@        /* safety check on args */@\\
 \mbox{}\verb@        size_t els;@\\
@@ -2191,24 +2220,24 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@           els = elsize;@\\
 \mbox{}\verb@           reserved = 0;@\\
 \mbox{}\verb@           cbf_failnez(cbf_set_real_image_sf (self, reserved, element_number, compression,@\\
-\mbox{}\verb@           (void *) data,  (size_t) elsize, (size_t) ndimslow, (size_t)ndimfast)); @\\
+\mbox{}\verb@           (void *) data,  (size_t) elsize, (size_t) ndimslow, (size_t)ndimfast));@\\
 \mbox{}\verb@        }else{@\\
 \mbox{}\verb@           cbf_failnez(CBF_ARGUMENT);@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@    }@\\
 \mbox{}\verb@""","set_real_image_sf",@\\
-\mbox{}\verb@[ "int element_number","int compression","(binary) String data", @\\
+\mbox{}\verb@[ "int element_number","int compression","(binary) String data",@\\
 \mbox{}\verb@ "int elsize", "int dimslow", "int dimfast"],[]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_set_3d_image":["""@\\
-\mbox{}\verb@    /* CBFlib must NOT modify the data string which belongs to the scripting @\\
+\mbox{}\verb@    /* CBFlib must NOT modify the data string which belongs to the scripting@\\
 \mbox{}\verb@       language we will get and check the length via a typemap */@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@%apply (char *STRING, int LENGTH) { (char *data, int len) } set_3d_image;@\\
+\mbox{}\verb@%apply (char *DATASTRING, int LENGTH) { (char *data, int len) } set_3d_image;@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@    void set_3d_image(unsigned int element_number,@\\
-\mbox{}\verb@             unsigned int compression, @\\
+\mbox{}\verb@             unsigned int compression,@\\
 \mbox{}\verb@             char *data, int len, int elsize, int elsign, int ndimslow, int ndimmid, int ndimfast){@\\
 \mbox{}\verb@        /* safety check on args */@\\
 \mbox{}\verb@        size_t els;@\\
@@ -2219,24 +2248,24 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@           els = elsize;@\\
 \mbox{}\verb@           reserved = 0;@\\
 \mbox{}\verb@           cbf_failnez(cbf_set_3d_image (self, reserved, element_number, compression,@\\
-\mbox{}\verb@           (void *) data,  (size_t) elsize, elsign, (size_t) ndimslow, (size_t) ndimmid, (size_t)ndimfast)); @\\
+\mbox{}\verb@           (void *) data,  (size_t) elsize, elsign, (size_t) ndimslow, (size_t) ndimmid, (size_t)ndimfast));@\\
 \mbox{}\verb@        }else{@\\
 \mbox{}\verb@           cbf_failnez(CBF_ARGUMENT);@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@    }@\\
 \mbox{}\verb@""","set_3d_image",@\\
-\mbox{}\verb@[ "int element_number","int compression","(binary) String data", @\\
+\mbox{}\verb@[ "int element_number","int compression","(binary) String data",@\\
 \mbox{}\verb@ "int elsize", "int elsign", "int dimslow", "int dimmid", "int dimfast"],[]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_set_3d_image_fs":["""@\\
-\mbox{}\verb@    /* CBFlib must NOT modify the data string which belongs to the scripting @\\
+\mbox{}\verb@    /* CBFlib must NOT modify the data string which belongs to the scripting@\\
 \mbox{}\verb@       language we will get and check the length via a typemap */@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@%apply (char *STRING, int LENGTH) { (char *data, int len) } set_3d_image;@\\
+\mbox{}\verb@%apply (char *DATASTRING, int LENGTH) { (char *data, int len) } set_3d_image;@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@    void set_3d_image_fs(unsigned int element_number,@\\
-\mbox{}\verb@             unsigned int compression, @\\
+\mbox{}\verb@             unsigned int compression,@\\
 \mbox{}\verb@             char *data, int len, int elsize, int elsign, int ndimfast, int ndimmid, int ndimslow){@\\
 \mbox{}\verb@        /* safety check on args */@\\
 \mbox{}\verb@        size_t els;@\\
@@ -2247,24 +2276,24 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@           els = elsize;@\\
 \mbox{}\verb@           reserved = 0;@\\
 \mbox{}\verb@           cbf_failnez(cbf_set_3d_image_fs (self, reserved, element_number, compression,@\\
-\mbox{}\verb@           (void *) data,  (size_t) elsize, elsign, (size_t) ndimfast, (size_t) ndimmid, (size_t)ndimslow)); @\\
+\mbox{}\verb@           (void *) data,  (size_t) elsize, elsign, (size_t) ndimfast, (size_t) ndimmid, (size_t)ndimslow));@\\
 \mbox{}\verb@        }else{@\\
 \mbox{}\verb@           cbf_failnez(CBF_ARGUMENT);@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@    }@\\
 \mbox{}\verb@""","set_3d_image_fs",@\\
-\mbox{}\verb@[ "int element_number","int compression","(binary) String data", @\\
+\mbox{}\verb@[ "int element_number","int compression","(binary) String data",@\\
 \mbox{}\verb@ "int elsize", "int elsign", "int dimfast", "int dimmid", "int dimslow"],[]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_set_3d_image_sf":["""@\\
-\mbox{}\verb@    /* CBFlib must NOT modify the data string which belongs to the scripting @\\
+\mbox{}\verb@    /* CBFlib must NOT modify the data string which belongs to the scripting@\\
 \mbox{}\verb@       language we will get and check the length via a typemap */@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@%apply (char *STRING, int LENGTH) { (char *data, int len) } set_3d_image;@\\
+\mbox{}\verb@%apply (char *DATASTRING, int LENGTH) { (char *data, int len) } set_3d_image;@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@    void set_3d_image_sf(unsigned int element_number,@\\
-\mbox{}\verb@             unsigned int compression, @\\
+\mbox{}\verb@             unsigned int compression,@\\
 \mbox{}\verb@             char *data, int len, int elsize, int elsign, int ndimslow, int ndimmid, int ndimfast){@\\
 \mbox{}\verb@        /* safety check on args */@\\
 \mbox{}\verb@        size_t els;@\\
@@ -2275,24 +2304,24 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@           els = elsize;@\\
 \mbox{}\verb@           reserved = 0;@\\
 \mbox{}\verb@           cbf_failnez(cbf_set_3d_image_sf (self, reserved, element_number, compression,@\\
-\mbox{}\verb@           (void *) data,  (size_t) elsize, elsign, (size_t) ndimslow, (size_t) ndimmid, (size_t)ndimfast)); @\\
+\mbox{}\verb@           (void *) data,  (size_t) elsize, elsign, (size_t) ndimslow, (size_t) ndimmid, (size_t)ndimfast));@\\
 \mbox{}\verb@        }else{@\\
 \mbox{}\verb@           cbf_failnez(CBF_ARGUMENT);@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@    }@\\
 \mbox{}\verb@""","set_3d_image_sf",@\\
-\mbox{}\verb@[ "int element_number","int compression","(binary) String data", @\\
+\mbox{}\verb@[ "int element_number","int compression","(binary) String data",@\\
 \mbox{}\verb@ "int elsize", "int elsign", "int dimslow", "int dimmid", "int dimfast"],[]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_set_real_3d_image":["""@\\
-\mbox{}\verb@    /* CBFlib must NOT modify the data string which belongs to the scripting @\\
+\mbox{}\verb@    /* CBFlib must NOT modify the data string which belongs to the scripting@\\
 \mbox{}\verb@       language we will get and check the length via a typemap */@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@%apply (char *STRING, int LENGTH) { (char *data, int len) } set_real_3d_image_sf;@\\
+\mbox{}\verb@%apply (char *DATASTRING, int LENGTH) { (char *data, int len) } set_real_3d_image_sf;@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@    void set_real_3d_image(unsigned int element_number,@\\
-\mbox{}\verb@             unsigned int compression, @\\
+\mbox{}\verb@             unsigned int compression,@\\
 \mbox{}\verb@             char *data, int len, int elsize, int ndimslow, int ndimmid, int ndimfast){@\\
 \mbox{}\verb@        /* safety check on args */@\\
 \mbox{}\verb@        size_t els;@\\
@@ -2303,24 +2332,24 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@           els = elsize;@\\
 \mbox{}\verb@           reserved = 0;@\\
 \mbox{}\verb@           cbf_failnez(cbf_set_real_3d_image (self, reserved, element_number, compression,@\\
-\mbox{}\verb@           (void *) data,  (size_t) elsize, (size_t) ndimslow, (size_t)ndimmid, (size_t)ndimfast)); @\\
+\mbox{}\verb@           (void *) data,  (size_t) elsize, (size_t) ndimslow, (size_t)ndimmid, (size_t)ndimfast));@\\
 \mbox{}\verb@        }else{@\\
 \mbox{}\verb@           cbf_failnez(CBF_ARGUMENT);@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@    }@\\
 \mbox{}\verb@""","set_real_3d_image",@\\
-\mbox{}\verb@[ "int element_number","int compression","(binary) String data", @\\
+\mbox{}\verb@[ "int element_number","int compression","(binary) String data",@\\
 \mbox{}\verb@ "int elsize", "int dimslow", "int dimmid", "int dimfast"],[]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_set_real_3d_image_fs":["""@\\
-\mbox{}\verb@    /* CBFlib must NOT modify the data string which belongs to the scripting @\\
+\mbox{}\verb@    /* CBFlib must NOT modify the data string which belongs to the scripting@\\
 \mbox{}\verb@       language we will get and check the length via a typemap */@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@%apply (char *STRING, int LENGTH) { (char *data, int len) } set_real_3d_image_fs;@\\
+\mbox{}\verb@%apply (char *DATASTRING, int LENGTH) { (char *data, int len) } set_real_3d_image_fs;@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@    void set_real_3d_image_fs(unsigned int element_number,@\\
-\mbox{}\verb@             unsigned int compression, @\\
+\mbox{}\verb@             unsigned int compression,@\\
 \mbox{}\verb@             char *data, int len, int elsize, int ndimfast, int ndimmid, int ndimslow){@\\
 \mbox{}\verb@        /* safety check on args */@\\
 \mbox{}\verb@        size_t els;@\\
@@ -2331,24 +2360,24 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@           els = elsize;@\\
 \mbox{}\verb@           reserved = 0;@\\
 \mbox{}\verb@           cbf_failnez(cbf_set_real_3d_image_fs (self, reserved, element_number, compression,@\\
-\mbox{}\verb@           (void *) data,  (size_t) elsize, (size_t) ndimfast, (size_t)ndimmid, (size_t)ndimslow)); @\\
+\mbox{}\verb@           (void *) data,  (size_t) elsize, (size_t) ndimfast, (size_t)ndimmid, (size_t)ndimslow));@\\
 \mbox{}\verb@        }else{@\\
 \mbox{}\verb@           cbf_failnez(CBF_ARGUMENT);@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@    }@\\
 \mbox{}\verb@""","set_real_3d_image_fs",@\\
-\mbox{}\verb@[ "int element_number","int compression","(binary) String data", @\\
+\mbox{}\verb@[ "int element_number","int compression","(binary) String data",@\\
 \mbox{}\verb@ "int elsize", "int dimfast", "int dimmid", "int dimslow"],[]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_set_real_3d_image_sf":["""@\\
-\mbox{}\verb@    /* CBFlib must NOT modify the data string which belongs to the scripting @\\
+\mbox{}\verb@    /* CBFlib must NOT modify the data string which belongs to the scripting@\\
 \mbox{}\verb@       language we will get and check the length via a typemap */@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@%apply (char *STRING, int LENGTH) { (char *data, int len) } set_real_3d_image_sf;@\\
+\mbox{}\verb@%apply (char *DATASTRING, int LENGTH) { (char *data, int len) } set_real_3d_image_sf;@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@    void set_real_3d_image_sf(unsigned int element_number,@\\
-\mbox{}\verb@             unsigned int compression, @\\
+\mbox{}\verb@             unsigned int compression,@\\
 \mbox{}\verb@             char *data, int len, int elsize, int ndimslow, int ndimmid, int ndimfast){@\\
 \mbox{}\verb@        /* safety check on args */@\\
 \mbox{}\verb@        size_t els;@\\
@@ -2359,13 +2388,13 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@           els = elsize;@\\
 \mbox{}\verb@           reserved = 0;@\\
 \mbox{}\verb@           cbf_failnez(cbf_set_real_3d_image_sf (self, reserved, element_number, compression,@\\
-\mbox{}\verb@           (void *) data,  (size_t) elsize, (size_t) ndimslow, (size_t)ndimmid, (size_t)ndimfast)); @\\
+\mbox{}\verb@           (void *) data,  (size_t) elsize, (size_t) ndimslow, (size_t)ndimmid, (size_t)ndimfast));@\\
 \mbox{}\verb@        }else{@\\
 \mbox{}\verb@           cbf_failnez(CBF_ARGUMENT);@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@    }@\\
 \mbox{}\verb@""","set_real_3d_image_sf",@\\
-\mbox{}\verb@[ "int element_number","int compression","(binary) String data", @\\
+\mbox{}\verb@[ "int element_number","int compression","(binary) String data",@\\
 \mbox{}\verb@ "int elsize", "int dimslow", "int dimmid", "int dimfast"],[]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
@@ -2377,7 +2406,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        reserved = 0;@\\
 \mbox{}\verb@        cbf_failnez(cbf_get_image_size(self,reserved,element_number,&inslow,&infast));@\\
 \mbox{}\verb@        *ndimslow = (int)inslow;@\\
-\mbox{}\verb@        *ndimfast = (int)infast; @\\
+\mbox{}\verb@        *ndimfast = (int)infast;@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@""","get_image_size",["Integer element_number"],["size_t ndim1","size_t ndim2"]],@\\
 \mbox{}\verb@@\\
@@ -2390,7 +2419,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        reserved = 0;@\\
 \mbox{}\verb@        cbf_failnez(cbf_get_image_size_fs(self,reserved,element_number,&infast,&inslow));@\\
 \mbox{}\verb@        *ndimfast = (int)infast; /* FIXME - is that how to convert? */@\\
-\mbox{}\verb@        *ndimslow = (int)inslow; @\\
+\mbox{}\verb@        *ndimslow = (int)inslow;@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@""","get_image_size_fs",["Integer element_number"],["size_t ndimfast","size_t ndimslow"]],@\\
 \mbox{}\verb@@\\
@@ -2403,7 +2432,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        reserved = 0;@\\
 \mbox{}\verb@        cbf_failnez(cbf_get_image_size(self,reserved,element_number,&inslow,&infast));@\\
 \mbox{}\verb@        *ndimslow = (int)inslow;@\\
-\mbox{}\verb@        *ndimfast = (int)infast; @\\
+\mbox{}\verb@        *ndimfast = (int)infast;@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@""","get_image_size_sf",["Integer element_number"],["size_t ndimslow","size_t ndimfast"]],@\\
 \mbox{}\verb@@\\
@@ -2416,7 +2445,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        reserved = 0;@\\
 \mbox{}\verb@        cbf_failnez(cbf_get_3d_image_size(self,reserved,element_number,&inslow,&inmid,&infast));@\\
 \mbox{}\verb@        *ndimslow = (int)inslow; /* FIXME - is that how to convert? */@\\
-\mbox{}\verb@        *ndimmid = (int)inmid; @\\
+\mbox{}\verb@        *ndimmid = (int)inmid;@\\
 \mbox{}\verb@        *ndimfast = (int)infast;@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@""","get_3d_image_size",["Integer element_number"],["size_t ndimslow","size_t ndimmid","size_t ndimfast"]],@\\
@@ -2430,7 +2459,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        reserved = 0;@\\
 \mbox{}\verb@        cbf_failnez(cbf_get_3d_image_size_fs(self,reserved,element_number,&infast,&inmid,&inslow));@\\
 \mbox{}\verb@        *ndimslow = (int)inslow; /* FIXME - is that how to convert? */@\\
-\mbox{}\verb@        *ndimmid = (int)inmid; @\\
+\mbox{}\verb@        *ndimmid = (int)inmid;@\\
 \mbox{}\verb@        *ndimfast = (int)infast;@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@""","get_3d_image_size",["Integer element_number"],["size_t ndimfast","size_t ndimmid","size_t ndimslow"]],@\\
@@ -2444,7 +2473,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        reserved = 0;@\\
 \mbox{}\verb@        cbf_failnez(cbf_get_3d_image_size_sf(self,reserved,element_number,&inslow,&inmid,&infast));@\\
 \mbox{}\verb@        *ndimslow = (int)inslow; /* FIXME - is that how to convert? */@\\
-\mbox{}\verb@        *ndimmid = (int)inmid; @\\
+\mbox{}\verb@        *ndimmid = (int)inmid;@\\
 \mbox{}\verb@        *ndimfast = (int)infast;@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@""","get_3d_image_size_sf",["Integer element_number"],["size_t ndimslow","size_t ndimmid","size_t ndimfast"]],@\\
@@ -2452,11 +2481,11 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_pixel_size" : ["""@\\
 \mbox{}\verb@%apply double *OUTPUT {double *psize} get_pixel_size;@\\
-\mbox{}\verb@    void get_pixel_size(unsigned int element_number, @\\
+\mbox{}\verb@    void get_pixel_size(unsigned int element_number,@\\
 \mbox{}\verb@                        unsigned int axis_number, double *psize){@\\
-\mbox{}\verb@        cbf_failnez(cbf_get_pixel_size(self, @\\
-\mbox{}\verb@                                       element_number, @\\
-\mbox{}\verb@                                       axis_number, @\\
+\mbox{}\verb@        cbf_failnez(cbf_get_pixel_size(self,@\\
+\mbox{}\verb@                                       element_number,@\\
+\mbox{}\verb@                                       axis_number,@\\
 \mbox{}\verb@                                       psize));@\\
 \mbox{}\verb@    }@\\
 \mbox{}\verb@""","get_pixel_size",["Int element_number","Int axis_number"],@\\
@@ -2465,11 +2494,11 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_pixel_size_fs" : ["""@\\
 \mbox{}\verb@%apply double *OUTPUT {double *psize} get_pixel_size;@\\
-\mbox{}\verb@    void get_pixel_size_fs(unsigned int element_number, @\\
+\mbox{}\verb@    void get_pixel_size_fs(unsigned int element_number,@\\
 \mbox{}\verb@                        unsigned int axis_number, double *psize){@\\
-\mbox{}\verb@        cbf_failnez(cbf_get_pixel_size_fs(self, @\\
-\mbox{}\verb@                                       element_number, @\\
-\mbox{}\verb@                                       axis_number, @\\
+\mbox{}\verb@        cbf_failnez(cbf_get_pixel_size_fs(self,@\\
+\mbox{}\verb@                                       element_number,@\\
+\mbox{}\verb@                                       axis_number,@\\
 \mbox{}\verb@                                       psize));@\\
 \mbox{}\verb@    }@\\
 \mbox{}\verb@""","get_pixel_size_fs",["Int element_number","Int axis_number"],@\\
@@ -2478,11 +2507,11 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_pixel_size_sf" : ["""@\\
 \mbox{}\verb@%apply double *OUTPUT {double *psize} get_pixel_size;@\\
-\mbox{}\verb@    void get_pixel_size_sf(unsigned int element_number, @\\
+\mbox{}\verb@    void get_pixel_size_sf(unsigned int element_number,@\\
 \mbox{}\verb@                        unsigned int axis_number, double *psize){@\\
-\mbox{}\verb@        cbf_failnez(cbf_get_pixel_size_sf(self, @\\
-\mbox{}\verb@                                       element_number, @\\
-\mbox{}\verb@                                       axis_number, @\\
+\mbox{}\verb@        cbf_failnez(cbf_get_pixel_size_sf(self,@\\
+\mbox{}\verb@                                       element_number,@\\
+\mbox{}\verb@                                       axis_number,@\\
 \mbox{}\verb@                                       psize));@\\
 \mbox{}\verb@    }@\\
 \mbox{}\verb@""","get_pixel_size_sf",["Int element_number","Int axis_number"],@\\
@@ -2490,11 +2519,11 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_set_pixel_size":["""@\\
-\mbox{}\verb@     void set_pixel_size (unsigned int element_number, @\\
+\mbox{}\verb@     void set_pixel_size (unsigned int element_number,@\\
 \mbox{}\verb@                          unsigned int axis_number, double psize){@\\
-\mbox{}\verb@         cbf_failnez(cbf_set_pixel_size(self, @\\
-\mbox{}\verb@                                        element_number, @\\
-\mbox{}\verb@                                        axis_number, @\\
+\mbox{}\verb@         cbf_failnez(cbf_set_pixel_size(self,@\\
+\mbox{}\verb@                                        element_number,@\\
+\mbox{}\verb@                                        axis_number,@\\
 \mbox{}\verb@                                        psize));@\\
 \mbox{}\verb@     }@\\
 \mbox{}\verb@""","set_pixel_size",@\\
@@ -2502,11 +2531,11 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_set_pixel_size_fs":["""@\\
-\mbox{}\verb@     void set_pixel_size_fs (unsigned int element_number, @\\
+\mbox{}\verb@     void set_pixel_size_fs (unsigned int element_number,@\\
 \mbox{}\verb@                          unsigned int axis_number, double psize){@\\
-\mbox{}\verb@         cbf_failnez(cbf_set_pixel_size_fs(self, @\\
-\mbox{}\verb@                                        element_number, @\\
-\mbox{}\verb@                                        axis_number, @\\
+\mbox{}\verb@         cbf_failnez(cbf_set_pixel_size_fs(self,@\\
+\mbox{}\verb@                                        element_number,@\\
+\mbox{}\verb@                                        axis_number,@\\
 \mbox{}\verb@                                        psize));@\\
 \mbox{}\verb@     }@\\
 \mbox{}\verb@""","set_pixel_size_fs",@\\
@@ -2514,11 +2543,11 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_set_pixel_size_sf":["""@\\
-\mbox{}\verb@     void set_pixel_size_sf (unsigned int element_number, @\\
+\mbox{}\verb@     void set_pixel_size_sf (unsigned int element_number,@\\
 \mbox{}\verb@                          unsigned int axis_number, double psize){@\\
-\mbox{}\verb@         cbf_failnez(cbf_set_pixel_size_sf(self, @\\
-\mbox{}\verb@                                        element_number, @\\
-\mbox{}\verb@                                        axis_number, @\\
+\mbox{}\verb@         cbf_failnez(cbf_set_pixel_size_sf(self,@\\
+\mbox{}\verb@                                        element_number,@\\
+\mbox{}\verb@                                        axis_number,@\\
 \mbox{}\verb@                                        psize));@\\
 \mbox{}\verb@     }@\\
 \mbox{}\verb@""","set_pixel_size_sf",@\\
@@ -2526,7 +2555,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_write_file" : ["""@\\
-\mbox{}\verb@    void write_file(const char* filename, int ciforcbf, int headers, @\\
+\mbox{}\verb@    void write_file(const char* filename, int ciforcbf, int headers,@\\
 \mbox{}\verb@                    int encoding){@\\
 \mbox{}\verb@       FILE *stream;@\\
 \mbox{}\verb@       int readable;@\\
@@ -2536,17 +2565,17 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@         cbf_failnez(CBF_FILEOPEN);@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@        else{@\\
-\mbox{}\verb@        cbf_failnez(cbf_write_file(self, stream, readable, @\\
+\mbox{}\verb@        cbf_failnez(cbf_write_file(self, stream, readable,@\\
 \mbox{}\verb@                    ciforcbf, headers, encoding));@\\
 \mbox{}\verb@        fclose(stream);@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@       }@\\
-\mbox{}\verb@""","write_file",["String filename","Integer ciforcbf","Integer Headers", @\\
+\mbox{}\verb@""","write_file",["String filename","Integer ciforcbf","Integer Headers",@\\
 \mbox{}\verb@                  "Integer encoding"],[]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_write_widefile" : ["""@\\
-\mbox{}\verb@    void write_widefile(const char* filename, int ciforcbf, int headers, @\\
+\mbox{}\verb@    void write_widefile(const char* filename, int ciforcbf, int headers,@\\
 \mbox{}\verb@                    int encoding){@\\
 \mbox{}\verb@       FILE *stream;@\\
 \mbox{}\verb@       int readable;@\\
@@ -2556,19 +2585,19 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@         cbf_failnez(CBF_FILEOPEN);@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@        else{@\\
-\mbox{}\verb@        cbf_failnez(cbf_write_widefile(self, stream, readable, @\\
+\mbox{}\verb@        cbf_failnez(cbf_write_widefile(self, stream, readable,@\\
 \mbox{}\verb@                    ciforcbf, headers, encoding));@\\
 \mbox{}\verb@        fclose(stream);@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@       }@\\
-\mbox{}\verb@""","write_widefile",["String filename","Integer ciforcbf","Integer Headers", @\\
+\mbox{}\verb@""","write_widefile",["String filename","Integer ciforcbf","Integer Headers",@\\
 \mbox{}\verb@                  "Integer encoding"],[]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_read_template":["""@\\
 \mbox{}\verb@    void read_template(char* filename){@\\
-\mbox{}\verb@       /* CBFlib needs a stream that will remain open @\\
+\mbox{}\verb@       /* CBFlib needs a stream that will remain open@\\
 \mbox{}\verb@        hence DO NOT open from python */@\\
 \mbox{}\verb@       FILE *stream;@\\
 \mbox{}\verb@       if ( ! ( stream = fopen (filename, "rb")) ){@\\
@@ -2583,14 +2612,14 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_read_file" : ["""@\\
 \mbox{}\verb@    void read_file(char* filename, int headers){@\\
-\mbox{}\verb@       /* CBFlib needs a stream that will remain open @\\
+\mbox{}\verb@       /* CBFlib needs a stream that will remain open@\\
 \mbox{}\verb@          hence DO NOT open from python */@\\
 \mbox{}\verb@       FILE *stream;@\\
 \mbox{}\verb@       if ( ! ( stream = fopen (filename, "rb")) ){@\\
 \mbox{}\verb@         cbf_failnez(CBF_FILEOPEN);@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@        else{@\\
-\mbox{}\verb@         cbf_failnez(cbf_read_file(self, stream, headers)); @\\
+\mbox{}\verb@         cbf_failnez(cbf_read_file(self, stream, headers));@\\
 \mbox{}\verb@    }@\\
 \mbox{}\verb@       }@\\
 \mbox{}\verb@""","read_file",["String filename","Integer headers"],[]],@\\
@@ -2599,14 +2628,14 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_read_widefile" : ["""@\\
 \mbox{}\verb@    void read_widefile(char* filename, int headers){@\\
-\mbox{}\verb@       /* CBFlib needs a stream that will remain open @\\
+\mbox{}\verb@       /* CBFlib needs a stream that will remain open@\\
 \mbox{}\verb@          hence DO NOT open from python */@\\
 \mbox{}\verb@       FILE *stream;@\\
 \mbox{}\verb@       if ( ! ( stream = fopen (filename, "rb")) ){@\\
 \mbox{}\verb@         cbf_failnez(CBF_FILEOPEN);@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@        else{@\\
-\mbox{}\verb@         cbf_failnez(cbf_read_widefile(self, stream, headers)); @\\
+\mbox{}\verb@         cbf_failnez(cbf_read_widefile(self, stream, headers));@\\
 \mbox{}\verb@    }@\\
 \mbox{}\verb@       }@\\
 \mbox{}\verb@""","read_widefile",["String filename","Integer headers"],[]],@\\
@@ -2662,7 +2691,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_require_column_integervalue":["""@\\
 \mbox{}\verb@%apply int *OUTPUT {int *number}  require_column_integervalue;@\\
-\mbox{}\verb@void require_column_integervalue(const char *columnname, @\\
+\mbox{}\verb@void require_column_integervalue(const char *columnname,@\\
 \mbox{}\verb@                       int *number, const int defaultvalue){@\\
 \mbox{}\verb@    cbf_failnez(cbf_require_column_integervalue(self,@\\
 \mbox{}\verb@           columnname, number,defaultvalue));@\\
@@ -2670,7 +2699,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@""","require_column_integervalue",["String Columnvalue","Int default"],@\\
 \mbox{}\verb@ ["Int Value"]],@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@           @\\
+\mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_require_value" : ["""@\\
@@ -2719,11 +2748,11 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@                       double *div_x_y_source } get_divergence;@\\
 \mbox{}\verb@    void get_divergence(double *div_x_source, double *div_y_source,@\\
 \mbox{}\verb@       double *div_x_y_source){@\\
-\mbox{}\verb@       cbf_failnez(cbf_get_divergence(self, @\\
-\mbox{}\verb@                                     div_x_source, @\\
+\mbox{}\verb@       cbf_failnez(cbf_get_divergence(self,@\\
+\mbox{}\verb@                                     div_x_source,@\\
 \mbox{}\verb@                                     div_y_source,@\\
-\mbox{}\verb@                                     div_x_y_source)); @\\
-\mbox{}\verb@       } @\\
+\mbox{}\verb@                                     div_x_y_source));@\\
+\mbox{}\verb@       }@\\
 \mbox{}\verb@""","get_divergence",[],@\\
 \mbox{}\verb@     ["Float div_x_source","Float div_y_source","Float div_x_y_source"]],@\\
 \mbox{}\verb@@\\
@@ -2731,7 +2760,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@"cbf_set_divergence":["""@\\
 \mbox{}\verb@   void set_divergence ( double div_x_source, double div_y_source,@\\
 \mbox{}\verb@                        double div_x_y_source){@\\
-\mbox{}\verb@      cbf_failnez(cbf_set_divergence (self, div_x_source, @\\
+\mbox{}\verb@      cbf_failnez(cbf_set_divergence (self, div_x_source,@\\
 \mbox{}\verb@                              div_y_source,div_x_y_source));@\\
 \mbox{}\verb@      }@\\
 \mbox{}\verb@""","set_divergence",@\\
@@ -2739,7 +2768,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_gain":["""@\\
 \mbox{}\verb@%apply double *OUTPUT {double *gain, double *gain_esd} get_gain;@\\
-\mbox{}\verb@    void get_gain (unsigned int element_number, double *gain, @\\
+\mbox{}\verb@    void get_gain (unsigned int element_number, double *gain,@\\
 \mbox{}\verb@                   double *gain_esd){@\\
 \mbox{}\verb@        cbf_failnez(cbf_get_gain (self, element_number, gain, gain_esd));@\\
 \mbox{}\verb@        }@\\
@@ -2762,6 +2791,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@""","get_element_id", ["Integer element_number"],["String"]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
+\mbox{}\verb@@\\
 \mbox{}\verb@"cbf_set_axis_setting":["""@\\
 \mbox{}\verb@   void set_axis_setting(const char *axis_id,@\\
 \mbox{}\verb@                    double start, double increment){@\\
@@ -2773,6 +2803,108 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@""","set_axis_setting",["String axis_id", "Float start", "Float increment"],@\\
 \mbox{}\verb@ []],@\\
 \mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_count_axis_ancestors":["""@\\
+\mbox{}\verb@    %apply int *OUTPUT {int *ancestors} count_axis_ancestors;@\\
+\mbox{}\verb@    void count_axis_ancestors(const char *axis_id,@\\
+\mbox{}\verb@    int *ancestors){@\\
+\mbox{}\verb@    unsigned int anc;@\\
+\mbox{}\verb@    cbf_failnez(cbf_count_axis_ancestors(self,axis_id,&anc));@\\
+\mbox{}\verb@    *ancestors = anc;@\\
+\mbox{}\verb@    }@\\
+\mbox{}\verb@    ""","count_axis_ancestors",["String axis_id"],["Integer"],],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_axis_ancestor":["""@\\
+\mbox{}\verb@    const char *  get_axis_ancestor(const char *axis_id,@\\
+\mbox{}\verb@    int ancestor_index){@\\
+\mbox{}\verb@    const char* anc;@\\
+\mbox{}\verb@    cbf_failnez(cbf_get_axis_ancestor(self,axis_id,@\\
+\mbox{}\verb@    (unsigned int)ancestor_index,&anc));@\\
+\mbox{}\verb@    return anc;@\\
+\mbox{}\verb@    }@\\
+\mbox{}\verb@    ""","get_axis_ancestor",["String axis_id", "Integer ancestor_index"],["String"],],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_axis_depends_on":["""@\\
+\mbox{}\verb@    const char *  get_axis_depends_on(const char *axis_id){@\\
+\mbox{}\verb@    const char* dep_on;@\\
+\mbox{}\verb@    cbf_failnez(cbf_get_axis_depends_on(self,axis_id,@\\
+\mbox{}\verb@    &dep_on));@\\
+\mbox{}\verb@    return dep_on;@\\
+\mbox{}\verb@    }@\\
+\mbox{}\verb@    ""","get_axis_depends_on",["String axis_id"],["String"],],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_axis_equipment":["""@\\
+\mbox{}\verb@    const char *  get_axis_equipment(const char *axis_id){@\\
+\mbox{}\verb@    const char* equip;@\\
+\mbox{}\verb@    cbf_failnez(cbf_get_axis_equipment(self,axis_id,@\\
+\mbox{}\verb@    &equip));@\\
+\mbox{}\verb@    return equip;@\\
+\mbox{}\verb@    }@\\
+\mbox{}\verb@    ""","get_axis_equipment",["String axis_id"],["String"],],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_axis_equipment_component":["""@\\
+\mbox{}\verb@    const char *  get_axis_equipment_component(const char *axis_id){@\\
+\mbox{}\verb@    const char* equip_comp;@\\
+\mbox{}\verb@    cbf_failnez(cbf_get_axis_equipment_component(self,axis_id,@\\
+\mbox{}\verb@    &equip_comp));@\\
+\mbox{}\verb@    return equip_comp;@\\
+\mbox{}\verb@    }@\\
+\mbox{}\verb@    ""","get_axis_equipment_component",["String axis_id"],["String"],],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_axis_offset":["""@\\
+\mbox{}\verb@    %apply double *OUTPUT {double *offset1, double *offset2, double offset3} get_axis_offset;@\\
+\mbox{}\verb@    void get_axis_offset(const char *axis_id,@\\
+\mbox{}\verb@    double *offset1, double *offset2, double*offset3){@\\
+\mbox{}\verb@    cbf_failnez(cbf_get_axis_offset(self,axis_id,@\\
+\mbox{}\verb@    offset1, offset2,offset3));@\\
+\mbox{}\verb@    }@\\
+\mbox{}\verb@    ""","get_axis_offset",["String axis_id"],@\\
+\mbox{}\verb@                       ["Float offset1", "Float offset2", "Float offset3"],],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_axis_rotation":["""@\\
+\mbox{}\verb@    %apply double *OUTPUT {double *rotation} get_axis_rotation;@\\
+\mbox{}\verb@    void get_axis_rotation(const char *axis_id,@\\
+\mbox{}\verb@    double *rotation){@\\
+\mbox{}\verb@    cbf_failnez(cbf_get_axis_rotation(self,axis_id,@\\
+\mbox{}\verb@    rotation));@\\
+\mbox{}\verb@    }@\\
+\mbox{}\verb@    ""","get_axis_rotation",["String axis_id"],@\\
+\mbox{}\verb@                         ["Float"],],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_axis_rotation_axis":["""@\\
+\mbox{}\verb@    const char *  get_axis_rotation_axis(const char *axis_id){@\\
+\mbox{}\verb@    const char* rot_axis;@\\
+\mbox{}\verb@    cbf_failnez(cbf_get_axis_rotation_axis(self,axis_id,@\\
+\mbox{}\verb@    &rot_axis));@\\
+\mbox{}\verb@    return rot_axis;@\\
+\mbox{}\verb@    }@\\
+\mbox{}\verb@    ""","get_axis_rotation_axis",["String axis_id"],["String"],],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_axis_type":["""@\\
+\mbox{}\verb@    const char *  get_axis_type(const char *axis_id){@\\
+\mbox{}\verb@    cbf_axis_type axis_type;@\\
+\mbox{}\verb@    cbf_failnez(cbf_get_axis_type(self,axis_id,@\\
+\mbox{}\verb@    &axis_type));@\\
+\mbox{}\verb@    if (axis_type == CBF_TRANSLATION_AXIS) return "translation";@\\
+\mbox{}\verb@    if (axis_type == CBF_ROTATION_AXIS) return "rotation";@\\
+\mbox{}\verb@    return "general";@\\
+\mbox{}\verb@    }@\\
+\mbox{}\verb@    ""","get_axis_type",["String axis_id"],["String"],],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_axis_vector":["""@\\
+\mbox{}\verb@    %apply double *OUTPUT {double *vector1, double *vector2, double vector3} get_axis_vector;@\\
+\mbox{}\verb@    void get_axis_vector(const char *axis_id,@\\
+\mbox{}\verb@    double *vector1, double *vector2, double *vector3){@\\
+\mbox{}\verb@    cbf_failnez(cbf_get_axis_vector(self,axis_id,@\\
+\mbox{}\verb@    vector1, vector2,vector3));@\\
+\mbox{}\verb@    }@\\
+\mbox{}\verb@    ""","get_axis_vector",["String axis_id"],@\\
+\mbox{}\verb@                       ["Float vector1", "Float vector2", "Float vector3"],],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_axis_setting":["""@\\
 \mbox{}\verb@%apply double *OUTPUT {double *start, double *increment} get_axis_setting;@\\
@@ -2788,30 +2920,30 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_datestamp":["""@\\
-\mbox{}\verb@%apply int *OUTPUT {int *year, int *month, int *day, int *hour, @\\
+\mbox{}\verb@%apply int *OUTPUT {int *year, int *month, int *day, int *hour,@\\
 \mbox{}\verb@                    int *minute, double *second, int *timezone} get_datestamp;@\\
-\mbox{}\verb@   void get_datestamp(int *year, int *month, int *day, int *hour, @\\
+\mbox{}\verb@   void get_datestamp(int *year, int *month, int *day, int *hour,@\\
 \mbox{}\verb@                      int *minute, double *second, int *timezone){@\\
 \mbox{}\verb@        unsigned int reserved;@\\
 \mbox{}\verb@        reserved = 0;@\\
 \mbox{}\verb@        cbf_failnez(cbf_get_datestamp(self,reserved,@\\
 \mbox{}\verb@              year,month,day,hour,minute,second,timezone));@\\
 \mbox{}\verb@        }@\\
-\mbox{}\verb@""","get_datestamp",[],["int year", "int month", "int day", "int hour", @\\
+\mbox{}\verb@""","get_datestamp",[],["int year", "int month", "int day", "int hour",@\\
 \mbox{}\verb@"int minute", "double second", "int timezone"]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_set_datestamp":["""@\\
-\mbox{}\verb@   void set_datestamp(int year, int month, int day, int hour, @\\
-\mbox{}\verb@                      int minute, double second, int timezone, @\\
+\mbox{}\verb@   void set_datestamp(int year, int month, int day, int hour,@\\
+\mbox{}\verb@                      int minute, double second, int timezone,@\\
 \mbox{}\verb@                      double precision){@\\
 \mbox{}\verb@        unsigned int reserved;@\\
-\mbox{}\verb@        reserved = 0; @\\
-\mbox{}\verb@        cbf_failnez(cbf_set_datestamp(self,reserved, @\\
+\mbox{}\verb@        reserved = 0;@\\
+\mbox{}\verb@        cbf_failnez(cbf_set_datestamp(self,reserved,@\\
 \mbox{}\verb@              year,month,day,hour,minute,second,timezone,precision));@\\
 \mbox{}\verb@        }@\\
-\mbox{}\verb@""","set_datestamp",["int year", "int month", "int day", "int hour", @\\
+\mbox{}\verb@""","set_datestamp",["int year", "int month", "int day", "int hour",@\\
 \mbox{}\verb@"int minute", "double second", "int timezone","Float precision"],[]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
@@ -2820,7 +2952,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@%apply int *OUTPUT {int *timezone} get_timestamp;@\\
 \mbox{}\verb@    void get_timestamp(double *time, int *timezone){@\\
 \mbox{}\verb@        unsigned int reserved;@\\
-\mbox{}\verb@        reserved = 0; @\\
+\mbox{}\verb@        reserved = 0;@\\
 \mbox{}\verb@        cbf_failnez(cbf_get_timestamp(self,reserved,time,timezone));@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@""","get_timestamp",[],["Float time","Integer timezone"]],@\\
@@ -2830,7 +2962,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@"cbf_set_timestamp":["""@\\
 \mbox{}\verb@    void set_timestamp(double time, int timezone, double precision){@\\
 \mbox{}\verb@        unsigned int reserved;@\\
-\mbox{}\verb@        reserved = 0; @\\
+\mbox{}\verb@        reserved = 0;@\\
 \mbox{}\verb@        cbf_failnez(cbf_set_timestamp(self,reserved,time,timezone,precision));@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@""","set_timestamp",["Float time","Integer timezone","Float precision"],[]],@\\
@@ -2839,7 +2971,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@"cbf_set_current_timestamp":["""@\\
 \mbox{}\verb@    void set_current_timestamp(int timezone){@\\
 \mbox{}\verb@        unsigned int reserved;@\\
-\mbox{}\verb@        reserved = 0; @\\
+\mbox{}\verb@        reserved = 0;@\\
 \mbox{}\verb@        cbf_failnez(cbf_set_current_timestamp(self,reserved,timezone));@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@""","set_current_timestamp",["Integer timezone"],[]],@\\
@@ -3066,7 +3198,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@  return result;@\\
 \mbox{}\verb@}@\\
 \mbox{}\verb@""","cbf_require_category_root",["String Categoryname"],["String categoryroot"]],@\\
-\mbox{}\verb@  @\\
+\mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_set_orientation_matrix":["""@\\
 \mbox{}\verb@   void set_orientation_matrix(  double m0,double m1,@\\
@@ -3080,7 +3212,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        }@\\
 \mbox{}\verb@""","set_orientation_matrix",@\\
 \mbox{}\verb@    [ "Float matrix_%d"%(ind) for ind in range(9) ] ,[]],@\\
-\mbox{}\verb@    @\\
+\mbox{}\verb@@\\
 \mbox{}\verb@"cbf_set_bin_sizes":["""@\\
 \mbox{}\verb@   void set_bin_sizes( int element_number, double slowbinsize_in, double fastbinsize_in) {@\\
 \mbox{}\verb@     cbf_failnez(cbf_set_bin_sizes(self,element_number,slowbinsize_in,fastbinsize_in));@\\
@@ -3184,9 +3316,9 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@""","construct_reference_positioner",["String axis_id"],["pycbf positioner object"]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_axis_reference_poise":["""@\\
-\mbox{}\verb@  %apply double *OUTPUT {double *vector1, double *vector2, double *vector3, @\\
+\mbox{}\verb@  %apply double *OUTPUT {double *vector1, double *vector2, double *vector3,@\\
 \mbox{}\verb@    double *offset1, double *offset2, double *offset3};@\\
-\mbox{}\verb@  @\\
+\mbox{}\verb@@\\
 \mbox{}\verb@  void get_axis_reference_poise(double *vector1, double *vector2, double *vector3,@\\
 \mbox{}\verb@      double *offset1, double *offset2, double *offset3,@\\
 \mbox{}\verb@      const char *axis_id){@\\
@@ -3199,12 +3331,12 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@""","get_axis_reference_poise",["String axis_id"],@\\
 \mbox{}\verb@     ["Float vector1","Float vector2","Float vector3",@\\
 \mbox{}\verb@     "Float offset1","Float offset2","Float offset3"]],@\\
-\mbox{}\verb@     @\\
+\mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_axis_poise":["""@\\
-\mbox{}\verb@  %apply double *OUTPUT {double *vector1, double *vector2, double *vector3, @\\
+\mbox{}\verb@  %apply double *OUTPUT {double *vector1, double *vector2, double *vector3,@\\
 \mbox{}\verb@    double *offset1, double *offset2, double *offset3, double *angle};@\\
-\mbox{}\verb@  @\\
-\mbox{}\verb@  void get_axis_poise(double ratio, @\\
+\mbox{}\verb@@\\
+\mbox{}\verb@  void get_axis_poise(double ratio,@\\
 \mbox{}\verb@      double *vector1, double *vector2, double *vector3,@\\
 \mbox{}\verb@      double *offset1, double *offset2, double *offset3,@\\
 \mbox{}\verb@      double *angle,@\\
@@ -3250,6 +3382,37 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@}@\\
 \mbox{}\verb@CBF_NODETYPE;@\\
 \mbox{}\verb@@\\
+\mbox{}\verb@// Tell SWIG to return a string-output-argument as a bytestring@\\
+\mbox{}\verb@%define %bytestring_output_allocate_size(TYPEMAP, SIZE, RELEASE)@\\
+\mbox{}\verb@   %typemap(in,noblock=1,numinputs=0) (TYPEMAP, SIZE) ($*1_ltype temp = 0, $*2_ltype tempn) {@\\
+\mbox{}\verb@      $1 = &temp; $2 = &tempn;@\\
+\mbox{}\verb@   }@\\
+\mbox{}\verb@   %typemap(freearg,match="in") (TYPEMAP, SIZE) "";@\\
+\mbox{}\verb@   %typemap(argout,noblock=1)(TYPEMAP, SIZE) {@\\
+\mbox{}\verb@      if (*$1) {@\\
+\mbox{}\verb@%#if PY_VERSION_HEX >= 0x03000000@\\
+\mbox{}\verb@         %append_output(PyBytes_FromStringAndSize(*$1,*$2));@\\
+\mbox{}\verb@%#else@\\
+\mbox{}\verb@         %append_output(SWIG_FromCharPtrAndSize(*$1,*$2));@\\
+\mbox{}\verb@%#endif@\\
+\mbox{}\verb@         RELEASE;@\\
+\mbox{}\verb@      }@\\
+\mbox{}\verb@   }@\\
+\mbox{}\verb@%enddef@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@// Typemap to read a python bytes object as array data@\\
+\mbox{}\verb@%typemap(in,noblock=1)@\\
+\mbox{}\verb@  (char *DATASTRING, size_t LENGTH) (int res, char *buf = 0, Py_ssize_t size = 0),@\\
+\mbox{}\verb@  (const char *DATASTRING, size_t LENGTH) (int res, char *buf = 0, Py_ssize_t size = 0)@\\
+\mbox{}\verb@{@\\
+\mbox{}\verb@   res = PyBytes_AsStringAndSize($input, &buf, &size) == -1 ? SWIG_TypeError : SWIG_OK;@\\
+\mbox{}\verb@   if (!SWIG_IsOK(res)) {@\\
+\mbox{}\verb@      %argument_fail(res,"$type",$symname, $argnum);@\\
+\mbox{}\verb@   }@\\
+\mbox{}\verb@   $1 = %reinterpret_cast(buf, $1_ltype);@\\
+\mbox{}\verb@   $2 = %numeric_cast(size, $2_ltype);@\\
+\mbox{}\verb@}@\\
+\mbox{}\verb@%typemap(in) (char *DATASTRING, int LENGTH) = (char *DATASTRING, size_t LENGTH);@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@// Tell SWIG what the object is, so we can build the class@\\
 \mbox{}\verb@@\\
@@ -3271,7 +3434,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@       cbf_handle handle;@\\
 \mbox{}\verb@       cbf_failnez(cbf_make_handle(&handle));@\\
 \mbox{}\verb@       return handle;@\\
-\mbox{}\verb@       } @\\
+\mbox{}\verb@       }@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@    ~cbf_handle_struct(){ // Destructor@\\
 \mbox{}\verb@       cbf_failnez(cbf_free_handle(self));@\\
@@ -3296,12 +3459,12 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@          # Constructor and destructor done in headers@\\
 \mbox{}\verb@          return@\\
 \mbox{}\verb@       if args[0] != "cbf_handle handle": # Must be for cbfhandle@\\
-\mbox{}\verb@          print "problem",cfunc,pyfunc,args@\\
+\mbox{}\verb@          print("problem",cfunc,pyfunc,args)@\\
 \mbox{}\verb@          return@\\
 \mbox{}\verb@       if len(args)==1: # Only takes CBFhandle arg@\\
 \mbox{}\verb@          code+= docstringwrite(pyfunc,[],[],prototype,docstring)@\\
 \mbox{}\verb@          code+= "    void %s(void){\n"%(pyfunc)@\\
-\mbox{}\verb@          code+= "      cbf_failnez(%s(self));}\n"%(cfunc) @\\
+\mbox{}\verb@          code+= "      cbf_failnez(%s(self));}\n"%(cfunc)@\\
 \mbox{}\verb@          self.code=self.code+code@\\
 \mbox{}\verb@          return@\\
 \mbox{}\verb@       # Now case by case rather than writing a proper parser@\\
@@ -3316,9 +3479,9 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@           not_found = 1@\\
 \mbox{}\verb@           # print "KeyError"@\\
 \mbox{}\verb@       except ValueError:@\\
-\mbox{}\verb@           print "problem in",cfunc@\\
+\mbox{}\verb@           print("problem in",cfunc)@\\
 \mbox{}\verb@           for item in cbfhandle_specials[cfunc]:@\\
-\mbox{}\verb@              print "***",item@\\
+\mbox{}\verb@              print("***",item)@\\
 \mbox{}\verb@           raise@\\
 \mbox{}\verb@       if len(args)==2:@\\
 \mbox{}\verb@          if args[1].find("const char")>-1 and \@\\
@@ -3385,12 +3548,12 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@             code+= "     void %s(void){\n"%(pyfunc)@\\
 \mbox{}\verb@             code +="        cbf_failnez(CBF_NOTIMPLEMENTED);}\n"@\\
 \mbox{}\verb@             self.code=self.code+code@\\
-\mbox{}\verb@             print "Have not implemented: cbfhandle.%s"%(pyfunc)@\\
-\mbox{}\verb@             print "   ",cfunc@\\
-\mbox{}\verb@             print "    args:"@\\
+\mbox{}\verb@             print("Have not implemented: cbfhandle.%s"%(pyfunc))@\\
+\mbox{}\verb@             print("   ",cfunc)@\\
+\mbox{}\verb@             print("    args:")@\\
 \mbox{}\verb@             for a in args:@\\
-\mbox{}\verb@                 print "       ",a @\\
-\mbox{}\verb@             print@\\
+\mbox{}\verb@                 print("       ",a)@\\
+\mbox{}\verb@             print()@\\
 \mbox{}\verb@             return@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
@@ -3413,7 +3576,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@%apply double *OUTPUT {double *final1, double *final2, double *final3};@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@    void rotate_vector (double ratio, double initial1, double initial2, @\\
+\mbox{}\verb@    void rotate_vector (double ratio, double initial1, double initial2,@\\
 \mbox{}\verb@         double initial3, double *final1, double *final2, double *final3){@\\
 \mbox{}\verb@       unsigned int reserved;@\\
 \mbox{}\verb@       reserved = 0;@\\
@@ -3421,22 +3584,22 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@         initial2, initial3, final1, final2, final3));@\\
 \mbox{}\verb@    }@\\
 \mbox{}\verb@""", "rotate_vector",@\\
-\mbox{}\verb@ [ "double ratio", "double initial1","double initial2", "double initial3" ] , @\\
+\mbox{}\verb@ [ "double ratio", "double initial1","double initial2", "double initial3" ] ,@\\
 \mbox{}\verb@                  [ "double final1"  ,"double final2"  , "double final3" ] ],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_reciprocal":["""@\\
-\mbox{}\verb@%apply double *OUTPUT {double *reciprocal1, double *reciprocal2, @\\
+\mbox{}\verb@%apply double *OUTPUT {double *reciprocal1, double *reciprocal2,@\\
 \mbox{}\verb@              double *reciprocal3};@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@    void get_reciprocal (double ratio,double wavelength, @\\
-\mbox{}\verb@                         double real1, double real2, double real3, @\\
-\mbox{}\verb@                         double *reciprocal1, double *reciprocal2, @\\
+\mbox{}\verb@    void get_reciprocal (double ratio,double wavelength,@\\
+\mbox{}\verb@                         double real1, double real2, double real3,@\\
+\mbox{}\verb@                         double *reciprocal1, double *reciprocal2,@\\
 \mbox{}\verb@                         double *reciprocal3){@\\
 \mbox{}\verb@        unsigned int reserved;@\\
 \mbox{}\verb@        reserved = 0;@\\
-\mbox{}\verb@        cbf_failnez(cbf_get_reciprocal(self,reserved, ratio, wavelength, @\\
+\mbox{}\verb@        cbf_failnez(cbf_get_reciprocal(self,reserved, ratio, wavelength,@\\
 \mbox{}\verb@                         real1, real2, real3,reciprocal1,@\\
 \mbox{}\verb@                         reciprocal2,reciprocal3));@\\
 \mbox{}\verb@    }@\\
@@ -3451,22 +3614,22 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@void get_rotation_axis (double *vector1, double *vector2, double *vector3){@\\
 \mbox{}\verb@     unsigned int reserved;@\\
 \mbox{}\verb@     reserved = 0;@\\
-\mbox{}\verb@     cbf_failnez(cbf_get_rotation_axis (self, reserved, @\\
+\mbox{}\verb@     cbf_failnez(cbf_get_rotation_axis (self, reserved,@\\
 \mbox{}\verb@                                        vector1, vector2, vector3));@\\
 \mbox{}\verb@    }@\\
-\mbox{}\verb@""","get_rotation_axis", [] , @\\
+\mbox{}\verb@""","get_rotation_axis", [] ,@\\
 \mbox{}\verb@ ["double vector1", "double vector2", "double vector3"] ],@\\
-\mbox{}\verb@ @\\
+\mbox{}\verb@@\\
 \mbox{}\verb@ "cbf_get_goniometer_poise":["""@\\
-\mbox{}\verb@  %apply double *OUTPUT {double * vector1, double * vector2, double * vector3, double * offset1, double * offset2, double * offset3, @\\
+\mbox{}\verb@  %apply double *OUTPUT {double * vector1, double * vector2, double * vector3, double * offset1, double * offset2, double * offset3,@\\
 \mbox{}\verb@      double * angle};@\\
-\mbox{}\verb@      @\\
-\mbox{}\verb@      void get_goniometer_poise(double ratio, @\\
-\mbox{}\verb@        double * vector1, double * vector2, double * vector3, @\\
-\mbox{}\verb@        double * offset1, double * offset2, double * offset3, @\\
+\mbox{}\verb@@\\
+\mbox{}\verb@      void get_goniometer_poise(double ratio,@\\
+\mbox{}\verb@        double * vector1, double * vector2, double * vector3,@\\
+\mbox{}\verb@        double * offset1, double * offset2, double * offset3,@\\
 \mbox{}\verb@        double * angle){@\\
 \mbox{}\verb@          cbf_failnez(cbf_get_goniometer_poise(self, ratio,@\\
-\mbox{}\verb@                vector1, vector2, vector3, @\\
+\mbox{}\verb@                vector1, vector2, vector3,@\\
 \mbox{}\verb@                offset1, offset2, offset3,angle));@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@@\\
@@ -3497,9 +3660,9 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@  size_t axes;@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@  int matrix_is_valid;@\\
-\mbox{}\verb@  @\\
+\mbox{}\verb@@\\
 \mbox{}\verb@  double matrix_ratio_used;@\\
-\mbox{}\verb@    @\\
+\mbox{}\verb@@\\
 \mbox{}\verb@  size_t axis_index_limit;@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@}@\\
@@ -3517,7 +3680,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@       // DO NOT CONSTRUCT WITHOUT A CBFHANDLE@\\
 \mbox{}\verb@       cbf_failnez(CBF_ARGUMENT);@\\
 \mbox{}\verb@       return NULL; /* Should never be executed */@\\
-\mbox{}\verb@       } @\\
+\mbox{}\verb@       }@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@    ~cbf_positioner_struct(){ // Destructor@\\
 \mbox{}\verb@       cbf_failnez(cbf_free_positioner(self));@\\
@@ -3528,13 +3691,13 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@"""@\\
 \mbox{}\verb@   def wrap(self,cfunc,prototype,args,docstring):@\\
 \mbox{}\verb@     if cfunc.find("cbf_free_goniometer")>-1:@\\
-\mbox{}\verb@        return @\\
+\mbox{}\verb@        return@\\
 \mbox{}\verb@     try:@\\
 \mbox{}\verb@        code, pyname, input, output = cbf_goniometer_specials[cfunc]@\\
 \mbox{}\verb@        self.code +=  docstringwrite(pyname,input,output,@\\
 \mbox{}\verb@                                     prototype,docstring)+ code@\\
 \mbox{}\verb@     except KeyError:@\\
-\mbox{}\verb@        print "TODO: Goniometer:",prototype@\\
+\mbox{}\verb@        print("TODO: Goniometer:",prototype)@\\
 \mbox{}\verb@   def get_code(self):@\\
 \mbox{}\verb@     return self.code+self.tail@\\
 \mbox{}\verb@@\\
@@ -3546,7 +3709,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@cbf_detector_specials = {@\\
 \mbox{}\verb@"cbf_get_pixel_normal":["""@\\
 \mbox{}\verb@%apply double *OUTPUT {double *normal1, double *normal2, double *normal3};@\\
-\mbox{}\verb@   void get_pixel_normal ( double index1, double index2, @\\
+\mbox{}\verb@   void get_pixel_normal ( double index1, double index2,@\\
 \mbox{}\verb@                          double *normal1, double *normal2, double *normal3){@\\
 \mbox{}\verb@       cbf_failnez(cbf_get_pixel_normal(self,@\\
 \mbox{}\verb@                                    index1,index2,normal1,normal2,normal3));@\\
@@ -3557,7 +3720,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_pixel_normal_fs":["""@\\
 \mbox{}\verb@%apply double *OUTPUT {double *normal1, double *normal2, double *normal3};@\\
-\mbox{}\verb@   void get_pixel_normal_fs ( double indexfast, double indexslow, @\\
+\mbox{}\verb@   void get_pixel_normal_fs ( double indexfast, double indexslow,@\\
 \mbox{}\verb@                          double *normal1, double *normal2, double *normal3){@\\
 \mbox{}\verb@       cbf_failnez(cbf_get_pixel_normal_fs(self,@\\
 \mbox{}\verb@                                    indexfast,indexslow,normal1,normal2,normal3));@\\
@@ -3569,7 +3732,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_pixel_normal_sf":["""@\\
 \mbox{}\verb@%apply double *OUTPUT {double *normal1, double *normal2, double *normal3};@\\
-\mbox{}\verb@   void get_pixel_normal_sf ( double indexslow, double indexfast, @\\
+\mbox{}\verb@   void get_pixel_normal_sf ( double indexslow, double indexfast,@\\
 \mbox{}\verb@                          double *normal1, double *normal2, double *normal3){@\\
 \mbox{}\verb@       cbf_failnez(cbf_get_pixel_normal_sf(self,@\\
 \mbox{}\verb@                                    indexslow,indexfast,normal1,normal2,normal3));@\\
@@ -3642,6 +3805,22 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@ "double fastaxis1","double fastaxis2", "double fastaxis3" ] ],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_detector_surface_axes":["""@\\
+\mbox{}\verb@    const char * get_detector_surface_axes (int index ){@\\
+\mbox{}\verb@    const char * axis_id1;@\\
+\mbox{}\verb@    const char * axis_id2;@\\
+\mbox{}\verb@    cbf_failnez(cbf_get_detector_surface_axes(self,@\\
+\mbox{}\verb@    &axis_id1, &axis_id2));@\\
+\mbox{}\verb@    if (index == 0) return axis_id1;@\\
+\mbox{}\verb@    if (index == 1) return axis_id2;@\\
+\mbox{}\verb@    return ".";@\\
+\mbox{}\verb@    }@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@    ""","cbf_get_detector_surface_axes", ["Integer index" ],@\\
+\mbox{}\verb@                                 ["String" ] ],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_pixel_area":["""@\\
 \mbox{}\verb@%apply double *OUTPUT{double *area,double *projected_area};@\\
 \mbox{}\verb@    void get_pixel_area(double index1, double index2,@\\
@@ -3685,7 +3864,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_detector_normal":["""@\\
 \mbox{}\verb@%apply double *OUTPUT {double *normal1, double *normal2, double *normal3};@\\
-\mbox{}\verb@   void get_detector_normal(double *normal1, @\\
+\mbox{}\verb@   void get_detector_normal(double *normal1,@\\
 \mbox{}\verb@                            double *normal2,@\\
 \mbox{}\verb@                            double *normal3){@\\
 \mbox{}\verb@     cbf_failnez(cbf_get_detector_normal(self,@\\
@@ -3696,11 +3875,11 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_pixel_coordinates":["""@\\
-\mbox{}\verb@%apply double *OUTPUT {double *coordinate1,  @\\
+\mbox{}\verb@%apply double *OUTPUT {double *coordinate1,@\\
 \mbox{}\verb@         double *coordinate2, double *coordinate3};@\\
-\mbox{}\verb@   void get_pixel_coordinates(double index1, double index2, @\\
-\mbox{}\verb@             double *coordinate1,   @\\
-\mbox{}\verb@             double *coordinate2, @\\
+\mbox{}\verb@   void get_pixel_coordinates(double index1, double index2,@\\
+\mbox{}\verb@             double *coordinate1,@\\
+\mbox{}\verb@             double *coordinate2,@\\
 \mbox{}\verb@             double *coordinate3){@\\
 \mbox{}\verb@      cbf_failnez(cbf_get_pixel_coordinates(self, index1, index2,@\\
 \mbox{}\verb@             coordinate1, coordinate2, coordinate3));@\\
@@ -3710,11 +3889,11 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_pixel_coordinates_fs":["""@\\
-\mbox{}\verb@%apply double *OUTPUT {double *coordinate1,  @\\
+\mbox{}\verb@%apply double *OUTPUT {double *coordinate1,@\\
 \mbox{}\verb@         double *coordinate2, double *coordinate3};@\\
-\mbox{}\verb@   void get_pixel_coordinates_fs(double indexfast, double indexslow, @\\
-\mbox{}\verb@             double *coordinate1,   @\\
-\mbox{}\verb@             double *coordinate2, @\\
+\mbox{}\verb@   void get_pixel_coordinates_fs(double indexfast, double indexslow,@\\
+\mbox{}\verb@             double *coordinate1,@\\
+\mbox{}\verb@             double *coordinate2,@\\
 \mbox{}\verb@             double *coordinate3){@\\
 \mbox{}\verb@      cbf_failnez(cbf_get_pixel_coordinates_fs(self, indexfast, indexslow, coordinate1, coordinate2, coordinate3));@\\
 \mbox{}\verb@   }@\\
@@ -3723,11 +3902,11 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_pixel_coordinates_sf":["""@\\
-\mbox{}\verb@%apply double *OUTPUT {double *coordinate1,  @\\
+\mbox{}\verb@%apply double *OUTPUT {double *coordinate1,@\\
 \mbox{}\verb@         double *coordinate2, double *coordinate3};@\\
-\mbox{}\verb@   void get_pixel_coordinates_sf(double indexslow, double indexfast, @\\
-\mbox{}\verb@             double *coordinate1,   @\\
-\mbox{}\verb@             double *coordinate2, @\\
+\mbox{}\verb@   void get_pixel_coordinates_sf(double indexslow, double indexfast,@\\
+\mbox{}\verb@             double *coordinate1,@\\
+\mbox{}\verb@             double *coordinate2,@\\
 \mbox{}\verb@             double *coordinate3){@\\
 \mbox{}\verb@      cbf_failnez(cbf_get_pixel_coordinates_sf(self, indexslow, indexfast, coordinate1, coordinate2, coordinate3));@\\
 \mbox{}\verb@   }@\\
@@ -3736,11 +3915,11 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_beam_center":["""@\\
-\mbox{}\verb@%apply double *OUTPUT {double *index1, double *index2, @\\
+\mbox{}\verb@%apply double *OUTPUT {double *index1, double *index2,@\\
 \mbox{}\verb@ double *center1,double *center2};@\\
-\mbox{}\verb@    void get_beam_center(double *index1, double *index2, @\\
+\mbox{}\verb@    void get_beam_center(double *index1, double *index2,@\\
 \mbox{}\verb@                         double *center1,double *center2){@\\
-\mbox{}\verb@        cbf_failnez(cbf_get_beam_center(self, index1, index2, @\\
+\mbox{}\verb@        cbf_failnez(cbf_get_beam_center(self, index1, index2,@\\
 \mbox{}\verb@                                       center1, center2));@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@""","get_beam_center",[],@\\
@@ -3748,11 +3927,11 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_beam_center_fs":["""@\\
-\mbox{}\verb@%apply double *OUTPUT {double *indexfast, double *indexslow, @\\
+\mbox{}\verb@%apply double *OUTPUT {double *indexfast, double *indexslow,@\\
 \mbox{}\verb@ double *centerfast,double *centerslow};@\\
-\mbox{}\verb@    void get_beam_center_fs(double *indexfast, double *indexslow, @\\
+\mbox{}\verb@    void get_beam_center_fs(double *indexfast, double *indexslow,@\\
 \mbox{}\verb@                         double *centerfast,double *centerslow){@\\
-\mbox{}\verb@        cbf_failnez(cbf_get_beam_center_fs(self, indexfast, indexslow, @\\
+\mbox{}\verb@        cbf_failnez(cbf_get_beam_center_fs(self, indexfast, indexslow,@\\
 \mbox{}\verb@                                       centerfast, centerslow));@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@""","get_beam_center_fs",[],@\\
@@ -3760,11 +3939,11 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_beam_center_sf":["""@\\
-\mbox{}\verb@%apply double *OUTPUT {double *indexslow, double *indexfast, @\\
+\mbox{}\verb@%apply double *OUTPUT {double *indexslow, double *indexfast,@\\
 \mbox{}\verb@ double *centerslow,double *centerfast};@\\
-\mbox{}\verb@    void get_beam_center_sf(double *indexslow, double *indexfast, @\\
+\mbox{}\verb@    void get_beam_center_sf(double *indexslow, double *indexfast,@\\
 \mbox{}\verb@                         double *centerslow,double *centerfast){@\\
-\mbox{}\verb@        cbf_failnez(cbf_get_beam_center_sf(self, indexslow, indexfast, @\\
+\mbox{}\verb@        cbf_failnez(cbf_get_beam_center_sf(self, indexslow, indexfast,@\\
 \mbox{}\verb@                                       centerslow, centerfast));@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@""","get_beam_center_sf",[],@\\
@@ -3772,9 +3951,9 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_set_beam_center":["""@\\
-\mbox{}\verb@    void set_beam_center(double *indexslow, double *indexfast, @\\
+\mbox{}\verb@    void set_beam_center(double *indexslow, double *indexfast,@\\
 \mbox{}\verb@                         double *centerslow,double *centerfast){@\\
-\mbox{}\verb@        cbf_failnez(cbf_set_beam_center(self, indexslow, indexfast, @\\
+\mbox{}\verb@        cbf_failnez(cbf_set_beam_center(self, indexslow, indexfast,@\\
 \mbox{}\verb@                                       centerslow, centerfast));@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@""","set_beam_center",@\\
@@ -3782,9 +3961,9 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_set_beam_center_fs":["""@\\
-\mbox{}\verb@    void set_beam_center_fs(double *indexfast, double *indexslow, @\\
+\mbox{}\verb@    void set_beam_center_fs(double *indexfast, double *indexslow,@\\
 \mbox{}\verb@                         double *centerfast,double *centerslow){@\\
-\mbox{}\verb@        cbf_failnez(cbf_set_beam_center_fs(self, indexfast, indexslow, @\\
+\mbox{}\verb@        cbf_failnez(cbf_set_beam_center_fs(self, indexfast, indexslow,@\\
 \mbox{}\verb@                                       centerfast, centerslow));@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@""","set_beam_center_fs",@\\
@@ -3792,9 +3971,9 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_set_beam_center_sf":["""@\\
-\mbox{}\verb@    void set_beam_center_sf(double *indexslow, double *indexfast, @\\
+\mbox{}\verb@    void set_beam_center_sf(double *indexslow, double *indexfast,@\\
 \mbox{}\verb@                         double *centerslow,double *centerfast){@\\
-\mbox{}\verb@        cbf_failnez(cbf_set_beam_center_sf(self, indexslow, indexfast, @\\
+\mbox{}\verb@        cbf_failnez(cbf_set_beam_center_sf(self, indexslow, indexfast,@\\
 \mbox{}\verb@                                       centerslow, centerfast));@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@""","set_beam_center_sf",@\\
@@ -3802,9 +3981,9 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_set_reference_beam_center":["""@\\
-\mbox{}\verb@    void set_reference_beam_center(double *indexslow, double *indexfast, @\\
+\mbox{}\verb@    void set_reference_beam_center(double *indexslow, double *indexfast,@\\
 \mbox{}\verb@                         double *centerslow,double *centerfast){@\\
-\mbox{}\verb@        cbf_failnez(cbf_set_reference_beam_center(self, indexslow, indexfast, @\\
+\mbox{}\verb@        cbf_failnez(cbf_set_reference_beam_center(self, indexslow, indexfast,@\\
 \mbox{}\verb@                                       centerslow, centerfast));@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@""","set_reference_beam_center",@\\
@@ -3812,9 +3991,9 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_set_reference_beam_center_fs":["""@\\
-\mbox{}\verb@    void set_reference_beam_center_fs(double *indexfast, double *indexslow, @\\
+\mbox{}\verb@    void set_reference_beam_center_fs(double *indexfast, double *indexslow,@\\
 \mbox{}\verb@                         double *centerfast,double *centerslow){@\\
-\mbox{}\verb@        cbf_failnez(cbf_set_reference_beam_center_fs(self, indexfast, indexslow, @\\
+\mbox{}\verb@        cbf_failnez(cbf_set_reference_beam_center_fs(self, indexfast, indexslow,@\\
 \mbox{}\verb@                                       centerfast, centerslow));@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@""","set_reference_beam_center_fs",@\\
@@ -3822,9 +4001,9 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_set_reference_beam_center_sf":["""@\\
-\mbox{}\verb@    void set_reference_beam_center_sf(double *indexslow, double *indexfast, @\\
+\mbox{}\verb@    void set_reference_beam_center_sf(double *indexslow, double *indexfast,@\\
 \mbox{}\verb@                         double *centerslow,double *centerfast){@\\
-\mbox{}\verb@        cbf_failnez(cbf_set_reference_beam_center_sf(self, indexslow, indexfast, @\\
+\mbox{}\verb@        cbf_failnez(cbf_set_reference_beam_center_sf(self, indexslow, indexfast,@\\
 \mbox{}\verb@                                       centerslow, centerfast));@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@""","set_reference_beam_center_sf",@\\
@@ -3886,7 +4065,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@       // DO NOT CONSTRUCT WITHOUT A CBFHANDLE@\\
 \mbox{}\verb@       cbf_failnez(CBF_ARGUMENT);@\\
 \mbox{}\verb@       return NULL; /* Should never be executed */@\\
-\mbox{}\verb@       } @\\
+\mbox{}\verb@       }@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@    ~cbf_detector_struct(){ // Destructor@\\
 \mbox{}\verb@       cbf_failnez(cbf_free_detector(self));@\\
@@ -3897,13 +4076,13 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@"""@\\
 \mbox{}\verb@   def wrap(self,cfunc,prototype,args,docstring):@\\
 \mbox{}\verb@     if cfunc.find("cbf_free_detector")>-1:@\\
-\mbox{}\verb@        return @\\
+\mbox{}\verb@        return@\\
 \mbox{}\verb@     try:@\\
 \mbox{}\verb@        code, pyname, input, output = cbf_detector_specials[cfunc]@\\
 \mbox{}\verb@        self.code +=  docstringwrite(pyname,input,output,@\\
 \mbox{}\verb@                                     prototype,docstring)+ code@\\
 \mbox{}\verb@     except KeyError:@\\
-\mbox{}\verb@        print "TODO: Detector:",prototype@\\
+\mbox{}\verb@        print("TODO: Detector:",prototype)@\\
 \mbox{}\verb@   def get_code(self):@\\
 \mbox{}\verb@     return self.code+self.tail@\\
 \mbox{}\verb@@\\
@@ -3941,7 +4120,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@       // DO NOT CONSTRUCT WITHOUT A CBFHANDLE@\\
 \mbox{}\verb@       cbf_failnez(CBF_ARGUMENT);@\\
 \mbox{}\verb@       return NULL; /* Should never be executed */@\\
-\mbox{}\verb@       } @\\
+\mbox{}\verb@       }@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@    ~cbf_positioner_struct(){ // Destructor@\\
 \mbox{}\verb@       cbf_failnez(cbf_free_positioner(self));@\\
@@ -3952,16 +4131,16 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@"""@\\
 \mbox{}\verb@   def wrap(self,cfunc,prototype,args,docstring):@\\
 \mbox{}\verb@     if cfunc.find("cbf_free_positioner")>-1:@\\
-\mbox{}\verb@        return @\\
+\mbox{}\verb@        return@\\
 \mbox{}\verb@     try:@\\
 \mbox{}\verb@        code, pyname, input, output = cbf_positioner_specials[cfunc]@\\
 \mbox{}\verb@        self.code +=  docstringwrite(pyname,input,output,@\\
 \mbox{}\verb@                                     prototype,docstring)+ code@\\
 \mbox{}\verb@     except KeyError:@\\
-\mbox{}\verb@        print "TODO: Positioner:",prototype@\\
+\mbox{}\verb@        print("TODO: Positioner:",prototype)@\\
 \mbox{}\verb@   def get_code(self):@\\
 \mbox{}\verb@     return self.code+self.tail@\\
-\mbox{}\verb@     @\\
+\mbox{}\verb@@\\
 \mbox{}\verb@cbf_positioner_wrapper = cbfpositionerwrapper()@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
@@ -4043,9 +4222,36 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@  }@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@""","compute_reciprocal_cell",["double cell[6]"],@\\
-\mbox{}\verb@["Float astar", "Float bstar", "Float cstar", "Float alphastar", "Float betastar", "Float gammastar"] ]@\\
+\mbox{}\verb@["Float astar", "Float bstar", "Float cstar", "Float alphastar", "Float betastar", "Float gammastar"] ],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_airy_disk":["""@\\
+\mbox{}\verb@%apply double *OUTPUT {double *value};@\\
+\mbox{}\verb@%inline {@\\
+\mbox{}\verb@void airy_disk(double x, double y, double cenx, double ceny,@\\
+\mbox{}\verb@double volume, double fwhm, double *value) {@\\
+\mbox{}\verb@cbf_failnez(cbf_airy_disk(x,y,cenx,ceny,volume,fwhm,value));@\\
+\mbox{}\verb@}@\\
+\mbox{}\verb@}@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@""","airy_disk",["double x", "double y", "double cenx", "double ceny", "double volume", "double fwhm"],@\\
+\mbox{}\verb@["Float value"] ],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_airy_disk_volume":["""@\\
+\mbox{}\verb@%apply double *OUTPUT {double *volumeout};@\\
+\mbox{}\verb@%inline {@\\
+\mbox{}\verb@void airy_disk_volume(double xlo, double ylo, double xhi, double yhi,@\\
+\mbox{}\verb@double cenx, double ceny, double volumein, double fwhm, double * volumeout) {@\\
+\mbox{}\verb@cbf_failnez(cbf_airy_disk_volume(xlo,ylo,xhi,yhi,cenx,ceny,volumein,fwhm,volumeout));@\\
+\mbox{}\verb@}@\\
+\mbox{}\verb@}@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@""","airy_disk_volume",["double xlo", "double ylo", "double xhi", "double yhi", "double cenx", "double ceny", "double volumein", "double fwhm"],@\\
+\mbox{}\verb@["Float volumeout"] ]@\\
+\mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@}@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@class genericwrapper:@\\
@@ -4076,9 +4282,9 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@           not_found = 1@\\
 \mbox{}\verb@           # print "KeyError"@\\
 \mbox{}\verb@       except ValueError:@\\
-\mbox{}\verb@           print "problem in generic",cfunc@\\
+\mbox{}\verb@           print("problem in generic",cfunc)@\\
 \mbox{}\verb@           for item in cbfgeneric_specials[cfunc]:@\\
-\mbox{}\verb@              print "***",item@\\
+\mbox{}\verb@              print("***",item)@\\
 \mbox{}\verb@           raise@\\
 \mbox{}\verb@       if len(args)==1 and args[0].find("char")>-1 and \@\\
 \mbox{}\verb@                           args[0].find("**")>-1                :# return string@\\
@@ -4093,14 +4299,14 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@           code += "char* %s(void);"%(pyfunc)@\\
 \mbox{}\verb@           self.code=self.code+code@\\
 \mbox{}\verb@           return@\\
-\mbox{}\verb@           @\\
+\mbox{}\verb@@\\
 \mbox{}\verb@#       code+= "     void %s(void){\n"%(pyfunc)@\\
 \mbox{}\verb@#       code +="        cbf_failnez(CBF_NOTIMPLEMENTED);}\n"@\\
 \mbox{}\verb@#       self.code=self.code+code@\\
-\mbox{}\verb@       print "Have not implemented:"@\\
+\mbox{}\verb@       print("Have not implemented:")@\\
 \mbox{}\verb@       for s in [cfunc, pyfunc] + args:@\\
-\mbox{}\verb@           print "\t",s @\\
-\mbox{}\verb@       print@\\
+\mbox{}\verb@           print("\t",s)@\\
+\mbox{}\verb@       print()@\\
 \mbox{}\verb@       return@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
@@ -4108,14 +4314,14 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@def generate_wrappers(name_dict):@\\
-\mbox{}\verb@   names = name_dict.keys()@\\
-\mbox{}\verb@   for cname in names:@\\
+\mbox{}\verb@   names = list(name_dict.keys())@\\
+\mbox{}\verb@   for cname in sorted(names):@\\
 \mbox{}\verb@      prototype = name_dict[cname][0]@\\
 \mbox{}\verb@      docstring = name_dict[cname][1]@\\
 \mbox{}\verb@      # print "Generate wrappers: ", "::",cname,"::", prototype,"::", docstring@\\
 \mbox{}\verb@      # Check prototype begins with "int cbf_"@\\
 \mbox{}\verb@      if prototype.find("int cbf_")!=0:@\\
-\mbox{}\verb@         print "problem with:",prototype@\\
+\mbox{}\verb@         print("problem with:",prototype)@\\
 \mbox{}\verb@      # Get arguments from prototypes@\\
 \mbox{}\verb@      try:@\\
 \mbox{}\verb@         args = prototype.split("(")[1].split(")")[0].split(",")@\\
@@ -4155,11 +4361,17 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@open("cbfhandlewrappers.i","w").write(cbf_handle_wrapper.get_code())@\\
 \mbox{}\verb@open("cbfgenericwrappers.i","w").write(generic_wrapper.get_code())@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@print "End of output from make_pycbf.py"@\\
-\mbox{}\verb@print "\\end{verbatim}"@\\
+\mbox{}\verb@print("End of output from make_pycbf.py")@\\
+\mbox{}\verb@print("\\end{verbatim}")@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
-\vspace{-2ex}
+\vspace{-1.5ex}
+\footnotesize
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+
+\item{}
+\end{list}
+\vspace{4ex}
 \end{flushleft}
 \section{Building python extensions - the setup file}
 
@@ -4169,8 +4381,8 @@ pull in all of the library for now. We use the distutils approach.
 
 
 
-\begin{flushleft} \small \label{scrap9}
-\verb@"setup.py"@\nobreak\ {\footnotesize \NWtarget{nuweb62a}{62a} }$\equiv$
+\begin{flushleft} \small\label{scrap9}\raggedright\small
+\NWtarget{nuweb65a}{} \verb@"setup.py"@\nobreak\ {\footnotesize {65a}}$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
@@ -4192,15 +4404,21 @@ pull in all of the library for now. We use the distutils approach.
 \mbox{}\verb@setup(name="_pycbf",ext_modules=[e],)@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
-\vspace{-2ex}
+\vspace{-1.5ex}
+\footnotesize
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+
+\item{}
+\end{list}
+\vspace{4ex}
 \end{flushleft}
 \section{Building and testing the resulting package}
 
 Aim to build and test in one go (so that the source and the binary match!!)
 
 \begin{flushleft} \small
-\begin{minipage}{\linewidth} \label{scrap10}
-\verb@"win32.bat"@\nobreak\ {\footnotesize \NWtarget{nuweb62b}{62b} }$\equiv$
+\begin{minipage}{\linewidth}\label{scrap10}\raggedright\small
+\NWtarget{nuweb65b}{} \verb@"win32.bat"@\nobreak\ {\footnotesize {65b}}$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
@@ -4221,12 +4439,17 @@ Aim to build and test in one go (so that the source and the binary match!!)
 \mbox{}\verb@C:\python24\python makeflatascii.py pycbf_ascii_help.txt@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
-\vspace{-2ex}
-\end{minipage}\\[4ex]
+\vspace{-1.5ex}
+\footnotesize
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+
+\item{}
+\end{list}
+\end{minipage}\vspace{4ex}
 \end{flushleft}
 \begin{flushleft} \small
-\begin{minipage}{\linewidth} \label{scrap11}
-\verb@"linux.sh"@\nobreak\ {\footnotesize \NWtarget{nuweb63a}{63a} }$\equiv$
+\begin{minipage}{\linewidth}\label{scrap11}\raggedright\small
+\NWtarget{nuweb66a}{} \verb@"linux.sh"@\nobreak\ {\footnotesize {66a}}$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
@@ -4236,10 +4459,10 @@ Aim to build and test in one go (so that the source and the binary match!!)
 \mbox{}\verb@latex pycbf@\\
 \mbox{}\verb@dvipdfm pycbf@\\
 \mbox{}\verb@nuweb pycbf@\\
-\mbox{}\verb@lynx -dump CBFlib.html > CBFlib.txt@\\
-\mbox{}\verb@python make_pycbf.py @\\
+\mbox{}\verb@lynx -dump ../doc/CBFlib.html > CBFlib.txt@\\
+\mbox{}\verb@python make_pycbf.py@\\
 \mbox{}\verb@swig -python pycbf.i@\\
-\mbox{}\verb@python setup.py build @\\
+\mbox{}\verb@python setup.py build@\\
 \mbox{}\verb@rm _pycbf.so@\\
 \mbox{}\verb@cp build/lib.linux-i686-2.4/_pycbf.so .@\\
 \mbox{}\verb@python pycbf_test1.py@\\
@@ -4248,13 +4471,18 @@ Aim to build and test in one go (so that the source and the binary match!!)
 \mbox{}\verb@python makeflatascii.py pycbf_ascii_help.txt@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
-\vspace{-2ex}
-\end{minipage}\\[4ex]
+\vspace{-1.5ex}
+\footnotesize
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+
+\item{}
+\end{list}
+\end{minipage}\vspace{4ex}
 \end{flushleft}
 This still gives bold in the ascii (=sucks)
 
-\begin{flushleft} \small \label{scrap12}
-\verb@"makeflatascii.py"@\nobreak\ {\footnotesize \NWtarget{nuweb63b}{63b} }$\equiv$
+\begin{flushleft} \small\label{scrap12}\raggedright\small
+\NWtarget{nuweb66b}{} \verb@"makeflatascii.py"@\nobreak\ {\footnotesize {66b}}$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
@@ -4265,7 +4493,13 @@ This still gives bold in the ascii (=sucks)
 \mbox{}\verb@pydoc.help(pycbf)@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
-\vspace{-2ex}
+\vspace{-1.5ex}
+\footnotesize
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+
+\item{}
+\end{list}
+\vspace{4ex}
 \end{flushleft}
 \section{Debugging compiled extensions}
 
@@ -4346,78 +4580,85 @@ all of the writing parts.
 It appeared to work with the file img2cif\_packed.cif which is built
 when you build CBFlib, hence that file is hardwired in.
 
-\begin{flushleft} \small \label{scrap13}
-\verb@"pycbf_test1.py"@\nobreak\ {\footnotesize \NWtarget{nuweb64}{64} }$\equiv$
+\begin{flushleft} \small\label{scrap13}\raggedright\small
+\NWtarget{nuweb67}{} \verb@"pycbf_test1.py"@\nobreak\ {\footnotesize {67}}$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
+\mbox{}\verb@from __future__ import print_function@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@import pycbf@\\
 \mbox{}\verb@object = pycbf.cbf_handle_struct() # FIXME@\\
 \mbox{}\verb@object.read_file("../img2cif_packed.cif",pycbf.MSG_DIGEST)@\\
 \mbox{}\verb@object.rewind_datablock()@\\
-\mbox{}\verb@print "Found",object.count_datablocks(),"blocks"@\\
+\mbox{}\verb@print("Found",object.count_datablocks(),"blocks")@\\
 \mbox{}\verb@object.select_datablock(0)@\\
-\mbox{}\verb@print "Zeroth is named",object.datablock_name()@\\
+\mbox{}\verb@print("Zeroth is named",object.datablock_name())@\\
 \mbox{}\verb@object.rewind_category()@\\
 \mbox{}\verb@categories = object.count_categories()@\\
 \mbox{}\verb@for i in range(categories):@\\
-\mbox{}\verb@    print "Category:",i,@\\
+\mbox{}\verb@    print("Category:",i, end=' ')@\\
 \mbox{}\verb@    object.select_category(i)@\\
 \mbox{}\verb@    category_name = object.category_name()@\\
-\mbox{}\verb@    print "Name:",category_name,@\\
+\mbox{}\verb@    print("Name:",category_name, end=' ')@\\
 \mbox{}\verb@    rows=object.count_rows()@\\
-\mbox{}\verb@    print "Rows:",rows,@\\
+\mbox{}\verb@    print("Rows:",rows, end=' ')@\\
 \mbox{}\verb@    cols = object.count_columns()@\\
-\mbox{}\verb@    print "Cols:",cols@\\
+\mbox{}\verb@    print("Cols:",cols)@\\
 \mbox{}\verb@    loop=1@\\
 \mbox{}\verb@    object.rewind_column()@\\
 \mbox{}\verb@    while loop is not 0:@\\
 \mbox{}\verb@        column_name = object.column_name()@\\
-\mbox{}\verb@        print "column name \"",column_name,"\"",@\\
+\mbox{}\verb@        print("column name \"",column_name,"\"", end=' ')@\\
 \mbox{}\verb@        try:@\\
 \mbox{}\verb@           object.next_column()@\\
 \mbox{}\verb@        except:@\\
 \mbox{}\verb@           break@\\
-\mbox{}\verb@    print@\\
+\mbox{}\verb@    print()@\\
 \mbox{}\verb@    for j in range(rows):@\\
 \mbox{}\verb@        object.select_row(j)@\\
 \mbox{}\verb@        object.rewind_column()@\\
-\mbox{}\verb@        print "row:",j@\\
+\mbox{}\verb@        print("row:",j)@\\
 \mbox{}\verb@        for k in range(cols):@\\
 \mbox{}\verb@            name=object.column_name()@\\
-\mbox{}\verb@            print "col:",name,@\\
+\mbox{}\verb@            print("col:",name, end=' ')@\\
 \mbox{}\verb@            object.select_column(k)@\\
 \mbox{}\verb@            typeofvalue=object.get_typeofvalue()@\\
-\mbox{}\verb@            print "type:",typeofvalue@\\
+\mbox{}\verb@            print("type:",typeofvalue)@\\
 \mbox{}\verb@            if typeofvalue.find("bnry") > -1:@\\
-\mbox{}\verb@                print "Found the binary!!",@\\
+\mbox{}\verb@                print("Found the binary!!", end=' ')@\\
 \mbox{}\verb@                s=object.get_integerarray_as_string()@\\
-\mbox{}\verb@                print type(s)@\\
-\mbox{}\verb@                print dir(s)@\\
-\mbox{}\verb@                print len(s)@\\
+\mbox{}\verb@                print(type(s))@\\
+\mbox{}\verb@                print(dir(s))@\\
+\mbox{}\verb@                print(len(s))@\\
 \mbox{}\verb@                try:@\\
 \mbox{}\verb@                   import Numeric@\\
-\mbox{}\verb@                   d = Numeric.fromstring(s,Numeric.UInt32) @\\
+\mbox{}\verb@                   d = Numeric.fromstring(s,Numeric.UInt32)@\\
 \mbox{}\verb@                   # Hard wired Unsigned Int32@\\
-\mbox{}\verb@                   print d.shape@\\
-\mbox{}\verb@                   print d[0:10],d[d.shape[0]/2],d[-1]@\\
+\mbox{}\verb@                   print(d.shape)@\\
+\mbox{}\verb@                   print(d[0:10],d[d.shape[0]/2],d[-1])@\\
 \mbox{}\verb@                   d=Numeric.reshape(d,(2300,2300))@\\
 \mbox{}\verb@#                   from matplotlib import pylab@\\
 \mbox{}\verb@#                   pylab.imshow(d,vmin=0,vmax=1000)@\\
 \mbox{}\verb@#                   pylab.show()@\\
 \mbox{}\verb@                except ImportError:@\\
-\mbox{}\verb@                   print "You need to get Numeric and matplotlib to see the data"@\\
+\mbox{}\verb@                   print("You need to get Numeric and matplotlib to see the data")@\\
 \mbox{}\verb@            else:@\\
 \mbox{}\verb@                value=object.get_value()@\\
-\mbox{}\verb@                print "Val:",value,i@\\
-\mbox{}\verb@    print@\\
+\mbox{}\verb@                print("Val:",value,i)@\\
+\mbox{}\verb@    print()@\\
 \mbox{}\verb@del(object)@\\
 \mbox{}\verb@#@\\
-\mbox{}\verb@print dir()@\\
-\mbox{}\verb@#object.free_handle(handle) @\\
+\mbox{}\verb@print(dir())@\\
+\mbox{}\verb@#object.free_handle(handle)@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
-\vspace{-2ex}
+\vspace{-1.5ex}
+\footnotesize
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+
+\item{}
+\end{list}
+\vspace{4ex}
 \end{flushleft}
 \subsection{Try to test the goniometer and detector}
 
@@ -4429,31 +4670,42 @@ This test is clearly minimalistic for now - it only checks the objects
 for apparent existence of
 a single member function.
 
-\begin{flushleft} \small \label{scrap14}
-\verb@"pycbf_test2.py"@\nobreak\ {\footnotesize \NWtarget{nuweb65}{65} }$\equiv$
+\begin{flushleft} \small\label{scrap14}\raggedright\small
+\NWtarget{nuweb68}{} \verb@"pycbf_test2.py"@\nobreak\ {\footnotesize {68}}$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
+\mbox{}\verb@from __future__ import print_function@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@import pycbf@\\
 \mbox{}\verb@obj = pycbf.cbf_handle_struct()@\\
 \mbox{}\verb@obj.read_file("../adscconverted.cbf",0)@\\
 \mbox{}\verb@obj.select_datablock(0)@\\
 \mbox{}\verb@g = obj.construct_goniometer()@\\
-\mbox{}\verb@print "Rotation axis is",g.get_rotation_axis()@\\
+\mbox{}\verb@print("Rotation axis is",g.get_rotation_axis())@\\
 \mbox{}\verb@d = obj.construct_detector(0)@\\
-\mbox{}\verb@print "Beam center is",d.get_beam_center()@\\
+\mbox{}\verb@print("Beam center is",d.get_beam_center())@\\
+\mbox{}\verb@print("Detector slow axis is", d.get_detector_axis_slow())@\\
+\mbox{}\verb@print("Detector fast axis is", d.get_detector_axis_fast())@\\
+\mbox{}\verb@print("Detector axes (fast, slow) are", d.get_detector_axes_fs())@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
-\vspace{-2ex}
+\vspace{-1.5ex}
+\footnotesize
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+
+\item{}
+\end{list}
+\vspace{4ex}
 \end{flushleft}
 It appears to work - eventually. Surprising
 
 \subsection{Test cases for the generics}
 
-\begin{flushleft} \small \label{scrap15}
-\verb@"pycbf_test3.py"@\nobreak\ {\footnotesize \NWtarget{nuweb66a}{66a} }$\equiv$
+\begin{flushleft} \small\label{scrap15}\raggedright\small
+\NWtarget{nuweb69}{} \verb@"pycbf_test3.py"@\nobreak\ {\footnotesize {69}}$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
+\mbox{}\verb@from __future__ import print_function@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@import pycbf, unittest@\\
 \mbox{}\verb@class GenericTests(unittest.TestCase):@\\
@@ -4467,7 +4719,7 @@ It appears to work - eventually. Surprising
 \mbox{}\verb@                          'little_endian')@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@    def test_get_local_real_format(self):@\\
-\mbox{}\verb@        self.assertEqual( pycbf.get_local_real_format(), @\\
+\mbox{}\verb@        self.assertEqual( pycbf.get_local_real_format(),@\\
 \mbox{}\verb@                          'ieee 754-1985')@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@    def test_compute_cell_volume(self):@\\
@@ -4478,7 +4730,13 @@ It appears to work - eventually. Surprising
 \mbox{}\verb@@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
-\vspace{-2ex}
+\vspace{-1.5ex}
+\footnotesize
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+
+\item{}
+\end{list}
+\vspace{4ex}
 \end{flushleft}
 \section{Worked example 1 : xmas beamline + mar ccd detector at the ESRF}
 
@@ -4496,8 +4754,8 @@ the mar ccd header format.
 
 FIXME : byteswapping and ends???
 
-\begin{flushleft} \small \label{scrap16}
-\verb@"xmas/readmarheader.py"@\nobreak\ {\footnotesize \NWtarget{nuweb66b}{66b} }$\equiv$
+\begin{flushleft} \small\label{scrap16}\raggedright\small
+\NWtarget{nuweb70}{} \verb@"xmas/readmarheader.py"@\nobreak\ {\footnotesize {70}}$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@#!/usr/bin/env python@\\
@@ -4840,7 +5098,13 @@ FIXME : byteswapping and ends???
 \mbox{}\verb@@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
-\vspace{-2ex}
+\vspace{-1.5ex}
+\footnotesize
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+
+\item{}
+\end{list}
+\vspace{4ex}
 \end{flushleft}
 \subsection{Writing out cif files for fit2d/xmas}
 
@@ -4849,8 +5113,8 @@ some more infomation from the user and the create cif files.
 
 This relies on a "template" cif file to get it started (avoids me programming everything).
 
-\begin{flushleft} \small \label{scrap17}
-\verb@"xmas/xmasheaders.py"@\nobreak\ {\footnotesize \NWtarget{nuweb72}{72} }$\equiv$
+\begin{flushleft} \small\label{scrap17}\raggedright\small
+\NWtarget{nuweb75}{} \verb@"xmas/xmasheaders.py"@\nobreak\ {\footnotesize {75}}$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@#!/usr/bin/env python@\\
@@ -5112,15 +5376,21 @@ This relies on a "template" cif file to get it started (avoids me programming ev
 \mbox{}\verb@        obj.processfile(filename, outfile=fileout, UB=ub, distance=123.456)@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
-\vspace{-2ex}
+\vspace{-1.5ex}
+\footnotesize
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+
+\item{}
+\end{list}
+\vspace{4ex}
 \end{flushleft}
 \subsection{A template cif file for the xmas beamline}
 
 This was sort of copied and modified from an example file. It has NOT been checked.
 Hopefully the four circle geometry at least vaguely matches what is at the beamline.
 
-\begin{flushleft} \small \label{scrap18}
-\verb@"xmas/xmas_cif_template.cif"@\nobreak\ {\footnotesize \NWtarget{nuweb76}{76} }$\equiv$
+\begin{flushleft} \small\label{scrap18}\raggedright\small
+\NWtarget{nuweb79}{} \verb@"xmas/xmas_cif_template.cif"@\nobreak\ {\footnotesize {79}}$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
@@ -5345,6 +5615,12 @@ Hopefully the four circle geometry at least vaguely matches what is at the beaml
 \mbox{}\verb@ ARRAY1 "signed 32-bit integer" packed little_endian@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
-\vspace{-2ex}
+\vspace{-1.5ex}
+\footnotesize
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+
+\item{}
+\end{list}
+\vspace{4ex}
 \end{flushleft}
 \end{document}
