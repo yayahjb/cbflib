@@ -3448,8 +3448,8 @@ generic_wrapper = genericwrapper()
 
 
 def generate_wrappers(name_dict):
-   names = name_dict.keys()
-   for cname in names:
+   names = list(name_dict.keys())
+   for cname in sorted(names):
       prototype = name_dict[cname][0]
       docstring = name_dict[cname][1]
       # print "Generate wrappers: ", "::",cname,"::", prototype,"::", docstring
