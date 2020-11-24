@@ -1705,9 +1705,6 @@ int img_read_mar345 (img_handle img, const char *name)
 }
 
 
-int img_set_tags (img_handle img, int tags);
-
-
   /* Read a file */
 
 int img_read (img_handle img, const char *name)
