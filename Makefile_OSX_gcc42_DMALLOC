@@ -2,12 +2,12 @@
 ######################################################################
 #  Makefile - command file for make to create CBFlib                 #
 #                                                                    #
-# Version 0.9.7 28 June 2021                                          #
+# Version 0.9.6 19 May 2020                                          #
 #                                                                    #
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
 #                                                                    #
-# (C) Copyright 2006 - 2021 Herbert J. Bernstein                     #
+# (C) Copyright 2006 - 2020 Herbert J. Bernstein                     #
 #                                                                    #
 ######################################################################
 
@@ -251,7 +251,7 @@
 .DELETE_ON_ERROR:
 
 # Version string
-VERSION = 0.9.7
+VERSION = 0.9.6
 
 #
 # Directories
@@ -265,8 +265,7 @@ BIN      = $(ROOT)/bin
 SRC      = $(ROOT)/src
 INCLUDE  = $(ROOT)/include
 M4       = $(ROOT)/m4
-PY2CBF   = $(ROOT)/py2cbf
-PY3CBF   = $(ROOT)/pycbf
+PYCBF    = $(ROOT)/pycbf
 EXAMPLES = $(ROOT)/examples
 TEMPLATES= $(ROOT)/templates
 DECTRIS_EXAMPLES = $(EXAMPLES)/dectris_cbf_template_test
@@ -275,6 +274,7 @@ MINICBF_TEST = $(ROOT)/minicbf_test
 GRAPHICS = $(ROOT)/html_graphics
 DATADIRI  = $(ROOT)/../CBFlib_$(VERSION)_Data_Files_Input
 DATADIRO  = $(ROOT)/../CBFlib_$(VERSION)_Data_Files_Output
+DATADIRS  = $(ROOT)/../CBFlib_$(VERSION)_Data_Files_Output_Sigs_Only
 CBF_PREFIX  ?= $(HOME)
 
 #
@@ -291,18 +291,6 @@ CBFLIB_DONT_USE_LZ4?=no
 CBFLIB_DONT_USE_BSHUF?=no
 
 
-CBFLIB_DONT_USE_LOCAL_NUWEB ?= no
-ifeq ($(CBFLIB_DONT_USE_LOCAL_NUWEB),yes)
-NUWEB=nuweb
-NUWEB_DEP=
-NUWEB_DEP2=
-else
-NUWEB=$(BIN)/nuweb
-NUWEB_DEP=nuweb-1.60
-NUWEB_DEP2=$(BIN)/nuweb
-endif
-
-
 ifeq ($(CBFLIB_DONT_BUILD_HDF5),yes)
 CBFLIB_DONT_USE_LOCAL_HDF5=yes
 CBFLIB_DONT_USE_LZ4=yes
@@ -310,7 +298,6 @@ CBFLIB_DONT_USE_BSHUF=yes
 CBFLIB_DONT_USE_BLOSC=yes
 NOFORTRAN=yes
 endif
-
 
 CBFLIB_DONT_HAVE_FGETLN ?= yes
 ifeq ($(CBFLIB_DONT_HAVE_FGETLN),yes)
@@ -320,26 +307,15 @@ SRC_FGETLN =
 endif
 
 
-CBFLIB_DONT_USE_PY2CIFRW ?= no
-ifneq ($(CBFLIB_DONT_USE_PY2CIFRW),yes)
+CBFLIB_DONT_USE_PYCIFRW ?= no
+ifneq ($(CBFLIB_DONT_USE_PYCIFRW),yes)
 #
-# Definitions to get versions of python2 PyCifRW and PLY
+# Definitions to get versions of PyCifRW and PLY
 #
-PY2CIFRW ?= PyCifRW-4.1
-PY2PLY = ply-3.2
-PY2CIFRWFLAG = -DCBF_USE_PYCIFRW
-PY2CIFRW_PREFIX ?= $(HOME)/.local
-endif
-
-CBFLIB_DONT_USE_PY3CIFRW ?= no
-ifneq ($(CBFLIB_DONT_USE_PY3CIFRW),yes)
-#
-# Definitions to get versions of python3 PyCifRW and PLY
-#
-PY3CIFRW ?= PyCifRW-4.3_rev_19Jun21
-PY3PLY = ply-3.11
-PY3CIFRWFLAG = -DCBF_USE_PYCIFRW
-PY3CIFRW_PREFIX ?= $(HOME)/.local
+PYCIFRW ?= PyCifRW-4.1
+PLY = ply-3.2
+PYCIFRWFLAG = -DCBF_USE_PYCIFRW
+PYCIFRW_PREFIX ?= $(HOME)/.local
 endif
 
 #
@@ -356,20 +332,13 @@ TIFF_INSTALL = $(TIFF)_INSTALL
 
 ifneq ($(HDF5_PREFIX),) # already installed on system
 CBFLIB_DONT_USE_LOCAL_HDF5 = yes
-HDF5CFLAGS=-DH5_USE_110_API
 endif
 
 ifneq ($(CBFLIB_DONT_USE_LOCAL_HDF5),yes)
 HDF5_PREFIX ?= $(PWD)
-HDF5 ?= hdf5-1.12.0
-#HDF5 ?= hdf5-1.10.6
+HDF5 ?= hdf5-1.10.6
 #HDF5 = hdf5-1.8.18
 #HDF5 = hdf5-1.10.5
-ifeq ($(HDF5),hdf5-1.12.0)
-HDF5CFLAGS=-DH5_USE_110_API
-else
-HDF5CFLAGS=
-endif
 HDF5dep = $(HDF5)
 HDF5_INSTALL = $(HDF5)_INSTALL
 ifneq ($(MSYS2),yes)
@@ -426,7 +395,7 @@ ifneq ($(CBFLIB_DONT_USE_LZ4),yes)
 # Definitions to get a version of HDF5Plugin for LZ4
 #
 ifneq ($(MSYS2),yes)
-LZ4 ?= HDF5Plugin_5Jun21
+LZ4 ?= HDF5Plugin_14Aug20
 else
 LZ4 ?= HDF5-External-Filter-Plugins
 endif
@@ -477,8 +446,9 @@ endif
 #
 # Definition of python to use
 #
-PYTHON2	?= python2
-PYTHON3	?= python3
+#PYTHON = python
+PYTHON ?= python2
+
 
 #
 # Definitions to get a stable version of regex
@@ -586,6 +556,12 @@ PYSWIG = swig -python
 JSWIG = swig -java
 
 #
+# Program to generate LaTex and HTML program documentation
+#
+
+NUWEB = nuweb
+
+#
 # Compiler for Java
 #
 JAVAC = javac
@@ -639,23 +615,13 @@ MISCFLAG += -DUSE_HDF5
 endif
 
 #
-# PY2CBF definitions
+# PYCBF definitions
 #
-PY2CBFEXT = so
-PY2CBFBOPT =
-PY2CBFIOPT =
+PYCBFEXT = so
+PYCBFBOPT =
+PYCBFIOPT =
 SETUP_PY = setup.py
 INSTALLSETUP_PY = installsetup.py
-
-#
-# PY3CBF definitions
-#
-PY3CBFEXT = so
-PY3CBFBOPT =
-PY3CBFIOPT =
-SETUP_PY = setup.py
-INSTALLSETUP_PY = installsetup.py
-
 
 #
 # Set the compiler and flags
@@ -663,33 +629,29 @@ INSTALLSETUP_PY = installsetup.py
 
 #########################################################
 #
-#  Appropriate compiler definitions for default (Linux)
+#  Appropriate compiler definitions for MAC OS X
+#  with gcc 4.2 and DMALLOC
+#  Also change defintion of DOWNLOAD
 #
 #########################################################
 CC	= gcc
 C++	= g++
-ifneq ($(CBFDEBUG),)
-CFLAGS  = -g -O0 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing -DCBFDEBUG=1  $(HDF5CFLAGS)
-else
-CFLAGS  = -g -O3 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing  $(HDF5CFLAGS)
-endif
+CFLAGS  = -g -O2  -Wall -ansi -pedantic -DDMALLOC -DDMALLOC_FUNC_CHECK -I$(HOME)/include
 LDFLAGS =
 F90C = gfortran
-F90FLAGS = -g -fno-range-check -fallow-invalid-boz
-F90LDFLAGS = 
+F90FLAGS = -g -fno-range-check
+F90LDFLAGS = -bind_at_load
 SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(CBF_PREFIX)/lib
 JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
-ifeq ($(HDF5_PREFIX),)
-LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$(LIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
-RUNLDPREFIX = LD_LIBRARY_PATH=$(CBF_PREFIX)/LIB:$(LIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
-else
-LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$(HDF5_PREFIX)/lib:$(LIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
-RUNLDPREFIX = LD_LIBRARY_PATH=$(CBF_PREFIX)/LIB:$(HDF5_PREFIX)/lib:$(LIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
-endif
-EXTRALIBS = -lm
+LDPREFIX = DYLD_LIBRARY_PATH=$(SOLIB):$$DYLD_LIBRARY_PATH;export DYLD_LIBRARY_PATH;
+RUNLDPREFIX = DYLD_LIBRARY_PATH=$(CBF_PREFIX)/lib:$$DYLD_LIBRARY_PATH;export DYLD_LIBRARY_PATH;
+EXTRALIBS = -lm -L$(HOME)/lib -ldmalloc
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time
+# Default environment variable for dynamic library load path
+DLLVAR =  DYLD_LIBRARY_PATH
+DOWNLOAD = /sw/bin/wget -N
 
 ifeq ($(NOFORTRAN),yes)
 F90C =
@@ -701,24 +663,18 @@ endif
 DATAURLBASE	= http://downloads.sf.net/cbflib/
 DATAURLI	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Input.tar.gz
 DATAURLO	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Output.tar.gz
+DATAURLS	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Output_Sigs_Only.tar.gz
 
 #
 # URLs from which to retrieve needed external package snapshots
 #
-ifneq ($(CBFLIB_DONT_USE_PY2CIFRW),yes)
-PY2CIFRWURL    = http://downloads.sf.net/cbflib/$(PY2CIFRW).tar.gz
-PY2PLYURL      = http://www.dabeaz.com/ply/$(PY2PLY).tar.gz
-endif
-ifneq ($(CBFLIB_DONT_USE_PY3CIFRW),yes)
-PY3CIFRWURL     = http://downloads.sf.net/cbflib/$(PY3CIFRW).tar.gz
-PY3PLYURL       = http://downloads.sf.net/cbflib/$(PY3PLY).tar.gz
+ifneq ($(CBFLIB_DONT_USE_PYCIFRW),yes)
+PYCIFRWURL	= http://downloads.sf.net/cbflib/$(PYCIFRW).tar.gz
+PLYURL		= http://www.dabeaz.com/ply/$(PLY).tar.gz
 endif
 REGEX_URL	?= http://downloads.sf.net/cbflib/$(REGEX).tar.gz
 TIFF_URL	?= http://downloads.sf.net/cbflib/$(TIFF).tar.gz
 HDF5_URL	?= http://downloads.sf.net/cbflib/$(HDF5).tar.gz
-ifneq ($(CBFLIB_DONT_USE_LOCAL_NUWEB),yes)
-NUWEB_URL	?= http://downloads.sf.net/cbflib/$(NUWEB_DEP).tar.gz
-endif
 ifneq ($(MSYS2),yes)
 LZ4_URL		= http://downloads.sf.net/cbflib/$(LZ4).tar.gz
 else
@@ -735,11 +691,10 @@ INCLUDES = -I$(INCLUDE) -I$(SRC) $(HDF5include)
 #
 # runtime library path export commands
 #
-ifeq ($(HDF5_PREFIX),)
-RTLPEXPORTS = LD_LIBRARY_PATH=$(PWD)/solib:$(PWD)/lib;export LD_LIBRARY_PATH; DYLD_LIBRARY_PATH=$(PWD)/solib:$(PWD)/lib;export DYLD_LIBRARY_PATH; LD_RUN_PATH=$(PWD)/solib:$(PWD)/lib;export LD_RUN_PATH;
-else
-RTLPEXPORTS = LD_LIBRARY_PATH=$(PWD)/solib:$(PWD)/lib:$(HDF5_PREFIX)/lib;export LD_LIBRARY_PATH; DYLD_LIBRARY_PATH=$(PWD)/solib:$(PWD)/lib:$(HDF5_PREFIX)/lib;export DYLD_LIBRARY_PATH; LD_RUN_PATH=$(PWD)/solib:$(PWD)/lib:$(HDF5_PREFIX)/lib;export LD_RUN_PATH;
-endif
+RTLPEXPORTS = LD_LIBRARY_PATH=$(PWD)/solib:$(PWD)/lib;export LD_LIBRARY_PATH; \
+	DYLD_LIBRARY_PATH=$(PWD)/solib:$(PWD)/lib;export DYLD_LIBRARY_PATH; \
+	LD_RUN_PATH=$(PWD)/solib:$(PWD)/lib;export LD_RUN_PATH;
+
 
 ######################################################################
 #  You should not need to make modifications below this line		 #
@@ -823,15 +778,8 @@ SOURCE  += $(SRC)/cbf_hdf5.c \
 	$(SRC)/cbf_hdf5_filter.c
 endif
 
-ifneq ($(CBFLIB_DONT_USE_PY2CIFRW),yes)
-PY2SOURCE  = $(SRC)/drel_lex.py		   \
-	$(SRC)/drel_yacc.py		   \
-	$(SRC)/drelc.py \
-	$(SRC)/drel_prep.py
-endif
-
-ifneq ($(CBFLIB_DONT_USE_PY3CIFRW),yes)
-PY3SOURCE  = $(SRC)/drel_lex.py		   \
+ifneq ($(CBFLIB_DONT_USE_PYCIFRW),yes)
+PYSOURCE  = $(SRC)/drel_lex.py		   \
 	$(SRC)/drel_yacc.py		   \
 	$(SRC)/drelc.py \
 	$(SRC)/drel_prep.py
@@ -951,26 +899,6 @@ default:
 	@echo ' '
 	@echo '   $(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(PYCIFRWFLAG)'
 	@echo ' '
-	@echo ' If you have changed any of the nuweb .w input files, you will need'
-	@echo ' need nuweb installed, check that CBFLIB_DONT_USE_LOCAL_NUWEB,'
-	@echo ' and NUWEB are defined correctly :'
-	@echo ' '
-	@echo ' The current values are:'
-	@echo ' '
-	@echo '   CBFLIB_DONT_USE_LOCAL_NUWEB =  $(CBFLIB_DONT_USE_LOCAL_NUWEB)'
-	@echo '   NUWEB = $(NUWEB)'
-	@echo '   NUWEB_DEP = $(NUWEB_DEP)'
-	@echo '   NUWEB_DEP2 = $(NUWEB_DEP2)'
-	@echo ' '
-	@echo ' You will need either a system HDF5 1.12 or it to be installed here.'
-	@echo ' Check that CBFLIB_DONT_USE_LOCAL_HDF5 and HDF5 are defined correctly :'
-	@echo ' '
-	@echo ' The current values are:'
-	@echo ' '
-	@echo '   CBFLIB_DONT_USE_LOCAL_HDF5 = $(CBFLIB_DONT_USE_LOCAL_HDF5)'
-	@echo '   HDF5 = $(HDF5)'
-	@echo '   HDF5_PREFIX = $(HDF5_PREFIX)'
-	@echo ' '
 	@echo ' Before installing the CBF library and example programs, check'
 	@echo ' that the install directory is correct:'
 	@echo ' '
@@ -1002,10 +930,20 @@ default:
 	@echo ' The tests assume that several data files are in the directories' 
 	@echo ' $(DATADIRI) and $(DATADIRO)'
 	@echo ' '
+	@echo ' Alternatively tests can be run comparing MD5 signatures only by' 
+	@echo ' '
+	@echo '   make tests_sigs_only'
+	@echo ' '
+	@echo ' These signature only tests save space and download time by'
+	@echo ' assuming that input data files and the output signatures'
+	@echo ' are in the directories' 
+	@echo '  $(DATADIRI) and $(DATADIRS)'
+	@echo ' '
 	@echo ' These directory can be obtained from'
 	@echo ' '
 	@echo '   $(DATAURLI) '
 	@echo '   $(DATAURLO) '
+	@echo '   $(DATAURLS) '
 	@echo ' '
 	@echo ' To clean up the directories type:'
 	@echo ' '
@@ -1021,16 +959,10 @@ default:
 #
 # Compile the library and examples
 #
-ifneq ($(CBFLIB_DONT_USE_PY2CIFRW),yes)
-PY2CIFRWDEPS = $(PY2CIFRW) $(PY2PLY)
+ifneq ($(CBFLIB_DONT_USE_PYCIFRW),yes)
+PYCIFRWDEPS = $(PYCIFRW) $(PLY)
 else
-PY2CIFRWDEPS =
-endif
-
-ifneq ($(CBFLIB_DONT_USE_PY3CIFRW),yes)
-PY3CIFRWDEPS = $(PY3CIFRW) $(PY3PLY)
-else
-PY3CIFRWDEPS =
+PYCIFRWDEPS =
 endif
 
 ifneq ($(CBFLIB_DONT_USE_LZ4),yes)
@@ -1050,8 +982,7 @@ all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) \
 	$(HDF5)               \
 	$(LZ4DEPS)            \
 	$(BSHUFDEPS)          \
-	$(PY2CIFRWDEPS)       \
-	$(PY3CIFRWDEPS)       \
+	$(PYCIFRWDEPS)        \
 	symlinksdone          \
 	$(REGEXDEP)           \
 	$(LIB)                \
@@ -1093,101 +1024,92 @@ shared:	$(SOLIB)/libcbf.so $(SOLIB)/libfcb.so $(SOLIB)/libimg.so
 
 javawrapper: shared $(JCBF) $(JCBF)/cbflib-$(VERSION).jar $(SOLIB)/libcbf_wrap.so
 
-ifneq ($(CBFLIB_DONT_USE_PY2CIFRW),yes)
-PY2CIFRWDEF = -Dcbf_use_py2cifrw=yes
+ifneq ($(CBFLIB_DONT_USE_PYCIFRW),yes)
+PYCIFRWDEF = -Dcbf_use_pycifrw=yes
 else
-PY2CIFRWDEF =
-endif
-
-ifneq ($(CBFLIB_DONT_USE_PY3CIFRW),yes)
-PY3CIFRWDEF = -Dcbf_use_py3cifrw=yes
-else
-PY3CIFRWDEF =
+PYCIFRWDEF =
 endif
 
 
-Makefiles: \
-	Makefile	 \
-	Makefile_LINUX	 \
-	Makefile_OSX	 \
-	Makefile_MINGW	 \
-	Makefile_MSYS2
-
-Makefiles_pre_0.9.7: \
-	Makefile_LINUX_64	\
+Makefiles: Makefile			 \
+	Makefile_LINUX		   \
+	Makefile_LINUX_64		\
 	Makefile_LINUX_gcc42     \
 	Makefile_LINUX_DMALLOC   \
 	Makefile_LINUX_gcc42_DMALLOC \
+	Makefile_OSX			 \
 	Makefile_OSX_gcc42       \
 	Makefile_OSX_gcc42_DMALLOC   \
-	Makefile_AIX		 \
+	Makefile_AIX			 \
+	Makefile_MINGW		   \
+	Makefile_MSYS2         \
 	Makefile_IRIX_gcc
 
 
 Makefile_LINUX: $(M4)/Makefile.m4
 	-cp Makefile_LINUX Makefile_LINUX_old
-	m4 -P $(PY2CIFRWDEF) $(PY3CIFRWDEF) -Dcbf_system=LINUX $(M4)/Makefile.m4 > Makefile_LINUX.tmp
+	m4 -P $(PYCIFRWDEF) -Dcbf_system=LINUX $(M4)/Makefile.m4 > Makefile_LINUX.tmp
 	mv Makefile_LINUX.tmp Makefile_LINUX
 
 Makefile_LINUX_DMALLOC: $(M4)/Makefile.m4
 	-cp Makefile_LINUX Makefile_LINUX_old
-	m4 -P $(PY2CIFRWDEF) $(PY3CIFRWDEF) $(PY3CIFRWDEF) -Dcbf_system=LINUX_DMALLOC $(M4)/Makefile.m4 > Makefile_LINUX_DMALLOC.tmp
+	m4 -P $(PYCIFRWDEF) -Dcbf_system=LINUX_DMALLOC $(M4)/Makefile.m4 > Makefile_LINUX_DMALLOC.tmp
 	mv Makefile_LINUX_DMALLOC.tmp Makefile_LINUX_DMALLOC
 
 Makefile_LINUX_64: $(M4)/Makefile.m4
 	-cp Makefile_LINUX_64 Makefile_LINUX_64_old
-	m4 -P $(PY2CIFRWDEF) $(PY3CIFRWDEF) -Dcbf_system=LINUX_64 $(M4)/Makefile.m4 > Makefile_LINUX_64.tmp
+	m4 -P $(PYCIFRWDEF) -Dcbf_system=LINUX_64 $(M4)/Makefile.m4 > Makefile_LINUX_64.tmp
 	mv Makefile_LINUX_64.tmp Makefile_LINUX_64
 
 Makefile_LINUX_gcc42: $(M4)/Makefile.m4
 	-cp Makefile_LINUX_gcc42 Makefile_LINUX_gcc42_old
-	m4 -P $(PY2CIFRWDEF) $(PY3CIFRWDEF) -Dcbf_system=LINUX_gcc42 $(M4)/Makefile.m4 > Makefile_LINUX_gcc42.tmp 
+	m4 -P $(PYCIFRWDEF) -Dcbf_system=LINUX_gcc42 $(M4)/Makefile.m4 > Makefile_LINUX_gcc42.tmp 
 	mv Makefile_LINUX_gcc42.tmp Makefile_LINUX_gcc42
 
 Makefile_LINUX_gcc42_DMALLOC: $(M4)/Makefile.m4
 	-cp Makefile_LINUX_gcc42 Makefile_LINUX_gcc42_old
-	m4 -P $(PY2CIFRWDEF) $(PY3CIFRWDEF) -Dcbf_system=LINUX_gcc42_DMALLOC $(M4)/Makefile.m4 > Makefile_LINUX_gcc42_DMALLOC.tmp
+	m4 -P $(PYCIFRWDEF) -Dcbf_system=LINUX_gcc42_DMALLOC $(M4)/Makefile.m4 > Makefile_LINUX_gcc42_DMALLOC.tmp
 	mv Makefile_LINUX_gcc42_DMALLOC.tmp Makefile_LINUX_gcc42_DMALLOC
 
 Makefile_OSX: $(M4)/Makefile.m4
 	-cp Makefile_OSX Makefile_OSX_old
-	m4 -P $(PY2CIFRWDEF) $(PY3CIFRWDEF) -Dcbf_system=OSX $(M4)/Makefile.m4 > Makefile_OSX.tmp
+	m4 -P $(PYCIFRWDEF) -Dcbf_system=OSX $(M4)/Makefile.m4 > Makefile_OSX.tmp
 	mv Makefile_OSX.tmp Makefile_OSX
 
 Makefile_OSX_gcc42: $(M4)/Makefile.m4
 	-cp Makefile_OSX_gcc42 Makefile_OSX_gcc42_old
-	m4 -P $(PY2CIFRWDEF) $(PY3CIFRWDEF) -Dcbf_system=OSX_gcc42 $(M4)/Makefile.m4 > Makefile_OSX_gcc42.tmp
+	m4 -P $(PYCIFRWDEF) -Dcbf_system=OSX_gcc42 $(M4)/Makefile.m4 > Makefile_OSX_gcc42.tmp
 	mv Makefile_OSX_gcc42.tmp Makefile_OSX_gcc42
 
 Makefile_OSX_gcc42_DMALLOC: $(M4)/Makefile.m4
 	-cp Makefile_OSX_gcc42 Makefile_OSX_gcc42_old
-	m4 -P $(PY2CIFRWDEF) $(PY3CIFRWDEF) -Dcbf_system=OSX_gcc42_DMALLOC $(M4)/Makefile.m4 > Makefile_OSX_gcc42_DMALLOC.tmp
+	m4 -P $(PYCIFRWDEF) -Dcbf_system=OSX_gcc42_DMALLOC $(M4)/Makefile.m4 > Makefile_OSX_gcc42_DMALLOC.tmp
 	mv Makefile_OSX_gcc42_DMALLOC.tmp Makefile_OSX_gcc42_DMALLOC
 
 Makefile_AIX: $(M4)/Makefile.m4
 	-cp Makefile_AIX Makefile_AIX_old
-	m4 -P $(PY2CIFRWDEF) $(PY3CIFRWDEF) -Dcbf_system=AIX $(M4)/Makefile.m4 > Makefile_AIX.tmp
+	m4 -P $(PYCIFRWDEF) -Dcbf_system=AIX $(M4)/Makefile.m4 > Makefile_AIX.tmp
 	mv Makefile_AIX.tmp Makefile_AIX
 
 Makefile_MINGW: $(M4)/Makefile.m4
 	-cp Makefile_MINGW Makefile_MINGW_old
-	m4 -P $(PY2CIFRWDEF) $(PY3CIFRWDEF) -Dcbf_system=MINGW $(M4)/Makefile.m4 > Makefile_MINGW.tmp
+	m4 -P $(PYCIFRWDEF) -Dcbf_system=MINGW $(M4)/Makefile.m4 > Makefile_MINGW.tmp
 	mv Makefile_MINGW.tmp Makefile_MINGW
 
 Makefile_MSYS2: $(M4)/Makefile.m4
 	-cp Makefile_MSYS2 Makefile_MSYS2_old
-	m4 -P $(PY2CIFRWDEF) $(PY3CIFRWDEF) -Dcbf_system=MSYS2 $(M4)/Makefile.m4 > Makefile_MSYS2.tmp
+	m4 -P $(PYCIFRWDEF) -Dcbf_system=MSYS2 $(M4)/Makefile.m4 > Makefile_MSYS2.tmp
 	mv Makefile_MSYS2.tmp Makefile_MSYS2
 
 Makefile_IRIX_gcc: $(M4)/Makefile.m4
 	-cp Makefile_IRIX_gcc Makefile_IRIX_gcc_old
-	m4 -P $(PY2CIFRWDEF) $(PY3CIFRWDEF) -Dcbf_system=IRIX_gcc $(M4)/Makefile.m4 > Makefile_IRIX_gcc.tmp
+	m4 -P $(PYCIFRWDEF) -Dcbf_system=IRIX_gcc $(M4)/Makefile.m4 > Makefile_IRIX_gcc.tmp
 	mv Makefile_IRIX_gcc.tmp Makefile_IRIX_gcc
 
 	
 Makefile: $(M4)/Makefile.m4
 	-cp Makefile Makefile_old
-	m4 -P $(PY2CIFRWDEF) $(PY3CIFRWDEF) -Dcbf_system=default $(M4)/Makefile.m4 > Makefile.tmp
+	m4 -P $(PYCIFRWDEF) -Dcbf_system=default $(M4)/Makefile.m4 > Makefile.tmp
 	mv Makefile.tmp Makefile 
 
 cbflib.ini: $(M4)/Makefile.m4
@@ -1203,12 +1125,12 @@ symlinksdone:
 	./.symlinks $(SLFLAGS)
 	touch symlinksdone
 
-install:  baseinstall py2cbfinstall py3cbfinstall  \
+install:  baseinstall pycbfinstall \
 	$(HDF5_INSTALL) \
 	$(TIFF_INSTALL) \
 	$(REGEX_INSTALL)
 
-userinstall: baseinstall py2cbfuserinstall py3cbfuserinstall \
+userinstall: baseinstall pycbfuserinstall \
 	$(HDF5_INSTALL) \
 	$(TIFF_INSTALL) \
 	$(REGEX_INSTALL)
@@ -1340,95 +1262,37 @@ endif
 	chmod 755 $(CBF_PREFIX)/bin/batch_convert_minicbf.sh
 	chmod 644 $(CBF_PREFIX)/include/cbflib/*.h
 	
-ifneq ($(CBFLIB_DONT_USE_PY2CIFRW),yes)
+ifneq ($(CBFLIB_DONT_USE_PYCIFRW),yes)
 #
-# Py2CifRW
+# PyCifRW
 #
-build_py2cifrw:	$(M4)/Makefile.m4
-	touch build_py2cifrw
-$(PY2CIFRW):	build_py2cifrw
-	-rm -rf $(PY2CIFRW)
-	-rm -rf $(PY2CIFRW).tar.gz
-	$(DOWNLOAD) $(PY2CIFRWURL)
-	tar -xvf $(PY2CIFRW).tar.gz
-	-rm $(PY2CIFRW).tar.gz
-	(cd $(PY2CIFRW); \
-        PYTHONPATH=$(PY2CIFRW_PREFIX)/lib/python:$(PY2CIFRW_PREFIX)/lib64/python; export PYTHONPATH; \
-	mkdir -p $(PY2CIFRW_PREFIX)/lib/python/site-packages; \
-	mkdir -p $(PY2CIFRW_PREFIX)/lib64/python/site-packages; \
-	$(PYTHON2) setup.py install --prefix= --home=$(PY2CIFRW_PREFIX) )
+build_pycifrw:	$(M4)/Makefile.m4
+	touch build_pycifrw
+$(PYCIFRW):	build_pycifrw
+	-rm -rf $(PYCIFRW)
+	-rm -rf $(PYCIFRW).tar.gz
+	$(DOWNLOAD) $(PYCIFRWURL)
+	tar -xvf $(PYCIFRW).tar.gz
+	-rm $(PYCIFRW).tar.gz
+	(cd $(PYCIFRW); PYTHONPATH=$(PYCIFRW_PREFIX)/lib/python; export PYTHONPATH; \
+	mkdir -p $(PYCIFRW_PREFIX)/lib/python/site-packages; \
+	$(PYTHON) setup.py install --home=$(PYCIFRW_PREFIX) )
 
 #
-# PY2PLY
+# PLY
 #
-build_py2ply:	$(M4)/Makefile.m4
-	touch build_py2ply
-$(PY2PLY):	build_py2ply
-	-rm -rf $(PY2PLY)
-	-rm -rf $(PY2PLY).tar.gz
-	$(DOWNLOAD) $(PY2PLYURL)
-	tar -xvf $(PY2PLY).tar.gz
-	-rm $(PY2PLY).tar.gz
-	(cd $(PY2PLY); \
-	PYTHONPATH=$(PY2CIFRW_PREFIX)/lib/python:$(PY2CIFRW_PREFIX)/lib64/python; export PYTHONPATH; \
-	mkdir -p $(PY2CIFRW_PREFIX)/lib/python/site-packages; \
-	mkdir -p $(PY2CIFRW_PREFIX)/lib64/python/site-packages; \
-	$(PYTHON2) setup.py install --prefix= --home=$(PY2CIFRW_PREFIX) )
+build_ply:	$(M4)/Makefile.m4
+	touch build_ply
+$(PLY):	build_ply
+	-rm -rf $(PLY)
+	-rm -rf $(PLY).tar.gz
+	$(DOWNLOAD) $(PLYURL)
+	tar -xvf $(PLY).tar.gz
+	-rm $(PLY).tar.gz
+	(cd $(PLY); PYTHONPATH=$(PYCIFRW_PREFIX)/lib/python; export PYTHONPATH; \
+	mkdir -p $(PYCIFRW_PREFIX)/lib/python/site-packages; \
+	$(PYTHON) setup.py install --home=$(PYCIFRW_PREFIX) )
 endif
-
-ifneq ($(CBFLIB_DONT_USE_PY3CIFRW),yes)
-#
-# Py3CifRW
-#
-build_py3cifrw: $(M4)/Makefile.m4
-	touch build_py3cifrw
-$(PY3CIFRW):    build_py3cifrw
-	-rm -rf $(PY3CIFRW)
-	-rm -rf $(PY3CIFRW).tar.gz
-	$(DOWNLOAD) $(PY3CIFRWURL)
-	tar -xvf $(PY3CIFRW).tar.gz
-	-rm $(PY3CIFRW).tar.gz
-	(cd $(PY3CIFRW); \
-	PYTHONPATH=$(PY3CIFRW_PREFIX)/lib/python:$(PY3CIFRW_PREFIX)/lib64/python; export PYTHONPATH; \
-	mkdir -p $(PY3CIFRW_PREFIX)/lib/python/site-packages; \
-	mkdir -p $(PY3CIFRW_PREFIX)/lib64/python/site-packages; \
-	$(PYTHON3) setup.py install --prefix= --home=$(PY3CIFRW_PREFIX) )
-
-#
-# PY3PLY
-#
-build_py3ply:   $(M4)/Makefile.m4
-	touch build_py3ply
-$(PY3PLY):      build_py3ply
-	-rm -rf $(PY3PLY)
-	-rm -rf $(PY3PLY).tar.gz
-	$(DOWNLOAD) $(PY3PLYURL)
-	tar -xvf $(PY3PLY).tar.gz
-	-rm $(PY3PLY).tar.gz
-	(cd $(PY3PLY); \
-	PYTHONPATH=$(PY3CIFRW_PREFIX)/lib/python:$(PY3CIFRW_PREFIX)/lib64/python; export PYTHONPATH; \
-	mkdir -p $(PY3CIFRW_PREFIX)/lib/python/site-packages; \
-	mkdir -p $(PY3CIFRW_PREFIX)/lib64/python/site-packages; \
-	$(PYTHON3) setup.py install --prefix= --home=$(PY3CIFRW_PREFIX) )
-endif
-
-
-#
-# NUWEB
-#
-ifneq ($(NUWEB_DEP),'')
-$(NUWEB_DEP):
-	-rm -rf $(NUWEB_DEP)
-	-rm -rf $(NUWEB_DEP).tar.gz
-	$(DOWNLOAD) $(NUWEB_URL)
-	tar -xvf $(NUWEB_DEP).tar.gz
-	touch $(NUWEB_DEP)
-	rm $(NUWEB_DEP).tar.gz
-
-$(NUWEB_DEP2): $(NUWEB_DEP)
-	(cd $(NUWEB_DEP); make nuweb; cp nuweb $(NUWEB_DEP2))
-endif
-
 
 #
 # REGEX
@@ -1529,7 +1393,7 @@ ifneq ($(MSYS2),yes)
 	tar -xvf $(LZ4).tar.gz
 	-rm $(LZ4).tar.gz
 	(cp $(LZ4include)/lz4.h $(INCLUDE); \
-	$(CC) $(CFLAGS) $(SOWCFLAGS) $(INCLUDES) $(WARNINGS) -c $(LZ4src)/lz4.c -o lz4.o; \
+	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(LZ4src)/lz4.c -o lz4.o; \
 	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(LZ4src)/h5zlz4.c -o h5zlz4.o; \
 	$(CC) -shared lz4.o h5zlz4.o -o $(SOLIB)/libh5zlz4.so; \
 	rm lz4.o h5zlz4.o)
@@ -1726,147 +1590,53 @@ endif
 #
 # Python bindings
 #
-
-$(PY2CBF)/make_pycbf.py: $(NUWEB_DEP) $(NUWEB_DEP2) $(PY2CBF)/make_pycbf.w
-	(cd $(PY2CBF); $(NUWEB) make_pycbf.w)
-
-$(PY2CBF)/pycbf.i: $(NUWEB_DEP) $(NUWEB_DEP2) $(PY2CBF)/pycbf_i.w
-	(cd $(PY2CBF); $(NUWEB) pycbf_i.w)
-
-$(PY2CBF)/py2setup_py.m4   \
-$(PY2CBF)/win32.bat        \
-$(PY2CBF)/linux.sh         \
-$(PY2CBF)/makeflatascii.py \
-$(PY2CBF)/pycbf_test1.py   \
-$(PY2CBF)/pycbf_test2.py   \
-$(PY2CBF)/pycbf_test3.py   \
-$(PY2CBF)/pycbf_test4.py   \
-$(PY2CBF)/pycbf_testfelaxes.py  \
-$(PY2CBF)/xmas/readmarheader.py \
-$(PY2CBF)/xmas/xmasheaders.py   \
-$(PY2CBF)/xmas/xmas_cif_template.cif : $(NUWEB_DEP) $(NUWEB_DEP2) $(PY2CBF)/pycbf.w
-	(cd $(PY2CBF); $(NUWEB) pycbf.w )
-	touch $(PY2CBF)/py2setup_py.m4
- 
-$(PY2CBF)/_py2cbf.$(PY2CBFEXT):	$(PY2CBF)  shared \
-	$(PY2CBF)/py2setup.py                    \
-	$(PY2CBF)/pycbf.i		         \
-	$(PY2CBF)/cbfhandlewrappers.i            \
-	$(PY2CBF)/cbfdetectorwrappers.i          \
-	$(PY2CBF)/cbfgenericwrappers.i           \
-	$(PY2CBF)/cbfgoniometerwrappers.i
+$(PYCBF)/_pycbf.$(PYCBFEXT): $(PYCBF)  shared \
+	$(PYCBF)/$(SETUP_PY)     \
+	$(PYCBF)/pycbf.i		 \
+	$(PYCBF)/cbfhandlewrappers.i   \
+	$(PYCBF)/cbfdetectorwrappers.i \
+	$(PYCBF)/cbfgenericwrappers.i  \
+	$(PYCBF)/cbfgoniometerwrappers.i
 	-cp $(SOLIB)/*.so $(LIB)
-	(cd $(PY2CBF); $(PYTHON2) py2setup.py build $(PY2CBFBOPT); cp build/lib*/_py2cbf*.$(PY2CBFEXT) .) 
+	(cd $(PYCBF); $(PYTHON) $(SETUP_PY) build $(PYCBFBOPT); cp build/lib*/_pycbf.$(PYCBFEXT) .) 
 
-$(PY2CBF)/py2cbfinstall: $(PY2CBF)/pycbf.py
-	(cd $(PY2CBF); $(PYTHON2) $(INSTALLSETUP_PY) install $(PY2CBFIOPT) --prefix=$(CBF_PREFIX))
+$(PYCBF)/pycbfinstall:
+	(cd $(PYCBF); $(PYTHON) $(INSTALLSETUP_PY) install $(PYCBFIOPT) --prefix=$(CBF_PREFIX))
 
-$(PY2CBF)/py2cbfuserinstall: $(PY2CBF)/pycbf.py
-	(cd $(PY2CBF); $(PYTHON2) $(INSTALLSETUP_PY) install $(PY2CBFIOPT) --user)
+$(PYCBF)/pycbfuserinstall:
+	(cd $(PYCBF); $(PYTHON) $(INSTALLSETUP_PY) install $(PYCBFIOPT) --user)
 
-$(PY2CBF)/py2setup.py: $(PY2CBF)/py2setup_py.m4
+$(PYCBF)/setup.py: $(M4)/setup_py.m4
 	(m4 -P -Dregexlib=$(REGEX_LIB) -Dregexlib2=$(REGEX_LIB2) \
 	   -Dregexlibdir=$(REGEX_LIBDIR) -Dhdf5_prefix=$(HDF5_PREFIX) \
-	   $(PY2CBF)/py2setup_py.m4 > $@)
+	   $(M4)/setup_py.m4 > $@)
 
-$(PY2CBF)/py2setup_MINGW.py: $(PY2CBF)/setup_py.m4
+$(PYCBF)/setup_MINGW.py: m4/setup_py.m4
 	   (m4 -P -Dregexlib=$(REGEX_LIB) -Dregexlib2=$(REGEX_LIB2) \
 	   -Dregexlibdir=$(REGEX_LIBDIR) -Dhdf5_prefix=$(HDF5_PREFIX) \
-	   $(PY2CBF)/py2setup_py.m4 > $@)
+	   $(M4)/setup_py.m4 > $@)
 
-$(LIB)/_py2cbf.$(PY2CBFEXT): $(PY2CBF)/_py2cbf.$(PY2CBFEXT)
+$(LIB)/_pycbf.$(PYCBFEXT): $(PYCBF)/_pycbf.$(PYCBFEXT)
 	mkdir -p $(LIB)
-	cp $(PY2CBF)/_py2cbf.$(PY2CBFEXT) $(LIB)/_py2cbf.$(PY2CBFEXT)
+	cp $(PYCBF)/_pycbf.$(PYCBFEXT) $(LIB)/_pycbf.$(PYCBFEXT)
 	
-$(PY2CBF)/pycbf.pdf: $(NUWEB_DEP) $(NUWEB_DEP2) $(PY2CBF)/pycbf.w
-	(cd $(PY2CBF); \
+$(PYCBF)/pycbf.pdf: $(PYCBF)/pycbf.w
+	(cd $(PYCBF); \
 	$(NUWEB) pycbf; \
 	latex pycbf; \
 	$(NUWEB) pycbf; \
 	latex pycbf; \
 	dvipdfm pycbf )
 	
-$(PY2CBF)/CBFlib.txt: $(DOC)/CBFlib.html
-	links -dump $(DOC)/CBFlib.html > $(PY2CBF)/CBFlib.txt
+$(PYCBF)/CBFlib.txt: $(DOC)/CBFlib.html
+	links -dump $(DOC)/CBFlib.html > $(PYCBF)/CBFlib.txt
 
-$(PY2CBF)/pycbf.py:	$(PY2CBF)/pycbf.pdf $(PY2CBF)/cbfdetectorwrappers.i \
-			$(PY2CBF)/cbfgenericwrappers.i                   \
-			$(PY2CBF)/cbfgoniometerwrappers.i                \
-			$(PY2CBF)/CBFlib.txt $(PY2CBF)/make_pycbf.py 
-	(cd $(PY2CBF);  $(PYTHON2) make_pycbf.py; $(PYSWIG) -module py2cbf pycbf.i;     \
-		$(PYTHON2) py2setup.py build; mv pycbf.py rawpycbf.py;   \
-		cat rawpycbf.py | sed "s/ _pycbf/ _py2cbf/" > pycbf.py )
+$(PYCBF)/cbfhandlewrappers.i   \
+$(PYCBF)/cbfdetectorwrappers.i \
+$(PYCBF)/cbfgenericwrappers.i  \
+$(PYCBF)/cbfgoniometerwrappers.i:  $(PYCBF)/CBFlib.txt $(PYCBF)/make_pycbf.py
+	(cd $(PYCBF);  $(PYTHON) make_pycbf.py; $(PYSWIG) pycbf.i; $(PYTHON) setup.py build)
 
-$(PY3CBF)/make_pycbf.py: $(NUWEB_DEP) $(NUWEB_DEP2) $(PY3CBF)/make_pycbf.w
-	(cd $(PY3CBF); $(NUWEB) make_pycbf.w)
-
-$(PY3CBF)/pycbf.i: $(NUWEB_DEP) $(NUWEB_DEP2) $(PY3CBF)/pycbf_i.w
-	(cd $(PY3CBF); $(NUWEB) pycbf_i.w)
-
-$(PY3CBF)/py3setup_py.m4   \
-$(PY3CBF)/win32.bat        \
-$(PY3CBF)/linux.sh         \
-$(PY3CBF)/makeflatascii.py \
-$(PY3CBF)/pycbf_test1.py   \
-$(PY3CBF)/pycbf_test2.py   \
-$(PY3CBF)/pycbf_test3.py   \
-$(PY3CBF)/pycbf_test4.py   \
-$(PY3CBF)/pycbf_testfelaxes.py  \
-$(PY3CBF)/xmas/readmarheader.py \
-$(PY3CBF)/xmas/xmasheaders.py   \
-$(PY3CBF)/xmas/xmas_cif_template.cif: $(NUWEB_DEP) $(NUWEB_DEP2) $(PY3CBF)/pycbf.w
-	(cd $(PY3CBF); $(NUWEB) pycbf.w )
-	touch $(PY3CBF)/py3setup_py.m4
-
-
-$(PY3CBF)/_pycbf.$(PY3CBFEXT):	$(PY3CBF)  shared \
-	$(PY3CBF)/py3setup.py                    \
-	$(PY3CBF)/pycbf.i		         \
-	$(PY3CBF)/cbfhandlewrappers.i            \
-	$(PY3CBF)/cbfdetectorwrappers.i          \
-	$(PY3CBF)/cbfgenericwrappers.i           \
-	$(PY3CBF)/cbfgoniometerwrappers.i
-	-cp $(SOLIB)/*.so $(LIB)
-	(cd $(PY3CBF); $(PYTHON3) py3setup.py build $(PY3CBFBOPT); cp build/lib*/_pycbf*.$(PY3CBFEXT) .) 
-
-$(PY3CBF)/py3cbfinstall: $(PY3CBF)/pycbf.py
-	(cd $(PY3CBF); $(PYTHON3) $(INSTALLSETUP_PY) install $(PY3CBFIOPT) --prefix=$(CBF_PREFIX))
-
-$(PY3CBF)/py3cbfuserinstall: $(PY3CBF)/pycbf.py
-	(cd $(PY3CBF); $(PYTHON3) $(INSTALLSETUP_PY) install $(PY3CBFIOPT) --user)
-
-$(PY3CBF)/py3setup.py: $(PY3CBF)/py3setup_py.m4
-	(m4 -P -Dregexlib=$(REGEX_LIB) -Dregexlib2=$(REGEX_LIB2) \
-	   -Dregexlibdir=$(REGEX_LIBDIR) -Dhdf5_prefix=$(HDF5_PREFIX) \
-	   $(PY3CBF)/py3setup_py.m4 > $@)
-
-$(PY3CBF)/py3setup_MINGW.py: $(PY3CBF)/py3setup_py.m4
-	   (m4 -P -Dregexlib=$(REGEX_LIB) -Dregexlib2=$(REGEX_LIB2) \
-	   -Dregexlibdir=$(REGEX_LIBDIR) -Dhdf5_prefix=$(HDF5_PREFIX) \
-	   $(PY3CBF)/py3setup_py.m4 > $@)
-
-$(LIB)/_pycbf.$(PY3CBFEXT): $(PY3CBF)/_pycbf.$(PY3CBFEXT)
-	mkdir -p $(LIB)
-	cp $(PY3CBF)/_pycbf.$(PY3CBFEXT) $(LIB)/_pycbf.$(PY3CBFEXT)
-	
-$(PY3CBF)/pycbf.pdf: $(NUWEB_DEP) $(NUWEB_DEP2) $(PY3CBF)/pycbf.w
-	(cd $(PY3CBF); \
-	$(NUWEB) pycbf; \
-	latex pycbf; \
-	$(NUWEB) pycbf; \
-	latex pycbf; \
-	dvipdfm pycbf )
-	
-$(PY3CBF)/CBFlib.txt: $(DOC)/CBFlib.html
-	links -dump $(DOC)/CBFlib.html > $(PY3CBF)/CBFlib.txt
-
-$(PY3CBF)/pycbf.py:	$(PY3CBF)/pycbf.pdf $(PY3CBF)/cbfdetectorwrappers.i \
-			$(PY3CBF)/cbfgenericwrappers.i                   \
-			$(PY3CBF)/cbfgoniometerwrappers.i                \
-			$(PY3CBF)/CBFlib.txt $(PY3CBF)/make_pycbf.py 
-	(cd $(PY3CBF);  $(PYTHON3) make_pycbf.py; $(PYSWIG) pycbf.i;     \
-		$(PYTHON3) py3setup.py build; mv pycbf.py rawpycbf.py;   \
-		echo "# coding=utf-8" | cat - rawpycbf.py > pycbf.py)
 
 #
 # Java bindings
@@ -2081,7 +1851,7 @@ $(BIN)/sequence_match: $(LIB)/libcbf.a $(EXAMPLES)/sequence_match.c $(LIB)/libim
 #
 # tiff2cbf example program
 #
-$(BIN)/tiff2cbf: $(LIB)/libcbf.a $(EXAMPLES)/tiff2cbf.c $(EXAMPLES)/tif_sprint.c \
+$(BIN)/tiff2cbf: $(LIB)/libcbf.a $(EXAMPLES)/tiff2cbf.c \
 	$(GOPTLIB)	$(GOPTINC) $(TIFF)
 	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
@@ -2227,6 +1997,13 @@ $(DATADIRO):	$(M4)/Makefile.m4
 	touch $(DATADIRO)
 	-(cd ..; rm CBFlib_$(VERSION)_Data_Files_Output.tar.gz)
 
+$(DATADIRS):	$(M4)/Makefile.m4
+	(cd ..; $(DOWNLOAD) $(DATAURLS))
+	(cd ..; tar -zxvf CBFlib_$(VERSION)_Data_Files_Output_Sigs_Only.tar.gz)
+	touch $(DATADIRS)
+	-(cd ..; rm CBFlib_$(VERSION)_Data_Files_Output_Sigs_Only.tar.gz)
+
+
 # Input Data Files 
 
 TESTINPUT_BASIC =  example.mar2300
@@ -2276,48 +2053,31 @@ TESTOUTPUT =  adscconverted_flat_orig.cbf \
 	adscconverted_orig.cbf converted_flat_orig.cbf converted_orig.cbf \
 	insulin_pilatus6mconverted_orig.cbf.h5.cbf \
 	insulin_pilatus6mconverted_orig.cbf.h5 \
-	insulin_pilatus6mconverted_orig.cbf \
 	insulin_pilatus6mconverted_v2_orig.cbf \
 	mb_LP_1_001_orig.cbf testcell_orig.prt \
 	test_xds_bin_testflatout_orig.out \
 	test_xds_bin_testflatpackedout_orig.out test_fcb_read_testflatout_orig.out \
 	test_fcb_read_testflatpackedout_orig.out \
 	XRD1621_orig.cbf XRD1621_I4encbC100_orig.cbf \
-	minicbf_orig.h5 \
-	pycbf_test1_orig.out \
-	pycbf_test2_orig.out \
-	pycbf_test3_orig.out \
-	pycbf_test4_orig.out \
-	fel_test1_orig.out \
-	fel_test2_orig.out \
-	fel_test3_orig.out
+	minicbf_orig.h5
 NEWTESTOUTPUT = adscconverted_flat.cbf \
 	adscconverted.cbf converted_flat.cbf converted.cbf \
 	insulin_pilatus6mconverted.cbf \
 	insulin_pilatus6mconverted.cbf.h5 \
 	insulin_pilatus6mconverted.cbf.h5.cbf \
-	insulin_pilatus6mconverted_orig.cbf \
 	insulin_pilatus6mconverted_v2.cbf \
 	mb_LP_1_001.cbf testcell.prt \
 	test_xds_bin_testflatout.out \
 	test_xds_bin_testflatpackedout.out test_fcb_read_testflatout.out \
 	test_fcb_read_testflatpackedout.out \
 	XRD1621.cbf XRD1621_I4encbC100.cbf \
-	$(MINICBF_TEST)/minicbf.h5 \
-	pycbf_test1.out \
-	pycbf_test2.out \
-	pycbf_test3.out \
-	pycbf_test4.out \
-	fel_test1.out \
-	fel_test2.out \
-	fel_test3.out
+	$(MINICBF_TEST)/minicbf.h5
 DATADIRO_OUTPUT =  $(DATADIRO)/adscconverted_flat_orig.cbf \
 	$(DATADIRO)/adscconverted_orig.cbf \
 	$(DATADIRO)/converted_flat_orig.cbf \
 	$(DATADIRO)/converted_orig.cbf \
 	$(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5.cbf \
 	$(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5 \
-	$(DATADIRO)/insulin_pilatus6mconverted_orig.cbf \
 	$(DATADIRO)/insulin_pilatus6mconverted_v2_orig.cbf \
 	$(DATADIRO)/mb_LP_1_001_orig.cbf \
 	$(DATADIRO)/testcell_orig.prt \
@@ -2334,7 +2094,6 @@ DATADIRO_OUTPUT_SIGNATURES =  $(DATADIRO)/adscconverted_flat_orig.cbf$(SEXT) \
 	$(DATADIRO)/converted_orig.cbf$(SEXT) \
 	$(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5.cbf$(SEXT) \
 	$(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5$(SEXT) \
-	$(DATADIRO)/insulin_pilatus6mconverted_orig.cbf$(SEXT) \
 	$(DATADIRO)/insulin_pilatus6mconverted_v2_orig.cbf$(SEXT) \
 	$(DATADIRO)/mb_LP_1_001_orig.cbf$(SEXT) \
 	$(DATADIRO)/testcell_orig.prt$(SEXT) \
@@ -2354,7 +2113,6 @@ TESTOUTPUTSIGS = adscconverted_flat_orig.cbf$(SEXT) \
 	adscconverted_orig.cbf$(SEXT) converted_flat_orig.cbf$(SEXT) converted_orig.cbf$(SEXT) \
 	insulin_pilatus6mconverted_orig.cbf.h5$(SEXT) \
 	insulin_pilatus6mconverted_orig.cbf.h5.cbf$(SEXT) \
-	insulin_pilatus6mconverted_orig.cbf$(SEXT) \
 	insulin_pilatus6mconverted_v2_orig.cbf$(SEXT) \
 	mb_LP_1_001_orig.cbf$(SEXT) testcell_orig.prt$(SEXT) \
 	test_xds_bin_testflatout_orig.out$(SEXT) \
@@ -2362,21 +2120,13 @@ TESTOUTPUTSIGS = adscconverted_flat_orig.cbf$(SEXT) \
 	test_fcb_read_testflatpackedout_orig.out$(SEXT) \
 	XRD1621_orig.cbf$(SEXT) \
 	XRD1621_I4encbC100_orig.cbf$(SEXT) \
-	minicbf_orig.h5$(SEXT) \
-	pycbf_test1_orig.out$(SEXT) \
-	pycbf_test2_orig.out$(SEXT) \
-	pycbf_test3_orig.out$(SEXT) \
-	pycbf_test4_orig.out$(SEXT) \
-	fel_test1_orig.out$(SEXT) \
-	fel_test2_orig.out$(SEXT) \
-	fel_test3_orig.out$(SEXT)
+	minicbf_orig.h5$(SEXT)
 DATADIRS_OUTPUT_SIGNATURES =  $(DATADIRS)/adscconverted_flat_orig.cbf$(SEXT) \
 	$(DATADIRS)/adscconverted_orig.cbf$(SEXT) \
 	$(DATADIRS)/converted_flat_orig.cbf$(SEXT) \
 	$(DATADIRS)/converted_orig.cbf$(SEXT) \
 	$(DATADIRS)/insulin_pilatus6mconverted_orig.cbf.h5$(SEXT) \
 	$(DATADIRS)/insulin_pilatus6mconverted_orig.cbf.h5.cbf$(SEXT) \
-	$(DATADIRS)/insulin_pilatus6mconverted_orig.cbf$(SEXT) \
 	$(DATADIRS)/insulin_pilatus6mconverted_v2_orig.cbf$(SEXT) \
 	$(DATADIRS)/mb_LP_1_001_orig.cbf$(SEXT) \
 	$(DATADIRS)/testcell_orig.prt$(SEXT) \
@@ -2386,14 +2136,7 @@ DATADIRS_OUTPUT_SIGNATURES =  $(DATADIRS)/adscconverted_flat_orig.cbf$(SEXT) \
 	$(DATADIRS)/test_fcb_read_testflatpackedout_orig.out$(SEXT) \
 	$(DATADIRS)/XRD1621_orig.cbf$(SEXT) \
 	$(DATADIRS)/XRD1621_I4encbC100_orig.cbf$(SEXT) \
-	$(DATADIRS)/minicbf_orig.h5$(SEXT) \
-	$(DATADIRS)/pycbf_test1_orig.out$(SEXT) \
-	$(DATADIRS)/pycbf_test2_orig.out$(SEXT) \
-	$(DATADIRS)/pycbf_test3_orig.out$(SEXT) \
-	$(DATADIRS)/pycbf_test4_orig.out$(SEXT) \
-	$(DATADIRS)/fel_test1_orig.out$(SEXT) \
-	$(DATADIRS)/fel_test2_orig.out$(SEXT) \
-	$(DATADIRS)/fel_test3_orig.out$(SEXT)
+	$(DATADIRS)/minicbf_orig.h5$(SEXT)
 
 # Fetch Input Data Files 
 
@@ -2415,13 +2158,20 @@ $(TESTOUTPUT):	$(DATADIRO) $(DATADIRO_OUTPUT) $(DATADIRO_OUTPUT_SIGNATURES)
 	cp $(DATADIRO)/$@$(SEXT) $@$(SEXT)
 	-$(SIGNATURE) < $@ | $(DIFF) - $@$(SEXT)
 
+# Fetch Output Data File Signatures
+
+$(TESTOUTPUTSIGS):	$(DATADIRS) $(DATADIRS_OUTPUT_SIGNATURES)
+	cp $(DATADIRS)/$@ $@
+
+
 
 #
 # Tests
 #
 
 
-tests:			all $(LIB) $(BIN) symlinksdone basic extra dectristests py2cbftests py3cbftests
+tests:			all $(LIB) $(BIN) symlinksdone basic extra dectristests pycbftests
+tests_sigs_only:	$(LIB) $(BIN) symlinksdone basic extra_sigs_only
 restore_output:		$(NEWTESTOUTPUT) $(DATADIRO) $(MINICBF_TEST)/minicbf.h5
 	$(SIGNATURE) < adscconverted_flat.cbf > $(DATADIRO)/adscconverted_flat_orig.cbf$(SEXT)
 	$(SIGNATURE) < adscconverted.cbf > $(DATADIRO)/adscconverted_orig.cbf$(SEXT)
@@ -2439,13 +2189,6 @@ restore_output:		$(NEWTESTOUTPUT) $(DATADIRO) $(MINICBF_TEST)/minicbf.h5
 	$(SIGNATURE) < XRD1621.cbf > $(DATADIRO)/XRD1621_orig.cbf$(SEXT)
 	$(SIGNATURE) < XRD1621_I4encbC100.cbf > $(DATADIRO)/XRD1621_I4encbC100_orig.cbf$(SEXT)
 	$(SIGNATURE) < $(MINICBF_TEST)/minicbf.h5  > $(DATADIRO)/minicbf_orig.h5$(SEXT)
-	$(SIGNATURE) < $(PY2CBF)/pycbf_test1.out  > $(DATADIRO)/pycbf_test1_orig.out$(SEXT)
-	$(SIGNATURE) < $(PY2CBF)/pycbf_test2.out  > $(DATADIRO)/pycbf_test2_orig.out$(SEXT)
-	$(SIGNATURE) < $(PY2CBF)/pycbf_test3.out  > $(DATADIRO)/pycbf_test3_orig.out$(SEXT)
-	$(SIGNATURE) < $(PY2CBF)/pycbf_test4.out  > $(DATADIRO)/pycbf_test4_orig.out$(SEXT)
-	$(SIGNATURE) < $(PY2CBF)/fel_test1.out  > $(DATADIRO)/fel_test1_orig.out$(SEXT)
-	$(SIGNATURE) < $(PY2CBF)/fel_test2.out  > $(DATADIRO)/fel_test2_orig.out$(SEXT)
-	$(SIGNATURE) < $(PY2CBF)/fel_test3.out  > $(DATADIRO)/fel_test3_orig.out$(SEXT)
 	cp adscconverted_flat.cbf $(DATADIRO)/adscconverted_flat_orig.cbf$
 	cp adscconverted.cbf $(DATADIRO)/adscconverted_orig.cbf
 	cp converted_flat.cbf $(DATADIRO)/converted_flat_orig.cbf
@@ -2462,15 +2205,25 @@ restore_output:		$(NEWTESTOUTPUT) $(DATADIRO) $(MINICBF_TEST)/minicbf.h5
 	cp XRD1621.cbf $(DATADIRO)/XRD1621_orig.cbf
 	cp XRD1621_I4encbC100.cbf $(DATADIRO)/XRD1621_I4encbC100_orig.cbf
 	cp $(MINICBF_TEST)/minicbf.h5 $(DATADIRO)/minicbf_orig.h5
-	cp $(PY2CBF)/pycbf_test1.out $(DATADIRO)/pycbf_test1_orig.out
-	cp $(PY2CBF)/pycbf_test2.out $(DATADIRO)/pycbf_test2_orig.out
-	cp $(PY2CBF)/pycbf_test3.out $(DATADIRO)/pycbf_test3_orig.out
-	cp $(PY2CBF)/pycbf_test4.out $(DATADIRO)/pycbf_test4_orig.out
-	cp $(PY2CBF)/fel_test1.out $(DATADIRO)/fel_test1_orig.out
-	cp $(PY2CBF)/fel_test2.out $(DATADIRO)/fel_test2_orig.out
-	cp $(PY2CBF)/fel_test3.out $(DATADIRO)/fel_test3_orig.out
 
-restore_signatures:	restore_output
+restore_sigs_only:	$(NEWTESTOUTPUT) $(DATADIRS)
+	$(SIGNATURE) < adscconverted_flat.cbf > $(DATADIRS)/adscconverted_flat_orig.cbf$(SEXT)
+	$(SIGNATURE) < adscconverted.cbf > $(DATADIRS)/adscconverted_orig.cbf$(SEXT)
+	$(SIGNATURE) < converted_flat.cbf > $(DATADIRS)/converted_flat_orig.cbf$(SEXT)
+	$(SIGNATURE) < converted.cbf > $(DATADIRS)/converted_orig.cbf$(SEXT)
+	$(SIGNATURE) < insulin_pilatus6mconverted.cbf.h5 > $(DATADIRS)/insulin_pilatus6mconverted_orig.cbf.h5$(SEXT)
+	$(SIGNATURE) < insulin_pilatus6mconverted.cbf.h5.cbf > $(DATADIRS)/insulin_pilatus6mconverted_orig.cbf.h5.cbf$(SEXT)
+	$(SIGNATURE) < insulin_pilatus6mconverted_v2.cbf > $(DATADIRS)/insulin_pilatus6mconverted_v2_orig.cbf$(SEXT)
+	$(SIGNATURE) < mb_LP_1_001.cbf$ > $(DATADIRS)/mb_LP_1_001_orig.cbf$(SEXT)
+	$(SIGNATURE) < testcell.prt > $(DATADIRS)/testcell_orig.prt$(SEXT)
+	$(SIGNATURE) < test_xds_bin_testflatout.out > $(DATADIRS)/test_xds_bin_testflatout_orig.out$(SEXT)
+	$(SIGNATURE) < test_xds_bin_testflatpackedout.out > $(DATADIRS)/test_xds_bin_testflatpackedout_orig.out$(SEXT)
+	$(SIGNATURE) < test_fcb_read_testflatout.out > $(DATADIRS)/test_fcb_read_testflatout_orig.out$(SEXT)
+	$(SIGNATURE) < test_fcb_read_testflatpackedout.out > $(DATADIRS)/test_fcb_read_testflatpackedout_orig.out$(SEXT)
+	$(SIGNATURE) < XRD1621.cbf > $(DATADIRS)/XRD1621_orig.cbf$(SEXT)
+	$(SIGNATURE) < XRD1621_I4encbC100.cbf > $(DATADIRS)/XRD1621_I4encbC100_orig.cbf$(SEXT)
+	$(SIGNATURE) < $(MINICBF_TEST)/minicbf.h5 > $(DATADIRS)/minicbf_orig.h5$(SEXT)
+restore_signatures:	restore_output restore_sigs_only
 	
 #
 # Basic Tests
@@ -2490,12 +2243,9 @@ basic:	$(BIN)/makecbf $(BIN)/img2cif $(BIN)/cif2cbf $(TESTINPUT_BASIC)
 	img2cif_canonical.cif cif2cbf_packed.cbf
 	$(LDPREFIX)  $(BIN)/cif2cbf -e none -c canonical \
 	img2cif_packed.cif cif2cbf_canonical.cbf
-	-grep -av "X-Binary-Size-Third-Dimension: 1" cif2cbf_packed.cbf | diff -a - makecbf.cbf
-	#-cmp cif2cbf_packed.cbf    makecbf.cbf
-	-grep -av "X-Binary-Size-Third-Dimension: 1" cif2cbf_packed.cbf | diff -a - img2cif_packed.cbf
-	#-cmp cif2cbf_packed.cbf    img2cif_packed.cbf
-	-grep -av "X-Binary-Size-Third-Dimension: 1" cif2cbf_canonical.cbf | diff -a - img2cif_canonical.cbf
-	#-cmp cif2cbf_canonical.cbf img2cif_canonical.cbf
+	-cmp cif2cbf_packed.cbf    makecbf.cbf
+	-cmp cif2cbf_packed.cbf    img2cif_packed.cbf
+	-cmp cif2cbf_canonical.cbf img2cif_canonical.cbf
 
 
 #
@@ -2534,27 +2284,21 @@ endif
 	makecbf.cbf cif2cbf_ehcn.cif
 	$(LDPREFIX)  $(TIME) $(BIN)/cif2cbf -e none -c flatpacked \
 	cif2cbf_ehcn.cif cif2cbf_encp.cbf; rm cif2cbf_ehcn.cif
-	-grep -av "X-Binary-Size-Third-Dimension: 1" cif2cbf_encp.cbf | diff -a - makecbf.cbf
+	-cmp makecbf.cbf cif2cbf_encp.cbf
 	$(LDPREFIX)  $(TIME) $(BIN)/cif2cbf -i 9ins.cif -o 9ins.cbf
-	-cat 9ins.cif |sed "1,1s/10/11/" | sed "2,2s/0.9.5/0.9.7/" | diff -a - 9ins.cbf
-	#-cmp 9ins.cif 9ins.cbf
+	-cmp 9ins.cif 9ins.cbf
 	$(LDPREFIX)  $(TIME) $(BIN)/convert_image -p $(TEMPLATES)/template_mar345_2300x2300.cbf -F example.mar2300 converted_flat.cbf
-	-cat converted_flat_orig.cbf | sed "2,2s/0.9.6/0.9.7/" | diff -a - converted_flat.cbf
-	#-cmp converted_flat.cbf converted_flat_orig.cbf
+	-cmp converted_flat.cbf converted_flat_orig.cbf
 	$(LDPREFIX)  $(TIME) $(BIN)/convert_image -p $(TEMPLATES)/template_mar345_2300x2300.cbf example.mar2300 converted.cbf
-	-cat converted_orig.cbf | sed "2,2s/0.9.6/0.9.7/" | diff -a - converted.cbf
-	#-cmp converted.cbf converted_orig.cbf
+	-cmp converted.cbf converted_orig.cbf
 	-$(LDPREFIX)  $(TIME) $(BIN)/testcell < testcell.dat > testcell.prt
 	-cmp testcell.prt testcell_orig.prt
 	$(LDPREFIX)  $(TIME) $(BIN)/convert_image -p $(TEMPLATES)/template_adscquantum315_3072x3072.cbf -F -d adscquantum315 mb_LP_1_001.img adscconverted_flat.cbf
-	-cat adscconverted_flat_orig.cbf | sed "2,2s/0.9.6/0.9.7/" | diff -a - adscconverted_flat.cbf
-	#-cmp adscconverted_flat.cbf adscconverted_flat_orig.cbf
+	-cmp adscconverted_flat.cbf adscconverted_flat_orig.cbf
 	$(LDPREFIX)  $(TIME) $(BIN)/convert_image -p $(TEMPLATES)/template_adscquantum315_3072x3072.cbf -d adscquantum315 mb_LP_1_001.img adscconverted.cbf
-	-cat adscconverted_orig.cbf | sed "2,2s/0.9.6/0.9.7/" | diff -a - adscconverted.cbf
-	#-cmp adscconverted.cbf adscconverted_orig.cbf
+	-cmp adscconverted.cbf adscconverted_orig.cbf
 	$(LDPREFIX)  $(TIME) $(BIN)/adscimg2cbf --no_pad  --cbf_packed,flat mb_LP_1_001.img
-	-cat mb_LP_1_001_orig.cbf | sed "2,2s/0.9.6/0.9.7/" | diff -a - mb_LP_1_001.cbf
-	#-cmp mb_LP_1_001.cbf mb_LP_1_001_orig.cbf
+	-cmp mb_LP_1_001.cbf mb_LP_1_001_orig.cbf
 ifneq ($(CLEANTESTS),)
 	mv mb_LP_1_001.cbf nmb_LP_1_001.cbf
 else
@@ -2567,17 +2311,12 @@ ifneq ($(CLEANTESTS),)
 	rm nmb_LP_1_001.img
 endif
 	$(LDPREFIX)  $(TIME) $(BIN)/convert_minicbf -p $(TEMPLATES)/template_pilatus6m_2463x2527.cbf -d pilatus6m -v 1 insulin_pilatus6m.cbf insulin_pilatus6mconverted.cbf
-	-cat insulin_pilatus6mconverted_orig.cbf | sed "1,1s/1.7.6/1.7.11/" | sed "2,2s/0.9.3/0.9.7/" | diff -a - insulin_pilatus6mconverted.cbf
-	#-cmp insulin_pilatus6mconverted.cbf insulin_pilatus6mconverted_orig.cbf
+	-cmp insulin_pilatus6mconverted.cbf insulin_pilatus6mconverted_rev_orig.cbf
 	-$(LDPREFIX)  $(TIME) $(BIN)/convert_minicbf -p $(TEMPLATES)/template_pilatus6m_2463x2527.cbf -d pilatus6m insulin_pilatus6m.cbf insulin_pilatus6mconverted_v2.cbf
-	-cat insulin_pilatus6mconverted_v2_orig.cbf | sed "2,2s/0.9.6/0.9.7/" | diff -a - insulin_pilatus6mconverted_v2.cbf
-	#-cmp insulin_pilatus6mconverted_v2.cbf insulin_pilatus6mconverted_v2_orig.cbf
+	-cmp insulin_pilatus6mconverted_v2.cbf insulin_pilatus6mconverted_v2_orig.cbf
 	(CBF_CONVERT_MINICBF_PATH=$(BIN); export CBF_CONVERT_MINICBF_PATH; \
 	     $(LDPREFIX) $(EXAMPLES)/batch_convert_minicbf.sh "." "minicbf_test" \
 	    "X4_lots_M1S4_1_*.cbf"  $(TEMPLATES)/template_X4_lots_M1S4.cbf)
-#
-#       Starting with insulin_pilatus6mconverted.cbf, create hdf5 files using opaque, encI, encp, encb, encc, encz
-#
 	-$(LDPREFIX)  (HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
 	$(TIME) $(BIN)/cif2cbf -5 w -O $(HDF5REGISTER) -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconverted.cbf.h5)
 	-$(LDPREFIX)  (HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
@@ -2590,9 +2329,10 @@ endif
 	$(TIME) $(BIN)/cif2cbf -5 w $(HDF5REGISTER) -en -cc -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconverted_encc.cbf.h5)
 	-$(LDPREFIX)  (HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
 	$(TIME) $(BIN)/cif2cbf -5 w $(HDF5REGISTER) -en -cz -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconverted_encz.cbf.h5)
-#
-#       check the default  as hdf5 dumps
-#
+	-$(LDPREFIX)  (HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
+	$(TIME) $(BIN)/cif2cbf -5 w $(HDF5REGISTER) -en -cl -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconverted_encl.cbf.h5)
+	-$(LDPREFIX)  (HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
+	$(TIME) $(BIN)/cif2cbf -5 w $(HDF5REGISTER) -en -c2 -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconverted_enc2.cbf.h5)
 	-$(LDPREFIX)  (HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
 	$(H5DUMP) insulin_pilatus6mconverted_orig.cbf.h5 | $(ALLBUTONE) > insulin_pilatus6mconverted_orig.cbf.h5.dump)
 	-$(LDPREFIX)  (HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
@@ -2600,26 +2340,41 @@ endif
 	-$(DIFF) insulin_pilatus6mconverted_orig.cbf.h5.dump insulin_pilatus6mconverted.cbf.h5.dump
 	-rm -f insulin_pilatus6mconverted_orig.cbf.h5.dump
 	-rm -f insulin_pilatus6mconverted.cbf.h5.dump
-#
-#       Convert each of the non-opaque h5 files to encI cbfs and compare them
-#
-	-$(LDPREFIX)  (HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; rm -f insulin_pilatus6mconverted_encI.cbf.h5.cbf; \
-	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cI -i insulin_pilatus6mconverted_encI.cbf.h5 -o insulin_pilatus6mconverted_encI.cbf.h5.cbf;)
-	cp insulin_pilatus6mconverted_encI.cbf.h5.cbf insulin_pilatus6mconverted.cbf.h5.cbf
-	-$(DIFF) -a insulin_pilatus6mconverted_encI.cbf.h5.cbf insulin_pilatus6mconverted.cbf.h5.cbf;
-	-$(LDPREFIX)  (HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; rm -f insulin_pilatus6mconverted_encI.cbf.h5.cbf; \
-	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cI -i insulin_pilatus6mconverted_encp.cbf.h5 -o insulin_pilatus6mconverted_encI.cbf.h5.cbf;)
-	-$(DIFF) -a insulin_pilatus6mconverted_encI.cbf.h5.cbf insulin_pilatus6mconverted.cbf.h5.cbf;
-	-$(LDPREFIX)  (HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; rm -f insulin_pilatus6mconverted_encI.cbf.h5.cbf; \
-	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cI -i insulin_pilatus6mconverted_encb.cbf.h5 -o insulin_pilatus6mconverted_encI.cbf.h5.cbf;)
-	-$(DIFF) -a insulin_pilatus6mconverted_encI.cbf.h5.cbf insulin_pilatus6mconverted.cbf.h5.cbf;
-	-$(LDPREFIX)  (HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; rm -f insulin_pilatus6mconverted_encI.cbf.h5.cbf; \
-	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cI -i insulin_pilatus6mconverted_encc.cbf.h5 -o insulin_pilatus6mconverted_encI.cbf.h5.cbf;)
-	-$(DIFF) -a insulin_pilatus6mconverted_encI.cbf.h5.cbf insulin_pilatus6mconverted.cbf.h5.cbf;
-	-$(LDPREFIX)  (HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; rm -f insulin_pilatus6mconverted_encI.cbf.h5.cbf; \
-	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cI -i insulin_pilatus6mconverted_encz.cbf.h5 -o insulin_pilatus6mconverted_encI.cbf.h5.cbf;)
-	-$(DIFF) -a insulin_pilatus6mconverted_encI.cbf.h5.cbf insulin_pilatus6mconverted.cbf.h5.cbf;
-
+	-$(LDPREFIX)  (HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
+	$(TIME) $(BIN)/cif2cbf  -eq -cI -i insulin_pilatus6mconverted_orig.cbf.h5.cbf -o insulin_pilatus6mconverted_orig.cbf.h5.eqcI.cbf)
+	-$(LDPREFIX)  (HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
+	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted.cbf.h5 -o insulin_pilatus6mconverted.cbf.h5.cbf; \
+	 $(BIN)/cif2cbf  -eq -cI -i insulin_pilatus6mconverted.cbf.h5.cbf -o insulin_pilatus6mconverted.cbf.h5.eqcI.cbf)
+	-cmp insulin_pilatus6mconverted.cbf.h5.eqcI.cbf insulin_pilatus6mconverted_orig.cbf.h5.eqcI.cbf
+	-$(LDPREFIX)  (HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
+	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_encp.cbf.h5 -o insulin_pilatus6mconverted_encp.cbf.h5.cbf; \
+	 $(BIN)/cif2cbf  -eq -cI -i insulin_pilatus6mconverted_encp.cbf.h5.cbf -o insulin_pilatus6mconverted_encp.cbf.h5.eqcI.cbf)
+	-cmp insulin_pilatus6mconverted_encp.cbf.h5.eqcI.cbf insulin_pilatus6mconverted_orig.cbf.h5.eqcI.cbf
+	-$(LDPREFIX)  (HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
+	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_encb.cbf.h5 -o insulin_pilatus6mconverted_encb.cbf.h5.cbf; \
+	 $(BIN)/cif2cbf  -eq -cI -i insulin_pilatus6mconverted_encb.cbf.h5.cbf -o insulin_pilatus6mconverted_encp.cbf.h5.eqcI.cbf)
+	-cmp insulin_pilatus6mconverted_encp.cbf.h5.eqcI.cbf insulin_pilatus6mconverted_orig.cbf.h5.eqcI.cbf
+	-$(LDPREFIX)  (HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
+	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_encI.cbf.h5 -o insulin_pilatus6mconverted_encI.cbf.h5.cbf; \
+	 $(BIN)/cif2cbf  -eq -cI -i insulin_pilatus6mconverted_encI.cbf.h5.cbf -o insulin_pilatus6mconverted_encI.cbf.h5.eqcI.cbf)
+	-cmp insulin_pilatus6mconverted_encI.cbf.h5.eqcI.cbf insulin_pilatus6mconverted_orig.cbf.h5.eqcI.cbf
+	-$(LDPREFIX)  (HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
+	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_encc.cbf.h5 -o insulin_pilatus6mconverted_encc.cbf.h5.cbf; \
+	 $(BIN)/cif2cbf  -eq -cI -i insulin_pilatus6mconverted_encc.cbf.h5.cbf -o insulin_pilatus6mconverted_encc.cbf.h5.eqcI.cbf)
+	-cmp insulin_pilatus6mconverted_encc.cbf.h5.eqcI.cbf insulin_pilatus6mconverted_orig.cbf.h5.eqcI.cbf
+	-$(LDPREFIX)  (HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
+	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_encz.cbf.h5 -o insulin_pilatus6mconverted_encz.cbf.h5.cbf; \
+	 $(BIN)/cif2cbf  -eq -cI -i insulin_pilatus6mconverted_encz.cbf.h5.cbf -o insulin_pilatus6mconverted_encz.cbf.h5.eqcI.cbf)
+	-cmp insulin_pilatus6mconverted_encz.cbf.h5.eqcI.cbf insulin_pilatus6mconverted_orig.cbf.h5.eqcI.cbf
+	-$(LDPREFIX)  (HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
+	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_encl.cbf.h5 -o insulin_pilatus6mconverted_encl.cbf.h5.cbf; \
+	 $(BIN)/cif2cbf  -eq -cI -i insulin_pilatus6mconverted_encl.cbf.h5.cbf -o insulin_pilatus6mconverted_encl.cbf.h5.eqcI.cbf)
+	-cmp insulin_pilatus6mconverted_encl.cbf.h5.eqcI.cbf insulin_pilatus6mconverted_orig.cbf.h5.eqcI.cbf
+	-$(LDPREFIX)  (HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
+	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_enc2.cbf.h5 -o insulin_pilatus6mconverted_enc2.cbf.h5.cbf; \
+	 $(BIN)/cif2cbf  -eq -cI -i insulin_pilatus6mconverted_enc2.cbf.h5.cbf -o insulin_pilatus6mconverted_enc2.cbf.h5.eqcI.cbf)
+	-cmp insulin_pilatus6mconverted_enc2.cbf.h5.eqcI.cbf insulin_pilatus6mconverted_orig.cbf.h5.eqcI.cbf
+	-rm -f insulin_pilatus6mconverted*.cbf.h5.eqcI.cbf
 	$(LDPREFIX)  $(TINE) $(BIN)/test_cbf_airy_disk
 	$(LDPREFIX)  $(TIME) $(BIN)/cbf_testxfelread
 	$(LDPREFIX)  $(TIME) $(BIN)/testalloc
@@ -2648,18 +2403,14 @@ endif
 	-cd $(MINICBF_TEST); $(DIFF) i19-1.dump i19-2.dump
 	-cd $(MINICBF_TEST); $(DIFF) i19-1.cbf i19-2.cbf
 	$(LDPREFIX)  $(TIME) $(BIN)/testreals
-	-cat testrealin.cbf | sed "2,2s/0.9.6/0.9.7/" | diff -a - testrealout.cbf
-	#-cmp testrealin.cbf testrealout.cbf
+	-cmp testrealin.cbf testrealout.cbf
 	$(LDPREFIX)  $(TIME) $(BIN)/testflat
-	-cat testflatin.cbf | sed "2,2s/0.9.6/0.9.7/" | diff -a - testflatout.cbf
-	#-cmp testflatin.cbf testflatout.cbf
+	-cmp testflatin.cbf testflatout.cbf
 	$(LDPREFIX)  $(TIME) $(BIN)/testflatpacked
-	-cat testflatpackedin.cbf | sed "2,2s/0.9.6/0.9.7/" | diff -a - testflatpackedout.cbf
-	#-cmp testflatpackedin.cbf testflatpackedout.cbf
+	-cmp testflatpackedin.cbf testflatpackedout.cbf
 ifneq ($(F90C),)
 	$(LDPREFIX)  $(TIME) (echo testflatout.cbf | $(BIN)/test_xds_binary > test_xds_bin_testflatout.out)
-	-cat test_xds_bin_testflatout_orig.out | sed "2,2s/0.9.6/0.9.7/" | $(DIFF) -a - test_xds_bin_testflatout.out
-	#-$(DIFF) test_xds_bin_testflatout.out test_xds_bin_testflatout_orig.out
+	-$(DIFF) test_xds_bin_testflatout.out test_xds_bin_testflatout_orig.out
 	$(LDPREFIX)  $(TIME) (echo testflatpackedout.cbf | $(BIN)/test_xds_binary > test_xds_bin_testflatpackedout.out)
 	-$(DIFF) test_xds_bin_testflatpackedout.out test_xds_bin_testflatpackedout_orig.out
 	$(LDPREFIX)  $(TIME) (echo testflatout.cbf | $(BIN)/test_fcb_read_image  > test_fcb_read_testflatout.out)
@@ -2669,59 +2420,109 @@ ifneq ($(F90C),)
 endif
 	$(LDPREFIX)  $(TIME) $(BIN)/sauter_test
 	$(LDPREFIX)  $(TIME) $(BIN)/changtestcompression
-	$(LDPREFIX)  $(TIME) $(BIN)/tiff2cbf XRD1621.tif XRD1621.cbf
-	-cat XRD1621_orig.cbf | sed "2,2s/0.9.6/0.9.7/" | diff -a - XRD1621.cbf
-	#-$(DIFF) XRD1621.cbf XRD1621_orig.cbf
+	$(LDPREFIX)  $(TIME) (LD_LIBRARY_PATH=$(LIB);export LD_LIBRARY_PATH;$(BIN)/tiff2cbf XRD1621.tif XRD1621.cbf)
+	-$(DIFF) XRD1621.cbf XRD1621_orig.cbf
 	$(LDPREFIX)  $(TIME) $(BIN)/cif2cbf -I 4 -C 100. -L 0. -e n -c b -i XRD1621.cbf -o XRD1621_I4encbC100.cbf
-	-cat XRD1621_I4encbC100_orig.cbf | sed "2,2s/0.9.6/0.9.7/" | diff -a - XRD1621_I4encbC100.cbf
-	#-$(DIFF) XRD1621_I4encbC100.cbf XRD1621_I4encbC100_orig.cbf
+	-$(DIFF) XRD1621_I4encbC100.cbf XRD1621_I4encbC100_orig.cbf
+
+ifneq ($(F90C),)
+extra_sigs_only:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf $(BIN)/testcell \
+	$(BIN)/testreals $(BIN)/testflat $(BIN)/testflatpacked \
+	$(BIN)/test_xds_binary $(BIN)/test_fcb_read_image $(BIN)/convert_minicbf \
+	$(BIN)/sauter_test $(BIN)/adscimg2cbf \
+	$(BIN)/cbf2adscimg \
+	$(BIN)/changtestcompression $(BIN)/tiff2cbf\
+	basic $(TESTINPUT_EXTRA) $(TESTOUTPUTSIGS)
+else
+extra_sigs_only:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf $(BIN)/testcell \
+	$(BIN)/testreals $(BIN)/testflat $(BIN)/testflatpacked \
+	$(BIN)/convert_minicbf \
+	$(BIN)/sauter_test $(BIN)/adscimg2cbf\
+	$(BIN)/cbf2adscimg \
+	$(BIN)/changtestcompression $(BIN)/tiff2cbf\
+	basic $(TESTINPUT_EXTRA) $(TESTOUTPUTSIGS)
+endif
+	$(LDPREFIX)  $(TIME) $(BIN)/cif2cbf -e hex -c none \
+	makecbf.cbf cif2cbf_ehcn.cif
+	$(LDPREFIX)  $(TIME) $(BIN)/cif2cbf -e none -c flatpacked \
+	cif2cbf_ehcn.cif cif2cbf_encp.cbf; rm cif2cbf_ehcn.cif
+	-cmp makecbf.cbf cif2cbf_encp.cbf
+	$(LDPREFIX)  $(TIME) $(BIN)/cif2cbf -i 9ins.cif -o 9ins.cbf
+	-cmp 9ins.cif 9ins.cbf
+	$(LDPREFIX)  $(TIME) $(BIN)/convert_image -F example.mar2300 converted_flat.cbf
+	-$(SIGNATURE) < converted_flat.cbf | $(DIFF) - converted_flat_orig.cbf$(SEXT); rm converted_flat.cbf
+	$(LDPREFIX)  $(TIME) $(BIN)/convert_image example.mar2300 converted.cbf
+	-$(SIGNATURE) < converted.cbf | $(DIFF) - converted_orig.cbf$(SEXT); rm converted.cbf
+	-$(LDPREFIX)  $(TIME) $(BIN)/testcell < testcell.dat | \
+	$(SIGNATURE) | $(DIFF) - testcell_orig.prt$(SEXT)
+	$(LDPREFIX)  $(TIME) $(BIN)/convert_image -F -d adscquantum315 mb_LP_1_001.img adscconverted_flat.cbf
+	-$(SIGNATURE) < adscconverted_flat.cbf | $(DIFF) - adscconverted_flat_orig.cbf$(SEXT)
+	$(LDPREFIX)  $(TIME) $(BIN)/convert_image -d adscquantum315 mb_LP_1_001.img adscconverted.cbf
+	-$(SIGNATURE) < adscconverted.cbf | $(DIFF) - adscconverted_orig.cbf$(SEXT); rm adscconverted.cbf
+	$(LDPREFIX)  $(TIME) $(BIN)/adscimg2cbf  --no_pad --cbf_packed,flat mb_LP_1_001.img
+	-$(SIGNATURE) < mb_LP_1_001.cbf | $(DIFF) - mb_LP_1_001_orig.cbf$(SEXT)
+	mv mb_LP_1_001.cbf nmb_LP_1_001.cbf
+	$(LDPREFIX)  $(TIME) $(BIN)/cbf2adscimg nmb_LP_1_001.cbf
+	-cmp nmb_LP_1_001.img mb_LP_1_001.img
+	rm nmb_LP_1_001.cbf
+	rm nmb_LP_1_001.img
+	$(LDPREFIX)  $(TIME) $(BIN)/convert_minicbf -d pilatus6m -v 1 insulin_pilatus6m.cbf insulin_pilatus6mconverted.cbf
+	-$(SIGNATURE) < insulin_pilatus6mconverted.cbf | $(DIFF) - insulin_pilatus6mconverted_rev_orig.cbf$(SEXT); rm insulin_pilatus6mconverted.cbf
+	$(LDPREFIX)  $(TIME) $(BIN)/convert_minicbf -d pilatus6m insulin_pilatus6m.cbf insulin_pilatus6mconverted_v2.cbf
+	-$(SIGNATURE) < insulin_pilatus6mconverted_v2.cbf | $(DIFF) - insulin_pilatus6mconverted_v2_orig.cbf$(SEXT); rm insulin_pilatus6mconverted_v2.cbf
+	$(LDPREFIX)  $(TIME) $(BIN)/testreals
+	-cmp testrealin.cbf testrealout.cbf
+	$(LDPREFIX)  $(TIME) $(BIN)/testflat
+	-cmp testflatin.cbf testflatout.cbf
+	$(LDPREFIX)  $(TIME) $(BIN)/testflatpacked
+	-cmp testflatpackedin.cbf testflatpackedout.cbf
+ifneq ($(F90C),)
+	$(LDPREFIX)  echo testflatout.cbf | $(TIME) $(BIN)/test_xds_binary | \
+	$(SIGNATURE) | $(DIFF) - test_xds_bin_testflatout_orig.out$(SEXT)
+	$(LDPREFIX)  echo testflatpackedout.cbf | $(TIME) $(BIN)/test_xds_binary | \
+	$(SIGNATURE) | $(DIFF) - test_xds_bin_testflatpackedout_orig.out$(SEXT)
+	$(LDPREFIX)  echo testflatout.cbf | $(TIME) $(BIN)/test_fcb_read_image | \
+	$(SIGNATURE) | $(DIFF) - test_fcb_read_testflatout_orig.out$(SEXT)
+	$(LDPREFIX)  echo testflatpackedout.cbf | $(TIME) $(BIN)/test_fcb_read_image | \
+	$(SIGNATURE) | $(DIFF) - test_fcb_read_testflatpackedout_orig.out$(SEXT)
+endif
+	$(LDPREFIX)  $(TIME) $(BIN)/sauter_test
+	$(LDPREFIX)  $(TIME) $(BIN)/changtestcompression
+	$(LDPREFIX)  $(TIME) (LD_LIBRARY_PATH=$(LIB);export LD_LIBRARY_PATH;$(BIN)/tiff2cbf XRD1621.tif XRD1621.cbf)
+	$(LDPREFIX)  $(TIME) $(BIN)/cif2cbf -I 4 -C 100. -L 0. -e n -c b -i XRD1621.cbf -o XRD1621_I4encbC100.cbf
+	-$(SIGNATURE) < XRD1621.cbf | $(DIFF) - XRD1621_orig.cbf$(SEXT); rm XRD1621.cbf
+	-$(SIGNATURE) < XRD1621_I4encbC100.cbf | $(DIFF) - XRD1621_I4encbC100_orig.cbf$(SEXT); rm XRD1621_I4encbC100.cbf
+	@-rm -f adscconverted_flat.cbf
+	@-rm -f $(TESTINPUT_BASIC) $(TESTINPUT_EXTRA) $(TESTOUTPUTSIGS)
+	@-rm -f cif2cbf_packed.cbf    makecbf.cbf \
+	cif2cbf_packed.cbf    img2cif_packed.cbf \
+	cif2cbf_canonical.cbf img2cif_canonical.cbf
+	@-rm -f testrealout.cbf testflatout.cbf testflatpackedout.cbf \
+	cif2cbf_encp.cbf img2cif_canonical.cif img2cif_packed.cif 9ins.cbf
+
 
 	
-py2cbftests:  $(PY2CBF)/_py2cbf.$(PY2CBFEXT) $(BIN)/cbf_standardize_numbers $(TESTOUTPUT)
-	($(RTLPEXPORTS) cd $(PY2CBF); $(PYTHON2) $(PY2CBF)/pycbf_test1.py | $(BIN)/cbf_standardize_numbers - 4 > pycbf_test1.out)
-	-(cd $(PY2CBF); $(DIFF) pycbf_test1.out $(ROOT)/pycbf_test1_orig.out)
-	($(RTLPEXPORTS) cd $(PY2CBF); $(PYTHON2) $(PY2CBF)/pycbf_test2.py | $(BIN)/cbf_standardize_numbers - 4 > pycbf_test2.out)
-	-(cd $(PY2CBF); $(DIFF) pycbf_test2.out $(ROOT)/pycbf_test2_orig.out)
-	($(RTLPEXPORTS) cd $(PY2CBF); $(PYTHON2) $(PY2CBF)/pycbf_test3.py | $(BIN)/cbf_standardize_numbers - 4 > pycbf_test3.out)
-	-(cd $(PY2CBF); $(DIFF) pycbf_test3.out $(ROOT)/pycbf_test3_orig.out)
-	($(RTLPEXPORTS) cd $(PY2CBF); $(PYTHON2) $(PY2CBF)/pycbf_test4.py | $(BIN)/cbf_standardize_numbers - 4 > pycbf_test4.out)
-	-(cd $(PY2CBF); $(DIFF) pycbf_test4.out $(ROOT)/pycbf_test4_orig.out)
-	($(RTLPEXPORTS) cd $(PY2CBF); $(PYTHON2) $(PY2CBF)/pycbf_testfelaxes.py fel_test1.cbf | $(BIN)/cbf_standardize_numbers - 4 > fel_test1.out)
-	-(cd $(PY2CBF); $(DIFF) fel_test1.out $(ROOT)/fel_test1_orig.out)
-	($(RTLPEXPORTS) cd $(PY2CBF); $(PYTHON2) $(PY2CBF)/pycbf_testfelaxes.py fel_test2.cbf | $(BIN)/cbf_standardize_numbers - 4 > fel_test2.out)
-	-(cd $(PY2CBF); $(DIFF) fel_test2.out $(ROOT)/fel_test2_orig.out)
-	($(RTLPEXPORTS) cd $(PY2CBF); $(PYTHON2) $(PY2CBF)/pycbf_testfelaxes.py ../hit-20140306005258847.cbf | $(BIN)/cbf_standardize_numbers - 4 > fel_test3.out)
-	-(cd $(PY2CBF); $(DIFF) fel_test3.out $(ROOT)/fel_test3_orig.out)
+pycbftests:  $(PYCBF)/_pycbf.$(PYCBFEXT) $(BIN)/cbf_standardize_numbers
+	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_test1.py)
+	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_test2.py)
+	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_test3.py)
+	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_test4.py)
+	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_testfelaxes.py fel_test1.cbf |\
+		$(BIN)/cbf_standardize_numbers - 4 > fel_test1.out)
+	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_testfelaxes.py fel_test2.cbf |\
+		$(BIN)/cbf_standardize_numbers - 4 > fel_test2.out)
+	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_testfelaxes.py ../hit-20140306005258847.cbf |\
+		$(BIN)/cbf_standardize_numbers - 4 > fel_test3.out)
+	-$(BIN)/cbf_standardize_numbers $(PYCBF)/fel_test1_orig.out 4 | \
+		$(DIFF) $(PYCBF)/fel_test1.out -
+	-$(BIN)/cbf_standardize_numbers $(PYCBF)/fel_test2_orig.out 4 | \
+		$(DIFF) $(PYCBF)/fel_test2.out -
+	-$(BIN)/cbf_standardize_numbers $(PYCBF)/fel_test3_orig.out 4 | \
+		$(DIFF) $(PYCBF)/fel_test3.out -
 
-py2cbfinstall: $(PY2CBF)/_py2cbf.$(PY2CBFEXT) $(PY2CBF)/py2cbfinstall
+pycbfinstall: $(PYCBF)/_pycbf.$(PYCBFEXT) $(PYCBF)/pycbfinstall
 
-py2cbfuserinstall: $(PY2CBF)/_py2cbf.$(PY2CBFEXT) $(PY2CBF)/py2cbfuserinstall
-
-py3cbftests:  $(PY3CBF)/_pycbf.$(PY3CBFEXT) $(BIN)/cbf_standardize_numbers $(TESTOUTPUT)
-	($(RTLPEXPORTS) cd $(PY3CBF); $(PYTHON3) $(PY3CBF)/pycbf_test1.py | $(BIN)/cbf_standardize_numbers - 4 > pycbf_test1.out)
-	-(cd $(PY3CBF); grep -v "__builtins__" $(ROOT)/pycbf_test1_orig.out | \
-          grep -v "__add__" | grep -v "Foundthebinary" > pycbf_test1_orig.out; \
-          grep -v "__builtins__"  pycbf_test1.out | \
-          grep -v "__add__" | grep -v "Foundthebinary" |$(DIFF) - pycbf_test1_orig.out)
-	($(RTLPEXPORTS) cd $(PY3CBF); $(PYTHON3) $(PY3CBF)/pycbf_test2.py | $(BIN)/cbf_standardize_numbers - 4 > pycbf_test2.out)
-	-(cd $(PY3CBF); $(DIFF) pycbf_test2.out $(ROOT)/pycbf_test2_orig.out)
-	($(RTLPEXPORTS) cd $(PY3CBF); $(PYTHON3) $(PY3CBF)/pycbf_test3.py | $(BIN)/cbf_standardize_numbers - 4 > pycbf_test3.out)
-	-(cd $(PY3CBF); $(DIFF) pycbf_test3.out $(ROOT)/pycbf_test3_orig.out)
-	($(RTLPEXPORTS) cd $(PY3CBF); $(PYTHON3) $(PY3CBF)/pycbf_test4.py | $(BIN)/cbf_standardize_numbers - 4 > pycbf_test4.out)
-	-(cd $(PY3CBF); grep -v "__builtins__" $(ROOT)/pycbf_test4_orig.out | \
-	  grep -v "__add__" | grep -v "Foundthebinary" > pycbf_test4_orig.out; \
-	  grep -v "__builtins__"  pycbf_test4.out | grep -v "__add__" | \
-	  grep -v "Foundthebinary" | $(DIFF) - pycbf_test4_orig.out)
-	($(RTLPEXPORTS) cd $(PY3CBF); $(PYTHON3) $(PY3CBF)/pycbf_testfelaxes.py fel_test1.cbf | $(BIN)/cbf_standardize_numbers - 4 > fel_test1.out)
-	-(cd $(PY3CBF); $(DIFF) fel_test1.out $(ROOT)/fel_test1_orig.out)
-	($(RTLPEXPORTS) cd $(PY3CBF); $(PYTHON3) $(PY3CBF)/pycbf_testfelaxes.py fel_test2.cbf | $(BIN)/cbf_standardize_numbers - 4 > fel_test2.out)
-	-(cd $(PY3CBF); $(DIFF) fel_test2.out $(ROOT)/fel_test2_orig.out)
-	($(RTLPEXPORTS) cd $(PY3CBF); $(PYTHON3) $(PY3CBF)/pycbf_testfelaxes.py ../hit-20140306005258847.cbf | $(BIN)/cbf_standardize_numbers - 4 > fel_test3.out)
-	-(cd $(PY3CBF); $(DIFF) fel_test3.out $(ROOT)/fel_test3_orig.out)
-
-py3cbfinstall: $(PY3CBF)/_pycbf.$(PY3CBFEXT) $(PY3CBF)/py3cbfinstall
-
-py3cbfuserinstall: $(PY3CBF)/_pycbf.$(PY3CBFEXT) $(PY3CBF)/py3cbfuserinstall
+pycbfuserinstall: $(PYCBF)/_pycbf.$(PYCBFEXT) $(PYCBF)/pycbfuserinstall
 
 javatests: $(BIN)/ctestcbf $(BIN)/testcbf.class $(SOLIB)/libcbf_wrap.so
 	$(LDPREFIX)  $(BIN)/ctestcbf > testcbfc.txt
@@ -2740,13 +2541,13 @@ empty:
 	@-rm -rf $(INCLUDE)/bshuf*
 	@-rm -rf $(INCLUDE)/H5*
 	@-rm -rf $(BIN)/*
-	@-rm -f  $(PY2CBF)/_py2cbf.$(PY2CBFEXT)
-	@-rm -rf  $(PY2CBF)/build/*
-	@-rm -f  $(PY2CBF)/newtest1.cbf
-	@-rm -f  $(PY2CBF)/fel_test1.out
-	@-rm -f  $(PY2CBF)/fel_test2.out
-	@-rm -f  $(PY2CBF)/setup.py
-	@-rm -f  $(PY2CBF)/setup_MINGW.py
+	@-rm -f  $(PYCBF)/_pycbf.$(PYCBFEXT)
+	@-rm -rf  $(PYCBF)/build/*
+	@-rm -f  $(PYCBF)/newtest1.cbf
+	@-rm -f  $(PYCBF)/fel_test1.out
+	@-rm -f  $(PYCBF)/fel_test2.out
+	@-rm -f  $(PYCBF)/setup.py
+	@-rm -f  $(PYCBF)/setup_MINGW.py
 	@-rm -f  makecbf.cbf
 	@-rm -f  img2cif_packed.cif
 	@-rm -f  img2cif_canonical.cif
@@ -2830,39 +2631,12 @@ empty:
 	@-rm -f  1191_00005.cbf
 	@-rm -f  XRD1621.tif
 	@-rm -f  md5tmp
-	@-rm -rf $(PY2CBF)/build
+	@-rm -rf $(PYCBF)/build
 	@-rm -f  *_old
 	@-rm -f X4_lots_M1S4_1_*.cbf
 	@-rm -f testfile.h5
 	@-rm -f hit-20140306005258847.cbf
 	@-rm -f build_*
-	@-rm -rf HDF5Plugin_5Jun21/
-	@-rm -rf PyCifRW-4.1/
-	@-rm -rf PyCifRW-4.3/
-	@-rm -rf bitshuffle-0.2.2.1_15Jun16/
-	@-rm -f idx-s00-20131106040304531_flat.cbf
-	@-rm -f include/iochain.h
-	@-rm -f include/lz4.h
-	@-rm -f include/pcre.h
-	@-rm -f include/pcre_scanner.h
-	@-rm -f include/pcre_stringpiece.h
-	@-rm -f include/pcrecpp.h
-	@-rm -f include/pcrecpparg.h
-	@-rm -f include/pcreposix.h
-	@-rm -f include/regex.h
-	@-rm -f minicbf_test/X4_lots_M1S4_1_0001.cbf
-	@-rm -f minicbf_test/X4_lots_M1S4_1_0002.cbf
-	@-rm -f minicbf_test/X4_lots_M1S4_1_0003.cbf
-	@-rm -f minicbf_test/X4_lots_M1S4_1_0004.cbf
-	@-rm -f minicbf_test/X4_lots_M1S4_1_0005.cbf
-	@-rm -f minicbf_test/minicbf.h5
-	@-rm -rf ply-3.2/dist/
-	@-rm -f $(PY2CBF)/fel_test3.out
-	@-rm -f $(PY2CBF)/pycbf.pyc
-	@-rm -f $(PY2CBF)/pycbf_test1.out
-	@-rm -f $(PY2CBF)/pycbf_test2.out
-	@-rm -f $(PY2CBF)/pycbf_test3.out
-	@-rm -f $(PY2CBF)/pycbf_test4.out
 	./.undosymlinks
 	
 #
