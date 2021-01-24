@@ -91,6 +91,7 @@ extern "C" {
     int         img_read_mar345 (img_handle img,
                                  const char *name);
     int         img_get_tags (img_handle img);
+    int         img_set_tags (img_handle img, int tags);
     int         img_delete_fieldnumber (img_handle img, int x);
     
     img_handle  img_make_handle    ( void );
