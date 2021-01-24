@@ -319,9 +319,13 @@ TIFF_INSTALL = $(TIFF)_INSTALL
 #
 # Definitions to get a version of HDF5
 #
-HDF5_PREFIX ?= $(PWD)
+
+ifneq ($(HDF5_PREFIX),) # already installed on system
+CBFLIB_DONT_USE_LOCAL_HDF5 = yes
+endif
 
 ifneq ($(CBFLIB_DONT_USE_LOCAL_HDF5),yes)
+HDF5_PREFIX ?= $(PWD)
 HDF5 ?= hdf5-1.10.6
 #HDF5 = hdf5-1.8.18
 #HDF5 = hdf5-1.10.5
@@ -333,28 +337,35 @@ HDF5LIBS_SYSTEM = -lz -ldl
 HDF5SOLIBS_LOCAL = -L$(LIB) -lhdf5
 HDF5SOLIBS_SYSTEM = -lz
 else
-HDF5LIBS_LOCAL = -L $(LIB) -lhdf5 -lhdf5.dll
+HDF5LIBS_LOCAL = -L$(LIB) -lhdf5 -lhdf5.dll
 HDF5LIBS_SYSTEM = -lz -ldl
 HDF5SOLIBS_LOCAL = -L$(LIB) -lhdf5 -lhdf5.dll
 HDF5SOLIBS_SYSTEM = -lz
 endif
-HDF5REGISTER ?= --register manual
 else
 HDF5 =
 HDF5dep =
 HDF5_INSTALL =
 HDF5LIBS_LOCAL =
+ifneq ($(HDF5_PREFIX),)
+HDF5lib = -L$(HDF5_PREFIX)/lib
+endif
 ifneq ($(MSYS2),yes)
-HDF5LIBS_SYSTEM = -L$(HDF5_PREFIX)/lib -lhdf5 -lz -ldl
+HDF5LIBS_SYSTEM = $(HDF5lib) -lhdf5 -lz -ldl
 HDF5SOLIBS_LOCAL =
-HDF5SOLIBS_SYSTEM = -L$(HDF5_PREFIX)/lib -lhdf5 -lz
+HDF5SOLIBS_SYSTEM = $(HDF5lib) -lhdf5 -lz
 else
-HDF5LIBS_SYSTEM = -L$(HDF5_PREFIX)/lib -lhdf5 -lhdf5.dll -lz -ldl
+HDF5LIBS_SYSTEM = $(HDF5lib) -lhdf5 -lhdf5.dll -lz -ldl
 HDF5SOLIBS_LOCAL =
-HDF5SOLIBS_SYSTEM = -L$(HDF5_PREFIX)/lib -lhdf5 -lhdf5.dll -lz
+HDF5SOLIBS_SYSTEM = $(HDF5lib) -lhdf5 -lhdf5.dll -lz
 endif
+endif
+
 HDF5REGISTER ?= --register manual
+ifneq ($(HDF5_PREFIX),)
+HDF5include = -I$(HDF5_PREFIX)/include
 endif
+
 ifneq ($(MSYS2),yes)
 H5DUMP = $(HDF5_PREFIX)/bin/h5dump
 else
@@ -652,7 +663,7 @@ BSHUFURL    = http://downloads.sf.net/cbflib/$(BSHUF).tar.gz
 #
 # Include directories
 #
-INCLUDES = -I$(INCLUDE) -I$(SRC) -I$(HDF5_PREFIX)/include -I$(HDF5)/hdf5/include
+INCLUDES = -I$(INCLUDE) -I$(SRC) $(HDF5include)
 
 #
 # runtime library path export commands
@@ -1383,7 +1394,6 @@ $(BSHUF): $(HDF5)  build_BSHUF $(LZ4dep)
 	(cp $(BSHUFinclude)/bitshuffle.h \
 	    $(BSHUFinclude)/bitshuffle_core.h \
 	    $(BSHUFinclude)/bitshuffle_internals.h \
-	    $(BSHUFinclude)/bshuf_h5filter.h \
 	    $(BSHUFinclude)/bshuf_h5filter.h $(BSHUFinclude)/iochain.h   $(INCLUDE); \
 	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(BSHUFsrc)/bshuf_h5filter.c -o bshuf_h5filter.o; \
 	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(BSHUFsrc)/bitshuffle.c -o bitshuffle.o; \
@@ -1603,8 +1613,8 @@ $(PYCBF)/cbfgoniometerwrappers.i:  $(PYCBF)/CBFlib.txt $(PYCBF)/make_pycbf.py
 #
 # Java bindings
 #
-$(JCBF)/cbflib-$(VERSION).jar: $(JCBF) $(JCBF)/jcbf.i
-	$(JSWIG) -I$(INCLUDE) -package org.iucr.cbflib -outdir $(JCBF) $(JCBF)/jcbf.i
+$(JCBF)/cbflib-$(VERSION).jar: $(JCBF) $(SRC)/jcbf.i
+	$(JSWIG) -I$(INCLUDE) -package org.iucr.cbflib -outdir $(JCBF) -o $(JCBF)/jcbf_wrap.c $(SRC)/jcbf.i
 	$(JAVAC) -d . $(JCBF)/*.java
 	$(JAR) cf $@ org
 
@@ -2575,8 +2585,8 @@ empty:
 	@-rm -f  symlinksdone
 	@-rm -f  $(TESTOUTPUT) *$(SEXT)
 	@-rm -rf $(SOLIB)
+	@-rm -rf org
 	@-rm -rf $(JCBF)
-	@-rm -f  $(SRC)/cbf_wrap.c 
 	@-rm -rf $(REGEX)
 	@-rm -rf $(REGEX)_install
 	@-rm -rf $(TIFF)
