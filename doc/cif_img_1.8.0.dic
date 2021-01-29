@@ -5557,7 +5557,7 @@
                 _diffrn_data_frame.center_slow
                 are derived from the axis settings rather than measured.              
 ;
-     _item.name                  '__diffrn_data_frame.center_derived'
+     _item.name                  '_diffrn_data_frame.center_derived'
      _item.category_id             diffrn_data_frame
      _item.mandatory_code          no
      _item_type.code               ucode
@@ -8522,7 +8522,7 @@
                 that this may be generated at the start or during the scan, before the
                 precise time of the end of the scan is known.
 ;
-     _item.name                 '_diffrn_scan.date_end'
+     _item.name                 '_diffrn_scan.date_end_estimated'
      _item.category_id          diffrn_scan
      _item.mandatory_code       yes
      _item_type.code            yyyy-mm-dd
@@ -9086,7 +9086,7 @@
                for which this information is appropriate, e.g. 'vector'.
               
 ;
-     _item.name                  '_diffrn_scan_collection.type'
+     _item.name                  '_diffrn_scan_collection.translation_width'
      _item.category_id             diffrn_scan_collection
      _item.mandatory_code          no
      _item_default.value           0.0
@@ -10095,7 +10095,7 @@
 ;
      _item.name                  '_diffrn_scan_frame_monitor.frame_id'
      _item.category_id             diffrn_scan_frame_monitor
-     _item.mandatory_code          yes
+     _item.mandatory_code          implicit
      _item_type.code               code
       save_
 
@@ -10833,7 +10833,7 @@
 ;
      _item.name                  '_variant.variant_of'
      _item.category_id             variant
-     _item.mandatory_code          no
+     _item.mandatory_code          implicit
      _item_type.code               code
       save_
 
