@@ -15,8 +15,8 @@ data_cif_img.dic
 #             and Crystallographic Binary File Dictionary (CBF)              #
 #            Extending the Macromolecular CIF Dictionary (mmCIF)             #
 #                                                                            #
-#                              Version 1.8.0                                 #
-#                              of 2021-01-24                                 #
+#                              Version 1.8.1                                 #
+#                              of 2021-01-30                                 #
 #    ###################################################################     #
 #    # *** WARNING *** THIS IS A DRAFT FOR DISCUSSSION *** WARNING *** #     #
 #    #                 SUBJECT TO CHANGE WITHOUT NOTICE                #     #
@@ -3362,7 +3362,7 @@ save_axis
        (6)  Of those not lying in the ab plane, none is shorter than c.
        (7)  The three angles between the basis vectors a, b and c are
        either all acute (<90) or all obtuse (>=90)."
-
+    
      These rules do not produce a unique result that is stable under
      the assumption of experimental errors, and the the resulting cell
      may not be primitive.
@@ -7918,7 +7918,7 @@ save_diffrn_scan
    Therefore, in interpreting the data for a particular frame it is
    important to use the frame-specific data.
 
-   There are three date/times in this set: date_set and date_end_estimated, both of which
+   There are three date/times in this set: date_start, and date_end_estimated, both of which
    are mandatory, because the former is data which can be logged at the start of collection
    and the latter is data than can be estimated at the same time, and date_end which can only
    be logged exactly if the data collection completes normally.
@@ -11397,6 +11397,16 @@ save__diffrn_frame_data.details
     _dictionary_history.update
     _dictionary_history.revision
 
+    1.8.1    2021-01-30
+
+;   Copy-paste error corrections (JRH)
+
+    + Fix double underscore in _diffrn_data_frame.center_derived
+    + Fix wrong _item.name in _diffrn_scan.date_end_estimated
+    + Fix wrong _item.mandatory_code in _diffrn_scan_frame_monitor.frame_id
+    + Fix wrong _item.mandatory_code in _variant.variant_of
+;
+
     1.8.0    2021-01-24
 
 ;   Changes for 2021 ITVG and conformance with Gold Standard and NXmx (HJB)
@@ -12087,3 +12097,6 @@ save__diffrn_frame_data.details
    + Multiple array sections can be properly handled within a single
      datablock.
 ;
+
+
+#-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof
