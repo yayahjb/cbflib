@@ -3475,7 +3475,7 @@ save_axis
        (5)  Of those not directed along a, none is shorter than b.
        (6)  Of those not lying in the ab plane, none is shorter than c.
        (7)  The three angles between the basis vectors a, b and c are
-       either all acute (<90\%) or all obtuse (≥90\%)."
+       either all acute (<90 degrees) or all obtuse (>= 90 degrees)."
     
      These rules do not produce a unique result that is stable under
      the assumption of experimental errors, and the the resulting cell
@@ -5199,7 +5199,7 @@ save__axis.rotation
               the fixed base rotation angle for _axis.rotation_axis
               to which the value of any frame-by-frame setting, if any, should
               be added.  Normally, ony the fixed value would be given.
-
+;
 
     _item.name                      '_axis.rotation'
     _item.category_id                 axis
@@ -12175,4 +12175,3 @@ save__diffrn_frame_data.details
 ;
 
 
-#-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof
