@@ -1,6 +1,18 @@
 <HTML>
 <HEAD>
 <TITLE>cif_img.dic v1.8.3</TITLE>
+<script type="text/javascript">
+	function open_close(id) {
+		var display = document.getElementById(id).style.display;
+		if (display == "block") {
+		document.getElementById(id).style.display = "none";
+		}
+		else {
+		document.getElementById(id).style.display = "block";
+        }
+	}
+</script>
+
 </HEAD>
 <body bgcolor="#FAFAFF" text="#0808A0"
 BACKGROUND="../html_graphics/cbflibbackground.jpg">
@@ -35,6 +47,7 @@ data_cif_img.dic
 #                                                                            #
 #                              Version 1.8.3                                 #
 #                              of 2021-02-28                                 #
+<a href="javascript:open_close('title1');"><tt>#+/-</a>                                                                         #<div id="title1" style="display:none">
 #    ###################################################################     #
 #    # *** WARNING *** THIS IS A DRAFT FOR DISCUSSSION *** WARNING *** #     #
 #    #                 SUBJECT TO CHANGE WITHOUT NOTICE                #     #
@@ -59,15 +72,15 @@ data_cif_img.dic
 # Macromolecular Crystallography Diffraction Data&quot;, IUCrJ 7:5                #
 # 784 -- 792, <a href=https://doi.org/10.1107/S2052252520008672>https://doi.org/10.1107/S2052252520008672</a>,                     #
 #             <a href=https://doi.org//10.1107/S2052252520008672/ti5018sup1.pdf>https://doi.org//10.1107/S2052252520008672/ti5018sup1.pdf</a>,     #
-#             <a href=https://doi.org//10.1107/S2052252520008672/ti5018sup2.pdf>https://doi.org//10.1107/S2052252520008672/ti5018sup2.pdf</a>      #
+#             <a href=https://doi.org//10.1107/S2052252520008672/ti5018sup2.pdf>https://doi.org//10.1107/S2052252520008672/ti5018sup2.pdf</a>      #</div>
 ##############################################################################
 #    CONTENTS
 #
 #        <a href="#CATEGORY_GROUP_LIST">CATEGORY_GROUP_LIST</a>
 #        <a href="#SUB_CATEGORY">SUB_CATEGORY</a>
 #
-#        category  <a href="#array_data">ARRAY_DATA</a>
-#
+#        category  <a href="#array_data">ARRAY_DATA</a> <a href="javascript:open_close('contents_array_data');">+/-</a>
+<div id="contents_array_data" style="display:none">#
 #                  <a href="#_array_data.array_id" >_array_data.array_id</a>
 #                  <a href="#_array_data.binary_id" >_array_data.binary_id</a>
 #                  <a href="#_array_data.data" >_array_data.data</a>
@@ -75,15 +88,15 @@ data_cif_img.dic
 #                  <a href="#_array_data.header_convention" >_array_data.header_convention</a>
 #                  <a href="#_array_data.variant" >_array_data.variant</a>
 #
-#        category  <a href="#array_element_size">ARRAY_ELEMENT_SIZE</a>
-#
+</div>#        category  <a href="#array_element_size">ARRAY_ELEMENT_SIZE</a> <a href="javascript:open_close('contents_array_element_size');">+/-</a>
+<div id="contents_array_element_size" style="display:none">#
 #                  <a href="#_array_element_size.array_id" >_array_element_size.array_id</a>
 #                  <a href="#_array_element_size.index" >_array_element_size.index</a>
 #                  <a href="#_array_element_size.size" >_array_element_size.size</a>
 #                  <a href="#_array_element_size.variant" >_array_element_size.variant</a>
 #
-#        category  <a href="#array_intensities">ARRAY_INTENSITIES</a>
-#
+</div>#        category  <a href="#array_intensities">ARRAY_INTENSITIES</a> <a href="javascript:open_close('contents_array_intensities');">+/-</a>
+<div id="contents_array_intensities" style="display:none">#
 #                  <a href="#_array_intensities.array_id" >_array_intensities.array_id</a>
 #                  <a href="#_array_intensities.binary_id" >_array_intensities.binary_id</a>
 #                  <a href="#_array_intensities.details" >_array_intensities.details</a>
@@ -100,8 +113,8 @@ data_cif_img.dic
 #                  <a href="#_array_intensities.underload" >_array_intensities.underload</a>
 #                  <a href="#_array_intensities.variant" >_array_intensities.variant</a>
 #
-#        category  <a href="#array_structure">ARRAY_STRUCTURE</a>
-#
+</div>#        category  <a href="#array_structure">ARRAY_STRUCTURE</a> <a href="javascript:open_close('contents_array_structure');">+/-</a>
+<div id="contents_array_structure" style="display:none">#
 #                  <a href="#_array_structure.byte_order" >_array_structure.byte_order</a>
 #                  <a href="#_array_structure.compression_type" >_array_structure.compression_type</a>
 #                  <a href="#_array_structure.compression_type_flag" >_array_structure.compression_type_flag</a>
@@ -109,8 +122,8 @@ data_cif_img.dic
 #                  <a href="#_array_structure.id" >_array_structure.id</a>
 #                  <a href="#_array_structure.variant" >_array_structure.variant</a>
 #
-#        category  <a href="#array_structure_list">ARRAY_STRUCTURE_LIST</a>
-#
+</div>#        category  <a href="#array_structure_list">ARRAY_STRUCTURE_LIST</a> <a href="javascript:open_close('contents_array_structure_list');">+/-</a>
+<div id="contents_array_structure_list" style="display:none">#
 #                  <a href="#_array_structure_list.axis_set_id" >_array_structure_list.axis_set_id</a>
 #                  <a href="#_array_structure_list.array_id" >_array_structure_list.array_id</a>
 #                  <a href="#_array_structure_list.array_section_id" >_array_structure_list.array_section_id</a>
@@ -120,8 +133,8 @@ data_cif_img.dic
 #                  <a href="#_array_structure_list.precedence" >_array_structure_list.precedence</a>
 #                  <a href="#_array_structure_list.variant" >_array_structure_list.variant</a>
 #
-#        category  <a href="#array_structure_list_section">ARRAY_STRUCTURE_LIST_SECTION</a>
-#
+</div>#        category  <a href="#array_structure_list_section">ARRAY_STRUCTURE_LIST_SECTION</a> <a href="javascript:open_close('contents_array_structure_list_section');">+/-</a>
+<div id="contents_array_structure_list_section" style="display:none">#
 #                  <a href="#_array_structure_list_section.array_id" >_array_structure_list_section.array_id</a>
 #                  <a href="#_array_structure_list_section.end" >_array_structure_list_section.end</a>
 #                  <a href="#_array_structure_list_section.id" >_array_structure_list_section.id</a>
@@ -130,8 +143,8 @@ data_cif_img.dic
 #                  <a href="#_array_structure_list_section.stride" >_array_structure_list_section.stride</a>
 #                  <a href="#_array_structure_list_section.variant" >_array_structure_list_section.variant</a>
 #
-#        category  <a href="#array_structure_list_axis">ARRAY_STRUCTURE_LIST_AXIS</a>
-#
+</div>#        category  <a href="#array_structure_list_axis">ARRAY_STRUCTURE_LIST_AXIS</a> <a href="javascript:open_close('contents_array_structure_list_axis');">+/-</a>
+<div id="contents_array_structure_list_axis" style="display:none">#
 #                  <a href="#_array_structure_list_axis.axis_id" >_array_structure_list_axis.axis_id</a>
 #                  <a href="#_array_structure_list_axis.axis_set_id" >_array_structure_list_axis.axis_set_id</a>
 #                  <a href="#_array_structure_list_axis.angle" >_array_structure_list_axis.angle</a>
@@ -146,8 +159,8 @@ data_cif_img.dic
 #                  <a href="#_array_structure_list_axis.reference_displacement" >_array_structure_list_axis.reference_displacement</a>
 #                  <a href="#_array_structure_list_axis.variant" >_array_structure_list_axis.variant</a>
 #
-#        category  <a href="#axis">AXIS</a>
-#
+</div>#        category  <a href="#axis">AXIS</a> <a href="javascript:open_close('contents_axis');">+/-</a>
+<div id="contents_axis" style="display:none">#
 #                  <a href="#_axis.depends_on" >_axis.depends_on</a>
 #                  <a href="#_axis.equipment" >_axis.equipment</a>
 #                  <a href="#_axis.equipment_component" >_axis.equipment_component</a>
@@ -164,8 +177,8 @@ data_cif_img.dic
 #                  <a href="#_axis.vector[3]" >_axis.vector[3]</a>
 #                  <a href="#_axis.variant" >_axis.variant</a>
 #
-#        category  <a href="#diffrn_data_frame">DIFFRN_DATA_FRAME</a>
-#
+</div>#        category  <a href="#diffrn_data_frame">DIFFRN_DATA_FRAME</a> <a href="javascript:open_close('contents_diffrn_data_frame');">+/-</a>
+<div id="contents_diffrn_data_frame" style="display:none">#
 #                  <a href="#_diffrn_data_frame.array_id" >_diffrn_data_frame.array_id</a>
 #                  <a href="#_diffrn_data_frame.array_section_id" >_diffrn_data_frame.array_section_id</a>
 #                  <a href="#_diffrn_data_frame.binary_id" >_diffrn_data_frame.binary_id</a>
@@ -177,8 +190,8 @@ data_cif_img.dic
 #                  <a href="#_diffrn_data_frame.details">_diffrn_data_frame.details</a>
 #                  <a href="#_diffrn_data_frame.variant">_diffrn_data_frame.variant</a>
 #
-#        category  <a href="#diffrn_detector">DIFFRN_DETECTOR</a>
-#
+</div>#        category  <a href="#diffrn_detector">DIFFRN_DETECTOR</a> <a href="javascript:open_close('contents_diffrn_detector');">+/-</a>
+<div id="contents_diffrn_detector" style="display:none">#
 #                  <a href="#_diffrn_detector.details" >_diffrn_detector.details</a>
 #                  <a href="#_diffrn_detector.detector" >_diffrn_detector.detector</a>
 #                  <a href="#_diffrn_detector.diffrn_id" >_diffrn_detector.diffrn_id</a>
@@ -190,14 +203,14 @@ data_cif_img.dic
 #                  <a href="#_diffrn_detector.type" >_diffrn_detector.type</a>
 #                  <a href="#_diffrn_detector.variant" >_diffrn_detector.variant</a>
 #
-#        category  <a href="#diffrn_detector_axis">DIFFRN_DETECTOR_AXIS</a>
-#
+</div>#        category  <a href="#diffrn_detector_axis">DIFFRN_DETECTOR_AXIS</a> <a href="javascript:open_close('contents_diffrn_detector_axis');">+/-</a>
+<div id="contents_diffrn_detector_axis" style="display:none">#
 #                  <a href="#_diffrn_detector_axis.axis_id" >_diffrn_detector_axis.axis_id</a>
 #                  <a href="#_diffrn_detector_axis.detector_id" >_diffrn_detector_axis.detector_id</a>
 #                  <a href="#_diffrn_detector_axis.variant" >_diffrn_detector_axis.variant</a>
 #
-#        category  <a href="#diffrn_detector_element">DIFFRN_DETECTOR_ELEMENT</a>
-#
+</div>#        category  <a href="#diffrn_detector_element">DIFFRN_DETECTOR_ELEMENT</a> <a href="javascript:open_close('contents_diffrn_detector_element');">+/-</a>
+<div id="contents_diffrn_detector_element" style="display:none">#
 #                  <a href="#_diffrn_detector_element.id" >_diffrn_detector_element.id</a>
 #                  <a href="#_diffrn_detector_element.detector_id" >_diffrn_detector_element.detector_id</a>
 #                  <a href="#_diffrn_detector_element.reference_center_fast" >_diffrn_detector_element.reference_center_fast</a>
@@ -205,8 +218,8 @@ data_cif_img.dic
 #                  <a href="#_diffrn_detector_element.reference_center_units" >_diffrn_detector_element.reference_center_units</a>
 #                  <a href="#_diffrn_detector_element.variant" >_diffrn_detector_element.variant</a>
 #
-#        category  <a href="#diffrn_measurement">DIFFRN_MEASUREMENT</a>
-#
+</div>#        category  <a href="#diffrn_measurement">DIFFRN_MEASUREMENT</a> <a href="javascript:open_close('contents_diffrn_measurement');">+/-</a>
+<div id="contents_diffrn_measurement" style="display:none">#
 #                  <a href="#_diffrn_measurement.diffrn_id" >_diffrn_measurement.diffrn_id</a>
 #                  <a href="#_diffrn_measurement.details" >_diffrn_measurement.details</a>
 #                  <a href="#_diffrn_measurement.device" >_diffrn_measurement.device</a>
@@ -220,15 +233,15 @@ data_cif_img.dic
 #                  <a href="#_diffrn_measurement.specimen_support" >_diffrn_measurement.specimen_support</a>
 #                  <a href="#_diffrn_measurement.variant" >_diffrn_measurement.variant</a>
 #
-#        category  <a href="#diffrn_measurement_axis">DIFFRN_MEASUREMENT_AXIS</a>
-#
+</div>#        category  <a href="#diffrn_measurement_axis">DIFFRN_MEASUREMENT_AXIS</a> <a href="javascript:open_close('contents_diffrn_measurement_axis');">+/-</a>
+<div id="contents_diffrn_measurement_axis" style="display:none">#
 #                  <a href="#_diffrn_measurement_axis.id" >_diffrn_measurement_axis.axis_id</a>
 #                  <a href="#_diffrn_measurement_axis.measurement_device" >_diffrn_measurement_axis.measurement_device</a>
 #                  <a href="#_diffrn_measurement_axis.measurement_id" >_diffrn_measurement_axis.measurement_id</a>
 #                  <a href="#_diffrn_measurement_axis.variant" >_diffrn_measurement_axis.variant</a>
 #
-#        category  <a href="#diffrn_radiation">DIFFRN_RADIATION</a>
-#
+</div>#        category  <a href="#diffrn_radiation">DIFFRN_RADIATION</a> <a href="javascript:open_close('contents_diffrn_radiation');">+/-</a>
+<div id="contents_diffrn_radiation" style="display:none">#
 #                  <a href="#_diffrn_radiation.beam_width">_diffrn_radiation.beam_width</a>
 #                  <a href="#_diffrn_radiation.beam_height">_diffrn_radiation.beam_height</a>
 #                  <a href="#_diffrn_radiation.beam_flux">_diffrn_radiation.beam_flux</a>
@@ -262,13 +275,13 @@ data_cif_img.dic
 #                  <a href="#_diffrn_radiation.wavelength_id">_diffrn_radiation.wavelength_id</a>
 #                  <a href="#_diffrn_radiation.xray_symbol">_diffrn_radiation.xray_symbol</a>
 #
-#        category  <a href="#diffrn_refln">DIFFRN_REFLN</a>
-#
+</div>#        category  <a href="#diffrn_refln">DIFFRN_REFLN</a> <a href="javascript:open_close('contents_diffrn_refln');">+/-</a>
+<div id="contents_diffrn_refln" style="display:none">#
 #                  <a href="#_diffrn_refln.frame_id" >_diffrn_refln.frame_id</a>
 #                  <a href="#_diffrn_refln.variant" >_diffrn_refln.variant</a>
 #
-#        category  <a href="#diffrn_scan">DIFFRN_SCAN</a>
-#
+</div>#        category  <a href="#diffrn_scan">DIFFRN_SCAN</a> <a href="javascript:open_close('contents_diffrn_scan');">+/-</a>
+<div id="contents_diffrn_scan" style="display:none">#
 #                  <a href="#_diffrn_scan.id" >_diffrn_scan.id</a>
 #                  <a href="#_diffrn_scan.date_end" >_diffrn_scan.date_end</a>
 #                  <a href="#_diffrn_scan.date_end_estimated" >_diffrn_scan.date_end_estimated</a>
@@ -281,8 +294,8 @@ data_cif_img.dic
 #                  <a href="#_diffrn_scan.time_rstrt_incr" >_diffrn_scan.time_rstrt_incr</a>
 #                  <a href="#_diffrn_scan.variant" >_diffrn_scan.variant</a>
 #
-#        category  <a href="#diffrn_scan_axis">DIFFRN_SCAN_AXIS</a>
-#
+</div>#        category  <a href="#diffrn_scan_axis">DIFFRN_SCAN_AXIS</a> <a href="javascript:open_close('contents_diffrn_scan_axis');">+/-</a>
+<div id="contents_diffrn_scan_axis" style="display:none">#
 #                  <a href="#_diffrn_scan_axis.axis_id" >_diffrn_scan_axis.axis_id</a>
 #                  <a href="#_diffrn_scan_axis.angle_start" >_diffrn_scan_axis.angle_start</a>
 #                  <a href="#_diffrn_scan_axis.angle_range" >_diffrn_scan_axis.angle_range</a>
@@ -297,16 +310,16 @@ data_cif_img.dic
 #                  <a href="#_diffrn_scan_axis.scan_id" >_diffrn_scan_axis.scan_id</a>
 #                  <a href="#_diffrn_scan_axis.variant" >_diffrn_scan_axis.variant</a>
 #
-#        category  <a href="#diffrn_scan_collection">DIFFRN_SCAN_COLLECTION</a>
-#
+</div>#        category  <a href="#diffrn_scan_collection">DIFFRN_SCAN_COLLECTION</a> <a href="javascript:open_close('contents_diffrn_scan_collection');">+/-</a>
+<div id="contents_diffrn_scan_collection" style="display:none">#
 #                  <a href="#_diffrn_scan_collection.details" >_diffrn_scan_collection.details</a>
 #                  <a href="#_diffrn_scan_collection.scan_id" >_diffrn_scan_collection.scan_id</a>
 #                  <a href="#_diffrn_scan_collection.type" >_diffrn_scan_collection.type</a>
 #                  <a href="#_diffrn_scan_collection.translation_width" >_diffrn_scan_collection.translation_width</a>
 #                  <a href="#_diffrn_scan_collection.variant" >_diffrn_scan_collection.variant</a>
 #
-#        category  <a href="#diffrn_scan_frame">DIFFRN_SCAN_FRAME</a>
-#
+</div>#        category  <a href="#diffrn_scan_frame">DIFFRN_SCAN_FRAME</a> <a href="javascript:open_close('contents_diffrn_scan_frame');">+/-</a>
+<div id="contents_diffrn_scan_frame" style="display:none">#
 #                  <a href="#_diffrn_scan_frame.date" >_diffrn_scan_frame.date</a>
 #                  <a href="#_diffrn_scan_frame.frame_id" >_diffrn_scan_frame.frame_id</a>
 #                  <a href="#_diffrn_scan_frame.frame_number" >_diffrn_scan_frame.frame_number</a>
@@ -324,8 +337,8 @@ data_cif_img.dic
 #                  <a href="#_diffrn_scan_frame.time_rstrt_incr" >_diffrn_scan_frame.time_rstrt_incr</a>
 #                  <a href="#_diffrn_scan_frame.variant" >_diffrn_scan_frame.variant</a>
 #
-#        category  <a href="#diffrn_scan_frame_axis">DIFFRN_SCAN_FRAME_AXIS</a>
-#
+</div>#        category  <a href="#diffrn_scan_frame_axis">DIFFRN_SCAN_FRAME_AXIS</a> <a href="javascript:open_close('contents_diffrn_scan_frame_axis');">+/-</a>
+<div id="contents_diffrn_scan_frame_axis" style="display:none">#
 #                  <a href="#_diffrn_scan_frame_axis.axis_id" >_diffrn_scan_frame_axis.axis_id</a>
 #                  <a href="#_diffrn_scan_frame_axis.angle" >_diffrn_scan_frame_axis.angle</a>
 #                  <a href="#_diffrn_scan_frame_axis.angle_increment" >_diffrn_scan_frame_axis.angle_increment</a>
@@ -338,8 +351,8 @@ data_cif_img.dic
 #                  <a href="#_diffrn_scan_frame_axis.frame_id" >_diffrn_scan_frame_axis.frame_id</a>
 #                  <a href="#_diffrn_scan_frame_axis.variant" >_diffrn_scan_frame_axis.variant</a>
 #
-#        category  <a href="#diffrn_scan_frame_monitor">DIFFRN_SCAN_FRAME_MONITOR</a>
-#
+</div>#        category  <a href="#diffrn_scan_frame_monitor">DIFFRN_SCAN_FRAME_MONITOR</a> <a href="javascript:open_close('contents_diffrn_scan_frame_monitor');">+/-</a>
+<div id="contents_diffrn_scan_frame_monitor" style="display:none">#
 #                  <a href="#_diffrn_scan_frame_monitor.id" >_diffrn_scan_frame_monitor.id</a>
 #                  <a href="#_diffrn_scan_frame_monitor.detector_id" >_diffrn_scan_frame_monitor.detector_id</a>
 #                  <a href="#_diffrn_scan_frame_monitor.frame_id" >_diffrn_scan_frame_monitor.frame_id</a>
@@ -348,16 +361,16 @@ data_cif_img.dic
 #                  <a href="#_diffrn_scan_frame_monitor.scan_id" >_diffrn_scan_frame_monitor.scan_id</a>
 #                  <a href="#_diffrn_scan_frame.variant" >_diffrn_scan_frame_monitor.variant</a>
 #
-#        category  <a href="#map">MAP</a>
-#
+</div>#        category  <a href="#map">MAP</a> <a href="javascript:open_close('contents_map');">+/-</a>
+<div id="contents_map" style="display:none">#
 #                  <a href="#_map.details" >_map.details</a>
 #                  <a href="#_map.diffrn_id" >_map.diffrn_id</a>
 #                  <a href="#_map.entry_id" >_map.entry_id</a>
 #                  <a href="#_map.id" >_map.id</a>
 #                  <a href="#_map.variant" >_map.variant</a>
 #
-#       category   <a href="#map_segment">MAP_SEGMENT</a>
-#
+</div>#        category  <a href="#map_segment">MAP_SEGMENT</a> <a href="javascript:open_close('contents_map_segment');">+/-</a>
+<div id="contents_map_segment" style="display:none">#
 #                  <a href="#_map_segment.array_id" >_map_segment.array_id</a>
 #                  <a href="#_map_segment.array_section_id" >_map_segment.array_section_id</a>
 #                  <a href="#_map_segment.binary_id" >_map_segment.binary_id</a>
@@ -369,8 +382,8 @@ data_cif_img.dic
 #                  <a href="#_map_segment.details" >_map_segment.details</a>
 #                  <a href="#_map_segment.variant" >_map_segment.variant</a>
 #
-#       category   <a href="#variant">VARIANT</a>
-#
+</div>#        category  <a href="#variant">VARIANT</a> <a href="javascript:open_close('contents_variant');">+/-</a>
+<div id="contents_variant" style="display:none">#
 #                  <a href="#_variant.details" >_variant.details</a>
 #                  <a href="#_variant.diffrn_id" >_variant.diffrn_id</a>
 #                  <a href="#_variant.entry_id" >_variant.entry_id</a>
@@ -379,8 +392,8 @@ data_cif_img.dic
 #                  <a href="#_variant.variant" >_variant.variant</a>
 #                  <a href="#_variant.variant_of" >_variant.variant_of</a>
 #
-#       ***DEPRECATED*** data items
-#
+</div>#       ***DEPRECATED*** data items <a href="javascript:open_close('contents_deprecated');">+/-</a>
+<div id="contents_deprecated" style="display:none">#
 #                  <a href="#_diffrn_detector_axis.id" >_diffrn_detector_axis.id</a>
 #                  <a href="#_diffrn_detector_element.center[1]" >_diffrn_detector_element.center[1]</a>
 #                  <a href="#_diffrn_detector_element.center[2]" >_diffrn_detector_element.center[2]</a>
@@ -395,8 +408,7 @@ data_cif_img.dic
 #                  <a href="#_diffrn_frame_data.id" >_diffrn_frame_data.id</a>
 #                  <a href="#_diffrn_frame_data.details">_diffrn_frame_data.details</a>
 #
-#
-#        <a href="#ITEM_TYPE_LIST">ITEM_TYPE_LIST</a>
+</div>#        <a href="#ITEM_TYPE_LIST">ITEM_TYPE_LIST</a>
 #        <a href="#ITEM_UNITS_LIST">ITEM_UNITS_LIST</a>
 #        <a href="#DICTIONARY_HISTORY">DICTIONARY_HISTORY</a>
 #
@@ -3419,7 +3431,7 @@ save_axis
      coordinate system, given in <a href=#_axis.system>_axis.system</a>.  The axis vector, itself,
        [<a href=#_axis.vector[1]>_axis.vector[1]</a>, <a href=#_axis.vector[2]>_axis.vector[2]</a>, <a href=#_axis.vector[3]>_axis.vector[3]</a>]
      is a dimensionless unit vector.  Where meaningful, an offset vector
-       [<a href=#_axis.offset[1]>_axis.offset[1]</a>, <a href=#_axis.offset[2]>_axis.offset[2]</a>, <a href=#_axis.offset[3]>_axis.offset[3]</a?]
+       [<a href=#_axis.offset[1]>_axis.offset[1]</a>, <a href=#_axis.offset[2]>_axis.offset[2]</a>, <a href=#_axis.offset[3]>_axis.offset[3]</a>]
      is given in millimetres. In coordinate systems not measured in metres,
      the offset is not specified and is taken as zero. 
      
@@ -3449,7 +3461,8 @@ save_axis
      around the axis with the thumb pointed in the direction of the axis,
      the fingers point in the positive rotation direction, i.e. clockwise.  
      
-     <b>THE IMGCIF STANDARD LABORATORY COORDINATE SYSTEM</b>
+     <b>THE IMGCIF STANDARD LABORATORY COORDINATE SYSTEM</b> <a href="javascript:open_close('axis_category_imgcif');">+/-</a>
+<div id="axis_category_imgcif" style="display:none">
      
      The imgCIF standard laboratory coordinate system is a right-handed   
      orthogonal coordinate similar to the MOSFLM coordinate system,  
@@ -3556,9 +3569,10 @@ save_axis
      specify the location of the beam centre on the detector in terms
      of the origin of the detector, which is, of course, not coincident
      with the centre of the sample.
-     
-     <b>THE NEXUS/HDF5 MCSTAS LABORATORY COORDINATE SYSTEM
 
+</div>     <b>THE NEXUS/HDF5 MCSTAS LABORATORY COORDINATE SYSTEM</b> <a href="javascript:open_close('axis_category_mcstas');">+/-</a>
+<div id="axis_category_mcstas" style="display:none">
+     
      The standard coordinate frame in NeXus is the McStas coordinate frame,
      in which the Z-axis points in the direction of the incident beam, the
      X-axis is orthogonal to the Z-axis in the horizontal plane and pointing
@@ -3665,7 +3679,8 @@ save_axis
      to facilitate recovering the original CBF layout.
  
 
-     <b>THE DIRECT LATTICE (FRACTIONAL COORDINATES)</b>
+</div>     <b>THE DIRECT LATTICE (FRACTIONAL COORDINATES)</b> <a href="javascript:open_close('axis_category_frac');">+/-</a>
+<div id="axis_category_frac" style="display:none">
      
      The unit cell, reciprocal cell and crystallographic orthogonal 
      Cartesian coordinate system are defined by the CELL and the matrices 
@@ -3716,7 +3731,8 @@ save_axis
      specified _array_structure_list_axis.displacement will have
      grid coordinates of (1,1,1), i.e. array indices of (1,1,1).
      
-     <b>THE ORTHOGONAL CARTESIAN COORDINATE SYSTEM (REAL SPACE)</b>
+</div>     <b>THE ORTHOGONAL CARTESIAN COORDINATE SYSTEM (REAL SPACE)</b> <a href="javascript:open_close('axis_category_real');">+/-</a>
+<div id="axis_category_real" style="display:none">
      
      The orthogonal Cartesian coordinate system is a transformation of
      the direct lattice to the actual physical coordinates of atoms in
@@ -3737,7 +3753,8 @@ save_axis
      of models to maps and in which to understand the chemistry of
      a molecule.
      
-     <b>THE RECIPROCAL LATTICE</b>
+</div>     <b>THE RECIPROCAL LATTICE</b> <a href="javascript:open_close('axis_category_recip');">+/-</a>
+<div id="axis_category_recip" style="display:none">
      
      The reciprocal lattice coordinate system is used for diffraction
      intensitities.  It is based on the reciprocal cell, the dual of the cell,
@@ -3757,7 +3774,7 @@ save_axis
      multiplying by the wavelength.  Reflections are commonly indexed against
      this coordinate system as (h, k, l) triples.
      
-
+</div>
      
      References:
      
