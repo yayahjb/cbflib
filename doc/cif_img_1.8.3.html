@@ -11,6 +11,17 @@
 		document.getElementById(id).style.display = "block";
         }
 	}
+	function open_close2(id,idalt) {
+		var display = document.getElementById(id).style.display;
+		if (display == "block") {
+		document.getElementById(id).style.display = "none";
+		document.getElementById(idalt).style.display = "block";
+		}
+		else {
+		document.getElementById(id).style.display = "block";
+		document.getElementById(idalt).style.display = "none";
+        }
+	}
 </script>
 
 </HEAD>
@@ -978,7 +989,8 @@ save_array_data
 ;
     _category.id                   array_data
     _category.mandatory_code       no
-    _category.NX_mapping_details
+<div id="print_NX_array_data" style="display:block">   #_category.NX_mapping_details in online version <a href="javascript:open_close2('online_NX_array_data','print_NX_array_data');">+/-</a>
+</div><div id="online_NX_array_data" style="display:none">    _category.NX_mapping_details                  #<a href="javascript:open_close2('online_NX_array_data','print_NX_array_data');">+/-</a>
 ;
     
     _array_data.array_id ARRAYID
@@ -1000,7 +1012,7 @@ save_array_data
             @CBF_header_contents="HEADER"
             @CBF_header_convention="HEADERCONVENTION"
 ;
-     loop_
+</div>     loop_
     _category_key.name             '<a href="#_array_data.array_id" >_array_data.array_id</a>'
                                    '<a href="#_array_data.binary_id" >_array_data.binary_id</a>'
                                    '<a href="#_array_data.variant" >_array_data.variant</a>'
@@ -1500,7 +1512,8 @@ save_array_element_size
 ;
     _category.id                   array_element_size
     _category.mandatory_code       no
-    _category.NX_mapping_details
+<div id="print_NX_array_element_size" style="display:block">   #_category.NX_mapping_details in online version <a href="javascript:open_close2('online_NX_array_element_size','print_NX_array_element_size');">+/-</a>
+</div><div id="online_NX_array_element_size" style="display:none">    _category.NX_mapping_details                  #<a href="javascript:open_close2('online_NX_array_element_size','print_NX_array_element_size');">+/-</a>
 ;
     
     _array_element_size.array_id ARRAYID 
@@ -1521,7 +1534,7 @@ save_array_element_size
     _array_element_size.index == 1,2, or 3 respectively
               
 ;
-
+</div>
      loop_
     _category_key.name             '<a href="#_array_element_size.array_id" >_array_element_size.array_id</a>'
                                    '<a href="#_array_element_size.index" >_array_element_size.index</a>'
@@ -1632,7 +1645,8 @@ save_array_intensities
 ;
     _category.id                   array_intensities
     _category.mandatory_code       no
-    _category.NX_mapping_details
+<div id="print_NX_array_intensities" style="display:block">   #_category.NX_mapping_details in online version <a href="javascript:open_close2('online_NX_array_intensities','print_NX_array_intensities');">+/-</a>
+</div><div id="online_NX_array_intensities" style="display:none">    _category.NX_mapping_details                  #<a href="javascript:open_close2('online_NX_array_intensities','print_NX_array_intensities');">+/-</a>
 ;
     
     _array_intensities.array_id ARRAYID
@@ -1693,7 +1707,7 @@ save_array_intensities
 
     
 ;
-
+</div>
      loop_
     _category_key.name             '<a href="#_array_intensities.array_id" >_array_intensities.array_id</a>'
                                    '<a href="#_array_intensities.binary_id" >_array_intensities.binary_id</a>'
@@ -2082,7 +2096,8 @@ save_array_structure
 ;
     _category.id                   array_structure
     _category.mandatory_code       no
-    _category.NX_mapping_details
+<div id="print_NX_array_structure" style="display:block">   #_category.NX_mapping_details in online version <a href="javascript:open_close2('online_NX_array_structure','print_NX_array_structure');">+/-</a>
+</div><div id="online_NX_array_structure" style="display:none">    _category.NX_mapping_details                  #<a href="javascript:open_close2('online_NX_array_structure','print_NX_array_structure');">+/-</a>
 ;
     Note that this is essentially a type that may apply to multiple
     binary images, and corresponds to some of the detailed HDF5
@@ -2097,7 +2112,7 @@ save_array_structure
     discussed.
 
 ;
-
+</div>
      loop_
     _category_key.name             '<a href="#_array_structure.id" >_array_structure.id</a>'
                                    '<a href="#_array_structure.variant" >_array_structure.variant</a>'
@@ -2332,7 +2347,8 @@ save_array_structure_list
 ;
     _category.id                   array_structure_list
     _category.mandatory_code       no
-    _category.NX_mapping_details
+<div id="print_NX_array_structure_list" style="display:block">   #_category.NX_mapping_details in online version <a href="javascript:open_close2('online_NX_array_structure_list','print_NX_array_structure_list');">+/-</a>
+</div><div id="online_NX_array_structure_list" style="display:none">    _category.NX_mapping_details                  #<a href="javascript:open_close2('online_NX_array_structure_list','print_NX_array_structure_list');">+/-</a>
 ;
     
     _array_structure_list.axis_set_id AXISSETID
@@ -2504,7 +2520,7 @@ save_array_structure_list
            and the array section nformation will be origanized by the
            same ordering.
 ;
-
+</div>
      loop_
     _category_key.name             '<a href="#_array_structure_list.array_id" >_array_structure_list.array_id</a>'
                                    '<a href="#_array_structure_list.index" >_array_structure_list.index</a>'
@@ -2734,7 +2750,8 @@ save_array_structure_list_section
 ;
     _category.id                   array_structure_list_section
     _category.mandatory_code       no
-    _category.NX_mapping_details
+<div id="print_NX_array_structure_list_section" style="display:block">   #_category.NX_mapping_details in online version <a href="javascript:open_close2('online_NX_array_structure_list_section','print_NX_array_structure_list_section');">+/-</a>
+</div><div id="online_NX_array_structure_list_section" style="display:none">    _category.NX_mapping_details                  #<a href="javascript:open_close2('online_NX_array_structure_list_section','print_NX_array_structure_list_section');">+/-</a>
 ;
     
     _array_structure_list_section.array_id ARRAYID -->
@@ -2760,7 +2777,7 @@ save_array_structure_list_section
              /data_stride[...] the strides of ARRAYSECTIONID
 
 ;
-
+</div>
      loop_
     _category_key.name             '<a href="#_array_structure_list_section.id" >_array_structure_list_section.id</a>'
                                    '<a href="#_array_structure_list_section.array_id" >_array_structure_list_section.array_id</a>'
@@ -2998,7 +3015,8 @@ save_array_structure_list_axis
 ;
     _category.id                   array_structure_list_axis
     _category.mandatory_code       no
-    _category.NX_mapping_details
+<div id="print_NX_array_structure_list_axis" style="display:block">   #_category.NX_mapping_details in online version <a href="javascript:open_close2('online_NX_array_structure_list_axis','print_NX_array_structure_list_axis');">+/-</a>
+</div><div id="online_NX_array_structure_list_axis" style="display:none">    _category.NX_mapping_details                  #<a href="javascript:open_close2('online_NX_array_structure_list_axis','print_NX_array_structure_list_axis');">+/-</a>
 ;
     
     _array_structure_list.axis_set_id AXISSETID
@@ -3163,7 +3181,7 @@ save_array_structure_list_axis
            and the array section nformation will be origanized by the
            same ordering.
 ;
-
+</div>
      loop_
     _category_key.name
                                   '<a href="#_array_structure_list_axis.axis_set_id" >_array_structure_list_axis.axis_set_id</a>'
@@ -3795,7 +3813,8 @@ save_axis
 ;
     _category.id                   axis
     _category.mandatory_code       no
-    _category.NX_mapping_details
+<div id="print_NX_axis" style="display:block">   #_category.NX_mapping_details in online version <a href="javascript:open_close2('online_NX_axis','print_NX_axis');">+/-</a>
+</div><div id="online_NX_axis" style="display:none">    _category.NX_mapping_details                  #<a href="javascript:open_close2('online_NX_axis','print_NX_axis');">+/-</a>
 ;
     _axis.id                  AXISID
     _axis.type                AXISTYPE
@@ -3842,7 +3861,7 @@ for AXISEQUIPMENT=="general"}
 
 
 ;
-
+</div>
      loop_
     _category_key.name          '<a href="#_axis.id" >_axis.id</a>'
                                 '<a href="#_axis.equipment">_axis.equipment</a>'
@@ -5615,7 +5634,8 @@ save_diffrn_data_frame
 ;
     _category.id                   diffrn_data_frame
     _category.mandatory_code       no
-    _category.NX_mapping_details
+<div id="print_NX_diffrn_data_frame" style="display:block">   #_category.NX_mapping_details in online version <a href="javascript:open_close2('online_NX_diffrn_data_frame','print_NX_diffrn_data_frame');">+/-</a>
+</div><div id="online_NX_diffrn_data_frame" style="display:none">    _category.NX_mapping_details                  #<a href="javascript:open_close2('online_NX_diffrn_data_frame','print_NX_diffrn_data_frame');">+/-</a>
 ;
     
     _diffrn_data_frame.array_id ARRAYID
@@ -5674,7 +5694,7 @@ save_diffrn_data_frame
     for CENTERARRAY in the order fast and then slow.
 
 ;
-
+</div>
      loop_
     _category_key.name             '<a href="#_diffrn_data_frame.id" >_diffrn_data_frame.id</a>'
                                    '<a href="#_diffrn_data_frame.detector_element_id" >_diffrn_data_frame.detector_element_id</a>'
@@ -6003,7 +6023,8 @@ save_diffrn_detector
 ;
     _category.id                  diffrn_detector
     _category.mandatory_code      no
-    _category.NX_mapping_details
+<div id="print_NX_diffrn_detector" style="display:block">   #_category.NX_mapping_details in online version <a href="javascript:open_close2('online_NX_diffrn_detector','print_NX_diffrn_detector');">+/-</a>
+</div><div id="online_NX_diffrn_detector" style="display:none">    _category.NX_mapping_details                  #<a href="javascript:open_close2('online_NX_diffrn_detector','print_NX_diffrn_detector');">+/-</a>
 ;
     
     _diffrn_detector.diffrn_id DIFFRNID 
@@ -6031,7 +6052,7 @@ save_diffrn_detector
               /gain_setting="GAINSETTING"
     
 ;
-
+</div>
      loop_
     _category_key.name          '<a href="#_diffrn_detector.diffrn_id" >_diffrn_detector.diffrn_id</a>'
                                 '<a href="#_diffrn_detector.id" >_diffrn_detector.id</a>'
@@ -6277,7 +6298,8 @@ save_diffrn_detector_axis
 ;
     _category.id                   diffrn_detector_axis
     _category.mandatory_code       no
-    _category.NX_mapping_details
+<div id="print_NX_diffrn_detector_axis" style="display:block">   #_category.NX_mapping_details in online version <a href="javascript:open_close2('online_NX_diffrn_detector_axis','print_NX_diffrn_detector_axis');">+/-</a>
+</div><div id="online_NX_diffrn_detector_axis" style="display:none">    _category.NX_mapping_details                  #<a href="javascript:open_close2('online_NX_diffrn_detector_axis','print_NX_diffrn_detector_axis');">+/-</a>
 ;
     
     _diffrn_detector_axis.axis_id AXISID --> 
@@ -6292,7 +6314,7 @@ This information normally will duplicate information obtained from
 the ARRAY_STRUCTURE_LIST_AXIS.
 
 ;
-
+</div>
      loop_
     _category_key.name          '<a href="#_diffrn_detector_axis.detector_id" >_diffrn_detector_axis.detector_id</a>'
                                 '<a href="#_diffrn_detector_axis.axis_id" >_diffrn_detector_axis.axis_id</a>'
@@ -6370,7 +6392,8 @@ save_diffrn_detector_element
 ;
     _category.id                   diffrn_detector_element
     _category.mandatory_code       no
-    _category.NX_mapping_details
+<div id="print_NX_diffrn_detector_element" style="display:block">   #_category.NX_mapping_details in online version <a href="javascript:open_close2('online_NX_diffrn_detector_element','print_NX_diffrn_detector_element');">+/-</a>
+</div><div id="online_NX_diffrn_detector_element" style="display:none">    _category.NX_mapping_details                  #<a href="javascript:open_close2('online_NX_diffrn_detector_element','print_NX_diffrn_detector_element');">+/-</a>
 ;
     
     _diffrn_detector_element.id ELEMENTID
@@ -6401,7 +6424,7 @@ save_diffrn_detector_element
      inserts ELEMENTID into the colon-separated list of units
     
 ;
-
+</div>
      loop_
     _category_key.name             '<a href="#_diffrn_detector_element.id" >_diffrn_detector_element.id</a>'
                                    '<a href="#_diffrn_detector_element.detector_id" >_diffrn_detector_element.detector_id</a>'
@@ -6600,7 +6623,8 @@ save_diffrn_measurement
 ;
     _category.id                  diffrn_measurement
     _category.mandatory_code      no
-    _category.NX_mapping_details
+<div id="print_NX_diffrn_measurement" style="display:block">   #_category.NX_mapping_details in online version <a href="javascript:open_close2('online_NX_diffrn_measurement','print_NX_diffrn_measurement');">+/-</a>
+</div><div id="online_NX_diffrn_measurement" style="display:none">    _category.NX_mapping_details                  #<a href="javascript:open_close2('online_NX_diffrn_measurement','print_NX_diffrn_measurement');">+/-</a>
 ;
     
     _diffrn_measurement.diffrn_id DIFFRNID
@@ -6637,7 +6661,7 @@ save_diffrn_measurement
         /CBF_diffrn_measurement__sample_detector_voffset=VOFST
           @units="mm"    
 ;
-     loop_
+</div>     loop_
     _category_key.name          '<a href="#_diffrn_measurement.device" >_diffrn_measurement.device</a>'
                                 '<a href="#_diffrn_measurement.diffrn_id" >_diffrn_measurement.diffrn_id</a>'
                                 '<a href="#_diffrn_measurement.id" >_diffrn_measurement.id</a>'
@@ -6961,7 +6985,8 @@ save_diffrn_measurement_axis
 ;
     _category.id                   diffrn_measurement_axis
     _category.mandatory_code       no
-    _category.NX_mapping_details
+<div id="print_NX_diffrn_measurement_axis" style="display:block">   #_category.NX_mapping_details in online version <a href="javascript:open_close2('online_NX_diffrn_measurement_axis','print_NX_diffrn_measurement_axis');">+/-</a>
+</div><div id="online_NX_diffrn_measurement_axis" style="display:none">    _category.NX_mapping_details                  #<a href="javascript:open_close2('online_NX_diffrn_measurement_axis','print_NX_diffrn_measurement_axis');">+/-</a>
 ;
     
     _diffrn_measurement_axis.axis_id AXISID
@@ -6982,7 +7007,7 @@ save_diffrn_measurement_axis
 
         
 ;
-     loop_
+</div>     loop_
     _category_key.name
                               '<a href="#_diffrn_measurement_axis.measurement_device" >_diffrn_measurement_axis.measurement_device</a>'
                                 '<a href="#_diffrn_measurement_axis.measurement_id" >_diffrn_measurement_axis.measurement_id</a>'
@@ -7072,7 +7097,8 @@ save_diffrn_radiation
 ;
     _category.id                  diffrn_radiation
     _category.mandatory_code      no
-    _category.NX_mapping_details
+<div id="print_NX_diffrn_radiation" style="display:block">   #_category.NX_mapping_details in online version <a href="javascript:open_close2('online_NX_diffrn_radiation','print_NX_diffrn_radiation');">+/-</a>
+</div><div id="online_NX_diffrn_radiation" style="display:none">    _category.NX_mapping_details                  #<a href="javascript:open_close2('online_NX_diffrn_radiation','print_NX_diffrn_radiation');">+/-</a>
 ;
     
     _diffrn_radiation.collimation    COLLIMATION
@@ -7165,7 +7191,7 @@ save_diffrn_radiation
     
 ;
 
-     loop_
+</div>     loop_
     _category_key.name          '<a href="#_diffrn_radiation.diffrn_id">_diffrn_radiation.diffrn_id</a>'
                                 '<a href="#_diffrn_radiation.variant">_diffrn_radiation.variant</a>'
      loop_
@@ -8017,12 +8043,12 @@ save_diffrn_refln
 ;
     _category.id                   diffrn_refln
     _category.mandatory_code       no
-    _category.NX_mapping_details
+<div id="print_NX_diffrn_refln" style="display:block">   #_category.NX_mapping_details in online version <a href="javascript:open_close2('online_NX_diffrn_refln','print_NX_diffrn_refln');">+/-</a>
+</div><div id="online_NX_diffrn_refln" style="display:none">    _category.NX_mapping_details                  #<a href="javascript:open_close2('online_NX_diffrn_refln','print_NX_diffrn_refln');">+/-</a>
 ;
     This category will be addressed at a future date.
 ;
-
-     loop_
+</div>     loop_
     _category_key.name             '_diffrn_refln.diffrn_id'
                                    '_diffrn_refln.id' 
                                    '<a href="#_diffrn_refln.frame_id" >_diffrn_refln.frame_id</a>'
@@ -8095,7 +8121,8 @@ save_diffrn_scan
 ;
     _category.id                   diffrn_scan
     _category.mandatory_code       no
-    _category.NX_mapping_details
+<div id="print_NX_diffrn_scan" style="display:block">   #_category.NX_mapping_details in online version <a href="javascript:open_close2('online_NX_diffrn_scan','print_NX_diffrn_scan');">+/-</a>
+</div><div id="online_NX_diffrn_scan" style="display:none">    _category.NX_mapping_details                  #<a href="javascript:open_close2('online_NX_diffrn_scan','print_NX_diffrn_scan');">+/-</a>
 ;
     
     _diffrn_scan.id SCANID
@@ -8135,7 +8162,7 @@ save_diffrn_scan
 
     
 ;
-     loop_
+</div>     loop_
     _category_key.name            '<a href="#_diffrn_scan.id" >_diffrn_scan.id</a>'
                                   '<a href="#_diffrn_scan.variant" >_diffrn_scan.variant</a>'
      loop_
@@ -8939,7 +8966,8 @@ save_diffrn_scan_axis
 ;
     _category.id                   diffrn_scan_axis
     _category.mandatory_code       no
-    _category.NX_mapping_details
+<div id="print_NX_diffrn_scan_axis" style="display:block">   #_category.NX_mapping_details in online version <a href="javascript:open_close2('online_NX_diffrn_scan_axis','print_NX_diffrn_scan_axis');">+/-</a>
+</div><div id="online_NX_diffrn_scan_axis" style="display:none">    _category.NX_mapping_details                  #<a href="javascript:open_close2('online_NX_diffrn_scan_axis','print_NX_diffrn_scan_axis');">+/-</a>
 ;
     
     _diffrn_scan_axis.axis_id AXISID-->
@@ -8984,7 +9012,7 @@ save_diffrn_scan_axis
      
      
 ;
-     loop_
+</div>     loop_
     _category_key.name
                                   '<a href="#_diffrn_scan_axis.scan_id" >_diffrn_scan_axis.scan_id</a>'
                                   '<a href="#_diffrn_scan_axis.axis_id" >_diffrn_scan_axis.axis_id</a>'
@@ -9274,7 +9302,8 @@ save_diffrn_scan_collection
 ;
     _category.id                   diffrn_scan_collection
     _category.mandatory_code       no
-    _category.NX_mapping_details
+<div id="print_NX_diffrn_scan_collection" style="display:block">   #_category.NX_mapping_details in online version <a href="javascript:open_close2('online_NX_diffrn_scan_collection','print_NX_diffrn_scan_collection');">+/-</a>
+</div><div id="online_NX_diffrn_scan_collection" style="display:none">    _category.NX_mapping_details                  #<a href="javascript:open_close2('online_NX_diffrn_scan_collection','print_NX_diffrn_scan_collection');">+/-</a>
 ;
     
     _diffrn_scan_collection.type  COLLECTIONTYPE
@@ -9292,7 +9321,7 @@ save_diffrn_scan_collection
               /translation_width=["TRANSLATION_WIDTH"]
 
 ;
-     loop_
+</div>     loop_
     _category_key.name
                                   '<a href="#_diffrn_scan_collection.scan_id" >_diffrn_scan_collection.scan_id</a>'
                                   '<a href="#_diffrn_scan_collection.variant" >_diffrn_scan_collection.variant</a>'
@@ -9413,7 +9442,8 @@ save_diffrn_scan_frame
 ;
     _category.id                   diffrn_scan_frame
     _category.mandatory_code       no
-    _category.NX_mapping_details
+<div id="print_NX_diffrn_scan_frame" style="display:block">   #_category.NX_mapping_details in online version <a href="javascript:open_close2('online_NX_diffrn_scan_frame','print_NX_diffrn_scan_frame');">+/-</a>
+</div><div id="online_NX_diffrn_scan_frame" style="display:none">    _category.NX_mapping_details                  #<a href="javascript:open_close2('online_NX_diffrn_scan_frame','print_NX_diffrn_scan_frame');">+/-</a>
 ;
     
     _diffrn_scan_frame.date  DATETIME
@@ -9447,7 +9477,7 @@ save_diffrn_scan_frame
      where each array element is inserted at index FRAMENUMBER          
 
 ;
-     loop_
+</div>     loop_
     _category_key.name
                                   '<a href="#_diffrn_scan_frame.scan_id" >_diffrn_scan_frame.scan_id</a>'
                                   '<a href="#_diffrn_scan_frame.frame_id" >_diffrn_scan_frame.frame_id</a>'
@@ -9882,7 +9912,8 @@ save_diffrn_scan_frame_axis
 ;
     _category.id                   diffrn_scan_frame_axis
     _category.mandatory_code       no
-    _category.NX_mapping_details
+<div id="print_NX_diffrn_scan_frame_axis" style="display:block">   #_category.NX_mapping_details in online version <a href="javascript:open_close2('online_NX_diffrn_scan_frame_axis','print_NX_diffrn_scan_frame_axis');">+/-</a>
+</div><div id="online_NX_diffrn_scan_frame_axis" style="display:none">    _category.NX_mapping_details                  #<a href="javascript:open_close2('online_NX_diffrn_scan_frame_axis','print_NX_diffrn_scan_frame_axis');">+/-</a>
 ;
     
     _diffrn_scan_frame_axis.axis_id AXISID
@@ -9938,7 +9969,7 @@ save_diffrn_scan_frame_axis
     
     
 ;
-     loop_
+</div>     loop_
     _category_key.name
                                   '<a href="#_diffrn_scan_frame_axis.frame_id" >_diffrn_scan_frame_axis.frame_id</a>'
                                   '<a href="#_diffrn_scan_frame_axis.axis_id" >_diffrn_scan_frame_axis.axis_id</a>'
@@ -10183,7 +10214,8 @@ save_diffrn_scan_frame_monitor
 ;
     _category.id                   diffrn_scan_frame_monitor
     _category.mandatory_code       no
-    _category.NX_mapping_details
+<div id="print_NX_diffrn_scan_frame_monitor" style="display:block">   #_category.NX_mapping_details in online version <a href="javascript:open_close2('online_NX_diffrn_scan_frame_monitor','print_NX_diffrn_scan_frame_monitor');">+/-</a>
+</div><div id="online_NX_diffrn_scan_frame_monitor" style="display:none">    _category.NX_mapping_details                  #<a href="javascript:open_close2('online_NX_diffrn_scan_frame_monitor','print_NX_diffrn_scan_frame_monitor');">+/-</a>
 ;
     
     _diffrn_scan_frame_monitor.id MONID -->
@@ -10206,7 +10238,7 @@ save_diffrn_scan_frame_monitor
             
 
 ;
-     loop_
+</div>     loop_
     _category_key.name             '<a href="#_diffrn_scan_frame_monitor.id" >_diffrn_scan_frame_monitor.id</a>'
                                    '<a href="#_diffrn_scan_frame_monitor.detector_id" >_diffrn_scan_frame_monitor.detector_id</a>'
                                    '<a href="#_diffrn_scan_frame_monitor.scan_id" >_diffrn_scan_frame_monitor.scan_id</a>'
