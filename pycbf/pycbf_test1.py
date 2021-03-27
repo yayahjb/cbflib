@@ -44,17 +44,18 @@ for i in range(categories):
                 print dir(s)
                 print len(s)
                 try:
-                   import Numeric
-                   d = Numeric.fromstring(s,Numeric.UInt32) 
+                   import numpy 
+                   d = numpy.frombuffer(s,numpy.uint32)
                    # Hard wired Unsigned Int32
                    print d.shape
                    print d[0:10],d[d.shape[0]/2],d[-1]
-                   d=Numeric.reshape(d,(2300,2300))
+                   print d[d.shape[0]/3:d.shape[0]/3+20]
+                   d=numpy.reshape(d,(2300,2300))
 #                   from matplotlib import pylab
 #                   pylab.imshow(d,vmin=0,vmax=1000)
 #                   pylab.show()
                 except ImportError:
-                   print "You need to get Numeric and matplotlib to see the data"
+                   print "You need to get numpy and matplotlib to see the data"
             else:
                 value=object.get_value()
                 print "Val:",value,i

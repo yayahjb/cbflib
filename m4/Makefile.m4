@@ -1,5 +1,5 @@
-m4_define(`cbf_version',`0.9.6')m4_dnl
-m4_define(`cbf_date',`19 May 2020')m4_dnl
+m4_define(`cbf_version',`0.9.7')m4_dnl
+m4_define(`cbf_date',`25 March 2021')m4_dnl
 m4_ifelse(cbf_system,`',`m4_define(`cbf_system',`LINUX')')
 `######################################################################
 #  Makefile - command file for make to create CBFlib                 #
@@ -332,9 +332,15 @@ endif
 
 ifneq ($(CBFLIB_DONT_USE_LOCAL_HDF5),yes)
 HDF5_PREFIX ?= $(PWD)
-HDF5 ?= hdf5-1.10.6
+HDF5 ?= hdf5-1.12.0
+#HDF5 ?= hdf5-1.10.6
 #HDF5 = hdf5-1.8.18
 #HDF5 = hdf5-1.10.5
+ifeq ($(HDF5),hdf5-1.12.0)
+HDF5CFLAGS=-DH5_USE_110_API
+else
+HDF5CFLAGS=
+endif
 HDF5dep = $(HDF5)
 HDF5_INSTALL = $(HDF5)_INSTALL
 ifneq ($(MSYS2),yes)
@@ -623,10 +629,10 @@ INSTALLSETUP_PY = installsetup.py
 #########################################################
 CC	= gcc
 C++	= g++
-CFLAGS  = -g -O2  -Wall -ansi -pedantic
+CFLAGS  = -g -O2  -Wall -ansi -pedantic $(HDF5CFLAGS)
 LDFLAGS =
 F90C = gfortran
-F90FLAGS = -g -fno-range-check
+F90FLAGS = -g -fno-range-check -fallow-invalid-boz
 F90LDFLAGS = -bind_at_load
 SOCFLAGS = -fPIC
 SOLDFLAGS = -dynamiclib -Wl,-rpath,$(CBF_PREFIX)/lib
@@ -647,10 +653,10 @@ cbf_system,`OSX_gcc42',`
 #########################################################
 CC	= gcc
 C++	= g++
-CFLAGS  = -g -O2  -Wall -ansi -pedantic
+CFLAGS  = -g -O2  -Wall -ansi -pedantic  $(HDF5CFLAGS)
 LDFLAGS =
 F90C = gfortran
-F90FLAGS = -g -fno-range-check
+F90FLAGS = -g -fno-range-check -fallow-invalid-boz
 F90LDFLAGS = -bind_at_load
 SOCFLAGS = -fPIC
 SOLDFLAGS = -dynamiclib -Wl,-rpath,$(CBF_PREFIX)/lib
@@ -671,7 +677,7 @@ cbf_system,`OSX_gcc42_DMALLOC',`
 #########################################################
 CC	= gcc
 C++	= g++
-CFLAGS  = -g -O2  -Wall -ansi -pedantic -DDMALLOC -DDMALLOC_FUNC_CHECK -I$(HOME)/include
+CFLAGS  = -g -O2  -Wall -ansi -pedantic -DDMALLOC -DDMALLOC_FUNC_CHECK -I$(HOME)/include  $(HDF5CFLAGS)
 LDFLAGS =
 F90C = gfortran
 F90FLAGS = -g -fno-range-check
@@ -696,7 +702,7 @@ cbf_system,`LINUX_64',`
 #########################################################
 CC	= gcc -m64
 C++	= g++ -m64
-CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing
+CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing  $(HDF5CFLAGS)
 LDFLAGS =
 F90C = gfortran -m64
 F90FLAGS = -g -fno-range-check
@@ -718,7 +724,7 @@ cbf_system,`LINUX_gcc42',`
 #########################################################
 CC	= gcc
 C++	= g++
-CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing
+CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing  $(HDF5CFLAGS)
 LDFLAGS =
 F90C = gfortran
 F90FLAGS = -g -fno-range-check
@@ -739,10 +745,10 @@ cbf_system,`LINUX',`
 #########################################################
 CC	= gcc
 C++	= g++
-CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing
+CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing  $(HDF5CFLAGS)
 LDFLAGS =
 F90C = gfortran
-F90FLAGS = -g
+F90FLAGS = -g -fno-range-check -fallow-invalid-boz
 F90LDFLAGS = 
 SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(CBF_PREFIX)/lib
@@ -752,7 +758,7 @@ RUNLDPREFIX = LD_LIBRARY_PATH=$(CBF_PREFIX)/lib:$$LD_LIBRARY_PATH;export LD_LIBR
 EXTRALIBS = -lm
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time',
-cbf_system,`LINUX_gcc42_DMALLOC',`
+cbf_system,`LINUX_gcc42_DMALLOC', `
 #########################################################
 #
 #  Appropriate compiler definitions for Linux
@@ -761,10 +767,11 @@ cbf_system,`LINUX_gcc42_DMALLOC',`
 #########################################################
 CC	= gcc
 C++	= g++
-CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing -DDMALLOC -DDMALLOC_FUNC_CHECK  -I$(HOME)/include
+CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing \
+          -DDMALLOC -DDMALLOC_FUNC_CHECK  $(HDF5CFLAGS)  -I$(HOME)/include
 LDFLAGS =
 F90C = gfortran
-F90FLAGS = -g -fno-range-check
+F90FLAGS = -g -fno-range-check -fno-range-check
 F90LDFLAGS = 
 SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(CBF_PREFIX)/lib
@@ -782,10 +789,11 @@ cbf_system,`LINUX_DMALLOC',`
 #########################################################
 CC	= gcc
 C++	= g++
-CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing -DDMALLOC -DDMALLOC_FUNC_CHECK  -I$(HOME)/include
+CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing \
+          -DDMALLOC -DDMALLOC_FUNC_CHECK   $(HDF5CFLAGS) -I$(HOME)/include
 LDFLAGS =
 F90C = gfortran
-F90FLAGS = -g
+F90FLAGS = -g -fno-range-check -fallow-invalid-boz
 F90LDFLAGS = 
 SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(CBF_PREFIX)/lib
@@ -803,7 +811,7 @@ cbf_system,`AIX',`
 #########################################################
 CC	= xlc
 C++	= xlC
-CFLAGS  = -g -O2  -Wall
+CFLAGS  = -g -O2  -Wall  $(HDF5CFLAGS)
 LDFLAGS =
 F90C = xlf90
 F90FLAGS = -g -qsuffix=f=f90
@@ -823,7 +831,7 @@ cbf_system,`MINGW',`
 #########################################################
 CC	= gcc
 C++	= g++
-CFLAGS  = -g -O2  -Wall -I/usr/include -fno-strict-aliasing
+CFLAGS  = -g -O2  -Wall -I/usr/include -fno-strict-aliasing  $(HDF5CFLAGS)
 LDFLAGS =
 F90C = g95
 F90FLAGS = -g
@@ -858,7 +866,7 @@ cbf_system,`MSYS2',`
 CC	= gcc
 C++	= g++
 CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -DH5_HAVE_WIN32_API \
-  -DH5_HAVE_MINGW -DH5_USE_110_API -fno-strict-aliasing
+  -DH5_HAVE_MINGW -DH5_USE_110_API -fno-strict-aliasing  $(HDF5CFLAGS)
 LDFLAGS =
 F90C = gfortran
 F90FLAGS = -g -fno-range-check -fallow-invalid-boz
@@ -884,7 +892,7 @@ cbf_system,`IRIX_gcc',`
 #########################################################
 CC      = gcc
 C++     = g++
-CFLAGS  = -g -O2  -Wall
+CFLAGS  = -g -O2  -Wall   $(HDF5CFLAGS)
 LDFLAGS =
 F90C    =
 F90FLAGS =
@@ -907,9 +915,9 @@ RANLIB  = ',
 CC	= gcc
 C++	= g++
 ifneq ($(CBFDEBUG),)
-CFLAGS  = -g -O0 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing -DCBFDEBUG=1
+CFLAGS  = -g -O0 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing -DCBFDEBUG=1  $(HDF5CFLAGS)
 else
-CFLAGS  = -g -O3 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing
+CFLAGS  = -g -O3 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing  $(HDF5CFLAGS)
 endif
 LDFLAGS =
 F90C = gfortran
@@ -1660,7 +1668,7 @@ ifneq ($(MSYS2),yes)
 	tar -xvf $(LZ4).tar.gz
 	-rm $(LZ4).tar.gz
 	(cp $(LZ4include)/lz4.h $(INCLUDE); \
-	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(LZ4src)/lz4.c -o lz4.o; \
+	$(CC) $(CFLAGS) $(SOWCFLAGS) $(INCLUDES) $(WARNINGS) -c $(LZ4src)/lz4.c -o lz4.o; \
 	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(LZ4src)/h5zlz4.c -o h5zlz4.o; \
 	$(CC) -shared lz4.o h5zlz4.o -o $(SOLIB)/libh5zlz4.so; \
 	rm lz4.o h5zlz4.o)
@@ -2387,7 +2395,14 @@ TESTOUTPUTSIGS = adscconverted_flat_orig.cbf$(SEXT) \
 	test_fcb_read_testflatpackedout_orig.out$(SEXT) \
 	XRD1621_orig.cbf$(SEXT) \
 	XRD1621_I4encbC100_orig.cbf$(SEXT) \
-	minicbf_orig.h5$(SEXT)
+	minicbf_orig.h5$(SEXT) \
+	pycbf_test1_orig.out$(SEXT) \
+	pycbf_test2_orig.out$(SEXT) \
+	pycbf_test3_orig.out$(SEXT) \
+	pycbf_test4_orig.out$(SEXT) \
+	fel_test1_orig.out$(SEXT) \
+	fel_test2_orig.out$(SEXT) \
+	fel_test3_orig.out$(SEXT)
 DATADIRS_OUTPUT_SIGNATURES =  $(DATADIRS)/adscconverted_flat_orig.cbf$(SEXT) \
 	$(DATADIRS)/adscconverted_orig.cbf$(SEXT) \
 	$(DATADIRS)/converted_flat_orig.cbf$(SEXT) \
@@ -2403,7 +2418,14 @@ DATADIRS_OUTPUT_SIGNATURES =  $(DATADIRS)/adscconverted_flat_orig.cbf$(SEXT) \
 	$(DATADIRS)/test_fcb_read_testflatpackedout_orig.out$(SEXT) \
 	$(DATADIRS)/XRD1621_orig.cbf$(SEXT) \
 	$(DATADIRS)/XRD1621_I4encbC100_orig.cbf$(SEXT) \
-	$(DATADIRS)/minicbf_orig.h5$(SEXT)
+	$(DATADIRS)/minicbf_orig.h5$(SEXT) \
+	$(DATADIRS)/pycbf_test1_orig.out$(SEXT) \
+	$(DATADIRS)/pycbf_test2_orig.out$(SEXT) \
+	$(DATADIRS)/pycbf_test3_orig.out$(SEXT) \
+	$(DATADIRS)/pycbf_test4_orig.out$(SEXT) \
+	$(DATADIRS)/fel_test1_orig.out$(SEXT) \
+	$(DATADIRS)/fel_test2_orig.out$(SEXT) \
+	$(DATADIRS)/fel_test3_orig.out$(SEXT)
 
 # Fetch Input Data Files 
 
@@ -2456,6 +2478,13 @@ restore_output:		$(NEWTESTOUTPUT) $(DATADIRO) $(MINICBF_TEST)/minicbf.h5
 	$(SIGNATURE) < XRD1621.cbf > $(DATADIRO)/XRD1621_orig.cbf$(SEXT)
 	$(SIGNATURE) < XRD1621_I4encbC100.cbf > $(DATADIRO)/XRD1621_I4encbC100_orig.cbf$(SEXT)
 	$(SIGNATURE) < $(MINICBF_TEST)/minicbf.h5  > $(DATADIRO)/minicbf_orig.h5$(SEXT)
+	$(SIGNATURE) < $(PYCBF)/pycbf_test1.out  > $(DATADIRO)/pycbf_test1_orig.out$(SEXT)
+	$(SIGNATURE) < $(PYCBF)/pycbf_test2.out  > $(DATADIRO)/pycbf_test2_orig.out$(SEXT)
+	$(SIGNATURE) < $(PYCBF)/pycbf_test3.out  > $(DATADIRO)/pycbf_test3_orig.out$(SEXT)
+	$(SIGNATURE) < $(PYCBF)/pycbf_test4.out  > $(DATADIRO)/pycbf_test4_orig.out$(SEXT)
+	$(SIGNATURE) < $(PYCBF)/fel_test1.out  > $(DATADIRO)/fel_test1_orig.out$(SEXT)
+	$(SIGNATURE) < $(PYCBF)/fel_test2.out  > $(DATADIRO)/fel_test2_orig.out$(SEXT)
+	$(SIGNATURE) < $(PYCBF)/fel_test3.out  > $(DATADIRO)/fel_test3_orig.out$(SEXT)
 	cp adscconverted_flat.cbf $(DATADIRO)/adscconverted_flat_orig.cbf$
 	cp adscconverted.cbf $(DATADIRO)/adscconverted_orig.cbf
 	cp converted_flat.cbf $(DATADIRO)/converted_flat_orig.cbf
@@ -2472,6 +2501,13 @@ restore_output:		$(NEWTESTOUTPUT) $(DATADIRO) $(MINICBF_TEST)/minicbf.h5
 	cp XRD1621.cbf $(DATADIRO)/XRD1621_orig.cbf
 	cp XRD1621_I4encbC100.cbf $(DATADIRO)/XRD1621_I4encbC100_orig.cbf
 	cp $(MINICBF_TEST)/minicbf.h5 $(DATADIRO)/minicbf_orig.h5
+	cp $(PYCBF)/pycbf_test1.out $(DATADIRO)/pycbf_test1_orig.out
+	cp $(PYCBF)/pycbf_test2.out $(DATADIRO)/pycbf_test2_orig.out
+	cp $(PYCBF)/pycbf_test3.out $(DATADIRO)/pycbf_test3_orig.out
+	cp $(PYCBF)/pycbf_test4.out $(DATADIRO)/pycbf_test4_orig.out
+	cp $(PYCBF)/fel_test1.out $(DATADIRO)/fel_test1_orig.out
+	cp $(PYCBF)/fel_test2.out $(DATADIRO)/fel_test2_orig.out
+	cp $(PYCBF)/fel_test3.out $(DATADIRO)/fel_test3_orig.out
 
 restore_sigs_only:	$(NEWTESTOUTPUT) $(DATADIRS)
 	$(SIGNATURE) < adscconverted_flat.cbf > $(DATADIRS)/adscconverted_flat_orig.cbf$(SEXT)
@@ -2490,6 +2526,13 @@ restore_sigs_only:	$(NEWTESTOUTPUT) $(DATADIRS)
 	$(SIGNATURE) < XRD1621.cbf > $(DATADIRS)/XRD1621_orig.cbf$(SEXT)
 	$(SIGNATURE) < XRD1621_I4encbC100.cbf > $(DATADIRS)/XRD1621_I4encbC100_orig.cbf$(SEXT)
 	$(SIGNATURE) < $(MINICBF_TEST)/minicbf.h5 > $(DATADIRS)/minicbf_orig.h5$(SEXT)
+	$(SIGNATURE) < $(PYCBF)/pycbf_test1.out  > $(DATADIRO)/pycbf_test1_orig.out$(SEXT)
+	$(SIGNATURE) < $(PYCBF)/pycbf_test2.out  > $(DATADIRO)/pycbf_test2_orig.out$(SEXT)
+	$(SIGNATURE) < $(PYCBF)/pycbf_test3.out  > $(DATADIRO)/pycbf_test3_orig.out$(SEXT)
+	$(SIGNATURE) < $(PYCBF)/pycbf_test4.out  > $(DATADIRO)/pycbf_test4_orig.out$(SEXT)
+	$(SIGNATURE) < $(PYCBF)/fel_test1.out  > $(DATADIRO)/fel_test1_orig.out$(SEXT)
+	$(SIGNATURE) < $(PYCBF)/fel_test2.out  > $(DATADIRO)/fel_test2_orig.out$(SEXT)
+	$(SIGNATURE) < $(PYCBF)/fel_test3.out  > $(DATADIRO)/fel_test3_orig.out$(SEXT)
 restore_signatures:	restore_output restore_sigs_only
 	
 #
@@ -2769,23 +2812,42 @@ endif
 
 
 	
-pycbftests:  $(PYCBF)/_pycbf.$(PYCBFEXT) $(BIN)/cbf_standardize_numbers
-	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_test1.py)
-	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_test2.py)
-	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_test3.py)
-	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_test4.py)
+pycbftests:  $(PYCBF)/_pycbf.$(PYCBFEXT) $(BIN)/cbf_standardize_numbers $(TESTOUTPUT)
+	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_test1.py |\
+		$(BIN)/cbf_standardize_numbers - 4 > pycbf_test1.out; $(DIFF) pycbf_test1.out $(ROOT)/pycbf_test1_orig.out )
+	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_test2.py |\
+		$(BIN)/cbf_standardize_numbers - 4 > pycbf_test2.out; $(DIFF) pycbf_test2.out $(ROOT)/pycbf_test2_orig.out )
+	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_test3.py |\
+		$(BIN)/cbf_standardize_numbers - 4 > pycbf_test3.out; $(DIFF) pycbf_test3.out $(ROOT)/pycbf_test3_orig.out )
+	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_test4.py |\
+		$(BIN)/cbf_standardize_numbers - 4 > pycbf_test4.out; $(DIFF) pycbf_test4.out $(ROOT)/pycbf_test4_orig.out )
 	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_testfelaxes.py fel_test1.cbf |\
-		$(BIN)/cbf_standardize_numbers - 4 > fel_test1.out)
+		$(BIN)/cbf_standardize_numbers - 4 > fel_test1.out; $(DIFF) fel_test1.out $(ROOT)/fel_test1_orig.out )
 	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_testfelaxes.py fel_test2.cbf |\
-		$(BIN)/cbf_standardize_numbers - 4 > fel_test2.out)
+		$(BIN)/cbf_standardize_numbers - 4 > fel_test2.out; $(DIFF) fel_test2.out $(ROOT)/fel_test2_orig.out )
 	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_testfelaxes.py ../hit-20140306005258847.cbf |\
-		$(BIN)/cbf_standardize_numbers - 4 > fel_test3.out)
-	-$(BIN)/cbf_standardize_numbers $(PYCBF)/fel_test1_orig.out 4 | \
-		$(DIFF) $(PYCBF)/fel_test1.out -
-	-$(BIN)/cbf_standardize_numbers $(PYCBF)/fel_test2_orig.out 4 | \
-		$(DIFF) $(PYCBF)/fel_test2.out -
-	-$(BIN)/cbf_standardize_numbers $(PYCBF)/fel_test3_orig.out 4 | \
-		$(DIFF) $(PYCBF)/fel_test3.out -
+		$(BIN)/cbf_standardize_numbers - 4 > fel_test3.out; $(DIFF) fel_test3.out $(ROOT)/fel_test3_orig.out )
+
+pycbftests_sigs_only:  $(PYCBF)/_pycbf.$(PYCBFEXT) $(BIN)/cbf_standardize_numbers $(TESTOUTPUTSIGS)
+	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_test1.py |\
+		$(BIN)/cbf_standardize_numbers - 4 |$(SIGNATURE)| $(DIFF) - $(ROOT)/pycbf_test1_orig.out.$(SEXT) )
+	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_test2.py |\
+		$(BIN)/cbf_standardize_numbers - 4 |$(SIGNATURE)| $(DIFF) - $(ROOT)/pycbf_test2_orig.out.$(SEXT) )
+		$(BIN)/cbf_standardize_numbers - 4 > pycbf_test2.out; $(DIFF) pycbf_test1.out $(ROOT)/pycbf_orig.out )
+	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_test3.py |\
+		$(BIN)/cbf_standardize_numbers - 4 |$(SIGNATURE)| $(DIFF) - $(ROOT)/pycbf_test3_orig.out.$(SEXT) )
+		$(BIN)/cbf_standardize_numbers - 4 > pycbf_test3.out; $(DIFF) pycbf_test1.out $(ROOT)/pycbf_orig.out )
+	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_test4.py |\
+		$(BIN)/cbf_standardize_numbers - 4 |$(SIGNATURE)| $(DIFF) - $(ROOT)/pycbf_test4_orig.out.$(SEXT) )
+		$(BIN)/cbf_standardize_numbers - 4 > pycbf_test4.out; $(DIFF) pycbf_test1.out $(ROOT)/pycbf_orig.out )
+	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_testfelaxes.py fel_test1.cbf |\
+		$(BIN)/cbf_standardize_numbers - 4 |$(SIGNATURE)| $(DIFF) - $(ROOT)/fel_test1_orig.out.$(SEXT) )
+		$(BIN)/cbf_standardize_numbers - 4 > fel_test1.out; $(DIFF) pycbf_test1.out $(ROOT)/pycbf_orig.out )
+	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_testfelaxes.py fel_test2.cbf |\
+		$(BIN)/cbf_standardize_numbers - 4 |$(SIGNATURE)| $(DIFF) - $(ROOT)/fel_test2_orig.out.$(SEXT) )
+		$(BIN)/cbf_standardize_numbers - 4 > fel_test2.out; $(DIFF) pycbf_test1.out $(ROOT)/pycbf_orig.out )
+	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_testfelaxes.py ../hit-20140306005258847.cbf |\
+		$(BIN)/cbf_standardize_numbers - 4 |$(SIGNATURE)| $(DIFF) - $(ROOT)/fel_test3_orig.out.$(SEXT) )
 
 pycbfinstall: $(PYCBF)/_pycbf.$(PYCBFEXT) $(PYCBF)/pycbfinstall
 
