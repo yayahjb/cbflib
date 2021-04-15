@@ -1,5 +1,5 @@
 m4_define(`cbf_version',`0.9.7')m4_dnl
-m4_define(`cbf_date',`25 March 2021')m4_dnl
+m4_define(`cbf_date',`15 April 2021')m4_dnl
 m4_ifelse(cbf_system,`',`m4_define(`cbf_system',`LINUX')')
 `######################################################################
 #  Makefile - command file for make to create CBFlib                 #
@@ -328,6 +328,7 @@ TIFF_INSTALL = $(TIFF)_INSTALL
 
 ifneq ($(HDF5_PREFIX),) # already installed on system
 CBFLIB_DONT_USE_LOCAL_HDF5 = yes
+HDF5CFLAGS=-DH5_USE_110_API
 endif
 
 ifneq ($(CBFLIB_DONT_USE_LOCAL_HDF5),yes)
@@ -2346,7 +2347,14 @@ NEWTESTOUTPUT = adscconverted_flat.cbf \
 	test_xds_bin_testflatpackedout.out test_fcb_read_testflatout.out \
 	test_fcb_read_testflatpackedout.out \
 	XRD1621.cbf XRD1621_I4encbC100.cbf \
-	$(MINICBF_TEST)/minicbf.h5
+	$(MINICBF_TEST)/minicbf.h5 \
+	pycbf_test1_orig.out \
+	pycbf_test2_orig.out \
+	pycbf_test3_orig.out \
+	pycbf_test4_orig.out \
+	fel_test1_orig.out \
+	fel_test2_orig.out \
+	fel_test3_orig.out
 DATADIRO_OUTPUT =  $(DATADIRO)/adscconverted_flat_orig.cbf \
 	$(DATADIRO)/adscconverted_orig.cbf \
 	$(DATADIRO)/converted_flat_orig.cbf \
