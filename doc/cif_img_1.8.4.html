@@ -1880,8 +1880,8 @@ save_<a name="_array_data.external_format" >_array_data.external_format</a>
 ;
 
     The format in which raw array data referenced by
-    _array_data.location_uri and following archive extraction can be
-    accessed. Items in array_structure and array_structure_list refer
+    <a href="#_array_data.external_location_uri" >_array_data.external_location_uri</a> and following archive extraction can be
+    accessed. Items in <a href="#array_structure" >array_structure</a> and <a href="#array_structure_list" >array_structure_list refer
     to the data after any decompressions and other transformations
     performed by standard libraries associated with the format as
     described in the description of each format below.
@@ -1900,7 +1900,7 @@ save_<a name="_array_data.external_location_uri" >_array_data.external_location_
 ;
     A URI describing the location of an image external to the current data block
 ;
-    _item.name                '_<a href="#_array_data.external_location_uri" >_array_data.external_location_uri</a>'
+    _item.name                '<a href="#_array_data.external_location_uri" >_array_data.external_location_uri</a>'
     _item.category_id           <a href="#array_data">array_data</a>
     _item_type.code             code
 
@@ -1913,7 +1913,7 @@ save_<a name="_array_data.external_path" >_array_data.external_path</a>
 
     An optional format-dependent path that is used to locate the
     external image within the object referenced by the combination of
-    _array_data.location_uri and _array_data.external_archive_path.
+    <a href="#_array_data.external_location_uri" >_array_data.external_location_uri</a> and <a href="#_array_data.external_path" >_array_data.external_path</a>.
 
 ;
 
@@ -1928,7 +1928,7 @@ save_<a name="_array_data.external_frame" >_array_data.external_frame</a>
 ;
 
     The position of the raw frame in the list of images referenced by
-    _array_data.location_uri and _array_data.external_path, counting from
+    <a href="#_array_data.external_location_uri" >_array_data.external_location_uri</a> and <a href="#_array_data.external_path" >_array_data.external_path</a>, counting from
     1.
 
 ;
@@ -1961,7 +1961,7 @@ save_<a name="_array_data.external_archive_format" >_array_data.external_archive
 
     The type of single-file archive in which image data have been encapsulated,
     if any. The archive is located in the position referenced by
-    _array_data.location_uri.
+    <a href="#_array_data.external_location_uri" >_array_data.external_location_uri</a>.
 
 ;
 
@@ -1984,11 +1984,11 @@ save_<a name="_array_data.header_contents" >_array_data.header_contents</a>
     _item_description.description
 ;             This item is a text field for use in minimal CBF files to carry
               essential header information to be kept with image data
-              in _array_data.data when the tags that normally carry the
+              in <a href="#_array_data.data" >_array_data.data</a? when the tags that normally carry the
               structured metadata for the image have not been populated.
 
               Normally this data item should not appear when the full set
-              of tags has been populated and _diffrn_data_frame.details
+              of tags has been populated and <a href="#_diffrn_data_frame.details">_diffrn_data_frame.details</a>
               appears.
 ;
     _item.name                  '<a href="#_array_data.header_contents" >_array_data.header_contents</a>'
