@@ -1,3 +1,7 @@
+#  [IUCr Home Page]  [CIF Home Page] [CBF/imgCIF] [CBFlib] #
+
+# imgCIF/CBF #
+
 # Extensions Dictionary #
 
  data_cif_img.dic
@@ -12,7 +16,9 @@
 #            Extending the Macromolecular CIF Dictionary (mmCIF)             #
 #                                                                            #
 #                              Version 1.8.4                                 #
-#                              of 2021-03-20                                 #
+#                              of 2021-04-15                                 #
+#                                                                            #
+#                                                                            #
 #    ###################################################################     #
 #    # *** WARNING *** THIS IS A DRAFT FOR DISCUSSION *** WARNING ***  #     #
 #    #                 SUBJECT TO CHANGE WITHOUT NOTICE                #     #
@@ -49,6 +55,13 @@
 #                  _array_data.array_id
 #                  _array_data.binary_id
 #                  _array_data.data
+#                  _array_data.external_format
+#                  _array_data.external_version
+#                  _array_data.external_location_uri
+#                  _array_data.external_path
+#                  _array_data.external_frame
+#                  _array_data.external_archive_path
+#                  _array_data.external_archive_format
 #                  _array_data.header_contents
 #                  _array_data.header_convention
 #                  _array_data.variant
@@ -379,7 +392,7 @@
 #
 ##############################################################################
 
-#Category Group Table:
+#Category Group Table:  #
 +--------------------------------------------------------------------------------------------------------------------+
 |ARRAY_DATA_GROUP|Categories that describe array data.                                                               |
 |                |---------------------------------------------------------------------------------------------------|
@@ -1210,16 +1223,116 @@ save__array_data.data
     _item_type.code               binary
 save_
 
+save__array_data.external_format
+    _item_description.description
+;
+
+    The format in which raw array data referenced by
+    _array_data.external_location_uri and following archive extraction can be
+    accessed. Items in array_structure and array_structure_list refer
+    to the data after any decompressions and other transformations
+    performed by standard libraries associated with the format as
+    described in the description of each format below.
+
+;
+
+    _item.name              '_array_data.external_version'
+    _item.category_id         array_data
+    _item_type.code           code
+
+save_
+
+
+save__array_data.external_location_uri
+    _item_description.description
+;
+    A URI describing the location of an image external to the current data block
+;
+    _item.name                '_array_data.external_location_uri'
+    _item.category_id           array_data
+    _item_type.code             code
+
+    save_
+
+save__array_data.external_path
+   _item_description.description
+
+;
+
+    An optional format-dependent path that is used to locate the
+    external image within the object referenced by the combination of
+    _array_data.external_location_uri and _array_data.external_path.
+
+;
+
+    _item.name                 '_array_data.external_path'
+    _item.category_id            array_data
+    _item_type.code              text
+
+    save_
+
+save__array_data.external_frame
+    _item_description.description
+;
+
+    The position of the raw frame in the list of images referenced by
+    _array_data.external_location_uri and _array_data.external_path, counting from
+    1.
+
+;
+    _item.name                 '_array_data.external_frame'
+    _item.category_id            array_data
+    _item_type.code              int
+    _item_default.value          1
+
+    save_
+
+
+save__array_data.external_archive_path
+   _item_description.description
+
+;
+
+    The location of the image within an archive.
+
+;
+
+    _item.name                 '_array_data.external_archive_path'
+    _item.category_id            array_data
+    _item_type.code              text
+
+    save_
+
+save__array_data.external_archive_format
+    _item_description.description
+;
+
+    The type of single-file archive in which image data have been encapsulated,
+    if any. The archive is located in the position referenced by
+    _array_data.external_location_uri.
+
+;
+
+    _item.name                 '_array_data.external_archive_format'
+    _item.category_id            array_data
+    _item.mandatory_code         no
+    _item.type_code              code
+    _item_default.value          .
+
+    loop_
+    _item_enumeration.value
+    _item_enumeration.detail
+    ZIP           'A ZIP archive'
+    TGZ           'A Gzipped tar archive'
+    TBZ           'A Bzip2 tar archive'
+    .             'No compressed archive is present'
+
 
 save__array_data.header_contents
     _item_description.description
 ;             This item is a text field for use in minimal CBF files to carry
               essential header information to be kept with image data
-              in _array_data.data when the tags that normally carry the
-              structured metadata for the image have not been populated.
-
-              Normally this data item should not appear when the full set
-              of tags has been populated and _diffrn_data_frame.details
+              in _array_data.data_diffrn_data_frame.details
               appears.
 ;
     _item.name                  '_array_data.header_contents'
@@ -7600,7 +7713,7 @@ save__diffrn_radiation.polarizn_Stokes_U_esd
 
 save__diffrn_radiation.polarizn_Stokes_V
     _item_description.description
-;             The quantity2*sqrt(IpIn), with a + sign for right-handed
+;             The quantity +/- 2*sqrt(IpIn), with a + sign for right-handed
               circular polarization, where Ip is the intensity
               (amplitude squared) of the electric vector in the plane of
               polarization and In is the intensity (amplitude squared) of
@@ -7639,7 +7752,7 @@ save__diffrn_radiation.polarizn_Stokes_V_esd
     _item_description.description
 ;             The standard uncertainty (estimated standard deviation, e.s.d.)
               of _diffrn_radiation.polarizn_Stokes_V,
-             2*sqrt(IpIn), with a + sign for right-handed circular
+              +/- 2*sqrt(IpIn), with a + sign for right-handed circular
               polarization, where Ip is the intensity
               (amplitude squared) of the electric vector in the plane of
               polarization and In is the intensity (amplitude squared) of
@@ -9484,7 +9597,7 @@ save__diffrn_scan_frame.polarizn_Stokes_U_esd
 
 save__diffrn_scan_frame.polarizn_Stokes_V
     _item_description.description
-;             The quantity2*sqrt(IpIn), with a + sign for right-handed
+;             The quantity +/- 2*sqrt(IpIn), with a + sign for right-handed
               circular polarization, where Ip is the intensity
               (amplitude squared) of the electric vector in the plane of
               polarization and In is the intensity (amplitude squared) of
@@ -9523,7 +9636,7 @@ save__diffrn_scan_frame.polarizn_Stokes_V_esd
     _item_description.description
 ;             The standard uncertainty (estimated standard deviation, e.s.d.)
               of _diffrn_scan_frame.polarizn_Stokes_V,
-             2*sqrt(IpIn), with a + sign for right-handed circular
+              +/- 2*sqrt(IpIn), with a + sign for right-handed circular
               polarization, where Ip is the intensity
               (amplitude squared) of the electric vector in the plane of
               polarization and In is the intensity (amplitude squared) of
@@ -11521,7 +11634,7 @@ save__diffrn_frame_data.details
     _dictionary_history.update
     _dictionary_history.revision
 
-    1.8.4    2021-03-16
+    1.8.4    2021-03-16 and 2021-04-15
 
 ;   Copy-editing refinements (bm)
 
@@ -11531,6 +11644,21 @@ save__diffrn_frame_data.details
     + Change uses of \%Angstroms to \%angstr\"oms
     + Change category save frames to upper case names
     + Fix misssing superscript terminating ^
+
+    Preliminary version of external data tags (jrh)
+
+    + Add _array_data.external_format
+    + Add _array_data.external_version
+    + Add _array_data.external_location_uri
+    + Add _array_data.external_path
+    + Add _array_data.external_frame
+    + Add _array_data.external_archive_path
+    + Add _array_data.external_archive_format
+
+    Note the second block of mads is a preliminary version.  When they are
+    done they may well be removed from here and reappear in a 1.8.5
+    dictionary.
+
 ;
 
     1.8.3    2021-02-28
@@ -12259,3 +12387,4 @@ save__diffrn_frame_data.details
 
 
 #-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof
+
