@@ -198,7 +198,7 @@ data_cif_img.dic
 #            Extending the Macromolecular CIF Dictionary (mmCIF)             #
 #                                                                            #
 #                              Version 1.8.4                                 #
-#                              of 2021-03-20                                 #
+#                              of 2021-04-15                                 #
 #<a href="javascript:;" onclick="open_all();"><tt>++</tt></a>/<a href="javascript:;" onclick="close_all();"><tt>--</tt></a>                                                                       #
 <a href="javascript:;"  onclick="open_close('title1');" ><tt>#+/-</tt></a>                                                                         #
 <div id="title1" style="display:none">#    ###################################################################     #
@@ -1881,7 +1881,7 @@ save_<a name="_array_data.external_format" >_array_data.external_format</a>
 
     The format in which raw array data referenced by
     <a href="#_array_data.external_location_uri" >_array_data.external_location_uri</a> and following archive extraction can be
-    accessed. Items in <a href="#array_structure" >array_structure</a> and <a href="#array_structure_list" >array_structure_list refer
+    accessed. Items in <a href="#array_structure" >array_structure</a> and <a href="#array_structure_list" >array_structure_list</a> refer
     to the data after any decompressions and other transformations
     performed by standard libraries associated with the format as
     described in the description of each format below.
@@ -12311,7 +12311,7 @@ save_<a name="_diffrn_frame_data.details" >_diffrn_frame_data.details</a>
     _dictionary_history.update
     _dictionary_history.revision
 
-    1.8.4    2021-03-16
+    1.8.4    2021-03-16 and 2021-04-15
 
 ;   Copy-editing refinements (bm)
 
@@ -12321,6 +12321,21 @@ save_<a name="_diffrn_frame_data.details" >_diffrn_frame_data.details</a>
     + Change uses of \%Angstroms to \%angstr\"oms
     + Change category save frames to upper case names
     + Fix misssing superscript terminating ^
+
+    Preliminary version of external data tags (jrh)
+
+    + Add <a href="#_array_data.external_format" >_array_data.external_format</a>
+    + Add <a href="#_array_data.external_version" >_array_data.external_version</a>
+    + Add <a href="#_array_data.external_location_uri" >_array_data.external_location_uri</a>
+    + Add <a href="#_array_data.external_path" >_array_data.external_path</a>
+    + Add <a href="#_array_data.external_frame" >_array_data.external_frame</a>
+    + Add <a href="#_array_data.external_archive_path" >_array_data.external_archive_path</a>
+    + Add <a href="#_array_data.external_archive_format" >_array_data.external_archive_format</a>
+
+    Note the second block of mads is a preliminary version.  When they are
+    done they may well be removed from here and reappear in a 1.8.5
+    dictionary.
+
 ;
 
     1.8.3    2021-02-28
