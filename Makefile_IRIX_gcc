@@ -632,8 +632,13 @@ F90C    =
 F90FLAGS =
 M4FLAGS = -Dfcb_bytes_in_rec=4096
 JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
-LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
-RUNLDPREFIX = LD_LIBRARY_PATH=$(CBF_PREFIX)/LIB:$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
+ifeq ($(HDF5_PREFIX),)
+LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$(LIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
+RUNLDPREFIX = LD_LIBRARY_PATH=$(CBF_PREFIX)/LIB:$(LIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
+else
+LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$(HDF5_PREFIX)/lib:$(LIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
+RUNLDPREFIX = LD_LIBRARY_PATH=$(CBF_PREFIX)/LIB:$(HDF5_PREFIX)/lib:$(LIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
+endif
 EXTRALIBS = -lm
 TIME    =
 SHAR    = shar
@@ -678,10 +683,11 @@ INCLUDES = -I$(INCLUDE) -I$(SRC) $(HDF5include)
 #
 # runtime library path export commands
 #
-RTLPEXPORTS = LD_LIBRARY_PATH=$(PWD)/solib:$(PWD)/lib;export LD_LIBRARY_PATH; \
-	DYLD_LIBRARY_PATH=$(PWD)/solib:$(PWD)/lib;export DYLD_LIBRARY_PATH; \
-	LD_RUN_PATH=$(PWD)/solib:$(PWD)/lib;export LD_RUN_PATH;
-
+ifeq ($(HDF5_PREFIX),)
+RTLPEXPORTS = LD_LIBRARY_PATH=$(PWD)/solib:$(PWD)/lib;export LD_LIBRARY_PATH; DYLD_LIBRARY_PATH=$(PWD)/solib:$(PWD)/lib;export DYLD_LIBRARY_PATH; LD_RUN_PATH=$(PWD)/solib:$(PWD)/lib;export LD_RUN_PATH;
+else
+RTLPEXPORTS = LD_LIBRARY_PATH=$(PWD)/solib:$(PWD)/lib:$(HDF5_PREFIX)/lib;export LD_LIBRARY_PATH; DYLD_LIBRARY_PATH=$(PWD)/solib:$(PWD)/lib:$(HDF5_PREFIX)/lib;export DYLD_LIBRARY_PATH; LD_RUN_PATH=$(PWD)/solib:$(PWD)/lib:$(HDF5_PREFIX)/lib;export LD_RUN_PATH;
+endif
 
 ######################################################################
 #  You should not need to make modifications below this line		 #
@@ -2041,7 +2047,14 @@ TESTOUTPUT =  adscconverted_flat_orig.cbf \
 	test_xds_bin_testflatpackedout_orig.out test_fcb_read_testflatout_orig.out \
 	test_fcb_read_testflatpackedout_orig.out \
 	XRD1621_orig.cbf XRD1621_I4encbC100_orig.cbf \
-	minicbf_orig.h5
+	minicbf_orig.h5 \
+	pycbf_test1_orig.out \
+	pycbf_test2_orig.out \
+	pycbf_test3_orig.out \
+	pycbf_test4_orig.out \
+	fel_test1_orig.out \
+	fel_test2_orig.out \
+	fel_test3_orig.out
 NEWTESTOUTPUT = adscconverted_flat.cbf \
 	adscconverted.cbf converted_flat.cbf converted.cbf \
 	insulin_pilatus6mconverted.cbf \
@@ -2054,13 +2067,13 @@ NEWTESTOUTPUT = adscconverted_flat.cbf \
 	test_fcb_read_testflatpackedout.out \
 	XRD1621.cbf XRD1621_I4encbC100.cbf \
 	$(MINICBF_TEST)/minicbf.h5 \
-	pycbf_test1_orig.out \
-	pycbf_test2_orig.out \
-	pycbf_test3_orig.out \
-	pycbf_test4_orig.out \
-	fel_test1_orig.out \
-	fel_test2_orig.out \
-	fel_test3_orig.out
+	pycbf_test1.out \
+	pycbf_test2.out \
+	pycbf_test3.out \
+	pycbf_test4.out \
+	fel_test1.out \
+	fel_test2.out \
+	fel_test3.out
 DATADIRO_OUTPUT =  $(DATADIRO)/adscconverted_flat_orig.cbf \
 	$(DATADIRO)/adscconverted_orig.cbf \
 	$(DATADIRO)/converted_flat_orig.cbf \
@@ -2444,7 +2457,7 @@ ifneq ($(F90C),)
 endif
 	$(LDPREFIX)  $(TIME) $(BIN)/sauter_test
 	$(LDPREFIX)  $(TIME) $(BIN)/changtestcompression
-	$(LDPREFIX)  $(TIME) (LD_LIBRARY_PATH=$(LIB);export LD_LIBRARY_PATH;$(BIN)/tiff2cbf XRD1621.tif XRD1621.cbf)
+	$(LDPREFIX)  $(TIME) $(BIN)/tiff2cbf XRD1621.tif XRD1621.cbf
 	-$(DIFF) XRD1621.cbf XRD1621_orig.cbf
 	$(LDPREFIX)  $(TIME) $(BIN)/cif2cbf -I 4 -C 100. -L 0. -e n -c b -i XRD1621.cbf -o XRD1621_I4encbC100.cbf
 	-$(DIFF) XRD1621_I4encbC100.cbf XRD1621_I4encbC100_orig.cbf
@@ -2527,41 +2540,22 @@ endif
 
 	
 pycbftests:  $(PYCBF)/_pycbf.$(PYCBFEXT) $(BIN)/cbf_standardize_numbers $(TESTOUTPUT)
-	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_test1.py |\
-		$(BIN)/cbf_standardize_numbers - 4 > pycbf_test1.out; $(DIFF) pycbf_test1.out $(ROOT)/pycbf_test1_orig.out )
-	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_test2.py |\
-		$(BIN)/cbf_standardize_numbers - 4 > pycbf_test2.out; $(DIFF) pycbf_test2.out $(ROOT)/pycbf_test2_orig.out )
-	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_test3.py |\
-		$(BIN)/cbf_standardize_numbers - 4 > pycbf_test3.out; $(DIFF) pycbf_test3.out $(ROOT)/pycbf_test3_orig.out )
-	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_test4.py |\
-		$(BIN)/cbf_standardize_numbers - 4 > pycbf_test4.out; $(DIFF) pycbf_test4.out $(ROOT)/pycbf_test4_orig.out )
-	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_testfelaxes.py fel_test1.cbf |\
-		$(BIN)/cbf_standardize_numbers - 4 > fel_test1.out; $(DIFF) fel_test1.out $(ROOT)/fel_test1_orig.out )
-	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_testfelaxes.py fel_test2.cbf |\
-		$(BIN)/cbf_standardize_numbers - 4 > fel_test2.out; $(DIFF) fel_test2.out $(ROOT)/fel_test2_orig.out )
-	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_testfelaxes.py ../hit-20140306005258847.cbf |\
-		$(BIN)/cbf_standardize_numbers - 4 > fel_test3.out; $(DIFF) fel_test3.out $(ROOT)/fel_test3_orig.out )
+	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) $(PYCBF)/pycbf_test1.py | $(BIN)/cbf_standardize_numbers - 4 > pycbf_test1.out; $(DIFF) pycbf_test1.out $(ROOT)/pycbf_test1_orig.out )
+	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) $(PYCBF)/pycbf_test2.py | $(BIN)/cbf_standardize_numbers - 4 > pycbf_test2.out; $(DIFF) pycbf_test2.out $(ROOT)/pycbf_test2_orig.out )
+	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) $(PYCBF)/pycbf_test3.py | $(BIN)/cbf_standardize_numbers - 4 > pycbf_test3.out; $(DIFF) pycbf_test3.out $(ROOT)/pycbf_test3_orig.out )
+	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) $(PYCBF)/pycbf_test4.py | $(BIN)/cbf_standardize_numbers - 4 > pycbf_test4.out; $(DIFF) pycbf_test4.out $(ROOT)/pycbf_test4_orig.out )
+	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) $(PYCBF)/pycbf_testfelaxes.py fel_test1.cbf | $(BIN)/cbf_standardize_numbers - 4 > fel_test1.out; $(DIFF) fel_test1.out $(ROOT)/fel_test1_orig.out )
+	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) $(PYCBF)/pycbf_testfelaxes.py fel_test2.cbf | $(BIN)/cbf_standardize_numbers - 4 > fel_test2.out; $(DIFF) fel_test2.out $(ROOT)/fel_test2_orig.out )
+	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) $(PYCBF)/pycbf_testfelaxes.py ../hit-20140306005258847.cbf | $(BIN)/cbf_standardize_numbers - 4 > fel_test3.out; $(DIFF) fel_test3.out $(ROOT)/fel_test3_orig.out )
 
 pycbftests_sigs_only:  $(PYCBF)/_pycbf.$(PYCBFEXT) $(BIN)/cbf_standardize_numbers $(TESTOUTPUTSIGS)
-	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_test1.py |\
-		$(BIN)/cbf_standardize_numbers - 4 |$(SIGNATURE)| $(DIFF) - $(ROOT)/pycbf_test1_orig.out.$(SEXT) )
-	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_test2.py |\
-		$(BIN)/cbf_standardize_numbers - 4 |$(SIGNATURE)| $(DIFF) - $(ROOT)/pycbf_test2_orig.out.$(SEXT) )
-		$(BIN)/cbf_standardize_numbers - 4 > pycbf_test2.out; $(DIFF) pycbf_test1.out $(ROOT)/pycbf_orig.out )
-	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_test3.py |\
-		$(BIN)/cbf_standardize_numbers - 4 |$(SIGNATURE)| $(DIFF) - $(ROOT)/pycbf_test3_orig.out.$(SEXT) )
-		$(BIN)/cbf_standardize_numbers - 4 > pycbf_test3.out; $(DIFF) pycbf_test1.out $(ROOT)/pycbf_orig.out )
-	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_test4.py |\
-		$(BIN)/cbf_standardize_numbers - 4 |$(SIGNATURE)| $(DIFF) - $(ROOT)/pycbf_test4_orig.out.$(SEXT) )
-		$(BIN)/cbf_standardize_numbers - 4 > pycbf_test4.out; $(DIFF) pycbf_test1.out $(ROOT)/pycbf_orig.out )
-	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_testfelaxes.py fel_test1.cbf |\
-		$(BIN)/cbf_standardize_numbers - 4 |$(SIGNATURE)| $(DIFF) - $(ROOT)/fel_test1_orig.out.$(SEXT) )
-		$(BIN)/cbf_standardize_numbers - 4 > fel_test1.out; $(DIFF) pycbf_test1.out $(ROOT)/pycbf_orig.out )
-	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_testfelaxes.py fel_test2.cbf |\
-		$(BIN)/cbf_standardize_numbers - 4 |$(SIGNATURE)| $(DIFF) - $(ROOT)/fel_test2_orig.out.$(SEXT) )
-		$(BIN)/cbf_standardize_numbers - 4 > fel_test2.out; $(DIFF) pycbf_test1.out $(ROOT)/pycbf_orig.out )
-	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) pycbf_testfelaxes.py ../hit-20140306005258847.cbf |\
-		$(BIN)/cbf_standardize_numbers - 4 |$(SIGNATURE)| $(DIFF) - $(ROOT)/fel_test3_orig.out.$(SEXT) )
+	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) $(PYCBF)/pycbf_test1.py | $(BIN)/cbf_standardize_numbers - 4 |$(SIGNATURE)| $(DIFF) - $(ROOT)/pycbf_test1_orig.out$(SEXT) )
+	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) $(PYCBF)/pycbf_test2.py | $(BIN)/cbf_standardize_numbers - 4 |$(SIGNATURE)| $(DIFF) - $(ROOT)/pycbf_test2_orig.out$(SEXT) )
+	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) $(PYCBF)/pycbf_test3.py | $(BIN)/cbf_standardize_numbers - 4 |$(SIGNATURE)| $(DIFF) - $(ROOT)/pycbf_test3_orig.out$(SEXT) )
+	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) $(PYCBF)/pycbf_test4.py | $(BIN)/cbf_standardize_numbers - 4 |$(SIGNATURE)| $(DIFF) - $(ROOT)/pycbf_test4_orig.out$(SEXT) )
+	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) $(PYCBF)/pycbf_testfelaxes.py fel_test1.cbf | $(BIN)/cbf_standardize_numbers - 4 |$(SIGNATURE)| $(DIFF) - $(ROOT)/fel_test1_orig.out$(SEXT) )
+	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) $(PYCBF)/pycbf_testfelaxes.py fel_test2.cbf | $(BIN)/cbf_standardize_numbers - 4 |$(SIGNATURE)| $(DIFF) - $(ROOT)/fel_test2_orig.out$(SEXT) )
+	($(RTLPEXPORTS) cd $(PYCBF); $(PYTHON) $(PYCBF)/pycbf_testfelaxes.py ../hit-20140306005258847.cbf | $(BIN)/cbf_standardize_numbers - 4 |$(SIGNATURE)| $(DIFF) - $(ROOT)/fel_test3_orig.out$(SEXT) )
 
 pycbfinstall: $(PYCBF)/_pycbf.$(PYCBFEXT) $(PYCBF)/pycbfinstall
 
