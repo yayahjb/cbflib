@@ -155,8 +155,8 @@ m4_ifelse($1,`I4',`m4_define(`fcb_i2_flag',`I4')',
       INTEGER                    I, J, K, IFAST, m4_ifelse(fcb_3d_flag,`3D',`IMID, ')ISLOW
       INTEGER                    LOGTWO(4)
 m4_ifelse(fcb_i2_flag,`I2',
-`      INTEGER(4),    PARAMETER:: SIGNMASK=Z'''``00008000'''``
-      INTEGER(4),    PARAMETER:: LIMMASK=Z'''``0000FFFF'''``')
+`      INTEGER(4),    PARAMETER:: SIGNMASK=int(Z'''``00008000'''``)
+      INTEGER(4),    PARAMETER:: LIMMASK=int(Z'''``0000FFFF'''``)')
 
       fcb_param_CBF_LIST_ALL
 
@@ -392,11 +392,11 @@ m4_ifelse(fcb_i2_flag,`I2',
         TRAIL_INDEX_ARRAY(I) = 0
       END DO
       
-      VORZEICHEN = m4_ifelse($1,`I2',Z''`00008000''`,$1,`3D_I2',Z''`00008000''`,Z''`80000000''`)
+      VORZEICHEN = m4_ifelse($1,`I2',int(Z''`00008000''`),$1,`3D_I2',int(Z''`00008000''`),int(Z''`80000000''`))
       UNSIGN = 0
       IF (ELSIGN.NE.0) UNSIGN=VORZEICHEN
       
-      LIMIT = m4_ifelse($1,`I2',Z''`0000FFFF''`,$1,`3D_I2',Z''`0000FFFF''`,Z''`FFFFFFFF''`)
+      LIMIT = m4_ifelse($1,`I2',int(Z''`0000FFFF''`),$1,`3D_I2',int(Z''`0000FFFF''`),int(Z''`FFFFFFFF''`))
       
       ! Initialise the first element 
       

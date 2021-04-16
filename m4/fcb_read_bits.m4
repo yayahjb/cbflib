@@ -26,7 +26,7 @@ m4_include(`fcblib_defines.m4')m4_dnl
 `
       MAXBITS = 32
       NUMINTS = (BITCOUNT+MAXBITS-1)/MAXBITS
-      MASK8 = Z''`000000FF''`
+      MASK8 = int(Z''`000000FF''`)
       
       DO KINTS = 1,NUMINTS
         LBITCOUNT = MAXBITS
@@ -164,9 +164,9 @@ m4_include(`fcblib_defines.m4')m4_dnl
           IINT(1) = -1
           IF (VALSIGN.NE.0) THEN
             IF (XSIGN(1).GE. 0) THEN
-              IINT(1) = Z''`7FFFFFFF''`
+              IINT(1) = int(Z''`7FFFFFFF''`)
             ELSE
-              IINT(1) = Z''`80000000''`
+              IINT(1) = int(Z''`80000000''`)
             END IF
           END IF
           RETURN

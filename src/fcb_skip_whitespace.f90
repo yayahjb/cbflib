@@ -29,7 +29,8 @@
       COMMENT_LEVEL = 0
       DO
 	 IF ((IC.LE.LINELEN).AND.(LINE(IC).NE.IACHAR(' ')).AND.         &
-	     (LINE(IC).NE.Z'09').AND.(LINE(IC).NE.IACHAR('(')) )EXIT
+	     (LINE(IC).NE.int(Z'09')).AND. &
+             (LINE(IC).NE.IACHAR('(')) )EXIT
 
 	 IF (IC.GT.LINELEN) THEN
 	    FCB_SKIP_WHITESPACE = FCB_READ_LINE (TAPIN,LAST_CHAR,       &
