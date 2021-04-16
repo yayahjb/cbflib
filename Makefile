@@ -630,7 +630,7 @@ CFLAGS  = -g -O3 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing  $(HDF5CFLAGS)
 endif
 LDFLAGS =
 F90C = gfortran
-F90FLAGS = -g -fno-range-check
+F90FLAGS = -g -fno-range-check -fallow-invalid-boz
 F90LDFLAGS = 
 SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(CBF_PREFIX)/lib
