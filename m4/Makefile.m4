@@ -3000,9 +3000,9 @@ empty:
 	@-rm -f testfile.h5
 	@-rm -f hit-20140306005258847.cbf
 	@-rm -f build_*
-	@-rm -f HDF5Plugin_14Aug20/
-	@-rm -f PyCifRW-4.1/
-	@-rm -f bitshuffle-0.2.2.1_15Jun16/
+	@-rm -rf HDF5Plugin_14Aug20/
+	@-rm -rf PyCifRW-4.1/
+	@-rm -rf bitshuffle-0.2.2.1_15Jun16/
 	@-rm -f idx-s00-20131106040304531_flat.cbf
 	@-rm -f include/iochain.h
 	@-rm -f include/lz4.h
@@ -3019,7 +3019,7 @@ empty:
 	@-rm -f minicbf_test/X4_lots_M1S4_1_0004.cbf
 	@-rm -f minicbf_test/X4_lots_M1S4_1_0005.cbf
 	@-rm -f minicbf_test/minicbf.h5
-	@-rm -f ply-3.2/dist/
+	@-rm -rf ply-3.2/dist/
 	@-rm -f pycbf/fel_test3.out
 	@-rm -f pycbf/pycbf.pyc
 	@-rm -f pycbf/pycbf_test1.out
