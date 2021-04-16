@@ -1,5 +1,5 @@
 m4_define(`cbf_version',`0.9.7')m4_dnl
-m4_define(`cbf_date',`15 April 2021')m4_dnl
+m4_define(`cbf_date',`16 April 2021')m4_dnl
 m4_ifelse(cbf_system,`',`m4_define(`cbf_system',`LINUX')')
 `######################################################################
 #  Makefile - command file for make to create CBFlib                 #
@@ -1342,18 +1342,21 @@ PYCIFRWDEF =
 endif
 
 
-Makefiles: Makefile			 \
-	Makefile_LINUX		   \
-	Makefile_LINUX_64		\
+Makefiles: \
+	Makefile	 \
+	Makefile_LINUX	 \
+	Makefile_OSX	 \
+	Makefile_MINGW	 \
+	Makefile_MSYS2
+
+Makefiles_pre_0.9.7: \
+	Makefile_LINUX_64	\
 	Makefile_LINUX_gcc42     \
 	Makefile_LINUX_DMALLOC   \
 	Makefile_LINUX_gcc42_DMALLOC \
-	Makefile_OSX			 \
 	Makefile_OSX_gcc42       \
 	Makefile_OSX_gcc42_DMALLOC   \
-	Makefile_AIX			 \
-	Makefile_MINGW		   \
-	Makefile_MSYS2         \
+	Makefile_AIX		 \
 	Makefile_IRIX_gcc
 
 
@@ -2997,6 +3000,32 @@ empty:
 	@-rm -f testfile.h5
 	@-rm -f hit-20140306005258847.cbf
 	@-rm -f build_*
+	@-rm -f HDF5Plugin_14Aug20/
+	@-rm -f PyCifRW-4.1/
+	@-rm -f bitshuffle-0.2.2.1_15Jun16/
+	@-rm -f idx-s00-20131106040304531_flat.cbf
+	@-rm -f include/iochain.h
+	@-rm -f include/lz4.h
+	@-rm -f include/pcre.h
+	@-rm -f include/pcre_scanner.h
+	@-rm -f include/pcre_stringpiece.h
+	@-rm -f include/pcrecpp.h
+	@-rm -f include/pcrecpparg.h
+	@-rm -f include/pcreposix.h
+	@-rm -f include/regex.h
+	@-rm -f minicbf_test/X4_lots_M1S4_1_0001.cbf
+	@-rm -f minicbf_test/X4_lots_M1S4_1_0002.cbf
+	@-rm -f minicbf_test/X4_lots_M1S4_1_0003.cbf
+	@-rm -f minicbf_test/X4_lots_M1S4_1_0004.cbf
+	@-rm -f minicbf_test/X4_lots_M1S4_1_0005.cbf
+	@-rm -f minicbf_test/minicbf.h5
+	@-rm -f ply-3.2/dist/
+	@-rm -f pycbf/fel_test3.out
+	@-rm -f pycbf/pycbf.pyc
+	@-rm -f pycbf/pycbf_test1.out
+	@-rm -f pycbf/pycbf_test2.out
+	@-rm -f pycbf/pycbf_test3.out
+	@-rm -f pycbf/pycbf_test4.out
 	./.undosymlinks
 	
 #
