@@ -1420,7 +1420,7 @@ These restrictions may change in a future release.
 <TABLE>
 <TR><td valign="top">&nbsp;&nbsp;<i>handle</i><td valign="top">&nbsp;&nbsp;CBF handle.<br />
 <TR><td valign="top">&nbsp;&nbsp;<i>file</i><td valign="top">&nbsp;&nbsp;Pointer to a file descriptor.<br />
-<TR><td valign="top">&nbsp;&nbsp;<i>headers</i><td valign="top">&nbsp;&nbsp;Controls interprestation of binary section headers.
+<TR><td valign="top">&nbsp;&nbsp;<i>flags</i><td valign="top">&nbsp;&nbsp;Controls interpretation of binary section headers.
 </TABLE>
 <p>
 <b>RETURN VALUE</b>
@@ -1433,7 +1433,7 @@ Returns an error code on failure or 0 for success.
 
 <A HREF="#2.3.4">2.3.4  cbf_write_file</A><br />
 <p><hr /><P>
-<h4><A NAME="2.3.4">2.3.4  cbf_write_file</A> </h4>
+<h4><A NAME="2.3.4">2.3.4  cbf_write_file, cbf_write_widefile</A> </h4>
 <p><b>PROTOTYPE</b>
 <p>
 #include &quot;cbf.h&quot;<p>
@@ -1521,7 +1521,7 @@ machines).
 and readable and can be used as a buffer.
 <TR><TD VALIGN=TOP>&nbsp;&nbsp;<i>ciforcbf</i><td valign="top">&nbsp;&nbsp;Selects the format in which the
 binary sections are written (CIF/CBF).
-<TR><TD VALIGN=TOP>&nbsp;&nbsp;<i>headers</i><td valign="top">&nbsp;&nbsp;Selects the type of header in CBF
+<TR><TD VALIGN=TOP>&nbsp;&nbsp;<i>flags</i><td valign="top">&nbsp;&nbsp;Selects the type of header in CBF
 binary sections and message digest generation.
 <TR><TD VALIGN=TOP>&nbsp;&nbsp;<i>encoding</i><td valign="top">&nbsp;&nbsp;Selects the type of encoding used
 for binary sections and the type of line-termination
@@ -1888,7 +1888,7 @@ function returns CBF_IDENTICAL.
 <TABLE>
 <TR><td valign="top">&nbsp;&nbsp;<i>handle</i><td valign="top">&nbsp;&nbsp;CBF handle.<br />
 <TR><td valign="top">&nbsp;&nbsp;<i>datablockname</i><td valign="top">&nbsp;&nbsp;The new data block name.<br />
-<TR><td valign="top">&nbsp;&nbsp;<i>datablockname</i><td valign="top">&nbsp;&nbsp;The new save frame name.<br />
+<TR><td valign="top">&nbsp;&nbsp;<i>saveframename</i><td valign="top">&nbsp;&nbsp;The new save frame name.<br />
 </TABLE>
 <p>
 <b>RETURN VALUE</b>
@@ -1930,7 +1930,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.15">2.3.15  cbf_reset_datablock, cbf_reset_saveframe</A><br />
 <A HREF="#2.3.18">2.3.18  cbf_remove_category</A><br />
 <p><hr /><P>
-<h4><A NAME="2.3.15">2.3.15  cbf_reset_datablock, cbf_reset_datablock</A></h4>
+<h4><A NAME="2.3.15">2.3.15  cbf_reset_datablock, cbf_reset_saveframe</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
 #include &quot;cbf.h&quot;<p>
@@ -3824,7 +3824,7 @@ CBF_ARGUMENT.
 <TR><td valign="top">&nbsp;&nbsp;<i>array</i><td valign="top">&nbsp;&nbsp;Pointer to the source array.<br />
 <TR><td valign="top">&nbsp;&nbsp;<i>elsize</i><td valign="top">&nbsp;&nbsp;Size in bytes of each source array element.<br />
 <TR><td valign="top">&nbsp;&nbsp;<i>elsigned</i><td valign="top">&nbsp;&nbsp;Set to non-0 if the source array elements are signed.<br />
-elements: The number of elements in the array.
+<TR><td valign="top">&nbsp;&nbsp;<i>elements</i><td valign="top">&nbsp;&nbsp;The number of elements in the array<br />
 </TABLE>
 <p>
 <b>RETURN VALUE</b>
@@ -4651,7 +4651,7 @@ Any of the destination pointers may be NULL.
 
 <p>Returns an error code on failure or 0 for success.
 <p><hr /><P>
-<h4><A NAME="2.4.11">2.4.11 cbf_ set_divergence</A></h4>
+<h4><A NAME="2.4.11">2.4.11 cbf_set_divergence</A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
 <p>
@@ -4764,7 +4764,7 @@ Either of the destination pointers may be NULL.
 
 <p>Returns an error code on failure or 0 for success.
 <p><hr /><P>
-<h4><A NAME="2.4.15">2.4.15 cbf_ set_gain</A></h4>
+<h4><A NAME="2.4.15">2.4.15 cbf_set_gain</A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
 <p>
@@ -4807,7 +4807,7 @@ cbf_get_overload sets *<i>overload</i> to the overload value for element number 
 
 <p>Returns an error code on failure or 0 for success.
 <p><hr /><P>
-<h4><A NAME="2.4.17">2.4.17 cbf_ set_overload</A></h4>
+<h4><A NAME="2.4.17">2.4.17 cbf_set_overload</A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
 <p>
@@ -4864,7 +4864,7 @@ cbf_set_integration_time sets the integration time in seconds to the value speci
 <TABLE>
 <TR><td valign="top">&nbsp;&nbsp;<i>handle</i><td valign="top">&nbsp;&nbsp;CBF handle.
 <TR><td valign="top">&nbsp;&nbsp;<i>reserved</i><td valign="top">&nbsp;&nbsp;Unused.  Any value other than 0 is invalid.
-<TR><td valign="top">&nbsp;&nbsp;<i>time	Integration</i><td valign="top">&nbsp;&nbsp;time in seconds.
+<TR><td valign="top">&nbsp;&nbsp;<i>time</i><td valign="top">&nbsp;&nbsp;Integration time in seconds.
 </TABLE>
 <p>
 <b>RETURN VALUE</b>
@@ -5143,12 +5143,12 @@ is used, <i>ndimslow</i> and <i>ndimmid</i> should be the array dimensions and <
 should be set to 1 both in the call and in the imgCIF
 data being processed.
 <p>
-If any element in the binary data can’t fit into the destination element, the 
+If any element in the binary data can't fit into the destination element, the
 destination is set the nearest possible value.
 <p>
 If the value is not binary, the function returns CBF_ASCII.
 <p>
-If the requested number of elements can’t be read, the function will read as many as it 
+If the requested number of elements can't be read, the function will read as many as it
 can and then return CBF_ENDOFDATA.
 <p>
 Currently, the destination <i>array</i> must consist of chars, shorts or ints (signed or unsigned)
@@ -5177,7 +5177,7 @@ The parameter <i>reserved</i> is presently unused and should be set to 0.
 <p><hr /><P>
 <h4><A NAME="2.4.27">2.4.27 cbf_set_image, cbf_set_image_fs, cbf_set_image_sf,</a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cbf_set_real_image, cbf_set_real_image_fs, cbf_set_real_image_sf,<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cbf_set_3d_image, cbf_set_3d_image, cbf_set_3d_image,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cbf_set_3d_image, cbf_set_3d_image_fs, cbf_set_3d_image_sf,<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cbf_set_real_3d_image, cbf_set_real_3d_image_fs, cbf_set_real_3d_image_sf</h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -5573,9 +5573,9 @@ The parameter <i>reserved</i> is presently unused and should be set to 0.
 <TR><td valign="top">&nbsp;&nbsp;<i>initial1</i><td valign="top">&nbsp;&nbsp;x component of the initial vector.
 <TR><td valign="top">&nbsp;&nbsp;<i>initial2</i><td valign="top">&nbsp;&nbsp;y component of the initial vector.
 <TR><td valign="top">&nbsp;&nbsp;<i>initial3</i><td valign="top">&nbsp;&nbsp;z component of the initial vector.
-<TR><td valign="top">&nbsp;&nbsp;<i>vector1</i><td valign="top">&nbsp;&nbsp;Pointer to the destination x component of the final vector.
-<TR><td valign="top">&nbsp;&nbsp;<i>vector2</i><td valign="top">&nbsp;&nbsp;Pointer to the destination y component of the final vector.
-<TR><td valign="top">&nbsp;&nbsp;<i>vector3</i><td valign="top">&nbsp;&nbsp;Pointer to the destination z component of the final vector.
+<TR><td valign="top">&nbsp;&nbsp;<i>final1</i><td valign="top">&nbsp;&nbsp;Pointer to the destination x component of the final vector.
+<TR><td valign="top">&nbsp;&nbsp;<i>final2</i><td valign="top">&nbsp;&nbsp;Pointer to the destination y component of the final vector.
+<TR><td valign="top">&nbsp;&nbsp;<i>final3</i><td valign="top">&nbsp;&nbsp;Pointer to the destination z component of the final vector.
 </TABLE>
 <p>
 <b>RETURN VALUE</b>
@@ -5695,7 +5695,7 @@ reference settings of the axes.
 <b>ARGUMENTS</b><br />
 <TABLE>
 <TR><td valign="top">&nbsp;&nbsp;<i>handle</i><td valign="top">&nbsp;&nbsp;CBF handle.<br />
-<TR><td valign="top">&nbsp;&nbsp;<i>detector</i><td valign="top">&nbsp;&nbsp;Pointer to the destination detector handle.<br />
+<TR><td valign="top">&nbsp;&nbsp;<i>positioner</i><td valign="top">&nbsp;&nbsp;Pointer to the destination positioner handle.<br />
 <TR><td valign="top">&nbsp;&nbsp;<i>axis_id</i><td valign="top">&nbsp;&nbsp;The identifier of the axis in the &quot;axis&quot; category.<br />
 </TABLE>
 <p>
@@ -5727,7 +5727,7 @@ Returns an error code on failure or 0 for success.
 
 <h4><A NAME="2.4.40">2.4.40 cbf_get_beam_center, cbf_get_beam_center_fs, cbf_get_beam_center_sf,<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cbf_set_beam_center, cbf_set_beam_center_fs, cbf_set_beam_center_sf,<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set_reference_beam_center, set_reference_beam_center_fs, set_reference_beam_center_fs
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cbf_set_reference_beam_center, cbf_set_reference_beam_center_fs, cbf_set_reference_beam_center_sf
 </A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -5849,7 +5849,7 @@ Any of the destination pointers may be NULL.
 <p>
 Returns an error code on failure or 0 for success.
 <p><hr /><P>
-<h4><A NAME="2.4.43">2.4.43 cbf_get_detector_axis_slow, cbf_get_detector_axis_slow, cbf_get_detector_axes, cbf_get_detector_axes_fs, cbf_get_detector_axes_sf,
+<h4><A NAME="2.4.43">2.4.43 cbf_get_detector_axis_slow, cbf_get_detector_axis_fast, cbf_get_detector_axes, cbf_get_detector_axes_fs, cbf_get_detector_axes_sf,
     cbf_get_detector_surface_axes</A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -5896,8 +5896,8 @@ Any of the destination pointers may be NULL.
 <TR><td valign="top">&nbsp;&nbsp;<i>fastaxis2</i><td valign="top">&nbsp;&nbsp;Pointer to the destination y component of the fast axis vector.</TR>
 <TR><td valign="top">&nbsp;&nbsp;<i>fastaxis3</i><td valign="top">&nbsp;&nbsp;Pointer to the destination z component of the fast axis vector.</TR>
 <TR><td valign="top">&nbsp;&nbsp;<i>axis_id1</i><td valign="top">&nbsp;&nbsp;Pointer to the destination first surface axis name.</TR>
-<TR><td valign="top">&nbsp;&nbsp;<i>axis_id1</i><td valign="top">&nbsp;&nbsp;Pointer to the destination first surface axis name.</TR>
 <TR><td valign="top">&nbsp;&nbsp;<i>axis_id2</i><td valign="top">&nbsp;&nbsp;Pointer to the destination second surface axis name.</TR>
+<TR><td valign="top">&nbsp;&nbsp;<i>axis_id3</i><td valign="top">&nbsp;&nbsp;Pointer to the destination third surface axis name.</TR>
 
 </TABLE>
 <p>
@@ -6128,7 +6128,7 @@ and indicates the fast axis in a call to cbf_get_inferred_pixel_size_fs.
 <TABLE>
 <TR><td valign="top">&nbsp;&nbsp;<i>detector</i><td valign="top">&nbsp;&nbsp;Detector handle.<br />
 <TR><td valign="top">&nbsp;&nbsp;<i>axis_number</i><td valign="top">&nbsp;&nbsp;The number of the axis.
-<TR><td valign="top">&nbsp;&nbsp;<i>area</i><td valign="top">&nbsp;&nbsp;Pointer to the destination pizel size in mm.<br />
+<TR><td valign="top">&nbsp;&nbsp;<i>psize</i><td valign="top">&nbsp;&nbsp;Pointer to the destination pizel size in mm.<br />
 </TABLE>
 <p>
 <b>RETURN VALUE</b>
@@ -6452,7 +6452,7 @@ to the values pointed to by <i>ub_matrix</i>.
 <b>ARGUMENTS</b><br />
 <TABLE>
 <TR><td valign="top">&nbsp;&nbsp;<i>handle</i><td valign="top">&nbsp;&nbsp;CBF handle.
-<TR><td valign="top">&nbsp;&nbsp;<i>ubmatric</i><td valign="top">&nbsp;&nbsp;Source or destination array
+<TR><td valign="top">&nbsp;&nbsp;<i>ub_matrix</i><td valign="top">&nbsp;&nbsp;Source or destination array
 of 9 doubles giving the orientation matrix parameters.
 </TABLE>
 <p>
@@ -6509,8 +6509,8 @@ the fastest rate.
 <p>
 Returns an error code on failure or 0 for success.
 <p><hr /><P>
-    
-<h4><A NAME="2.4.58">2.4.58 cbf_get_axis_poise, cbf_get_goniometer_poise, cbf_get_reference_poise
+
+<h4><A NAME="2.4.58">2.4.58 cbf_get_axis_poise, cbf_get_goniometer_poise, cbf_get_axis_reference_poise
     </A></h4>
     <p><b>PROTOTYPE</b>
     <p>#include "cbf_simple.h"
