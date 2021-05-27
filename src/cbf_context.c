@@ -439,7 +439,7 @@ extern "C" {
                         
                         if (!envval) break;
                         
-                        if (len > klen) strncpy(dst+idst,envval,len-klen);
+                        if (len > klen) memcpy(dst+idst,envval,len-klen);
                         
                         klen += strlen(envval);
                         
@@ -481,7 +481,7 @@ extern "C" {
                         
                         if (!envval) break;
                         
-                        if (len > klen) strncpy(dst+idst,envval,len-idst);
+                        if (len > klen) memcpy(dst+idst,envval,len-idst);
                         
                         klen += strlen(envval);
                         
@@ -924,7 +924,7 @@ extern "C" {
                     
                     *new_string = type;
                     
-                    strncpy (new_string + 1, string, n);
+                    memcpy (new_string + 1, string, n);
                     
                     new_string[n+1] = '\0';
                     
@@ -939,7 +939,7 @@ extern "C" {
                     
                     new_string = (char *)memblock;
                     
-                    strncpy (new_string, string, n);
+                    memcpy (new_string, string, n);
                     
                     new_string[n] = '\0';
                     

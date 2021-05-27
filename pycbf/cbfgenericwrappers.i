@@ -61,8 +61,8 @@ CBFLib documentation:
 DESCRIPTION
 cbf_compute_cell_volume sets *volume to point to the volume of the 
 unit cell computed from the double values in cell[0:2] for the cell 
-edge lengths a, b and c in AAngstroms and the double values given in 
-cell[3:5] for the cell angles a, b and g in degrees.
+edge lengths a, b and c in Ångstroms and the double values given in 
+cell[3:5] for the cell angles α, β and γ in degrees.
 ARGUMENTS
 cell     Pointer to the array of 6 doubles giving the cell 
 parameters. volume   Pointer to the doubles for cell volume.
@@ -238,11 +238,12 @@ CBFLib documentation:
 DESCRIPTION
 cbf_compute_reciprocal_cell sets rcell to point to the array of 
 reciprocal cell parameters computed from the double values cell[0:2] 
-giving the cell edge lengths a, b and c in AAngstroms, and the double 
-values cell[3:5] giving the cell angles a, b and g in degrees. The 
+giving the cell edge lengths a, b and c in Ångstroms, and the double 
+values cell[3:5] giving the cell angles α, β and γ in degrees. The 
 double values rcell[0:2] will be set to the reciprocal cell lengths 
-a*, b* and c* in AAngstroms-1 and the double values rcell[3:5] will 
-be set to the reciprocal cell angles a*, b* and g* in degrees.
+a^*, b^* and c^* in Ångstroms^-1 and the double values rcell[3:5] 
+will be set to the reciprocal cell angles α^*, β^* and γ^* in 
+degrees.
 ARGUMENTS
 cell     Pointer to the array of 6 doubles giving the cell 
 parameters. rcell    Pointer to the destination array of 6 doubles 

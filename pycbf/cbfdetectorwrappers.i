@@ -289,7 +289,7 @@ to cbf_get_inferred_pixel_size or cbf_get_inferred_pixel_size_sf and
 indicates the fast axis in a call to cbf_get_inferred_pixel_size_fs.
 ARGUMENTS
 detector      Detector handle. axis_number   The number of the axis. 
-area          Pointer to the destination pizel size in mm.
+psize         Pointer to the destination pizel size in mm.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
 ----------------------------------------------------------------------
@@ -395,8 +395,8 @@ Pointer to the destination x component of the fast axis vector.
 fastaxis2   Pointer to the destination y component of the fast axis 
 vector. fastaxis3   Pointer to the destination z component of the 
 fast axis vector. axis_id1    Pointer to the destination first 
-surface axis name. axis_id1    Pointer to the destination first 
 surface axis name. axis_id2    Pointer to the destination second 
+surface axis name. axis_id3    Pointer to the destination third 
 surface axis name.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
@@ -448,8 +448,8 @@ Pointer to the destination x component of the fast axis vector.
 fastaxis2   Pointer to the destination y component of the fast axis 
 vector. fastaxis3   Pointer to the destination z component of the 
 fast axis vector. axis_id1    Pointer to the destination first 
-surface axis name. axis_id1    Pointer to the destination first 
 surface axis name. axis_id2    Pointer to the destination second 
+surface axis name. axis_id3    Pointer to the destination third 
 surface axis name.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
@@ -564,8 +564,8 @@ Pointer to the destination x component of the fast axis vector.
 fastaxis2   Pointer to the destination y component of the fast axis 
 vector. fastaxis3   Pointer to the destination z component of the 
 fast axis vector. axis_id1    Pointer to the destination first 
-surface axis name. axis_id1    Pointer to the destination first 
 surface axis name. axis_id2    Pointer to the destination second 
+surface axis name. axis_id3    Pointer to the destination third 
 surface axis name.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
@@ -624,7 +624,7 @@ to cbf_get_inferred_pixel_size or cbf_get_inferred_pixel_size_sf and
 indicates the fast axis in a call to cbf_get_inferred_pixel_size_fs.
 ARGUMENTS
 detector      Detector handle. axis_number   The number of the axis. 
-area          Pointer to the destination pizel size in mm.
+psize         Pointer to the destination pizel size in mm.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
 ----------------------------------------------------------------------
@@ -696,8 +696,8 @@ Pointer to the destination x component of the fast axis vector.
 fastaxis2   Pointer to the destination y component of the fast axis 
 vector. fastaxis3   Pointer to the destination z component of the 
 fast axis vector. axis_id1    Pointer to the destination first 
-surface axis name. axis_id1    Pointer to the destination first 
 surface axis name. axis_id2    Pointer to the destination second 
+surface axis name. axis_id3    Pointer to the destination third 
 surface axis name.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
@@ -744,8 +744,8 @@ Pointer to the destination x component of the fast axis vector.
 fastaxis2   Pointer to the destination y component of the fast axis 
 vector. fastaxis3   Pointer to the destination z component of the 
 fast axis vector. axis_id1    Pointer to the destination first 
-surface axis name. axis_id1    Pointer to the destination first 
 surface axis name. axis_id2    Pointer to the destination second 
+surface axis name. axis_id3    Pointer to the destination third 
 surface axis name.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
@@ -795,8 +795,8 @@ Pointer to the destination x component of the fast axis vector.
 fastaxis2   Pointer to the destination y component of the fast axis 
 vector. fastaxis3   Pointer to the destination z component of the 
 fast axis vector. axis_id1    Pointer to the destination first 
-surface axis name. axis_id1    Pointer to the destination first 
 surface axis name. axis_id2    Pointer to the destination second 
+surface axis name. axis_id3    Pointer to the destination third 
 surface axis name.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
@@ -1037,7 +1037,7 @@ to cbf_get_inferred_pixel_size or cbf_get_inferred_pixel_size_sf and
 indicates the fast axis in a call to cbf_get_inferred_pixel_size_fs.
 ARGUMENTS
 detector      Detector handle. axis_number   The number of the axis. 
-area          Pointer to the destination pizel size in mm.
+psize         Pointer to the destination pizel size in mm.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
 ----------------------------------------------------------------------

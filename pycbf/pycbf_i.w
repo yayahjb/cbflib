@@ -402,51 +402,52 @@ static int convert_darray(PyObject *input, double *ptr, int size) {
  
 
 static int error_status = 0;
-static char error_message[1024] ; // hope that is long enough
+static char error_message1[17] ;
+static char error_message[1042] ; // hope that is long enough
 
 /* prototype */
 void get_error_message(void);
 
 void get_error_message(){
-  sprintf(error_message,"%s","CBFlib Error(s):");
+  sprintf(error_message1,"%s","CBFlib Error(s):");
   if (error_status & CBF_FORMAT        )
-    sprintf(error_message,"%s %s",error_message,"CBF_FORMAT       "); 
+    sprintf(error_message,"%s %s",error_message1,"CBF_FORMAT       "); 
   if (error_status & CBF_ALLOC         )
-    sprintf(error_message,"%s %s",error_message,"CBF_ALLOC        ");
+    sprintf(error_message,"%s %s",error_message1,"CBF_ALLOC        ");
   if (error_status & CBF_ARGUMENT      )
-    sprintf(error_message,"%s %s",error_message,"CBF_ARGUMENT     ");
+    sprintf(error_message,"%s %s",error_message1,"CBF_ARGUMENT     ");
   if (error_status & CBF_ASCII         )
-    sprintf(error_message,"%s %s",error_message,"CBF_ASCII        ");
+    sprintf(error_message,"%s %s",error_message1,"CBF_ASCII        ");
   if (error_status & CBF_BINARY        )
-    sprintf(error_message,"%s %s",error_message,"CBF_BINARY       ");
+    sprintf(error_message,"%s %s",error_message1,"CBF_BINARY       ");
   if (error_status & CBF_BITCOUNT      )
-    sprintf(error_message,"%s %s",error_message,"CBF_BITCOUNT     ");
+    sprintf(error_message,"%s %s",error_message1,"CBF_BITCOUNT     ");
   if (error_status & CBF_ENDOFDATA     )
-    sprintf(error_message,"%s %s",error_message,"CBF_ENDOFDATA    ");
+    sprintf(error_message,"%s %s",error_message1,"CBF_ENDOFDATA    ");
   if (error_status & CBF_FILECLOSE     )
-    sprintf(error_message,"%s %s",error_message,"CBF_FILECLOSE    ");
+    sprintf(error_message,"%s %s",error_message1,"CBF_FILECLOSE    ");
   if (error_status & CBF_FILEOPEN      )
-    sprintf(error_message,"%s %s",error_message,"CBF_FILEOPEN     ");
+    sprintf(error_message,"%s %s",error_message1,"CBF_FILEOPEN     ");
   if (error_status & CBF_FILEREAD      )
-    sprintf(error_message,"%s %s",error_message,"CBF_FILEREAD     ");
+    sprintf(error_message,"%s %s",error_message1,"CBF_FILEREAD     ");
   if (error_status & CBF_FILESEEK      )
-    sprintf(error_message,"%s %s",error_message,"CBF_FILESEEK     ");
+    sprintf(error_message,"%s %s",error_message1,"CBF_FILESEEK     ");
   if (error_status & CBF_FILETELL      )
-    sprintf(error_message,"%s %s",error_message,"CBF_FILETELL     ");
+    sprintf(error_message,"%s %s",error_message1,"CBF_FILETELL     ");
   if (error_status & CBF_FILEWRITE     )
-    sprintf(error_message,"%s %s",error_message,"CBF_FILEWRITE    ");
+    sprintf(error_message,"%s %s",error_message1,"CBF_FILEWRITE    ");
   if (error_status & CBF_IDENTICAL     )
-    sprintf(error_message,"%s %s",error_message,"CBF_IDENTICAL    ");
+    sprintf(error_message,"%s %s",error_message1,"CBF_IDENTICAL    ");
   if (error_status & CBF_NOTFOUND      )
-    sprintf(error_message,"%s %s",error_message,"CBF_NOTFOUND     ");
+    sprintf(error_message,"%s %s",error_message1,"CBF_NOTFOUND     ");
   if (error_status & CBF_OVERFLOW      )
-    sprintf(error_message,"%s %s",error_message,"CBF_OVERFLOW     ");
+    sprintf(error_message,"%s %s",error_message1,"CBF_OVERFLOW     ");
   if (error_status & CBF_UNDEFINED     )
-    sprintf(error_message,"%s %s",error_message,"CBF_UNDEFINED    ");
+    sprintf(error_message,"%s %s",error_message1,"CBF_UNDEFINED    ");
   if (error_status & CBF_NOTIMPLEMENTED)
-    sprintf(error_message,"%s %s",error_message,"CBF_NOTIMPLEMENTED");
+    sprintf(error_message,"%s %s",error_message1,"CBF_NOTIMPLEMENTED");
   if (error_status & CBF_NOCOMPRESSION)
-    sprintf(error_message,"%s %s",error_message,"CBF_NOCOMPRESSION");
+    sprintf(error_message,"%s %s",error_message1,"CBF_NOCOMPRESSION");
 }
 
 

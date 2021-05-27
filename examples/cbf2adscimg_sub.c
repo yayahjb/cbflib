@@ -261,6 +261,14 @@ static int cbfhandle2img_sub(cbf_handle cbf, char **header, unsigned short **dat
 	char		*fps, *fpe, *vps, *vpe, *cp;
 
 	const char	*direction [2];
+
+        CBF_UNUSED( dirinc );
+        CBF_UNUSED( dirend );
+        CBF_UNUSED( dirsta );
+        CBF_UNUSED( second );
+        CBF_UNUSED( first );
+        CBF_UNUSED( colrow ); 
+
   
 	/*
 	 *	Legal, but uninteresting case.

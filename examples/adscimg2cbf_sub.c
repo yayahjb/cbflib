@@ -544,7 +544,10 @@ int	adscimg2cbf_sub2(char *header,
     double  cliplow, cliphigh;
     int     rad_smooth;
     
-    
+    CBF_UNUSED( smv_bin_type);
+    CBF_UNUSED( kicm );
+    CBF_UNUSED( kjcm );
+ 
     if(0 == pack_flags)
         pack_flags = CBF_BYTE_OFFSET;	/* default if 0 is given for "pack_flags" */
     
@@ -790,7 +793,7 @@ int	adscimg2cbf_sub2(char *header,
                             smv_size2, smv_size1);
                     return(1);
                 }
-    if (convertroi(roi, smv_size1, smv_size2,
+    if (convertroi((char *)roi, smv_size1, smv_size2,
                    &fastlow, &fasthigh, &slowlow, &slowhigh)) {
         fprintf(stderr,
                 "adscimg2cbf_sub2: Error: Invalid region of interest '%s'\n", roi);
@@ -1724,7 +1727,7 @@ int	adscimg2cbf_sub2(char *header,
                 return(1);
             };
             if (log) fprintf(stderr,"minicbf_header messages: \n%s\n", log);
-            cbf_free_text(&log,NULL);
+            cbf_free_text((const char **)(&log),NULL);
         }
         
         cbf_failnez (cbf_require_category (cbf, "array_data"));
@@ -1870,6 +1873,9 @@ int	adscimg2cbf_sub2(char *header,
         int ivec2cm[2];
         double dist2cm;
         int id,ir;
+
+        CBF_UNUSED( valmax );
+        CBF_UNUSED( valnew );
         
         cmi = rint(cmi/cmv);
         cmj = rint(cmj/cmv);
@@ -2072,7 +2078,7 @@ int     adscimg2cbf_sub(char *header,
 		         int pad_flag){
 	return adscimg2cbf_sub2(header,
                             data,
-                            NULL,NULL,NULL,NULL,
+                            NULL,0,NULL,NULL,
                             cbf_filename,
                             pack_flags,
                             beam_center_convention,

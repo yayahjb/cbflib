@@ -93,9 +93,9 @@ goniometer   Goniometer handle. reserved     Unused. Any value other
 than 0 is invalid. ratio        Goniometer setting. 0 = beginning of 
 exposure, 1 = end. initial1     x component of the initial vector. 
 initial2     y component of the initial vector. initial3     z 
-component of the initial vector. vector1      Pointer to the 
-destination x component of the final vector. vector2      Pointer to 
-the destination y component of the final vector. vector3      Pointer 
+component of the initial vector. final1       Pointer to the 
+destination x component of the final vector. final2       Pointer to 
+the destination y component of the final vector. final3       Pointer 
 to the destination z component of the final vector.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
@@ -195,7 +195,7 @@ reciprocal3 to the 3 components of the of the reciprocal-space vector
 corresponding to the real-space vector (real1, real2, real3). The 
 reciprocal-space vector is oriented to correspond to the goniometer 
 setting with all axes at 0. The value wavelength is the wavlength in 
-AA and the value ratio specifies the current goniometer setting and 
+Å and the value ratio specifies the current goniometer setting and 
 varies from 0.0 at the beginning of the exposur e to 1.0 at the end, 
 irrespective of the actual rotation range.
 Any of the destination pointers may be NULL.
@@ -203,7 +203,7 @@ The parameter reserved is presently unused and should be set to 0.
 ARGUMENTS
 goniometer    Goniometer handle. reserved      Unused. Any value 
 other than 0 is invalid. ratio         Goniometer setting. 0 = 
-beginning of exposure, 1 = end. wavelength    Wavelength in AA. real1 
+beginning of exposure, 1 = end. wavelength    Wavelength in Å. real1 
         x component of the real-space vector. real2         y 
 component of the real-space vector. real3         z component of the 
 real-space vector. reciprocal1   Pointer to the destination x 

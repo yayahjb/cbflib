@@ -291,12 +291,6 @@ extern "C" {
 #endif
 #endif
 
-    static int cbf_write_nx2cbf__cbfdb_op
-    (hid_t g_id,
-     const char * name,
-     const H5L_info_t * info,
-     void * op_data);
-
     static int cbf_find_array_data_h5type
     (hid_t * const type,
      unsigned int bits,
@@ -6266,7 +6260,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         datasetname_parts[3] = NULL;
         datasetname_parts[4] = NULL;
 
-        char buffer[7];
+        char buffer[11];
 
         cbf_debug_print4(" nxdata_field_name arrayid '%s' binaryid '%s' block %d",arrayid, binaryid, block);
 
@@ -20726,335 +20720,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
     }
 
 
-   /* iteration in a second level NXpdb group that defines a cbfcat
-      should contain datasets, each of which defines a column in the
-      category,  or possibly contains groups, each of which defines
-      a saveframe */
-
-    static int cbf_write_nx2cbf__cbfcat_op
-    (hid_t g_id,
-     const char * name,
-     const H5L_info_t * info,
-     void * op_data)
-    {
-        int error = CBF_SUCCESS;
-
-        cbf_debug_print("Entering cbf_write_nx2cbf__cbfcat_op");
-
-        if (!cbf_H5Ivalid(g_id) || !name || !info || !op_data) {
-            cbf_debug_print(cbf_strerror(CBF_ARGUMENT));
-            error |= CBF_ARGUMENT;
-        } else {
-            const op_data_t * const op_data_struct = op_data;
-            cbf_h5handle nx = op_data_struct->nx;
-            cbf_handle cbf = op_data_struct->cbf;
-            cbf_nx2cbf_key_t * const table = op_data_struct->table;
-            hid_t object = CBF_H5FAIL;
-            H5I_type_t type = H5I_BADID;
-            if (!nx) {
-                cbf_debug_print("Invalid NeXus handle given");
-                error |= CBF_ARGUMENT;
-            } else if (!cbf) {
-                cbf_debug_print("No CBF handle given");
-                error |= CBF_ARGUMENT;
-            } else if (!table) {
-                cbf_debug_print("No key given");
-                error |= CBF_ARGUMENT;
-            } else if (!cbf_H5Ivalid(object=H5Oopen(g_id, name, H5P_DEFAULT))) {
-                cbf_debug_print2("error: couldn't open '%s'\n",name);
-                error |= CBF_H5ERROR;
-            } else if (H5I_BADID==(type=H5Iget_type(object))) {
-                cbf_debug_print2("error: couldn't get type of '%s'\n",name);
-                error |= CBF_H5ERROR;
-            } else {
-                if (H5I_BADID==type) {
-                    /* something went wrong when finding the object type */
-                    cbf_debug_print2("error: couldn't get object type of '%s'\n",name);
-                    error |= CBF_H5ERROR;
-                } else if (H5I_DATASET==type) {
-                    /* each dataset is a column */
-                    int colerr=0;
-                    {   /* log the dataset */
-                        if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
-                        /* name is the required column */
-                        colerr=cbf_require_column(cbf,name);
-                        if (CBF_SUCCESS!=colerr) {
-                            cbf_debug_print(cbf_strerror(colerr));
-                            cbf_debug_print2("error:  whilst processing column '%s'\n",name);
-                        } else {
-                          /* iterate through the column */
-                          hsize_t slab;
-                          hsize_t dsslab;
-                          int ndims = 0;
-                          hsize_t offset[1] = {0};
-                          hsize_t stride[1] = {1};
-                          hsize_t count[1]  = {1};
-                          hsize_t chunk[1] = {1};
-                          hsize_t curdim[1]; 
-                          hsize_t memsize[1] = {1};
-                          htri_t dsexists;   
-                          hsize_t dssize[1];
-                          hsize_t maxdssize[1];
-                          hsize_t dsdims[1];
-                          hsize_t dsmaxdims[1];
-                          size_t old_size;
-                          int slaberr;
-                          slaberr=0;
-                          slab = 0L;
-                          const char * datasettext;
-                          size_t rank;
-                          hid_t datasetspace, datasettype;
-                          hid_t memspace, memtype;
-                          void * datasettextbuffer;
-                          int errorcode=0;
-                          hid_t datasetid=object;
-                          CBF_UNUSED( rank );
-                          CBF_UNUSED( datasettext );
-                          CBF_UNUSED( slaberr );
-                          CBF_UNUSED( dsmaxdims );
-                          CBF_UNUSED( maxdssize );
-                          CBF_UNUSED( dssize );
-                          CBF_UNUSED( dsexists );
-                          CBF_UNUSED( memsize );
-                          CBF_UNUSED( curdim );
-                          CBF_UNUSED( chunk );
-                          CBF_UNUSED( slab );
-                          datasetspace = (hid_t)-1;
-                          datasettype = (hid_t)-1;
-                          memspace = (hid_t)-1;
-                          memtype = (hid_t)-1;
-                          datasettextbuffer = NULL;
-                          cbf_h5reportneg(datasettype = H5Dget_type(datasetid),CBF_FORMAT,errorcode);
-                          cbf_h5reportneg(datasetspace = H5Dget_space(datasetid),CBF_FORMAT,errorcode);
-                          old_size = H5Tget_size(datasettype);
-                          cbf_reportnez(cbf_alloc(&datasettextbuffer,NULL,1,old_size+1),errorcode);
-                          cbf_h5reportneg(ndims = H5Sget_simple_extent_ndims(datasetspace),CBF_FORMAT,errorcode);
-                          if ( errorcode || ndims > 1 ) {
-                            cbf_debug_print(cbf_strerror(CBF_FORMAT));
-                            cbf_debug_print2("error:  whilst processing column '%s'\n",name);
-                          } else {
-                            if (ndims == 0) {
-                              cbf_h5reportneg(memtype = H5Tcopy(H5T_C_S1),CBF_ALLOC,errorcode);
-                              cbf_h5reportneg(memspace = H5Screate(H5S_SCALAR),CBF_ALLOC,errorcode);
-                              cbf_h5reportneg(H5Sselect_all(datasetspace),CBF_H5ERROR,errorcode);
-                              cbf_h5reportneg(H5Tset_size(memtype,old_size+1),CBF_ALLOC,errorcode);
-                              cbf_h5reportneg(H5Dread(datasetid, memtype, memspace, datasetspace, H5P_DEFAULT, (void *)datasettextbuffer),
-                                CBF_H5ERROR,errorcode);
-                              if (errorcode==0) {
-                                errorcode|=cbf_set_value(cbf,datasettextbuffer);
-                              }
-                            } else {
-                                cbf_h5reportneg(memtype = H5Tcopy(H5T_C_S1),CBF_ALLOC,errorcode);
-                                cbf_h5reportneg(memspace = H5Screate_simple(ndims,count,0),CBF_ALLOC,errorcode);
-                                cbf_h5reportneg(H5Tset_size(memtype,old_size+1),CBF_ALLOC,errorcode);
-                                errorcode|=cbf_select_row(cbf,0);
-                                for (dsslab=0; dsslab < dsdims[0] && errorcode == CBF_SUCCESS; dsslab++) { 
-                                  offset[0] = dsslab;
-                                  cbf_h5reportneg(H5Sselect_hyperslab(datasetspace,H5S_SELECT_SET,
-                                                    offset,stride,count,0), CBF_FORMAT,errorcode);
-                                  errorcode|=cbf_new_row(cbf);
-                                  if (H5Dread(datasetid, memtype, memspace, datasetspace,
-                                     H5P_DEFAULT, (void *)datasettextbuffer)>=0) {
-                                      errorcode|=cbf_set_value(cbf,datasettextbuffer);
-                                  }
-                                }
-                            }
-                            if (memspace >= 0) H5Sclose(memspace);
-                            if (datasetspace >= 0) H5Sclose(datasetspace);
-                            if (datasetspace >= 0) H5Sclose(datasetspace);
-                            if (datasetid >= 0) H5Dclose(datasetid);
-                            if (memtype >= 0) H5Tclose(memtype);
-                            if (datasettextbuffer) cbf_free(&datasettextbuffer,NULL);
-                            return errorcode;
-                          }
-                       }
-                    }
-                } else if (H5I_GROUP==type) {
-                    /* get NXclass & handle all groups here, should be NXpdb for a cbfcat */
-                    const char * NX_class = NULL;
-                    const char * NXpdb_class = NULL;
-                    const int found = _cbf_NXclass(object,&NX_class);
-                    const int nxpdb_found = _cbf_Attrval(object,"NXpdb_class", &NXpdb_class);
-                    if (CBF_NOTFOUND==found) {
-                        /* no NX_class: can't process it, but it's not an error */
-                        if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
-                    } else if (CBF_SUCCESS!=found) {
-                        if (1) {
-                            cbf_debug_print(cbf_strerror(found));
-                            cbf_debug_print2("error:  whilst processing group '%s'\n",name);
-                        }
-                        error |= found;
-                    } else {
-                        /* I have a group with an NX_class: match on NX_class */
-                        if (!strcmp(NX_class,"NXpdb")||
-                                   !strcmp(NX_class,"CBF_cbf") ||
-                                   !strcmp(NX_class,"CBF_cif") ||
-                                   !strcmp(NX_class,"CBF_cbfdb") ||
-                                   !strcmp(NX_class,"CBF_cbfcat") ||
-                                   !strcmp(NX_class,"CBF_cbfsf") ||
-                                   !strcmp(NX_class,"CBF_cbfcol") ||
-                                   ( NXpdb_class &&
-                                     (!strcmp(NXpdb_class,"CBF_cif") ||
-                                      !strcmp(NXpdb_class,"CBF_cbfdb") ||
-                                      !strcmp(NXpdb_class,"CBF_cbfcat") ||
-                                      !strcmp(NXpdb_class,"CBF_cbfsf") ||
-                                      !strcmp(NXpdb_class,"CBF_cbfcol")
-                                     )
-                                   ) )  {
-                            const unsigned int indent = table->indent;
-                            /* debugging output */
-                            if (NX_class) free((void*)NX_class);
-                            if (NXpdb_class) free((void*)NXpdb_class);
-                            nx->cbf_datablock = NULL;
-                            nx->cbf_saveframe = NULL;
-                            nx->cbf_category = NULL;
-                            nx->cbf_column = NULL;
-                            error |= cbf_read_h5file_group(cbf,nx,nx->flags,(hid_t)object);
-                            if (cbf_H5Ivalid(object)) H5Oclose(object);
-                            return (CBF_SUCCESS==error) ? 0 : -1;
-
-
-                            /*-----------------------------------------------------------------------------------------------*/
-                        } else {
-                            /* unknown NX_class: (probably) not an error */
-                            if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,0);
-                        }
-                    }
-                    free((void*)NX_class);
-                } else {
-                    /* unrecognised object type: can't process it, but it's not an error */
-                    if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
-                }
-            }
-            if (cbf_H5Ivalid(object)) H5Oclose(object);
-        }
-        /*
-         Convert a CBF error to something the HDF5 iteration function can understand.
-         All errors should already have been reported, so I shouldn't need to print anything.
-         */
-        return (CBF_SUCCESS==error) ? 0 : -1;
-    }
-
-   /* iteration in a top level NXpdb group that defines a cbfdb
-      should contain groups, each of which defines a cbfcat or nxpdb
-      each of which should contain datasets, each of which defines
-      a cbfcol, or possibly contains groups, each of which defines
-      a saveframe, which contains groups, each of which defines
-      a cbfcat or nxpdb each of which contains datasets, each of
-      which defines a cbfcol. */
-
-    static int cbf_write_nx2cbf__cbfdb_op
-    (hid_t g_id,
-     const char * name,
-     const H5L_info_t * info,
-     void * op_data)
-    {
-        int error = CBF_SUCCESS;
-
-         cbf_debug_print(" entering cbf_write_nx2cbf__cbfdb_op");
-
-        if (!cbf_H5Ivalid(g_id) || !name || !info || !op_data) {
-            cbf_debug_print(cbf_strerror(CBF_ARGUMENT));
-            error |= CBF_ARGUMENT;
-        } else {
-            const op_data_t * const op_data_struct = op_data;
-            cbf_h5handle nx = op_data_struct->nx;
-            cbf_handle cbf = op_data_struct->cbf;
-            cbf_nx2cbf_key_t * const table = op_data_struct->table;
-            hid_t object = CBF_H5FAIL;
-            H5I_type_t type = H5I_BADID;
-            if (!nx) {
-                cbf_debug_print("Invalid NeXus handle given");
-                error |= CBF_ARGUMENT;
-            } else if (!cbf) {
-                cbf_debug_print("No CBF handle given");
-                error |= CBF_ARGUMENT;
-            } else if (!table) {
-                cbf_debug_print("No key given");
-                error |= CBF_ARGUMENT;
-            } else if (!cbf_H5Ivalid(object=H5Oopen(g_id, name, H5P_DEFAULT))) {
-                cbf_debug_print2("error: couldn't open '%s'\n",name);
-                error |= CBF_H5ERROR;
-            } else if (H5I_BADID==(type=H5Iget_type(object))) {
-                cbf_debug_print2("error: couldn't get type of '%s'\n",name);
-                error |= CBF_H5ERROR;
-            } else {
-                if (H5I_BADID==type) {
-                    /* something went wrong when finding the object type */
-                    cbf_debug_print2("error: couldn't get object type of '%s'\n",name);
-                    error |= CBF_H5ERROR;
-                } else if (H5I_DATASET==type) {
-                    /* handle all datasets here */
-                    if (0) {
-                        /* I don't actually have any items to match here */
-                    } else {
-                        /* unknown field: can't process it, but it's not an error */
-                        if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
-                    }
-                } else if (H5I_GROUP==type) {
-                    /* get NXclass & handle all groups here, should be NXpdb for a cbfcat */
-                    const char * NX_class = NULL;
-                    const int found = _cbf_NXclass(object,&NX_class);
-                    const char * NXpdb_class = NULL;
-                    const int nxpdb_found = _cbf_Attrval(object,"NXpdb_class", &NXpdb_class);
-                    if (CBF_NOTFOUND==found) {
-                        /* no NX_class: can't process it, but it's not an error */
-                        if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
-                    } else if (CBF_SUCCESS!=found) {
-                        if (1) {
-                            cbf_debug_print(cbf_strerror(found));
-                            cbf_debug_print2("error:  whilst processing group '%s'\n",name);
-                        }
-                        error |= found;
-
-                        /* I have a group with an NX_class: match on NX_class */
-                    } else if (!strcmp(NX_class,"NXpdb")||
-                                   !strcmp(NX_class,"CBF_cbf") ||
-                                   !strcmp(NX_class,"CBF_cif") ||
-                                   !strcmp(NX_class,"CBF_cbfdb") ||
-                                   !strcmp(NX_class,"CBF_cbfcat") ||
-                                   !strcmp(NX_class,"CBF_cbfsf") ||
-                                   !strcmp(NX_class,"CBF_cbfcol") ||
-                                   ( NXpdb_class &&
-                                     (!strcmp(NXpdb_class,"CBF_cif") ||
-                                      !strcmp(NXpdb_class,"CBF_cbfdb") ||
-                                      !strcmp(NXpdb_class,"CBF_cbfcat") ||
-                                      !strcmp(NXpdb_class,"CBF_cbfsf") ||
-                                      !strcmp(NXpdb_class,"CBF_cbfcol")
-                                     )
-                                   ) )  {
-                            const unsigned int indent = table->indent;
-                            /* debugging output */
-                            if (NX_class) free((void*)NX_class);
-                            if (NXpdb_class) free((void*)NXpdb_class);
-                            nx->cbf_datablock = NULL;
-                            nx->cbf_saveframe = NULL;
-                            nx->cbf_category = NULL;
-                            nx->cbf_column = NULL;
-                            error |= cbf_read_h5file_group(cbf,nx,nx->flags,(hid_t)object);
-                            if (cbf_H5Ivalid(object)) H5Oclose(object);
-                            return (CBF_SUCCESS==error) ? 0 : -1;
- 
-                            /*-----------------------------------------------------------------------------------------------*/
-                        } else {
-                            /* unknown NX_class: (probably) not an error */
-                            if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,0);
-                        }
-                    free((void*)NX_class);
-                } else {
-                    /* unrecognised object type: can't process it, but it's not an error */
-                    if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
-                }
-            }
-            if (cbf_H5Ivalid(object)) H5Oclose(object);
-        }
-        /*
-         Convert a CBF error to something the HDF5 iteration function can understand.
-         All errors should already have been reported, so I shouldn't need to print anything.
-         */
-        return (CBF_SUCCESS==error) ? 0 : -1;
-    }
-
     int _cbf_write_nx2cbf__beam_op
     (hid_t g_id,
      const char * name,
@@ -22204,6 +21869,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 hid_t instrument = CBF_H5FAIL;
                 hid_t detector = CBF_H5FAIL;
                 hid_t data = CBF_H5FAIL;
+                CBF_UNUSED(data_row); 
                 if (!error && nx->logfile) {
                     int len;
                     fputc('\n',nx->logfile);
@@ -22608,6 +22274,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     if (CBF_SUCCESS==error) {
                         cbf_node * node = NULL;
                         unsigned int id = 0;
+                        CBF_UNUSED(node);
                         CBF_CALL(cbf_require_datablock(cbf,table->datablock_id));
                         CBF_CALL(cbf_require_category(cbf,"array_structure"));
                         CBF_CALL(cbf_require_column(cbf,"id"));
@@ -22935,6 +22602,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     int ii, jj;
                     int havepga, havegravity, havesource;
                     double Q_McStas, U_McStas, psn_McStas;
+                    CBF_UNUSED(diffrn_scan_axis); 
                     CBF_CALL(cbf_require_datablock(cbf,table->datablock_id));
                     CBF_CALL(cbf_require_category(cbf,"diffrn_measurement_axis"));
                     diffrn_measurement_axis = cbf->node;
@@ -27125,6 +26793,7 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
                 cbf_node * axis_id = NULL;
                 cbf_node * axis_depends_on = NULL;
                 cbf_node * axis_rotation_axis = NULL;
+                CBF_UNUSED(axis_rotation_axis);
                 CBF_CALL(cbf_find_category(handle,"array_structure_list_axis"));
                 CBF_CALL(cbf_find_child(&asla_setid,handle->node,"axis_set_id"));
                 CBF_CALL(cbf_find_child(&asla_axisid,handle->node,"axis_id"));
@@ -29045,6 +28714,8 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 
         H5T_sign_t type_sign = H5T_SGN_ERROR;
 
+        CBF_UNUSED(type_order);
+
         errorcode = 0;
 
         cbf_reportnez(cbf_require_category(handle,categoryname),errorcode);
@@ -30873,6 +30544,12 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
         size_t padding;
 
         CBF_UNUSED( info );
+
+        CBF_UNUSED( checked_digest );
+
+        CBF_UNUSED( type );
+
+        CBF_UNUSED( atcbf );
 
         errorcode = 0;
 
