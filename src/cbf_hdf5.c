@@ -3007,15 +3007,14 @@ if (CBF_SUCCESS==found) {
         } else if (CBF_NOTFOUND==found) {
             /* create a suitable dataset */
             hsize_t * const _buf = (buf || !rank) ? NULL : malloc(rank*sizeof(hsize_t)); /* always free'able */
+            hsize_t * const _dim = (!rank) ? NULL :malloc(rank*sizeof(hsize_t)); /* always free'able */
             hsize_t * dim;
-            hsize_t * dummy;
-            dim = buf;
-            if (!dim) dim=&dummy;
+            dim = _dim;
             hsize_t * it;
-            it = dim; *it = 0;
-            if (rank > 0) for (it = dim+1; it != dim+rank; ++it) *it = 0;
+            if (rank > 0) for (it = dim; it != dim+rank; ++it) *it = 0;
             CBF_CALL2(cbf_H5Dcreate(location,dsetp,name,rank,dim,max,chunk,type),error);
             if (_buf) free((void*)_buf);
+            if (_dim) free((void*)_dim);
         } else {
             error |= found;
             /* maybe report the failure? */

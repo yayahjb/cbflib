@@ -386,7 +386,7 @@ ifneq ($(CBFLIB_DONT_USE_LZ4),yes)
 # Definitions to get a version of HDF5Plugin for LZ4
 #
 ifneq ($(MSYS2),yes)
-LZ4 ?= HDF5Plugin_14Aug20
+LZ4 ?= HDF5Plugin_5Jun21
 else
 LZ4 ?= HDF5-External-Filter-Plugins
 endif
@@ -2681,7 +2681,7 @@ empty:
 	@-rm -f testfile.h5
 	@-rm -f hit-20140306005258847.cbf
 	@-rm -f build_*
-	@-rm -rf HDF5Plugin_14Aug20/
+	@-rm -rf HDF5Plugin_5Jun21/
 	@-rm -rf PyCifRW-4.1/
 	@-rm -rf bitshuffle-0.2.2.1_15Jun16/
 	@-rm -f idx-s00-20131106040304531_flat.cbf
