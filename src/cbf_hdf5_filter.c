@@ -291,14 +291,14 @@ extern "C" {
     const void *H5PLget_plugin_info(void) {return CBF_H5Z_CBF;}
 #endif
 
-    static cbf_memcpy_as_cbf(void** dstbuf, void** srcbuf, const size_t nbytes) {
+    static int cbf_memcpy_as_cbf(void** dstbuf, void** srcbuf, const size_t nbytes) {
         if (!dstbuf || !srcbuf || !nbytes ||  !(*srcbuf) ) return  CBF_ARGUMENT;
         if (cbf_alloc(dstbuf,NULL,nbytes,1))  return CBF_ALLOC;
         memcpy(*dstbuf, *srcbuf, nbytes);
         return 0; 
     }
 
-    static cbf_memcpy_as_h5(void** dstbuf, void** srcbuf, const size_t nbytes) {
+    static int cbf_memcpy_as_h5(void** dstbuf, void** srcbuf, const size_t nbytes) {
         if (!dstbuf || !srcbuf || !nbytes ||  !(*srcbuf) ) return  CBF_ARGUMENT;
         *dstbuf=H5allocate_memory(nbytes,0);
         if (!(*dstbuf))  return CBF_ALLOC;
@@ -918,7 +918,7 @@ extern "C" {
                 
                 cbf_reportnez (cbf_flush_characters (tempfile), errorcode);
                 *buf_size = tempfile->characters+tempfile->characters_used-tempfile->characters_base;
-                cbf_memcpy_as_h5(buf,&(tempfile->characters_base),*buf_size);
+                cbf_memcpy_as_h5(buf,(void **)&(tempfile->characters_base),*buf_size);
                 H5free_memory(oldbuf);
 #ifdef CBFDEBUG
                 {int ii;
