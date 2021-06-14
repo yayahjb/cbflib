@@ -12103,7 +12103,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
             hsize_t memtype = 0;
 
-            char * attribtextbuffer;
+            char * attribtextbuffer = NULL;
 
             cbf_h5reportneg(attribid = H5Aopen(hid, attribname, H5P_DEFAULT),CBF_H5ERROR,errorcode);
 
@@ -21551,7 +21551,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                       !strcmp(NXpdb_class,"CBF_cbfcol") 
                                      )
                                    ) )  {
-                            const unsigned int indent = table->indent;
                             /* debugging output */
                             if (NX_class) free((void*)NX_class);
                             if (NXpdb_class) free((void*)NXpdb_class);
@@ -26250,7 +26249,6 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
                                     unsigned int i;
                                     const unsigned int dimension = key->arrayAxisSet.dimension[set];
                                     const char * depends_on_path = NULL;
-                                    const char * rotation_axis_path = NULL;
                                     hid_t dset = CBF_H5FAIL;
                                     hsize_t dim[1];
                                     const hsize_t max[] = {H5S_UNLIMITED};
@@ -26461,7 +26459,6 @@ static int process_DiffrnScanAxisCache(cbf_node * const category,
         for(row=0; row < rows+7 && !error; row++) {
             const char * axis_id = NULL;
             const char * equipment = NULL;
-            const char * equipment_component = NULL;
             const char * depends_on = NULL;
             const char * rotation_axis = NULL;
             const char * type = NULL;
@@ -28945,8 +28942,6 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                             int idim, level;
 
                             char buffer[40];
-
-                            char open, close;
 
                             cbf_reportnez(cbf_alloc(((void **) &ivalue),NULL,
                                                     1,total_dim*((type_size*3)+kdims*2)+1),errorcode);
