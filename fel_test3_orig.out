@@ -1,0 +1,4608 @@
+element: 0
+(0, 0) v00 [ -43.268864273 0.244454075 -104.897928069 ]
+(0, 1) v01 [ -43.268949351 0.354453707 -104.898199635 ]
+(1, 0) v10 [ -43.158864306 0.244539134 -104.897935968 ]
+(1, 1) v11 [ -43.158949384 0.354538766 -104.898207534 ]
+surface axes: AXIS_D0Q0S0A0_F AXIS_D0Q0S0A0_S
+AXIS_D0Q0S0A0_F has 8 ancestors
+AXIS_D0Q0S0A0_S has 7 ancestors
+axis AXIS_D0Q0S0A0_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q0S0A0_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q0S0A0_S index:  1
+    equipment detector
+    depends_on FS_D0Q0S0A0
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0S0A0 index:  2
+    equipment detector
+    depends_on FS_D0Q0S0
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [-10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0S0 index:  3
+    equipment detector
+    depends_on FS_D0Q0
+    equipment_component detector_sensor
+    vector [-0.00119851753497, 0.001269343806, 0.99999847616]
+    offset [11.84740625, -22.9244375, 0.04621875]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [-44.95790625, 44.6816875, 0.00503125]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 1
+(0, 0) v00 [ 0.236365915 43.471610123 -104.799863774 ]
+(0, 1) v01 [ 0.346365768 43.471779231 -104.799803142 ]
+(1, 0) v10 [ 0.236535242 43.361610980 -104.800263662 ]
+(1, 1) v11 [ 0.346535096 43.361780088 -104.800203031 ]
+surface axes: AXIS_D0Q1S0A0_F AXIS_D0Q1S0A0_S
+AXIS_D0Q1S0A0_F has 8 ancestors
+AXIS_D0Q1S0A0_S has 7 ancestors
+axis AXIS_D0Q1S0A0_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q1S0A0_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q1S0A0_S index:  1
+    equipment detector
+    depends_on FS_D0Q1S0A0
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1S0A0 index:  2
+    equipment detector
+    depends_on FS_D0Q1S0
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [-10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1S0 index:  3
+    equipment detector
+    depends_on FS_D0Q1
+    equipment_component detector_sensor
+    vector [0.9121963574, -0.137590297876, 0.385962064815]
+    offset [-22.8013125, -11.7255625, 0.00853125]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [44.5583125, 45.0553125, 0.16946875]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 2
+(0, 0) v00 [ 43.331041757 -0.179887182 -105.007586095 ]
+(0, 1) v01 [ 43.330967354 -0.289887157 -105.007587359 ]
+(1, 0) v10 [ 43.221041802 -0.179812780 -105.007520330 ]
+(1, 1) v11 [ 43.220967399 -0.289812754 -105.007521594 ]
+surface axes: AXIS_D0Q2S0A0_F AXIS_D0Q2S0A0_S
+AXIS_D0Q2S0A0_F has 8 ancestors
+AXIS_D0Q2S0A0_S has 7 ancestors
+axis AXIS_D0Q2S0A0_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q2S0A0_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q2S0A0_S index:  1
+    equipment detector
+    depends_on FS_D0Q2S0A0
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2S0A0 index:  2
+    equipment detector
+    depends_on FS_D0Q2S0
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [-10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2S0 index:  3
+    equipment detector
+    depends_on FS_D0Q2
+    equipment_component detector_sensor
+    vector [-0.000292981371778, 0.000304670304034, -0.999999910669]
+    offset [-11.98534375, 22.88215625, 0.00165625]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [45.12684375, -44.56015625, -0.00040625]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 3
+(0, 0) v00 [ -0.208968817 -43.238540374 -104.832298701 ]
+(0, 1) v01 [ -0.318968630 -43.238717260 -104.832398506 ]
+(1, 0) v10 [ -0.209145226 -43.128541762 -104.832822371 ]
+(1, 1) v11 [ -0.319145039 -43.128718648 -104.832922176 ]
+surface axes: AXIS_D0Q3S0A0_F AXIS_D0Q3S0A0_S
+AXIS_D0Q3S0A0_F has 8 ancestors
+AXIS_D0Q3S0A0_S has 7 ancestors
+axis AXIS_D0Q3S0A0_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q3S0A0_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q3S0A0_S index:  1
+    equipment detector
+    depends_on FS_D0Q3S0A0
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3S0A0 index:  2
+    equipment detector
+    depends_on FS_D0Q3S0
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [-10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3S0 index:  3
+    equipment detector
+    depends_on FS_D0Q3
+    equipment_component detector_sensor
+    vector [-0.000455570499938, 0.00237996082126, 0.999997064117]
+    offset [22.8553125, 11.9615, -0.0604375]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [-44.5855625, -45.05975, 0.1631875]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 4
+(0, 0) v00 [ -43.285624548 21.914381556 -104.951426701 ]
+(0, 1) v01 [ -43.285709626 22.024381187 -104.951698267 ]
+(1, 0) v10 [ -43.175624581 21.914466614 -104.951434600 ]
+(1, 1) v11 [ -43.175709659 22.024466246 -104.951706166 ]
+surface axes: AXIS_D0Q0S0A1_F AXIS_D0Q0S0A1_S
+AXIS_D0Q0S0A1_F has 8 ancestors
+AXIS_D0Q0S0A1_S has 7 ancestors
+axis AXIS_D0Q0S0A1_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q0S0A1_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q0S0A1_S index:  1
+    equipment detector
+    depends_on FS_D0Q0S0A1
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0S0A1 index:  2
+    equipment detector
+    depends_on FS_D0Q0S0
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0S0 index:  3
+    equipment detector
+    depends_on FS_D0Q0
+    equipment_component detector_sensor
+    vector [-0.00119851753497, 0.001269343806, 0.99999847616]
+    offset [11.84740625, -22.9244375, 0.04621875]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [-44.95790625, 44.6816875, 0.00503125]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 5
+(0, 0) v00 [ 21.906337016 43.504924371 -104.787919389 ]
+(0, 1) v01 [ 22.016336869 43.505093479 -104.787858758 ]
+(1, 0) v10 [ 21.906506343 43.394925228 -104.788319277 ]
+(1, 1) v11 [ 22.016506196 43.395094336 -104.788258646 ]
+surface axes: AXIS_D0Q1S0A1_F AXIS_D0Q1S0A1_S
+AXIS_D0Q1S0A1_F has 8 ancestors
+AXIS_D0Q1S0A1_S has 7 ancestors
+axis AXIS_D0Q1S0A1_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q1S0A1_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q1S0A1_S index:  1
+    equipment detector
+    depends_on FS_D0Q1S0A1
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1S0A1 index:  2
+    equipment detector
+    depends_on FS_D0Q1S0
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1S0 index:  3
+    equipment detector
+    depends_on FS_D0Q1
+    equipment_component detector_sensor
+    vector [0.9121963574, -0.137590297876, 0.385962064815]
+    offset [-22.8013125, -11.7255625, 0.00853125]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [44.5583125, 45.0553125, 0.16946875]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 6
+(0, 0) v00 [ 43.316384249 -21.849882224 -105.007835098 ]
+(0, 1) v01 [ 43.316309845 -21.959882199 -105.007836362 ]
+(1, 0) v10 [ 43.206384293 -21.849807821 -105.007769334 ]
+(1, 1) v11 [ 43.206309890 -21.959807796 -105.007770598 ]
+surface axes: AXIS_D0Q2S0A1_F AXIS_D0Q2S0A1_S
+AXIS_D0Q2S0A1_F has 8 ancestors
+AXIS_D0Q2S0A1_S has 7 ancestors
+axis AXIS_D0Q2S0A1_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q2S0A1_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q2S0A1_S index:  1
+    equipment detector
+    depends_on FS_D0Q2S0A1
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2S0A1 index:  2
+    equipment detector
+    depends_on FS_D0Q2S0
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2S0 index:  3
+    equipment detector
+    depends_on FS_D0Q2
+    equipment_component detector_sensor
+    vector [-0.000292981371778, 0.000304670304034, -0.999999910669]
+    offset [-11.98534375, 22.88215625, 0.00165625]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [45.12684375, -44.56015625, -0.00040625]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 7
+(0, 0) v00 [ -21.878931880 -43.273386942 -104.851960234 ]
+(0, 1) v01 [ -21.988931693 -43.273563829 -104.852060039 ]
+(1, 0) v10 [ -21.879108289 -43.163388330 -104.852483904 ]
+(1, 1) v11 [ -21.989108102 -43.163565217 -104.852583709 ]
+surface axes: AXIS_D0Q3S0A1_F AXIS_D0Q3S0A1_S
+AXIS_D0Q3S0A1_F has 8 ancestors
+AXIS_D0Q3S0A1_S has 7 ancestors
+axis AXIS_D0Q3S0A1_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q3S0A1_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q3S0A1_S index:  1
+    equipment detector
+    depends_on FS_D0Q3S0A1
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3S0A1 index:  2
+    equipment detector
+    depends_on FS_D0Q3S0
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3S0 index:  3
+    equipment detector
+    depends_on FS_D0Q3
+    equipment_component detector_sensor
+    vector [-0.000455570499938, 0.00237996082126, 0.999997064117]
+    offset [22.8553125, 11.9615, -0.0604375]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [-44.5855625, -45.05975, 0.1631875]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 8
+(0, 0) v00 [ -20.628421882 0.262868911 -104.939319945 ]
+(0, 1) v01 [ -20.628442741 0.372868666 -104.939551082 ]
+(1, 0) v10 [ -20.518421884 0.262889764 -104.939322570 ]
+(1, 1) v11 [ -20.518442743 0.372889520 -104.939553707 ]
+surface axes: AXIS_D0Q0S1A0_F AXIS_D0Q0S1A0_S
+AXIS_D0Q0S1A0_F has 8 ancestors
+AXIS_D0Q0S1A0_S has 7 ancestors
+axis AXIS_D0Q0S1A0_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q0S1A0_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q0S1A0_S index:  1
+    equipment detector
+    depends_on FS_D0Q0S1A0
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0S1A0 index:  2
+    equipment detector
+    depends_on FS_D0Q0S1
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [-10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0S1 index:  3
+    equipment detector
+    depends_on FS_D0Q0
+    equipment_component detector_sensor
+    vector [-0.00103869542788, 0.00106235325338, 0.999998896258]
+    offset [34.50040625, -22.9119375, 0.01321875]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [-44.95790625, 44.6816875, 0.00503125]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 9
+(0, 0) v00 [ 0.270342182 20.626408905 -104.912764169 ]
+(0, 1) v01 [ 0.380342148 20.626383295 -104.912682051 ]
+(1, 0) v10 [ 0.270316932 20.516409961 -104.913245681 ]
+(1, 1) v11 [ 0.380316898 20.516384352 -104.913163563 ]
+surface axes: AXIS_D0Q1S1A0_F AXIS_D0Q1S1A0_S
+AXIS_D0Q1S1A0_F has 8 ancestors
+AXIS_D0Q1S1A0_S has 7 ancestors
+axis AXIS_D0Q1S1A0_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q1S1A0_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q1S1A0_S index:  1
+    equipment detector
+    depends_on FS_D0Q1S1A0
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1S1A0 index:  2
+    equipment detector
+    depends_on FS_D0Q1S1
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [-10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1S1 index:  3
+    equipment detector
+    depends_on FS_D0Q1
+    equipment_component detector_sensor
+    vector [0.984414920897, -0.168000905029, -0.051989993514]
+    offset [-22.7853125, -34.6088125, -0.10771875]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [44.5583125, 45.0553125, 0.16946875]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 10
+(0, 0) v00 [ 20.635675048 -0.358506599 -105.045265324 ]
+(0, 1) v01 [ 20.635209401 -0.468505562 -105.045159267 ]
+(1, 0) v10 [ 20.525676223 -0.358041151 -105.045470393 ]
+(1, 1) v11 [ 20.525210577 -0.468040115 -105.045364336 ]
+surface axes: AXIS_D0Q2S1A0_F AXIS_D0Q2S1A0_S
+AXIS_D0Q2S1A0_F has 8 ancestors
+AXIS_D0Q2S1A0_S has 7 ancestors
+axis AXIS_D0Q2S1A0_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q2S1A0_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q2S1A0_S index:  1
+    equipment detector
+    depends_on FS_D0Q2S1A0
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2S1A0 index:  2
+    equipment detector
+    depends_on FS_D0Q2S1
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [-10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2S1 index:  3
+    equipment detector
+    depends_on FS_D0Q2
+    equipment_component detector_sensor
+    vector [0.000446114950845, -0.00141217059297, -0.999998903377]
+    offset [-34.75709375, 22.73990625, -0.04009375]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [45.12684375, -44.56015625, -0.00040625]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 11
+(0, 0) v00 [ -0.239238918 -20.627912406 -104.894953479 ]
+(0, 1) v01 [ -0.349238837 -20.628037291 -104.895000226 ]
+(1, 0) v10 [ -0.239363533 -20.517914274 -104.895582207 ]
+(1, 1) v11 [ -0.349363452 -20.518039158 -104.895628955 ]
+surface axes: AXIS_D0Q3S1A0_F AXIS_D0Q3S1A0_S
+AXIS_D0Q3S1A0_F has 8 ancestors
+AXIS_D0Q3S1A0_S has 7 ancestors
+axis AXIS_D0Q3S1A0_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q3S1A0_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q3S1A0_S index:  1
+    equipment detector
+    depends_on FS_D0Q3S1A0
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3S1A0 index:  2
+    equipment detector
+    depends_on FS_D0Q3S1
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [-10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3S1 index:  3
+    equipment detector
+    depends_on FS_D0Q3
+    equipment_component detector_sensor
+    vector [-0.000214109382229, 0.00285774944096, 0.999995893704]
+    offset [22.8298125, 34.58225, -0.1224375]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [-44.5855625, -45.05975, 0.1631875]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 12
+(0, 0) v00 [ -20.632531103 21.932820682 -104.984853937 ]
+(0, 1) v01 [ -20.632551962 22.042820437 -104.985085074 ]
+(1, 0) v10 [ -20.522531105 21.932841536 -104.984856562 ]
+(1, 1) v11 [ -20.522551964 22.042841291 -104.985087699 ]
+surface axes: AXIS_D0Q0S1A1_F AXIS_D0Q0S1A1_S
+AXIS_D0Q0S1A1_F has 8 ancestors
+AXIS_D0Q0S1A1_S has 7 ancestors
+axis AXIS_D0Q0S1A1_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q0S1A1_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q0S1A1_S index:  1
+    equipment detector
+    depends_on FS_D0Q0S1A1
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0S1A1 index:  2
+    equipment detector
+    depends_on FS_D0Q0S1
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0S1 index:  3
+    equipment detector
+    depends_on FS_D0Q0
+    equipment_component detector_sensor
+    vector [-0.00103869542788, 0.00106235325338, 0.999998896258]
+    offset [34.50040625, -22.9119375, 0.01321875]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [-44.95790625, 44.6816875, 0.00503125]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 13
+(0, 0) v00 [ 21.940335556 20.621363833 -104.896586937 ]
+(0, 1) v01 [ 22.050335522 20.621338224 -104.896504819 ]
+(1, 0) v10 [ 21.940310306 20.511364890 -104.897068450 ]
+(1, 1) v11 [ 22.050310273 20.511339280 -104.896986332 ]
+surface axes: AXIS_D0Q1S1A1_F AXIS_D0Q1S1A1_S
+AXIS_D0Q1S1A1_F has 8 ancestors
+AXIS_D0Q1S1A1_S has 7 ancestors
+axis AXIS_D0Q1S1A1_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q1S1A1_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q1S1A1_S index:  1
+    equipment detector
+    depends_on FS_D0Q1S1A1
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1S1A1 index:  2
+    equipment detector
+    depends_on FS_D0Q1S1
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1S1 index:  3
+    equipment detector
+    depends_on FS_D0Q1
+    equipment_component detector_sensor
+    vector [0.984414920897, -0.168000905029, -0.051989993514]
+    offset [-22.7853125, -34.6088125, -0.10771875]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [44.5583125, 45.0553125, 0.16946875]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 14
+(0, 0) v00 [ 20.543942761 -22.028302368 -105.024372087 ]
+(0, 1) v01 [ 20.543477115 -22.138301331 -105.024266030 ]
+(1, 0) v10 [ 20.433943937 -22.027836920 -105.024577156 ]
+(1, 1) v11 [ 20.433478291 -22.137835883 -105.024471099 ]
+surface axes: AXIS_D0Q2S1A1_F AXIS_D0Q2S1A1_S
+AXIS_D0Q2S1A1_F has 8 ancestors
+AXIS_D0Q2S1A1_S has 7 ancestors
+axis AXIS_D0Q2S1A1_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q2S1A1_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q2S1A1_S index:  1
+    equipment detector
+    depends_on FS_D0Q2S1A1
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2S1A1 index:  2
+    equipment detector
+    depends_on FS_D0Q2S1
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2S1 index:  3
+    equipment detector
+    depends_on FS_D0Q2
+    equipment_component detector_sensor
+    vector [0.000446114950845, -0.00141217059297, -0.999998903377]
+    offset [-34.75709375, 22.73990625, -0.04009375]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [45.12684375, -44.56015625, -0.00040625]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 15
+(0, 0) v00 [ -21.909222995 -20.652514590 -104.904162707 ]
+(0, 1) v01 [ -22.019222914 -20.652639474 -104.904209454 ]
+(1, 0) v10 [ -21.909347610 -20.542516457 -104.904791436 ]
+(1, 1) v11 [ -22.019347529 -20.542641342 -104.904838183 ]
+surface axes: AXIS_D0Q3S1A1_F AXIS_D0Q3S1A1_S
+AXIS_D0Q3S1A1_F has 8 ancestors
+AXIS_D0Q3S1A1_S has 7 ancestors
+axis AXIS_D0Q3S1A1_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q3S1A1_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q3S1A1_S index:  1
+    equipment detector
+    depends_on FS_D0Q3S1A1
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3S1A1 index:  2
+    equipment detector
+    depends_on FS_D0Q3S1
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3S1 index:  3
+    equipment detector
+    depends_on FS_D0Q3
+    equipment_component detector_sensor
+    vector [-0.000214109382229, 0.00285774944096, 0.999995893704]
+    offset [22.8298125, 34.58225, -0.1224375]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [-44.5855625, -45.05975, 0.1631875]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 16
+(0, 0) v00 [ -89.777295492 43.645315287 -105.086036396 ]
+(0, 1) v01 [ -89.667295655 43.645286732 -105.085849464 ]
+(1, 0) v10 [ -89.777324387 43.535315472 -105.085836490 ]
+(1, 1) v11 [ -89.667324549 43.535286917 -105.085649559 ]
+surface axes: AXIS_D0Q0S2A0_F AXIS_D0Q0S2A0_S
+AXIS_D0Q0S2A0_F has 8 ancestors
+AXIS_D0Q0S2A0_S has 7 ancestors
+axis AXIS_D0Q0S2A0_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q0S2A0_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q0S2A0_S index:  1
+    equipment detector
+    depends_on FS_D0Q0S2A0
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0S2A0 index:  2
+    equipment detector
+    depends_on FS_D0Q0S2
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [-10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0S2 index:  3
+    equipment detector
+    depends_on FS_D0Q0
+    equipment_component detector_sensor
+    vector [-0.726510433286, -0.679181441997, -0.10437987916]
+    offset [-23.31709375, -11.2169375, -0.03303125]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [-44.95790625, 44.6816875, 0.00503125]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 17
+(0, 0) v00 [ 43.594988404 89.668071393 -104.709324456 ]
+(0, 1) v01 [ 43.595040869 89.558071498 -104.709467206 ]
+(1, 0) v10 [ 43.484988455 89.668019048 -104.709416542 ]
+(1, 1) v11 [ 43.485040920 89.558019153 -104.709559292 ]
+surface axes: AXIS_D0Q1S2A0_F AXIS_D0Q1S2A0_S
+AXIS_D0Q1S2A0_F has 8 ancestors
+AXIS_D0Q1S2A0_S has 7 ancestors
+axis AXIS_D0Q1S2A0_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q1S2A0_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q1S2A0_S index:  1
+    equipment detector
+    depends_on FS_D0Q1S2A0
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1S2A0 index:  2
+    equipment detector
+    depends_on FS_D0Q1S2
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [-10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1S2 index:  3
+    equipment detector
+    depends_on FS_D0Q1
+    equipment_component detector_sensor
+    vector [0.00106763504262, 0.000230599116836, -0.99999940349]
+    offset [-11.1280625, 23.1029375, 0.08778125]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [44.5583125, 45.0553125, 0.16946875]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 18
+(0, 0) v00 [ 89.915184154 -43.499814708 -104.952217873 ]
+(0, 1) v01 [ 89.805186605 -43.499108649 -104.952016011 ]
+(1, 0) v10 [ 89.915890496 -43.389817084 -104.952063777 ]
+(1, 1) v11 [ 89.805892947 -43.389111025 -104.951861915 ]
+surface axes: AXIS_D0Q2S2A0_F AXIS_D0Q2S2A0_S
+AXIS_D0Q2S2A0_F has 8 ancestors
+AXIS_D0Q2S2A0_S has 7 ancestors
+axis AXIS_D0Q2S2A0_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q2S2A0_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q2S2A0_S index:  1
+    equipment detector
+    depends_on FS_D0Q2S2A0
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2S2A0 index:  2
+    equipment detector
+    depends_on FS_D0Q2S2
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [-10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2S2 index:  3
+    equipment detector
+    depends_on FS_D0Q2
+    equipment_component detector_sensor
+    vector [0.000915306099233, -0.00070338214954, 0.999999333734]
+    offset [23.34915625, 11.37315625, 0.10490625]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [45.12684375, -44.56015625, -0.00040625]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 19
+(0, 0) v00 [ -43.239961998 -90.017488389 -104.656970434 ]
+(0, 1) v01 [ -43.240616001 -89.907490918 -104.657329185 ]
+(1, 0) v10 [ -43.129963950 -90.016834521 -104.657012529 ]
+(1, 1) v11 [ -43.130617952 -89.906837050 -104.657371280 ]
+surface axes: AXIS_D0Q3S2A0_F AXIS_D0Q3S2A0_S
+AXIS_D0Q3S2A0_F has 8 ancestors
+AXIS_D0Q3S2A0_S has 7 ancestors
+axis AXIS_D0Q3S2A0_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q3S2A0_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q3S2A0_S index:  1
+    equipment detector
+    depends_on FS_D0Q3S2A0
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3S2A0 index:  2
+    equipment detector
+    depends_on FS_D0Q3S2
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [-10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3S2 index:  3
+    equipment detector
+    depends_on FS_D0Q3
+    equipment_component detector_sensor
+    vector [-0.0014404772615, 0.00181236123537, 0.999997320182]
+    offset [11.3925625, -23.39275, 0.1088125]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [-44.5855625, -45.05975, 0.1631875]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 20
+(0, 0) v00 [ -68.107327513 43.639690015 -105.049210875 ]
+(0, 1) v01 [ -67.997327675 43.639661460 -105.049023943 ]
+(1, 0) v10 [ -68.107356407 43.529690200 -105.049010969 ]
+(1, 1) v11 [ -67.997356570 43.529661645 -105.048824038 ]
+surface axes: AXIS_D0Q0S2A1_F AXIS_D0Q0S2A1_S
+AXIS_D0Q0S2A1_F has 8 ancestors
+AXIS_D0Q0S2A1_S has 7 ancestors
+axis AXIS_D0Q0S2A1_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q0S2A1_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q0S2A1_S index:  1
+    equipment detector
+    depends_on FS_D0Q0S2A1
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0S2A1 index:  2
+    equipment detector
+    depends_on FS_D0Q0S2
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0S2 index:  3
+    equipment detector
+    depends_on FS_D0Q0
+    equipment_component detector_sensor
+    vector [-0.726510433286, -0.679181441997, -0.10437987916]
+    offset [-23.31709375, -11.2169375, -0.03303125]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [-44.95790625, 44.6816875, 0.00503125]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 21
+(0, 0) v00 [ 43.605323980 67.998092105 -104.737446168 ]
+(0, 1) v01 [ 43.605376445 67.888092210 -104.737588917 ]
+(1, 0) v10 [ 43.495324031 67.998039760 -104.737538254 ]
+(1, 1) v11 [ 43.495376496 67.888039865 -104.737681003 ]
+surface axes: AXIS_D0Q1S2A1_F AXIS_D0Q1S2A1_S
+AXIS_D0Q1S2A1_F has 8 ancestors
+AXIS_D0Q1S2A1_S has 7 ancestors
+axis AXIS_D0Q1S2A1_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q1S2A1_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q1S2A1_S index:  1
+    equipment detector
+    depends_on FS_D0Q1S2A1
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1S2A1 index:  2
+    equipment detector
+    depends_on FS_D0Q1S2
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1S2 index:  3
+    equipment detector
+    depends_on FS_D0Q1
+    equipment_component detector_sensor
+    vector [0.00106763504262, 0.000230599116836, -0.99999940349]
+    offset [-11.1280625, 23.1029375, 0.08778125]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [44.5583125, 45.0553125, 0.16946875]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 22
+(0, 0) v00 [ 68.245667049 -43.360721153 -104.912451086 ]
+(0, 1) v01 [ 68.135669500 -43.360015094 -104.912249224 ]
+(1, 0) v10 [ 68.246373391 -43.250723529 -104.912296990 ]
+(1, 1) v11 [ 68.136375842 -43.250017470 -104.912095128 ]
+surface axes: AXIS_D0Q2S2A1_F AXIS_D0Q2S2A1_S
+AXIS_D0Q2S2A1_F has 8 ancestors
+AXIS_D0Q2S2A1_S has 7 ancestors
+axis AXIS_D0Q2S2A1_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q2S2A1_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q2S2A1_S index:  1
+    equipment detector
+    depends_on FS_D0Q2S2A1
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2S2A1 index:  2
+    equipment detector
+    depends_on FS_D0Q2S2
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2S2 index:  3
+    equipment detector
+    depends_on FS_D0Q2
+    equipment_component detector_sensor
+    vector [0.000915306099233, -0.00070338214954, 0.999999333734]
+    offset [23.34915625, 11.37315625, 0.10490625]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [45.12684375, -44.56015625, -0.00040625]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 23
+(0, 0) v00 [ -43.368800494 -68.347986645 -104.727644319 ]
+(0, 1) v01 [ -43.369454497 -68.237989174 -104.728003070 ]
+(1, 0) v10 [ -43.258802446 -68.347332776 -104.727686415 ]
+(1, 1) v11 [ -43.259456448 -68.237335306 -104.728045165 ]
+surface axes: AXIS_D0Q3S2A1_F AXIS_D0Q3S2A1_S
+AXIS_D0Q3S2A1_F has 8 ancestors
+AXIS_D0Q3S2A1_S has 7 ancestors
+axis AXIS_D0Q3S2A1_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q3S2A1_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q3S2A1_S index:  1
+    equipment detector
+    depends_on FS_D0Q3S2A1
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3S2A1 index:  2
+    equipment detector
+    depends_on FS_D0Q3S2
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3S2 index:  3
+    equipment detector
+    depends_on FS_D0Q3
+    equipment_component detector_sensor
+    vector [-0.0014404772615, 0.00181236123537, 0.999997320182]
+    offset [11.3925625, -23.39275, 0.1088125]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [-44.5855625, -45.05975, 0.1631875]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 24
+(0, 0) v00 [ -89.799274461 20.956162190 -105.040469385 ]
+(0, 1) v01 [ -89.689274781 20.956103802 -105.040210524 ]
+(1, 0) v10 [ -89.799332980 20.846162219 -105.040414118 ]
+(1, 1) v11 [ -89.689333300 20.846103831 -105.040155258 ]
+surface axes: AXIS_D0Q0S3A0_F AXIS_D0Q0S3A0_S
+AXIS_D0Q0S3A0_F has 8 ancestors
+AXIS_D0Q0S3A0_S has 7 ancestors
+axis AXIS_D0Q0S3A0_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q0S3A0_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q0S3A0_S index:  1
+    equipment detector
+    depends_on FS_D0Q0S3A0
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0S3A0 index:  2
+    equipment detector
+    depends_on FS_D0Q0S3
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [-10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0S3 index:  3
+    equipment detector
+    depends_on FS_D0Q0
+    equipment_component detector_sensor
+    vector [-0.204135389798, -0.954897355881, -0.215638081894]
+    offset [-23.34184375, -33.9119375, 0.01321875]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [-44.95790625, 44.6816875, 0.00503125]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 25
+(0, 0) v00 [ 20.788787967 89.695536067 -104.715966053 ]
+(0, 1) v01 [ 20.788864428 89.585536165 -104.716091117 ]
+(1, 0) v10 [ 20.678788119 89.695459795 -104.716131825 ]
+(1, 1) v11 [ 20.678864579 89.585459893 -104.716256889 ]
+surface axes: AXIS_D0Q1S3A0_F AXIS_D0Q1S3A0_S
+AXIS_D0Q1S3A0_F has 8 ancestors
+AXIS_D0Q1S3A0_S has 7 ancestors
+axis AXIS_D0Q1S3A0_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q1S3A0_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q1S3A0_S index:  1
+    equipment detector
+    depends_on FS_D0Q1S3A0
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1S3A0 index:  2
+    equipment detector
+    depends_on FS_D0Q1S3
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [-10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1S3 index:  3
+    equipment detector
+    depends_on FS_D0Q1
+    equipment_component detector_sensor
+    vector [0.00132250659518, -0.000184643470589, -0.999999108441]
+    offset [-33.9295625, 23.1281875, 0.07778125]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [44.5583125, 45.0553125, 0.16946875]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 26
+(0, 0) v00 [ 89.999993235 -20.836797748 -105.043716950 ]
+(0, 1) v01 [ 89.889993401 -20.836670838 -105.043574214 ]
+(1, 0) v10 [ 90.000119984 -20.726797890 -105.043840604 ]
+(1, 1) v11 [ 89.890120150 -20.726670980 -105.043697868 ]
+surface axes: AXIS_D0Q2S3A0_F AXIS_D0Q2S3A0_S
+AXIS_D0Q2S3A0_F has 8 ancestors
+AXIS_D0Q2S3A0_S has 7 ancestors
+axis AXIS_D0Q2S3A0_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q2S3A0_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q2S3A0_S index:  1
+    equipment detector
+    depends_on FS_D0Q2S3A0
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2S3A0 index:  2
+    equipment detector
+    depends_on FS_D0Q2S3
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [-10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2S3 index:  3
+    equipment detector
+    depends_on FS_D0Q2
+    equipment_component detector_sensor
+    vector [0.00064912454537, 0.000561687576284, 0.999999631572]
+    offset [23.37990625, 33.92315625, -0.02384375]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [45.12684375, -44.56015625, -0.00040625]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 27
+(0, 0) v00 [ -21.072902234 -89.924914902 -104.676673314 ]
+(0, 1) v01 [ -21.072937258 -89.814915305 -104.676968921 ]
+(1, 0) v10 [ -20.962902241 -89.924879835 -104.676657483 ]
+(1, 1) v11 [ -20.962937265 -89.814880238 -104.676953089 ]
+surface axes: AXIS_D0Q3S3A0_F AXIS_D0Q3S3A0_S
+AXIS_D0Q3S3A0_F has 8 ancestors
+AXIS_D0Q3S3A0_S has 7 ancestors
+axis AXIS_D0Q3S3A0_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q3S3A0_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q3S3A0_S index:  1
+    equipment detector
+    depends_on FS_D0Q3S3A0
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3S3A0 index:  2
+    equipment detector
+    depends_on FS_D0Q3S3
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [-10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3S3 index:  3
+    equipment detector
+    depends_on FS_D0Q3
+    equipment_component detector_sensor
+    vector [-0.00141560507691, 0.00127127717988, 0.999998189957]
+    offset [33.6808125, -23.357, 0.1068125]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [-44.5855625, -45.05975, 0.1631875]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 28
+(0, 0) v00 [ -68.129337517 20.944659694 -104.989473868 ]
+(0, 1) v01 [ -68.019337837 20.944601305 -104.989215008 ]
+(1, 0) v10 [ -68.129396036 20.834659723 -104.989418602 ]
+(1, 1) v11 [ -68.019396356 20.834601335 -104.989159741 ]
+surface axes: AXIS_D0Q0S3A1_F AXIS_D0Q0S3A1_S
+AXIS_D0Q0S3A1_F has 8 ancestors
+AXIS_D0Q0S3A1_S has 7 ancestors
+axis AXIS_D0Q0S3A1_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q0S3A1_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q0S3A1_S index:  1
+    equipment detector
+    depends_on FS_D0Q0S3A1
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0S3A1 index:  2
+    equipment detector
+    depends_on FS_D0Q0S3
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0S3 index:  3
+    equipment detector
+    depends_on FS_D0Q0
+    equipment_component detector_sensor
+    vector [-0.204135389798, -0.954897355881, -0.215638081894]
+    offset [-23.34184375, -33.9119375, 0.01321875]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [-44.95790625, 44.6816875, 0.00503125]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 29
+(0, 0) v00 [ 20.803850691 68.025555308 -104.740603652 ]
+(0, 1) v01 [ 20.803927151 67.915555405 -104.740728715 ]
+(1, 0) v10 [ 20.693850842 68.025479036 -104.740769424 ]
+(1, 1) v11 [ 20.693927302 67.915479133 -104.740894488 ]
+surface axes: AXIS_D0Q1S3A1_F AXIS_D0Q1S3A1_S
+AXIS_D0Q1S3A1_F has 8 ancestors
+AXIS_D0Q1S3A1_S has 7 ancestors
+axis AXIS_D0Q1S3A1_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q1S3A1_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q1S3A1_S index:  1
+    equipment detector
+    depends_on FS_D0Q1S3A1
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1S3A1 index:  2
+    equipment detector
+    depends_on FS_D0Q1S3
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1S3 index:  3
+    equipment detector
+    depends_on FS_D0Q1
+    equipment_component detector_sensor
+    vector [0.00132250659518, -0.000184643470589, -0.999999108441]
+    offset [-33.9295625, 23.1281875, 0.07778125]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [44.5583125, 45.0553125, 0.16946875]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 30
+(0, 0) v00 [ 68.330025901 -20.811796451 -105.015597946 ]
+(0, 1) v01 [ 68.220026067 -20.811669541 -105.015455210 ]
+(1, 0) v10 [ 68.330152650 -20.701796594 -105.015721600 ]
+(1, 1) v11 [ 68.220152816 -20.701669684 -105.015578864 ]
+surface axes: AXIS_D0Q2S3A1_F AXIS_D0Q2S3A1_S
+AXIS_D0Q2S3A1_F has 8 ancestors
+AXIS_D0Q2S3A1_S has 7 ancestors
+axis AXIS_D0Q2S3A1_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q2S3A1_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q2S3A1_S index:  1
+    equipment detector
+    depends_on FS_D0Q2S3A1
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2S3A1 index:  2
+    equipment detector
+    depends_on FS_D0Q2S3
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2S3 index:  3
+    equipment detector
+    depends_on FS_D0Q2
+    equipment_component detector_sensor
+    vector [0.00064912454537, 0.000561687576284, 0.999999631572]
+    offset [23.37990625, 33.92315625, -0.02384375]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [45.12684375, -44.56015625, -0.00040625]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 31
+(0, 0) v00 [ -21.079801913 -68.254994248 -104.734907825 ]
+(0, 1) v01 [ -21.079836937 -68.144994651 -104.735203431 ]
+(1, 0) v10 [ -20.969801920 -68.254959182 -104.734891993 ]
+(1, 1) v11 [ -20.969836944 -68.144959585 -104.735187600 ]
+surface axes: AXIS_D0Q3S3A1_F AXIS_D0Q3S3A1_S
+AXIS_D0Q3S3A1_F has 8 ancestors
+AXIS_D0Q3S3A1_S has 7 ancestors
+axis AXIS_D0Q3S3A1_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q3S3A1_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q3S3A1_S index:  1
+    equipment detector
+    depends_on FS_D0Q3S3A1
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3S3A1 index:  2
+    equipment detector
+    depends_on FS_D0Q3S3
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3S3 index:  3
+    equipment detector
+    depends_on FS_D0Q3
+    equipment_component detector_sensor
+    vector [-0.00141560507691, 0.00127127717988, 0.999998189957]
+    offset [33.6808125, -23.357, 0.1068125]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [-44.5855625, -45.05975, 0.1631875]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 32
+(0, 0) v00 [ -46.511435398 90.044014861 -104.900016657 ]
+(0, 1) v01 [ -46.510891638 89.934016419 -104.900233635 ]
+(1, 0) v10 [ -46.621433989 90.043470867 -104.899898432 ]
+(1, 1) v11 [ -46.620890229 89.933472425 -104.900115410 ]
+surface axes: AXIS_D0Q0S4A0_F AXIS_D0Q0S4A0_S
+AXIS_D0Q0S4A0_F has 8 ancestors
+AXIS_D0Q0S4A0_S has 7 ancestors
+axis AXIS_D0Q0S4A0_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q0S4A0_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q0S4A0_S index:  1
+    equipment detector
+    depends_on FS_D0Q0S4A0
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0S4A0 index:  2
+    equipment detector
+    depends_on FS_D0Q0S4
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [-10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0S4 index:  3
+    equipment detector
+    depends_on FS_D0Q0
+    equipment_component detector_sensor
+    vector [0.000446211609729, 0.0015285403289, -0.999998732229]
+    offset [-11.62209375, 23.8073125, 0.06646875]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [-44.95790625, 44.6816875, 0.00503125]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 33
+(0, 0) v00 [ 89.853997542 46.774744869 -104.840615395 ]
+(0, 1) v01 [ 89.743997557 46.774744920 -104.840672234 ]
+(1, 0) v10 [ 89.853997538 46.884744816 -104.840507531 ]
+(1, 1) v11 [ 89.743997553 46.884744867 -104.840564370 ]
+surface axes: AXIS_D0Q1S4A0_F AXIS_D0Q1S4A0_S
+AXIS_D0Q1S4A0_F has 8 ancestors
+AXIS_D0Q1S4A0_S has 7 ancestors
+axis AXIS_D0Q1S4A0_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q1S4A0_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q1S4A0_S index:  1
+    equipment detector
+    depends_on FS_D0Q1S4A0
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1S4A0 index:  2
+    equipment detector
+    depends_on FS_D0Q1S4
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [-10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1S4 index:  3
+    equipment detector
+    depends_on FS_D0Q1
+    equipment_component detector_sensor
+    vector [-0.000258358886012, -0.000490290302599, 0.999999846433]
+    offset [23.7906875, 11.8944375, -0.00821875]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [44.5583125, 45.0553125, 0.16946875]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 34
+(0, 0) v00 [ 47.008871463 -89.844988855 -105.037277518 ]
+(0, 1) v01 [ 47.008554133 -89.734989338 -105.037202992 ]
+(1, 0) v10 [ 47.118870561 -89.844671738 -105.036964460 ]
+(1, 1) v11 [ 47.118553231 -89.734672221 -105.036889935 ]
+surface axes: AXIS_D0Q2S4A0_F AXIS_D0Q2S4A0_S
+AXIS_D0Q2S4A0_F has 8 ancestors
+AXIS_D0Q2S4A0_S has 7 ancestors
+axis AXIS_D0Q2S4A0_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q2S4A0_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q2S4A0_S index:  1
+    equipment detector
+    depends_on FS_D0Q2S4A0
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2S4A0 index:  2
+    equipment detector
+    depends_on FS_D0Q2S4
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [-10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2S4 index:  3
+    equipment detector
+    depends_on FS_D0Q2
+    equipment_component detector_sensor
+    vector [-0.00108013700666, -0.00176076369873, 0.999997866505]
+    offset [11.99490625, -23.75059375, 0.00965625]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [45.12684375, -44.56015625, -0.00040625]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 35
+(0, 0) v00 [ -90.097764910 -46.794987844 -104.848059138 ]
+(0, 1) v01 [ -89.987765252 -46.794748943 -104.847923980 ]
+(1, 0) v10 [ -90.097526187 -46.904987490 -104.847914426 ]
+(1, 1) v11 [ -89.987526529 -46.904748589 -104.847779268 ]
+surface axes: AXIS_D0Q3S4A0_F AXIS_D0Q3S4A0_S
+AXIS_D0Q3S4A0_F has 8 ancestors
+AXIS_D0Q3S4A0_S has 7 ancestors
+axis AXIS_D0Q3S4A0_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q3S4A0_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q3S4A0_S index:  1
+    equipment detector
+    depends_on FS_D0Q3S4A0
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3S4A0 index:  2
+    equipment detector
+    depends_on FS_D0Q3S4
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [-10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3S4 index:  3
+    equipment detector
+    depends_on FS_D0Q3
+    equipment_component detector_sensor
+    vector [-0.46599746509, -0.43618149564, 0.769800016492]
+    offset [-23.9851875, -11.8635, 0.0315625]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [-44.5855625, -45.05975, 0.1631875]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 36
+(0, 0) v00 [ -46.404314662 68.374321784 -104.942761318 ]
+(0, 1) v01 [ -46.403770902 68.264323342 -104.942978296 ]
+(1, 0) v10 [ -46.514313254 68.373777790 -104.942643093 ]
+(1, 1) v11 [ -46.513769494 68.263779348 -104.942860071 ]
+surface axes: AXIS_D0Q0S4A1_F AXIS_D0Q0S4A1_S
+AXIS_D0Q0S4A1_F has 8 ancestors
+AXIS_D0Q0S4A1_S has 7 ancestors
+axis AXIS_D0Q0S4A1_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q0S4A1_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q0S4A1_S index:  1
+    equipment detector
+    depends_on FS_D0Q0S4A1
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0S4A1 index:  2
+    equipment detector
+    depends_on FS_D0Q0S4
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0S4 index:  3
+    equipment detector
+    depends_on FS_D0Q0
+    equipment_component detector_sensor
+    vector [0.000446211609729, 0.0015285403289, -0.999998732229]
+    offset [-11.62209375, 23.8073125, 0.06646875]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [-44.95790625, 44.6816875, 0.00503125]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 37
+(0, 0) v00 [ 68.184000435 46.774754969 -104.851812665 ]
+(0, 1) v01 [ 68.074000450 46.774755020 -104.851869504 ]
+(1, 0) v10 [ 68.184000431 46.884754916 -104.851704801 ]
+(1, 1) v11 [ 68.074000445 46.884754967 -104.851761640 ]
+surface axes: AXIS_D0Q1S4A1_F AXIS_D0Q1S4A1_S
+AXIS_D0Q1S4A1_F has 8 ancestors
+AXIS_D0Q1S4A1_S has 7 ancestors
+axis AXIS_D0Q1S4A1_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q1S4A1_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q1S4A1_S index:  1
+    equipment detector
+    depends_on FS_D0Q1S4A1
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1S4A1 index:  2
+    equipment detector
+    depends_on FS_D0Q1S4
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1S4 index:  3
+    equipment detector
+    depends_on FS_D0Q1
+    equipment_component detector_sensor
+    vector [-0.000258358886012, -0.000490290302599, 0.999999846433]
+    offset [23.7906875, 11.8944375, -0.00821875]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [44.5583125, 45.0553125, 0.16946875]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 38
+(0, 0) v00 [ 46.946357494 -68.175083999 -105.022595997 ]
+(0, 1) v01 [ 46.946040165 -68.065084482 -105.022521472 ]
+(1, 0) v10 [ 47.056356592 -68.174766883 -105.022282940 ]
+(1, 1) v11 [ 47.056039262 -68.064767366 -105.022208414 ]
+surface axes: AXIS_D0Q2S4A1_F AXIS_D0Q2S4A1_S
+AXIS_D0Q2S4A1_F has 8 ancestors
+AXIS_D0Q2S4A1_S has 7 ancestors
+axis AXIS_D0Q2S4A1_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q2S4A1_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q2S4A1_S index:  1
+    equipment detector
+    depends_on FS_D0Q2S4A1
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2S4A1 index:  2
+    equipment detector
+    depends_on FS_D0Q2S4
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2S4 index:  3
+    equipment detector
+    depends_on FS_D0Q2
+    equipment_component detector_sensor
+    vector [-0.00108013700666, -0.00176076369873, 0.999997866505]
+    offset [11.99490625, -23.75059375, 0.00965625]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [45.12684375, -44.56015625, -0.00040625]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 39
+(0, 0) v00 [ -68.427832375 -46.747924415 -104.821433056 ]
+(0, 1) v01 [ -68.317832717 -46.747685514 -104.821297898 ]
+(1, 0) v10 [ -68.427593652 -46.857924061 -104.821288344 ]
+(1, 1) v11 [ -68.317593994 -46.857685160 -104.821153187 ]
+surface axes: AXIS_D0Q3S4A1_F AXIS_D0Q3S4A1_S
+AXIS_D0Q3S4A1_F has 8 ancestors
+AXIS_D0Q3S4A1_S has 7 ancestors
+axis AXIS_D0Q3S4A1_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q3S4A1_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q3S4A1_S index:  1
+    equipment detector
+    depends_on FS_D0Q3S4A1
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3S4A1 index:  2
+    equipment detector
+    depends_on FS_D0Q3S4
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3S4 index:  3
+    equipment detector
+    depends_on FS_D0Q3
+    equipment_component detector_sensor
+    vector [-0.46599746509, -0.43618149564, 0.769800016492]
+    offset [-23.9851875, -11.8635, 0.0315625]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [-44.5855625, -45.05975, 0.1631875]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 40
+(0, 0) v00 [ -69.439498998 90.060119140 -105.029485550 ]
+(0, 1) v01 [ -69.439570738 89.950119250 -105.029347902 ]
+(1, 0) v10 [ -69.549498737 90.060190594 -105.029714467 ]
+(1, 1) v11 [ -69.549570477 89.950190703 -105.029576818 ]
+surface axes: AXIS_D0Q0S5A0_F AXIS_D0Q0S5A0_S
+AXIS_D0Q0S5A0_F has 8 ancestors
+AXIS_D0Q0S5A0_S has 7 ancestors
+axis AXIS_D0Q0S5A0_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q0S5A0_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q0S5A0_S index:  1
+    equipment detector
+    depends_on FS_D0Q0S5A0
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0S5A0 index:  2
+    equipment detector
+    depends_on FS_D0Q0S5
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [-10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0S5 index:  3
+    equipment detector
+    depends_on FS_D0Q0
+    equipment_component detector_sensor
+    vector [0.000414176699182, -0.00166579914013, -0.999998526784]
+    offset [-34.67059375, 23.8800625, -0.02578125]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [-44.95790625, 44.6816875, 0.00503125]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 41
+(0, 0) v00 [ 89.862770438 69.634576466 -104.725708635 ]
+(0, 1) v01 [ 89.752770848 69.634443134 -104.725977685 ]
+(1, 0) v10 [ 89.862636918 69.744576359 -104.725632331 ]
+(1, 1) v11 [ 89.752637328 69.744443026 -104.725901382 ]
+surface axes: AXIS_D0Q1S5A0_F AXIS_D0Q1S5A0_S
+AXIS_D0Q1S5A0_F has 8 ancestors
+AXIS_D0Q1S5A0_S has 7 ancestors
+axis AXIS_D0Q1S5A0_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q1S5A0_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q1S5A0_S index:  1
+    equipment detector
+    depends_on FS_D0Q1S5A0
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1S5A0 index:  2
+    equipment detector
+    depends_on FS_D0Q1S5
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [-10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1S5 index:  3
+    equipment detector
+    depends_on FS_D0Q1
+    equipment_component detector_sensor
+    vector [-0.00122274945083, -0.000347577024108, 0.999999192037]
+    offset [23.7871875, 34.7281875, 0.06228125]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [44.5583125, 45.0553125, 0.16946875]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 42
+(0, 0) v00 [ 69.569902914 -89.780682800 -105.056258151 ]
+(0, 1) v01 [ 69.569676334 -89.670683051 -105.056196265 ]
+(1, 0) v10 [ 69.679901761 -89.780455969 -105.056707778 ]
+(1, 1) v11 [ 69.679675181 -89.670456220 -105.056645892 ]
+surface axes: AXIS_D0Q2S5A0_F AXIS_D0Q2S5A0_S
+AXIS_D0Q2S5A0_F has 8 ancestors
+AXIS_D0Q2S5A0_S has 7 ancestors
+axis AXIS_D0Q2S5A0_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q2S5A0_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q2S5A0_S index:  1
+    equipment detector
+    depends_on FS_D0Q2S5A0
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2S5A0 index:  2
+    equipment detector
+    depends_on FS_D0Q2S5
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [-10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2S5 index:  3
+    equipment detector
+    depends_on FS_D0Q2
+    equipment_component detector_sensor
+    vector [0.00232085457863, 0.00176304146716, 0.99999575265]
+    offset [34.57365625, -23.69459375, -0.08234375]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [45.12684375, -44.56015625, -0.00040625]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 43
+(0, 0) v00 [ -89.998159424 -69.569711220 -104.797396568 ]
+(0, 1) v01 [ -89.888160193 -69.569310364 -104.797304358 ]
+(1, 0) v10 [ -89.997758778 -69.679710207 -104.797146625 ]
+(1, 1) v11 [ -89.887759547 -69.679309350 -104.797054416 ]
+surface axes: AXIS_D0Q3S5A0_F AXIS_D0Q3S5A0_S
+AXIS_D0Q3S5A0_F has 8 ancestors
+AXIS_D0Q3S5A0_S has 7 ancestors
+axis AXIS_D0Q3S5A0_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q3S5A0_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q3S5A0_S index:  1
+    equipment detector
+    depends_on FS_D0Q3S5A0
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3S5A0 index:  2
+    equipment detector
+    depends_on FS_D0Q3S5
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [-10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3S5 index:  3
+    equipment detector
+    depends_on FS_D0Q3
+    equipment_component detector_sensor
+    vector [-0.519039453351, -0.192560045605, 0.832777686242]
+    offset [-23.8706875, -34.6065, 0.0835625]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [-44.5855625, -45.05975, 0.1631875]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 44
+(0, 0) v00 [ -69.453631790 68.390140715 -105.002368741 ]
+(0, 1) v01 [ -69.453703530 68.280140825 -105.002231093 ]
+(1, 0) v10 [ -69.563631528 68.390212169 -105.002597658 ]
+(1, 1) v11 [ -69.563703268 68.280212278 -105.002460009 ]
+surface axes: AXIS_D0Q0S5A1_F AXIS_D0Q0S5A1_S
+AXIS_D0Q0S5A1_F has 8 ancestors
+AXIS_D0Q0S5A1_S has 7 ancestors
+axis AXIS_D0Q0S5A1_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q0S5A1_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q0S5A1_S index:  1
+    equipment detector
+    depends_on FS_D0Q0S5A1
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0S5A1 index:  2
+    equipment detector
+    depends_on FS_D0Q0S5
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0S5 index:  3
+    equipment detector
+    depends_on FS_D0Q0
+    equipment_component detector_sensor
+    vector [0.000414176699182, -0.00166579914013, -0.999998526784]
+    offset [-34.67059375, 23.8800625, -0.02578125]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [-44.95790625, 44.6816875, 0.00503125]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 45
+(0, 0) v00 [ 68.192851177 69.608309945 -104.778711669 ]
+(0, 1) v01 [ 68.082851587 69.608176612 -104.778980720 ]
+(1, 0) v10 [ 68.192717658 69.718309837 -104.778635366 ]
+(1, 1) v11 [ 68.082718068 69.718176505 -104.778904417 ]
+surface axes: AXIS_D0Q1S5A1_F AXIS_D0Q1S5A1_S
+AXIS_D0Q1S5A1_F has 8 ancestors
+AXIS_D0Q1S5A1_S has 7 ancestors
+axis AXIS_D0Q1S5A1_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q1S5A1_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q1S5A1_S index:  1
+    equipment detector
+    depends_on FS_D0Q1S5A1
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1S5A1 index:  2
+    equipment detector
+    depends_on FS_D0Q1S5
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1S5 index:  3
+    equipment detector
+    depends_on FS_D0Q1
+    equipment_component detector_sensor
+    vector [-0.00122274945083, -0.000347577024108, 0.999999192037]
+    offset [23.7871875, 34.7281875, 0.06228125]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [44.5583125, 45.0553125, 0.16946875]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 46
+(0, 0) v00 [ 69.525266766 -68.110732200 -105.044066608 ]
+(0, 1) v01 [ 69.525040187 -68.000732451 -105.044004722 ]
+(1, 0) v10 [ 69.635265613 -68.110505370 -105.044516235 ]
+(1, 1) v11 [ 69.635039034 -68.000505621 -105.044454349 ]
+surface axes: AXIS_D0Q2S5A1_F AXIS_D0Q2S5A1_S
+AXIS_D0Q2S5A1_F has 8 ancestors
+AXIS_D0Q2S5A1_S has 7 ancestors
+axis AXIS_D0Q2S5A1_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q2S5A1_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q2S5A1_S index:  1
+    equipment detector
+    depends_on FS_D0Q2S5A1
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2S5A1 index:  2
+    equipment detector
+    depends_on FS_D0Q2S5
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2S5 index:  3
+    equipment detector
+    depends_on FS_D0Q2
+    equipment_component detector_sensor
+    vector [0.00232085457863, 0.00176304146716, 0.99999575265]
+    offset [34.57365625, -23.69459375, -0.08234375]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [45.12684375, -44.56015625, -0.00040625]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 47
+(0, 0) v00 [ -68.328310925 -69.490742472 -104.779231347 ]
+(0, 1) v01 [ -68.218311694 -69.490341616 -104.779139137 ]
+(1, 0) v10 [ -68.327910279 -69.600741459 -104.778981404 ]
+(1, 1) v11 [ -68.217911048 -69.600340602 -104.778889195 ]
+surface axes: AXIS_D0Q3S5A1_F AXIS_D0Q3S5A1_S
+AXIS_D0Q3S5A1_F has 8 ancestors
+AXIS_D0Q3S5A1_S has 7 ancestors
+axis AXIS_D0Q3S5A1_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q3S5A1_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q3S5A1_S index:  1
+    equipment detector
+    depends_on FS_D0Q3S5A1
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3S5A1 index:  2
+    equipment detector
+    depends_on FS_D0Q3S5
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3S5 index:  3
+    equipment detector
+    depends_on FS_D0Q3
+    equipment_component detector_sensor
+    vector [-0.519039453351, -0.192560045605, 0.832777686242]
+    offset [-23.8706875, -34.6065, 0.0835625]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [-44.5855625, -45.05975, 0.1631875]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 48
+(0, 0) v00 [ -43.272328550 87.978031620 -105.021777720 ]
+(0, 1) v01 [ -43.162328647 87.978175914 -105.021753771 ]
+(1, 0) v10 [ -43.272184252 87.868031716 -105.021795603 ]
+(1, 1) v11 [ -43.162184349 87.868176010 -105.021771655 ]
+surface axes: AXIS_D0Q0S6A0_F AXIS_D0Q0S6A0_S
+AXIS_D0Q0S6A0_F has 8 ancestors
+AXIS_D0Q0S6A0_S has 7 ancestors
+axis AXIS_D0Q0S6A0_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q0S6A0_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q0S6A0_S index:  1
+    equipment detector
+    depends_on FS_D0Q0S6A0
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0S6A0 index:  2
+    equipment detector
+    depends_on FS_D0Q0S6
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [-10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0S6 index:  3
+    equipment detector
+    depends_on FS_D0Q0
+    equipment_component detector_sensor
+    vector [0.121465013044, -0.16243803956, 0.979214038865]
+    offset [23.20390625, 33.1495625, -0.02078125]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [-44.95790625, 44.6816875, 0.00503125]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 49
+(0, 0) v00 [ 87.610250761 43.325540426 -104.836095939 ]
+(0, 1) v01 [ 87.610346615 43.215540700 -104.836321970 ]
+(1, 0) v10 [ 87.500250867 43.325444816 -104.836214479 ]
+(1, 1) v11 [ 87.500346721 43.215445090 -104.836440510 ]
+surface axes: AXIS_D0Q1S6A0_F AXIS_D0Q1S6A0_S
+AXIS_D0Q1S6A0_F has 8 ancestors
+AXIS_D0Q1S6A0_S has 7 ancestors
+axis AXIS_D0Q1S6A0_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q1S6A0_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q1S6A0_S index:  1
+    equipment detector
+    depends_on FS_D0Q1S6A0
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1S6A0 index:  2
+    equipment detector
+    depends_on FS_D0Q1S6
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [-10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1S6 index:  3
+    equipment detector
+    depends_on FS_D0Q1
+    equipment_component detector_sensor
+    vector [0.00156670209466, 0.000489491259463, -0.999998652921]
+    offset [32.8956875, -23.2435625, -0.05771875]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [44.5583125, 45.0553125, 0.16946875]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 50
+(0, 0) v00 [ 43.381191293 -88.114303134 -104.972716844 ]
+(0, 1) v01 [ 43.271191482 -88.114492028 -104.972793888 ]
+(1, 0) v10 [ 43.381002338 -88.004303331 -104.972630043 ]
+(1, 1) v11 [ 43.271002527 -88.004492224 -104.972707088 ]
+surface axes: AXIS_D0Q2S6A0_F AXIS_D0Q2S6A0_S
+AXIS_D0Q2S6A0_F has 8 ancestors
+AXIS_D0Q2S6A0_S has 7 ancestors
+axis AXIS_D0Q2S6A0_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q2S6A0_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q2S6A0_S index:  1
+    equipment detector
+    depends_on FS_D0Q2S6A0
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2S6A0 index:  2
+    equipment detector
+    depends_on FS_D0Q2S6
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [-10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2S6 index:  3
+    equipment detector
+    depends_on FS_D0Q2
+    equipment_component detector_sensor
+    vector [-0.00034986352054, -0.000394848418258, 0.999999860845]
+    offset [-23.26809375, -33.41609375, 0.02365625]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [45.12684375, -44.56015625, -0.00040625]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 51
+(0, 0) v00 [ -87.580297677 -43.196004882 -104.830379459 ]
+(0, 1) v01 [ -87.580400991 -43.086006439 -104.830955480 ]
+(1, 0) v10 [ -87.470297726 -43.195901539 -104.830374145 ]
+(1, 1) v11 [ -87.470401039 -43.085903096 -104.830950166 ]
+surface axes: AXIS_D0Q3S6A0_F AXIS_D0Q3S6A0_S
+AXIS_D0Q3S6A0_F has 8 ancestors
+AXIS_D0Q3S6A0_S has 7 ancestors
+axis AXIS_D0Q3S6A0_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q3S6A0_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q3S6A0_S index:  1
+    equipment detector
+    depends_on FS_D0Q3S6A0
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3S6A0 index:  2
+    equipment detector
+    depends_on FS_D0Q3S6
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [-10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3S6 index:  3
+    equipment detector
+    depends_on FS_D0Q3
+    equipment_component detector_sensor
+    vector [-0.00264240490242, 0.00259166531889, 0.99999315046]
+    offset [-32.8399375, 23.378, -0.1026875]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [-44.5855625, -45.05975, 0.1631875]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 52
+(0, 0) v00 [ -21.602347708 88.006457552 -105.017059875 ]
+(0, 1) v01 [ -21.492347805 88.006601846 -105.017035927 ]
+(1, 0) v10 [ -21.602203410 87.896457648 -105.017077759 ]
+(1, 1) v11 [ -21.492203507 87.896601942 -105.017053810 ]
+surface axes: AXIS_D0Q0S6A1_F AXIS_D0Q0S6A1_S
+AXIS_D0Q0S6A1_F has 8 ancestors
+AXIS_D0Q0S6A1_S has 7 ancestors
+axis AXIS_D0Q0S6A1_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q0S6A1_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q0S6A1_S index:  1
+    equipment detector
+    depends_on FS_D0Q0S6A1
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0S6A1 index:  2
+    equipment detector
+    depends_on FS_D0Q0S6
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0S6 index:  3
+    equipment detector
+    depends_on FS_D0Q0
+    equipment_component detector_sensor
+    vector [0.121465013044, -0.16243803956, 0.979214038865]
+    offset [23.20390625, 33.1495625, -0.02078125]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [-44.95790625, 44.6816875, 0.00503125]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 53
+(0, 0) v00 [ 87.629134030 21.655594403 -104.880624098 ]
+(0, 1) v01 [ 87.629229884 21.545594677 -104.880850129 ]
+(1, 0) v10 [ 87.519134135 21.655498792 -104.880742638 ]
+(1, 1) v11 [ 87.519229989 21.545499066 -104.880968669 ]
+surface axes: AXIS_D0Q1S6A1_F AXIS_D0Q1S6A1_S
+AXIS_D0Q1S6A1_F has 8 ancestors
+AXIS_D0Q1S6A1_S has 7 ancestors
+axis AXIS_D0Q1S6A1_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q1S6A1_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q1S6A1_S index:  1
+    equipment detector
+    depends_on FS_D0Q1S6A1
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1S6A1 index:  2
+    equipment detector
+    depends_on FS_D0Q1S6
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1S6 index:  3
+    equipment detector
+    depends_on FS_D0Q1
+    equipment_component detector_sensor
+    vector [0.00156670209466, 0.000489491259463, -0.999998652921]
+    offset [32.8956875, -23.2435625, -0.05771875]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [44.5583125, 45.0553125, 0.16946875]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 54
+(0, 0) v00 [ 21.711228558 -88.151515161 -104.987894611 ]
+(0, 1) v01 [ 21.601228748 -88.151704054 -104.987971655 ]
+(1, 0) v10 [ 21.711039604 -88.041515357 -104.987807811 ]
+(1, 1) v11 [ 21.601039793 -88.041704251 -104.987884855 ]
+surface axes: AXIS_D0Q2S6A1_F AXIS_D0Q2S6A1_S
+AXIS_D0Q2S6A1_F has 8 ancestors
+AXIS_D0Q2S6A1_S has 7 ancestors
+axis AXIS_D0Q2S6A1_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q2S6A1_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q2S6A1_S index:  1
+    equipment detector
+    depends_on FS_D0Q2S6A1
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2S6A1 index:  2
+    equipment detector
+    depends_on FS_D0Q2S6
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2S6 index:  3
+    equipment detector
+    depends_on FS_D0Q2
+    equipment_component detector_sensor
+    vector [-0.00034986352054, -0.000394848418258, 0.999999860845]
+    offset [-23.26809375, -33.41609375, 0.02365625]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [45.12684375, -44.56015625, -0.00040625]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 55
+(0, 0) v00 [ -87.600650468 -21.526311554 -104.943855523 ]
+(0, 1) v01 [ -87.600753782 -21.416313110 -104.944431544 ]
+(1, 0) v10 [ -87.490650517 -21.526208211 -104.943850210 ]
+(1, 1) v11 [ -87.490753831 -21.416209767 -104.944426231 ]
+surface axes: AXIS_D0Q3S6A1_F AXIS_D0Q3S6A1_S
+AXIS_D0Q3S6A1_F has 8 ancestors
+AXIS_D0Q3S6A1_S has 7 ancestors
+axis AXIS_D0Q3S6A1_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q3S6A1_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q3S6A1_S index:  1
+    equipment detector
+    depends_on FS_D0Q3S6A1
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3S6A1 index:  2
+    equipment detector
+    depends_on FS_D0Q3S6
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3S6 index:  3
+    equipment detector
+    depends_on FS_D0Q3
+    equipment_component detector_sensor
+    vector [-0.00264240490242, 0.00259166531889, 0.99999315046]
+    offset [-32.8399375, 23.378, -0.1026875]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [-44.5855625, -45.05975, 0.1631875]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 56
+(0, 0) v00 [ -43.051686446 65.008876745 -105.059969099 ]
+(0, 1) v01 [ -42.941686515 65.008754581 -105.059956469 ]
+(1, 0) v10 [ -43.051808610 64.898876813 -105.059969098 ]
+(1, 1) v11 [ -42.941808679 64.898754649 -105.059956469 ]
+surface axes: AXIS_D0Q0S7A0_F AXIS_D0Q0S7A0_S
+AXIS_D0Q0S7A0_F has 8 ancestors
+AXIS_D0Q0S7A0_S has 7 ancestors
+axis AXIS_D0Q0S7A0_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q0S7A0_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q0S7A0_S index:  1
+    equipment detector
+    depends_on FS_D0Q0S7A0
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0S7A0 index:  2
+    equipment detector
+    depends_on FS_D0Q0S7
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [-10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0S7 index:  3
+    equipment detector
+    depends_on FS_D0Q0
+    equipment_component detector_sensor
+    vector [-6.08312895859e-05, -0.102833148168, -0.994698617641]
+    offset [23.39990625, 10.1283125, -0.05953125]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [-44.95790625, 44.6816875, 0.00503125]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 57
+(0, 0) v00 [ 64.875302035 43.297936179 -104.824769831 ]
+(0, 1) v01 [ 64.875448761 43.187936742 -104.825089406 ]
+(1, 0) v10 [ 64.765302175 43.297789736 -104.824867165 ]
+(1, 1) v11 [ 64.765448901 43.187790298 -104.825186739 ]
+surface axes: AXIS_D0Q1S7A0_F AXIS_D0Q1S7A0_S
+AXIS_D0Q1S7A0_F has 8 ancestors
+AXIS_D0Q1S7A0_S has 7 ancestors
+axis AXIS_D0Q1S7A0_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q1S7A0_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q1S7A0_S index:  1
+    equipment detector
+    depends_on FS_D0Q1S7A0
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1S7A0 index:  2
+    equipment detector
+    depends_on FS_D0Q1S7
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [-10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1S7 index:  3
+    equipment detector
+    depends_on FS_D0Q1
+    equipment_component detector_sensor
+    vector [0.00189562561041, 0.00101212583573, -0.9999976911]
+    offset [10.1706875, -23.2758125, -0.06271875]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [44.5583125, 45.0553125, 0.16946875]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 58
+(0, 0) v00 [ 43.379039510 -64.719451603 -104.983577095 ]
+(0, 1) v01 [ 43.269040183 -64.719823667 -104.983675615 ]
+(1, 0) v10 [ 43.378667390 -64.609452251 -104.983513985 ]
+(1, 1) v11 [ 43.268668063 -64.609824315 -104.983612505 ]
+surface axes: AXIS_D0Q2S7A0_F AXIS_D0Q2S7A0_S
+AXIS_D0Q2S7A0_F has 8 ancestors
+AXIS_D0Q2S7A0_S has 7 ancestors
+axis AXIS_D0Q2S7A0_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q2S7A0_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q2S7A0_S index:  1
+    equipment detector
+    depends_on FS_D0Q2S7A0
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2S7A0 index:  2
+    equipment detector
+    depends_on FS_D0Q2S7
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [-10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2S7 index:  3
+    equipment detector
+    depends_on FS_D0Q2
+    equipment_component detector_sensor
+    vector [-0.000447331453409, -0.000287621616036, 0.999999858584]
+    offset [-23.28709375, -10.05709375, 0.00640625]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [45.12684375, -44.56015625, -0.00040625]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 59
+(0, 0) v00 [ -64.817170371 -43.269459770 -104.800566990 ]
+(0, 1) v01 [ -64.817201467 -43.159460593 -104.800991400 ]
+(1, 0) v10 [ -64.707170377 -43.269428736 -104.800582783 ]
+(1, 1) v11 [ -64.707201472 -43.159429559 -104.801007193 ]
+surface axes: AXIS_D0Q3S7A0_F AXIS_D0Q3S7A0_S
+AXIS_D0Q3S7A0_F has 8 ancestors
+AXIS_D0Q3S7A0_S has 7 ancestors
+axis AXIS_D0Q3S7A0_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q3S7A0_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q3S7A0_S index:  1
+    equipment detector
+    depends_on FS_D0Q3S7A0
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3S7A0 index:  2
+    equipment detector
+    depends_on FS_D0Q3S7
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [-10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3S7 index:  3
+    equipment detector
+    depends_on FS_D0Q3
+    equipment_component detector_sensor
+    vector [-0.00185736764332, 0.0020003790191, 0.999996274328]
+    offset [-10.0626875, 23.298, -0.0451875]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [-44.5855625, -45.05975, 0.1631875]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 60
+(0, 0) v00 [ -21.381699953 64.984810480 -105.057481098 ]
+(0, 1) v01 [ -21.271700021 64.984688316 -105.057468469 ]
+(1, 0) v10 [ -21.381822117 64.874810547 -105.057481098 ]
+(1, 1) v11 [ -21.271822185 64.874688384 -105.057468468 ]
+surface axes: AXIS_D0Q0S7A1_F AXIS_D0Q0S7A1_S
+AXIS_D0Q0S7A1_F has 8 ancestors
+AXIS_D0Q0S7A1_S has 7 ancestors
+axis AXIS_D0Q0S7A1_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q0S7A1_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q0S7A1_S index:  1
+    equipment detector
+    depends_on FS_D0Q0S7A1
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0S7A1 index:  2
+    equipment detector
+    depends_on FS_D0Q0S7
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0S7 index:  3
+    equipment detector
+    depends_on FS_D0Q0
+    equipment_component detector_sensor
+    vector [-6.08312895859e-05, -0.102833148168, -0.994698617641]
+    offset [23.39990625, 10.1283125, -0.05953125]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q0 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [-44.95790625, 44.6816875, 0.00503125]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 61
+(0, 0) v00 [ 64.904207089 21.628046909 -104.887726045 ]
+(0, 1) v01 [ 64.904353815 21.518047471 -104.888045620 ]
+(1, 0) v10 [ 64.794207230 21.627900465 -104.887823379 ]
+(1, 1) v11 [ 64.794353956 21.517901027 -104.888142953 ]
+surface axes: AXIS_D0Q1S7A1_F AXIS_D0Q1S7A1_S
+AXIS_D0Q1S7A1_F has 8 ancestors
+AXIS_D0Q1S7A1_S has 7 ancestors
+axis AXIS_D0Q1S7A1_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q1S7A1_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q1S7A1_S index:  1
+    equipment detector
+    depends_on FS_D0Q1S7A1
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1S7A1 index:  2
+    equipment detector
+    depends_on FS_D0Q1S7
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1S7 index:  3
+    equipment detector
+    depends_on FS_D0Q1
+    equipment_component detector_sensor
+    vector [0.00189562561041, 0.00101212583573, -0.9999976911]
+    offset [10.1706875, -23.2758125, -0.06271875]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q1 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [44.5583125, 45.0553125, 0.16946875]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 62
+(0, 0) v00 [ 21.709172161 -64.792748199 -105.002985465 ]
+(0, 1) v01 [ 21.599172834 -64.793120263 -105.003083985 ]
+(1, 0) v10 [ 21.708800041 -64.682748847 -105.002922355 ]
+(1, 1) v11 [ 21.598800714 -64.683120911 -105.003020875 ]
+surface axes: AXIS_D0Q2S7A1_F AXIS_D0Q2S7A1_S
+AXIS_D0Q2S7A1_F has 8 ancestors
+AXIS_D0Q2S7A1_S has 7 ancestors
+axis AXIS_D0Q2S7A1_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q2S7A1_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q2S7A1_S index:  1
+    equipment detector
+    depends_on FS_D0Q2S7A1
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2S7A1 index:  2
+    equipment detector
+    depends_on FS_D0Q2S7
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2S7 index:  3
+    equipment detector
+    depends_on FS_D0Q2
+    equipment_component detector_sensor
+    vector [-0.000447331453409, -0.000287621616036, 0.999999858584]
+    offset [-23.28709375, -10.05709375, 0.00640625]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q2 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [45.12684375, -44.56015625, -0.00040625]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+element: 63
+(0, 0) v00 [ -64.823296133 -21.599621929 -104.884175725 ]
+(0, 1) v01 [ -64.823327228 -21.489622752 -104.884600135 ]
+(1, 0) v10 [ -64.713296139 -21.599590895 -104.884191519 ]
+(1, 1) v11 [ -64.713327234 -21.489591718 -104.884615928 ]
+surface axes: AXIS_D0Q3S7A1_F AXIS_D0Q3S7A1_S
+AXIS_D0Q3S7A1_F has 8 ancestors
+AXIS_D0Q3S7A1_S has 7 ancestors
+axis AXIS_D0Q3S7A1_F index:  0
+    equipment detector
+    depends_on AXIS_D0Q3S7A1_S
+    equipment_component detector_asic
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0Q3S7A1_S index:  1
+    equipment detector
+    depends_on FS_D0Q3S7A1
+    equipment_component detector_asic
+    vector [0.0, -1.0, 0.0]
+    offset [-10.67, 10.175, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3S7A1 index:  2
+    equipment detector
+    depends_on FS_D0Q3S7
+    equipment_component detector_asic
+    vector [0.0, 0.0, 1.0]
+    offset [10.835, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3S7 index:  3
+    equipment detector
+    depends_on FS_D0Q3
+    equipment_component detector_sensor
+    vector [-0.00185736764332, 0.0020003790191, 0.999996274328]
+    offset [-10.0626875, 23.298, -0.0451875]
+    rotation 0.0
+    rotation_axis .
+axis FS_D0Q3 index:  4
+    equipment detector
+    depends_on AXIS_D0_R
+    equipment_component detector_quadrant
+    vector [0.0, 0.0, 1.0]
+    offset [-44.5855625, -45.05975, 0.1631875]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_R index:  5
+    equipment detector
+    depends_on AXIS_D0_X
+    equipment_component detector_arm
+    vector [0.0, 0.0, 1.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_X index:  6
+    equipment detector
+    depends_on AXIS_D0_Y
+    equipment_component detector_arm
+    vector [1.0, 0.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
+axis AXIS_D0_Y index:  7
+    equipment detector
+    depends_on AXIS_D0_Z
+    equipment_component detector_arm
+    vector [0.0, 1.0, 0.0]
+    offset [0.0, 0.0, 0.0]
+    rotation 0.0
+    rotation_axis .
