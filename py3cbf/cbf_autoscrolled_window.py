@@ -70,7 +70,7 @@ except ImportError:
     import tkinter as TKINTER
     import tkinter.filedialog as TKFILEDIALOG
   except ImportError:
-    print "CBF: cbf_autoscrolled_window requires Tkinter"
+    print("CBF: cbf_autoscrolled_window requires Tkinter")
     sys.exit(1)
 
 
