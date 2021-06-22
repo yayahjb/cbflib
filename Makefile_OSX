@@ -2,7 +2,7 @@
 ######################################################################
 #  Makefile - command file for make to create CBFlib                 #
 #                                                                    #
-# Version 0.9.7 18 June 2021                                          #
+# Version 0.9.7 22 June 2021                                          #
 #                                                                    #
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
@@ -1143,12 +1143,12 @@ symlinksdone:
 	./.symlinks $(SLFLAGS)
 	touch symlinksdone
 
-install:  baseinstall py2cbfinstall py3cbfinstall \
+install:  baseinstall py2cbfinstall /* py3cbfinstall */  \
 	$(HDF5_INSTALL) \
 	$(TIFF_INSTALL) \
 	$(REGEX_INSTALL)
 
-userinstall: baseinstall py2cbfuserinstall py3cbfuserinstall\
+userinstall: baseinstall py2cbfuserinstall /* py3cbfuserinstall */ \
 	$(HDF5_INSTALL) \
 	$(TIFF_INSTALL) \
 	$(REGEX_INSTALL)
@@ -1735,7 +1735,7 @@ $(PY3CBF)/cbfhandlewrappers.i   \
 $(PY3CBF)/cbfdetectorwrappers.i \
 $(PY3CBF)/cbfgenericwrappers.i  \
 $(PY3CBF)/cbfgoniometerwrappers.i:  $(PY3CBF)/CBFlib.txt $(PY3CBF)/make_pycbf.py
-	(cd $(PY3CBF);  $(PYTHON3) make_pycbf.py; $(PYSWIG) pycbf.i; $(PYTHON3) setup.py build)
+	(cd $(PY3CBF);  $(PYTHON3) make_pycbf.py; $(PYSWIG) -py3 pycbf.i; $(PYTHON3) setup.py build)
 
 
 #
@@ -2291,7 +2291,8 @@ $(TESTOUTPUT):	$(DATADIRO) $(DATADIRO_OUTPUT) $(DATADIRO_OUTPUT_SIGNATURES)
 #
 
 
-tests:			all $(LIB) $(BIN) symlinksdone basic extra dectristests py2cbftests py3cbftests
+#tests:			all $(LIB) $(BIN) symlinksdone basic extra dectristests py2cbftests py3cbftests
+tests:			all $(LIB) $(BIN) symlinksdone basic extra dectristests py2cbftests
 restore_output:		$(NEWTESTOUTPUT) $(DATADIRO) $(MINICBF_TEST)/minicbf.h5
 	$(SIGNATURE) < adscconverted_flat.cbf > $(DATADIRO)/adscconverted_flat_orig.cbf$(SEXT)
 	$(SIGNATURE) < adscconverted.cbf > $(DATADIRO)/adscconverted_orig.cbf$(SEXT)

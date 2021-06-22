@@ -4268,7 +4268,7 @@ SWIGINTERN void cbf_handle_struct_get_axis_poise(cbf_handle_struct *self,double 
 
 ;
       }
-SWIGINTERN void cbf_handle_struct_read_file(cbf_handle_struct *self,char *filename,int headers){
+SWIGINTERN void cbf_handle_struct_read_file(cbf_handle_struct *self,const char *filename,int headers){
        /* CBFlib needs a stream that will remain open 
           hence DO NOT open from python */
        FILE *stream;

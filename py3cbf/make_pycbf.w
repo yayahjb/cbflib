@@ -1696,6 +1696,7 @@ cbfhandle_specials = {
        /* Make readable false so we can close the file immediately */
        readable = 0;
        if ( ! ( stream = fopen (filename, "w+b")) ){
+         fprintf(stderr,"Failed to open '%s'\n",filename);
          cbf_failnez(CBF_FILEOPEN);
         }
         else{
@@ -1716,6 +1717,7 @@ cbfhandle_specials = {
        /* Make readable false so we can close the file immediately */
        readable = 0;
        if ( ! ( stream = fopen (filename, "w+b")) ){
+         fprintf(stderr,"Failed to open '%s'\n",filename);
          cbf_failnez(CBF_FILEOPEN);
         }
         else{
@@ -1730,11 +1732,12 @@ cbfhandle_specials = {
 
 
 "cbf_read_template":["""
-    void read_template(char* filename){
+    void read_template(const char* filename){
        /* CBFlib needs a stream that will remain open 
         hence DO NOT open from python */
        FILE *stream;
        if ( ! ( stream = fopen (filename, "rb")) ){
+         fprintf(stderr,"Failed to open '%s'\n",filename);
          cbf_failnez(CBF_FILEOPEN);
         }
         else{
@@ -1745,11 +1748,12 @@ cbfhandle_specials = {
 
 
 "cbf_read_file" : ["""
-    void read_file(char* filename, int headers){
+    void read_file(const char* filename, int headers){
        /* CBFlib needs a stream that will remain open 
           hence DO NOT open from python */
        FILE *stream;
        if ( ! ( stream = fopen (filename, "rb")) ){
+         fprintf(stderr,"Failed to open '%s'\n",filename);
          cbf_failnez(CBF_FILEOPEN);
         }
         else{
@@ -1761,11 +1765,12 @@ cbfhandle_specials = {
 
 
 "cbf_read_widefile" : ["""
-    void read_widefile(char* filename, int headers){
+    void read_widefile(const char* filename, int headers){
        /* CBFlib needs a stream that will remain open 
           hence DO NOT open from python */
        FILE *stream;
        if ( ! ( stream = fopen (filename, "rb")) ){
+         fprintf(stderr,"Failed to open '%s'\n",filename);
          cbf_failnez(CBF_FILEOPEN);
         }
         else{

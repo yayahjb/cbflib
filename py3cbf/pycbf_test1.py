@@ -1,7 +1,7 @@
 
 import pycbf
 object = pycbf.cbf_handle_struct() # FIXME
-object.read_file("../img2cif_packed.cif",pycbf.MSG_DIGEST)
+object.read_file(str("../img2cif_packed.cif".encode('utf-8')),pycbf.MSG_DIGEST)
 object.rewind_datablock()
 print("Found",object.count_datablocks(),"blocks")
 object.select_datablock(0)
