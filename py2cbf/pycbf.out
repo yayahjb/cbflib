@@ -13,6 +13,8 @@
 \BOOKMARK [2][-]{subsection.10.1}{10.1 Read a file based on cif2cbf.c}{section.10}
 \BOOKMARK [2][-]{subsection.10.2}{10.2 Try to test the goniometer and detector}{section.10}
 \BOOKMARK [2][-]{subsection.10.3}{10.3 Test cases for the generics}{section.10}
+\BOOKMARK [2][-]{subsection.10.4}{10.4 Version of pycbftest1 with write logic added}{section.10}
+\BOOKMARK [2][-]{subsection.10.5}{10.5 Processing of XFEL axes}{section.10}
 \BOOKMARK [1][-]{section.11}{11 Worked example 1 : xmas beamline + mar ccd detector at the ESRF}{}
 \BOOKMARK [2][-]{subsection.11.1}{11.1 Reading marccd headers}{section.11}
 \BOOKMARK [2][-]{subsection.11.2}{11.2 Writing out cif files for fit2d/xmas}{section.11}

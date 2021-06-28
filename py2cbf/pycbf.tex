@@ -1,13 +1,18 @@
 \newcommand{\NWtarget}[2]{#2}
 \newcommand{\NWlink}[2]{#2}
-\newcommand{\NWtxtMacroDefBy}{Macro defined by}
-\newcommand{\NWtxtMacroRefIn}{Macro referenced in}
-\newcommand{\NWtxtMacroNoRef}{Macro never referenced}
+\newcommand{\NWtxtMacroDefBy}{Fragment defined by}
+\newcommand{\NWtxtMacroRefIn}{Fragment referenced in}
+\newcommand{\NWtxtMacroNoRef}{Fragment never referenced}
 \newcommand{\NWtxtDefBy}{Defined by}
 \newcommand{\NWtxtRefIn}{Referenced in}
 \newcommand{\NWtxtNoRef}{Not referenced}
 \newcommand{\NWtxtFileDefBy}{File defined by}
+\newcommand{\NWtxtIdentsUsed}{Uses:}
+\newcommand{\NWtxtIdentsNotUsed}{Never used}
+\newcommand{\NWtxtIdentsDefed}{Defines:}
 \newcommand{\NWsep}{${\diamond}$}
+\newcommand{\NWnotglobal}{(not defined globally)}
+\newcommand{\NWuseHyperlinks}{}
 % pycbf.w
 % nuweb source file used to create pycbf documentation
 %
@@ -145,19 +150,21 @@ package in order to give the author easy access to binary cif files.
 \section*{Index of file names}
 
 {\small\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
-\item \verb@"linux.sh"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb63a}{63a}.}
-\item \verb@"makeflatascii.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb63b}{63b}.}
+\item \verb@"linux.sh"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb12a}{12a}.}
+\item \verb@"makeflatascii.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb12b}{12b}.}
 \item \verb@"make_pycbf.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb10}{10}.}
+\item \verb@"py2setup_py.m4"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb11a}{11a}.}
 \item \verb@"pycbf.i"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb5b}{5b}\NWlink{nuweb9}{, 9}.
 }
-\item \verb@"pycbf_test1.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb64}{64}.}
-\item \verb@"pycbf_test2.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb65}{65}.}
-\item \verb@"pycbf_test3.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb66a}{66a}.}
-\item \verb@"setup.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb62a}{62a}.}
-\item \verb@"win32.bat"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb62b}{62b}.}
-\item \verb@"xmas/readmarheader.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb66b}{66b}.}
-\item \verb@"xmas/xmasheaders.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb72}{72}.}
-\item \verb@"xmas/xmas_cif_template.cif"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb76}{76}.}
+\item \verb@"pycbf_test1.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb14}{14}.}
+\item \verb@"pycbf_test2.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb15a}{15a}.}
+\item \verb@"pycbf_test3.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb15b}{15b}.}
+\item \verb@"pycbf_test4.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb17}{17}.}
+\item \verb@"pycbf_testfelaxes.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb18}{18}.}
+\item \verb@"win32.bat"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb11b}{11b}.}
+\item \verb@"xmas/readmarheader.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb20}{20}.}
+\item \verb@"xmas/xmasheaders.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb22}{22}.}
+\item \verb@"xmas/xmas_cif_template.cif"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb24}{24}.}
 \end{list}}
 
 
@@ -327,8 +334,8 @@ So the SWIG file will start off by including the header files needed
 for compilation.  Note the defintion of constants to be passed as
 arguments in calls in the form pycbf.CONSTANTNAME
 
-\begin{flushleft} \small \label{scrap1}
-$\langle\,$Constants used for compression\nobreak\ {\footnotesize \NWtarget{nuweb3a}{3a}}$\,\rangle\equiv$
+\begin{flushleft} \small\label{scrap1}\raggedright\small
+\NWtarget{nuweb3a}{} $\langle\,${\itshape Constants used for compression}\nobreak\ {\footnotesize {3a}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
@@ -357,14 +364,17 @@ $\langle\,$Constants used for compression\nobreak\ {\footnotesize \NWtarget{nuwe
 \mbox{}\verb@#define CBF_NO_EXPAND   0x0400  /* Flag to try not to expand          */@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
-\vspace{-1ex}
-\footnotesize\addtolength{\baselineskip}{-1ex}
+\vspace{-1.5ex}
+\footnotesize
 \begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
 \item \NWtxtMacroRefIn\ \NWlink{nuweb9}{9}.
+
+\item{}
 \end{list}
+\vspace{4ex}
 \end{flushleft}
-\begin{flushleft} \small \label{scrap2}
-$\langle\,$Constants used for headers\nobreak\ {\footnotesize \NWtarget{nuweb3b}{3b}}$\,\rangle\equiv$
+\begin{flushleft} \small\label{scrap2}\raggedright\small
+\NWtarget{nuweb3b}{} $\langle\,${\itshape Constants used for headers}\nobreak\ {\footnotesize {3b}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
@@ -381,14 +391,17 @@ $\langle\,$Constants used for headers\nobreak\ {\footnotesize \NWtarget{nuweb3b}
 \mbox{}\verb@#define PAD_4K          0x0080  /* Pad binaries with 4095 0's         */@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
-\vspace{-1ex}
-\footnotesize\addtolength{\baselineskip}{-1ex}
+\vspace{-1.5ex}
+\footnotesize
 \begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
 \item \NWtxtMacroRefIn\ \NWlink{nuweb9}{9}.
+
+\item{}
 \end{list}
+\vspace{4ex}
 \end{flushleft}
-\begin{flushleft} \small \label{scrap3}
-$\langle\,$Constants used to control CIF parsing\nobreak\ {\footnotesize \NWtarget{nuweb4a}{4a}}$\,\rangle\equiv$
+\begin{flushleft} \small\label{scrap3}\raggedright\small
+\NWtarget{nuweb4a}{} $\langle\,${\itshape Constants used to control CIF parsing}\nobreak\ {\footnotesize {4a}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
@@ -425,14 +438,17 @@ $\langle\,$Constants used to control CIF parsing\nobreak\ {\footnotesize \NWtarg
 \mbox{}\verb@#define CIF             0x0001  /* Use MIME-encoded binary sections   */@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
-\vspace{-1ex}
-\footnotesize\addtolength{\baselineskip}{-1ex}
+\vspace{-1.5ex}
+\footnotesize
 \begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
 \item \NWtxtMacroRefIn\ \NWlink{nuweb9}{9}.
+
+\item{}
 \end{list}
+\vspace{4ex}
 \end{flushleft}
-\begin{flushleft} \small \label{scrap4}
-$\langle\,$Constants used for encoding\nobreak\ {\footnotesize \NWtarget{nuweb4b}{4b}}$\,\rangle\equiv$
+\begin{flushleft} \small\label{scrap4}\raggedright\small
+\NWtarget{nuweb4b}{} $\langle\,${\itshape Constants used for encoding}\nobreak\ {\footnotesize {4b}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
@@ -453,11 +469,14 @@ $\langle\,$Constants used for encoding\nobreak\ {\footnotesize \NWtarget{nuweb4b
 \mbox{}\verb@#define ENC_DEFAULT (ENC_BASE64 | ENC_LFTERM | ENC_FORWARD)@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
-\vspace{-1ex}
-\footnotesize\addtolength{\baselineskip}{-1ex}
+\vspace{-1.5ex}
+\footnotesize
 \begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
 \item \NWtxtMacroRefIn\ \NWlink{nuweb9}{9}.
+
+\item{}
 \end{list}
+\vspace{4ex}
 \end{flushleft}
 \subsection{Exceptions}
 
@@ -483,8 +502,8 @@ In any case - the SWIG exception handling is defined via the following.
 It could have retained the old style if(status = action) but then
 harder to see what to return...
 
-\begin{flushleft} \small \label{scrap5}
-$\langle\,$Exception handling\nobreak\ {\footnotesize \NWtarget{nuweb5a}{5a}}$\,\rangle\equiv$
+\begin{flushleft} \small\label{scrap5}\raggedright\small
+\NWtarget{nuweb5a}{} $\langle\,${\itshape Exception handling}\nobreak\ {\footnotesize {5a}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
@@ -512,14 +531,17 @@ $\langle\,$Exception handling\nobreak\ {\footnotesize \NWtarget{nuweb5a}{5a}}$\,
 \mbox{}\verb@                         { c; } return err; }}@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
-\vspace{-1ex}
-\footnotesize\addtolength{\baselineskip}{-1ex}
+\vspace{-1.5ex}
+\footnotesize
 \begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
 \item \NWtxtMacroRefIn\ \NWlink{nuweb9}{9}.
+
+\item{}
 \end{list}
+\vspace{4ex}
 \end{flushleft}
-\begin{flushleft} \small \label{scrap6}
-\verb@"pycbf.i"@\nobreak\ {\footnotesize \NWtarget{nuweb5b}{5b} }$\equiv$
+\begin{flushleft} \small\label{scrap6}\raggedright\small
+\NWtarget{nuweb5b}{} \verb@"pycbf.i"@\nobreak\ {\footnotesize {5b}}$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
@@ -699,77 +721,81 @@ $\langle\,$Exception handling\nobreak\ {\footnotesize \NWtarget{nuweb5a}{5a}}$\,
 \mbox{}\verb@ @\\
 \mbox{}\verb@@\\
 \mbox{}\verb@static int error_status = 0;@\\
-\mbox{}\verb@static char error_message[1024] ; // hope that is long enough@\\
+\mbox{}\verb@static char error_message1[17] ;@\\
+\mbox{}\verb@static char error_message[1042] ; // hope that is long enough@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@/* prototype */@\\
 \mbox{}\verb@void get_error_message(void);@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@void get_error_message(){@\\
-\mbox{}\verb@  sprintf(error_message,"%s","CBFlib Error(s):");@\\
+\mbox{}\verb@  sprintf(error_message1,"%s","CBFlib Error(s):");@\\
 \mbox{}\verb@  if (error_status & CBF_FORMAT        )@\\
-\mbox{}\verb@    sprintf(error_message,"%s %s",error_message,"CBF_FORMAT       "); @\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message1,"CBF_FORMAT       "); @\\
 \mbox{}\verb@  if (error_status & CBF_ALLOC         )@\\
-\mbox{}\verb@    sprintf(error_message,"%s %s",error_message,"CBF_ALLOC        ");@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message1,"CBF_ALLOC        ");@\\
 \mbox{}\verb@  if (error_status & CBF_ARGUMENT      )@\\
-\mbox{}\verb@    sprintf(error_message,"%s %s",error_message,"CBF_ARGUMENT     ");@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message1,"CBF_ARGUMENT     ");@\\
 \mbox{}\verb@  if (error_status & CBF_ASCII         )@\\
-\mbox{}\verb@    sprintf(error_message,"%s %s",error_message,"CBF_ASCII        ");@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message1,"CBF_ASCII        ");@\\
 \mbox{}\verb@  if (error_status & CBF_BINARY        )@\\
-\mbox{}\verb@    sprintf(error_message,"%s %s",error_message,"CBF_BINARY       ");@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message1,"CBF_BINARY       ");@\\
 \mbox{}\verb@  if (error_status & CBF_BITCOUNT      )@\\
-\mbox{}\verb@    sprintf(error_message,"%s %s",error_message,"CBF_BITCOUNT     ");@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message1,"CBF_BITCOUNT     ");@\\
 \mbox{}\verb@  if (error_status & CBF_ENDOFDATA     )@\\
-\mbox{}\verb@    sprintf(error_message,"%s %s",error_message,"CBF_ENDOFDATA    ");@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message1,"CBF_ENDOFDATA    ");@\\
 \mbox{}\verb@  if (error_status & CBF_FILECLOSE     )@\\
-\mbox{}\verb@    sprintf(error_message,"%s %s",error_message,"CBF_FILECLOSE    ");@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message1,"CBF_FILECLOSE    ");@\\
 \mbox{}\verb@  if (error_status & CBF_FILEOPEN      )@\\
-\mbox{}\verb@    sprintf(error_message,"%s %s",error_message,"CBF_FILEOPEN     ");@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message1,"CBF_FILEOPEN     ");@\\
 \mbox{}\verb@  if (error_status & CBF_FILEREAD      )@\\
-\mbox{}\verb@    sprintf(error_message,"%s %s",error_message,"CBF_FILEREAD     ");@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message1,"CBF_FILEREAD     ");@\\
 \mbox{}\verb@  if (error_status & CBF_FILESEEK      )@\\
-\mbox{}\verb@    sprintf(error_message,"%s %s",error_message,"CBF_FILESEEK     ");@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message1,"CBF_FILESEEK     ");@\\
 \mbox{}\verb@  if (error_status & CBF_FILETELL      )@\\
-\mbox{}\verb@    sprintf(error_message,"%s %s",error_message,"CBF_FILETELL     ");@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message1,"CBF_FILETELL     ");@\\
 \mbox{}\verb@  if (error_status & CBF_FILEWRITE     )@\\
-\mbox{}\verb@    sprintf(error_message,"%s %s",error_message,"CBF_FILEWRITE    ");@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message1,"CBF_FILEWRITE    ");@\\
 \mbox{}\verb@  if (error_status & CBF_IDENTICAL     )@\\
-\mbox{}\verb@    sprintf(error_message,"%s %s",error_message,"CBF_IDENTICAL    ");@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message1,"CBF_IDENTICAL    ");@\\
 \mbox{}\verb@  if (error_status & CBF_NOTFOUND      )@\\
-\mbox{}\verb@    sprintf(error_message,"%s %s",error_message,"CBF_NOTFOUND     ");@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message1,"CBF_NOTFOUND     ");@\\
 \mbox{}\verb@  if (error_status & CBF_OVERFLOW      )@\\
-\mbox{}\verb@    sprintf(error_message,"%s %s",error_message,"CBF_OVERFLOW     ");@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message1,"CBF_OVERFLOW     ");@\\
 \mbox{}\verb@  if (error_status & CBF_UNDEFINED     )@\\
-\mbox{}\verb@    sprintf(error_message,"%s %s",error_message,"CBF_UNDEFINED    ");@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message1,"CBF_UNDEFINED    ");@\\
 \mbox{}\verb@  if (error_status & CBF_NOTIMPLEMENTED)@\\
-\mbox{}\verb@    sprintf(error_message,"%s %s",error_message,"CBF_NOTIMPLEMENTED");@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message1,"CBF_NOTIMPLEMENTED");@\\
 \mbox{}\verb@  if (error_status & CBF_NOCOMPRESSION)@\\
-\mbox{}\verb@    sprintf(error_message,"%s %s",error_message,"CBF_NOCOMPRESSION");@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message1,"CBF_NOCOMPRESSION");@\\
 \mbox{}\verb@}@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@%} // End of code which is not wrapped but needed to compile@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
-\vspace{-1ex}
-\footnotesize\addtolength{\baselineskip}{-1ex}
+\vspace{-1.5ex}
+\footnotesize
 \begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
 \item \NWtxtFileDefBy\ \NWlink{nuweb5b}{5b}\NWlink{nuweb9}{, 9}.
+
+\item{}
 \end{list}
+\vspace{4ex}
 \end{flushleft}
-\begin{flushleft} \small \label{scrap7}
-\verb@"pycbf.i"@\nobreak\ {\footnotesize \NWtarget{nuweb9}{9} }$\equiv$
+\begin{flushleft} \small\label{scrap7}\raggedright\small
+\NWtarget{nuweb9}{} \verb@"pycbf.i"@\nobreak\ {\footnotesize {9}}$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
-\mbox{}\verb@@\hbox{$\langle\,$Constants used for compression\nobreak\ {\footnotesize \NWlink{nuweb3a}{3a}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\hbox{$\langle\,${\itshape Constants used for compression}\nobreak\ {\footnotesize \NWlink{nuweb3a}{3a}}$\,\rangle$}\verb@@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@@\hbox{$\langle\,$Constants used for headers\nobreak\ {\footnotesize \NWlink{nuweb3b}{3b}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\hbox{$\langle\,${\itshape Constants used for headers}\nobreak\ {\footnotesize \NWlink{nuweb3b}{3b}}$\,\rangle$}\verb@@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@@\hbox{$\langle\,$Constants used to control CIF parsing\nobreak\ {\footnotesize \NWlink{nuweb4a}{4a}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\hbox{$\langle\,${\itshape Constants used to control CIF parsing}\nobreak\ {\footnotesize \NWlink{nuweb4a}{4a}}$\,\rangle$}\verb@@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@@\hbox{$\langle\,$Constants used for encoding\nobreak\ {\footnotesize \NWlink{nuweb4b}{4b}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\hbox{$\langle\,${\itshape Constants used for encoding}\nobreak\ {\footnotesize \NWlink{nuweb4b}{4b}}$\,\rangle$}\verb@@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@@\hbox{$\langle\,$Exception handling\nobreak\ {\footnotesize \NWlink{nuweb5a}{5a}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\hbox{$\langle\,${\itshape Exception handling}\nobreak\ {\footnotesize \NWlink{nuweb5a}{5a}}$\,\rangle$}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@%include "cbfgenericwrappers.i"@\\
 \mbox{}\verb@@\\
@@ -785,11 +811,14 @@ $\langle\,$Exception handling\nobreak\ {\footnotesize \NWtarget{nuweb5a}{5a}}$\,
 \mbox{}\verb@@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
-\vspace{-1ex}
-\footnotesize\addtolength{\baselineskip}{-1ex}
+\vspace{-1.5ex}
+\footnotesize
 \begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
 \item \NWtxtFileDefBy\ \NWlink{nuweb5b}{5b}\NWlink{nuweb9}{, 9}.
+
+\item{}
 \end{list}
+\vspace{4ex}
 \end{flushleft}
 Despite the temptation to just throw everything from the c header files
 into the interface, a short experience suggested we are better off to pull 
@@ -845,7 +874,9 @@ error prone and involved less typing for the author.
 %     email: wright@esrf.fr
 %
 % Revised for CBFlib 0.9 releases, Herbert J. Bernstein, 23 Aug 2010
-% Revised for CBFlin 0.9.2.8, Herbert J. Bernstein, 12 December 2012
+% Revised for CBFlib 0.9.2.8, Herbert J. Bernstein, 12 December 2012
+% Revised for CBFlib 0.9.3.2, Herbert J. Bernstein, 4 November 2013
+% Revised for CBFlib 0.9.5.8, Herbert J. Bernstein, 5 August 2015
 %
 %######################################################################
 %#                                                                    #
@@ -900,8 +931,9 @@ error prone and involved less typing for the author.
 The program that does the conversion from CBFlib.txt to the SWIG
 input files is a python script named make\_pycbf.py.
 
-\begin{flushleft} \small \label{scrap8}
-\verb@"make_pycbf.py"@\nobreak\ {\footnotesize \NWtarget{nuweb10}{10} }$\equiv$
+\begin{flushleft} \small
+\begin{minipage}{\linewidth}\label{scrap8}\raggedright\small
+\NWtarget{nuweb10}{} \verb@"make_pycbf.py"@\nobreak\ {\footnotesize {10}}$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
@@ -997,7 +1029,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@         prototypes+=lines[i].rstrip()+" " # lose the \n@\\
 \mbox{}\verb@         # print lines[i].rstrip()@\\
 \mbox{}\verb@         check+=1@\\
-\mbox{}\verb@         if check>20:@\\
+\mbox{}\verb@         if check>50:@\\
 \mbox{}\verb@            raise Exception("Runaway prototype "+prototypes)@\\
 \mbox{}\verb@      on=1 # Keep reading docstring@\\
 \mbox{}\verb@      continue@\\
@@ -2762,6 +2794,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@""","get_element_id", ["Integer element_number"],["String"]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
+\mbox{}\verb@@\\
 \mbox{}\verb@"cbf_set_axis_setting":["""@\\
 \mbox{}\verb@   void set_axis_setting(const char *axis_id,@\\
 \mbox{}\verb@                    double start, double increment){@\\
@@ -2773,6 +2806,108 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@""","set_axis_setting",["String axis_id", "Float start", "Float increment"],@\\
 \mbox{}\verb@ []],@\\
 \mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_count_axis_ancestors":["""@\\
+\mbox{}\verb@%apply int *OUTPUT {int *ancestors} count_axis_ancestors;@\\
+\mbox{}\verb@   void count_axis_ancestors(const char *axis_id,@\\
+\mbox{}\verb@                    int *ancestors){@\\
+\mbox{}\verb@        unsigned int anc;@\\
+\mbox{}\verb@        cbf_failnez(cbf_count_axis_ancestors(self,axis_id,&anc));@\\
+\mbox{}\verb@        *ancestors = anc;@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@""","count_axis_ancestors",["String axis_id"],["Integer"],],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_axis_ancestor":["""@\\
+\mbox{}\verb@   const char *  get_axis_ancestor(const char *axis_id,@\\
+\mbox{}\verb@                    int ancestor_index){@\\
+\mbox{}\verb@        const char* anc;@\\
+\mbox{}\verb@        cbf_failnez(cbf_get_axis_ancestor(self,axis_id,@\\
+\mbox{}\verb@           (unsigned int)ancestor_index,&anc));@\\
+\mbox{}\verb@        return anc;@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@""","get_axis_ancestor",["String axis_id", "Integer ancestor_index"],["String"],],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_axis_depends_on":["""@\\
+\mbox{}\verb@   const char *  get_axis_depends_on(const char *axis_id){@\\
+\mbox{}\verb@        const char* dep_on;@\\
+\mbox{}\verb@        cbf_failnez(cbf_get_axis_depends_on(self,axis_id,@\\
+\mbox{}\verb@           &dep_on));@\\
+\mbox{}\verb@        return dep_on;@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@""","get_axis_depends_on",["String axis_id"],["String"],],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_axis_equipment":["""@\\
+\mbox{}\verb@   const char *  get_axis_equipment(const char *axis_id){@\\
+\mbox{}\verb@        const char* equip;@\\
+\mbox{}\verb@        cbf_failnez(cbf_get_axis_equipment(self,axis_id,@\\
+\mbox{}\verb@           &equip));@\\
+\mbox{}\verb@        return equip;@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@""","get_axis_equipment",["String axis_id"],["String"],],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_axis_equipment_component":["""@\\
+\mbox{}\verb@   const char *  get_axis_equipment_component(const char *axis_id){@\\
+\mbox{}\verb@        const char* equip_comp;@\\
+\mbox{}\verb@        cbf_failnez(cbf_get_axis_equipment_component(self,axis_id,@\\
+\mbox{}\verb@           &equip_comp));@\\
+\mbox{}\verb@        return equip_comp;@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@""","get_axis_equipment_component",["String axis_id"],["String"],],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_axis_offset":["""@\\
+\mbox{}\verb@%apply double *OUTPUT {double *offset1, double *offset2, double offset3} get_axis_offset;@\\
+\mbox{}\verb@   void get_axis_offset(const char *axis_id,@\\
+\mbox{}\verb@                    double *offset1, double *offset2, double*offset3){@\\
+\mbox{}\verb@        cbf_failnez(cbf_get_axis_offset(self,axis_id,@\\
+\mbox{}\verb@                         offset1, offset2,offset3));@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@""","get_axis_offset",["String axis_id"],@\\
+\mbox{}\verb@  ["Float offset1", "Float offset2", "Float offset3"],],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_axis_rotation":["""@\\
+\mbox{}\verb@%apply double *OUTPUT {double *rotation} get_axis_rotation;@\\
+\mbox{}\verb@   void get_axis_rotation(const char *axis_id,@\\
+\mbox{}\verb@                    double *rotation){@\\
+\mbox{}\verb@        cbf_failnez(cbf_get_axis_rotation(self,axis_id,@\\
+\mbox{}\verb@                         rotation));@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@""","get_axis_rotation",["String axis_id"],@\\
+\mbox{}\verb@  ["Float"],],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_axis_rotation_axis":["""@\\
+\mbox{}\verb@   const char *  get_axis_rotation_axis(const char *axis_id){@\\
+\mbox{}\verb@        const char* rot_axis;@\\
+\mbox{}\verb@        cbf_failnez(cbf_get_axis_rotation_axis(self,axis_id,@\\
+\mbox{}\verb@           &rot_axis));@\\
+\mbox{}\verb@        return rot_axis;@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@""","get_axis_rotation_axis",["String axis_id"],["String"],],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_axis_type":["""@\\
+\mbox{}\verb@   const char *  get_axis_type(const char *axis_id){@\\
+\mbox{}\verb@        cbf_axis_type axis_type;@\\
+\mbox{}\verb@        cbf_failnez(cbf_get_axis_type(self,axis_id,@\\
+\mbox{}\verb@           &axis_type));@\\
+\mbox{}\verb@        if (axis_type == CBF_TRANSLATION_AXIS) return "translation";@\\
+\mbox{}\verb@        if (axis_type == CBF_ROTATION_AXIS) return "rotation";@\\
+\mbox{}\verb@        return "general";@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@""","get_axis_type",["String axis_id"],["String"],],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_axis_vector":["""@\\
+\mbox{}\verb@%apply double *OUTPUT {double *vector1, double *vector2, double vector3} get_axis_vector;@\\
+\mbox{}\verb@   void get_axis_vector(const char *axis_id,@\\
+\mbox{}\verb@                    double *vector1, double *vector2, double *vector3){@\\
+\mbox{}\verb@        cbf_failnez(cbf_get_axis_vector(self,axis_id,@\\
+\mbox{}\verb@                         vector1, vector2,vector3));@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@""","get_axis_vector",["String axis_id"],@\\
+\mbox{}\verb@  ["Float vector1", "Float vector2", "Float vector3"],],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_axis_setting":["""@\\
 \mbox{}\verb@%apply double *OUTPUT {double *start, double *increment} get_axis_setting;@\\
@@ -3642,6 +3777,22 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@ "double fastaxis1","double fastaxis2", "double fastaxis3" ] ],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_detector_surface_axes":["""@\\
+\mbox{}\verb@   const char * get_detector_surface_axes (int index ){@\\
+\mbox{}\verb@       const char * axis_id1;@\\
+\mbox{}\verb@       const char * axis_id2;@\\
+\mbox{}\verb@       cbf_failnez(cbf_get_detector_surface_axes(self,@\\
+\mbox{}\verb@                                    &axis_id1, &axis_id2));@\\
+\mbox{}\verb@       if (index == 0) return axis_id1;@\\
+\mbox{}\verb@       if (index == 1) return axis_id2;@\\
+\mbox{}\verb@       return ".";@\\
+\mbox{}\verb@   }@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@""","cbf_get_detector_surface_axes", ["Integer index" ],@\\
+\mbox{}\verb@ ["String" ] ],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_pixel_area":["""@\\
 \mbox{}\verb@%apply double *OUTPUT{double *area,double *projected_area};@\\
 \mbox{}\verb@    void get_pixel_area(double index1, double index2,@\\
@@ -4043,9 +4194,36 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@  }@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@""","compute_reciprocal_cell",["double cell[6]"],@\\
-\mbox{}\verb@["Float astar", "Float bstar", "Float cstar", "Float alphastar", "Float betastar", "Float gammastar"] ]@\\
+\mbox{}\verb@["Float astar", "Float bstar", "Float cstar", "Float alphastar", "Float betastar", "Float gammastar"] ],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_airy_disk":["""@\\
+\mbox{}\verb@%apply double *OUTPUT {double *value};@\\
+\mbox{}\verb@%inline {@\\
+\mbox{}\verb@void airy_disk(double x, double y, double cenx, double ceny,@\\
+\mbox{}\verb@double volume, double fwhm, double *value) {@\\
+\mbox{}\verb@cbf_failnez(cbf_airy_disk(x,y,cenx,ceny,volume,fwhm,value));@\\
+\mbox{}\verb@}@\\
+\mbox{}\verb@}@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@""","airy_disk",["double x", "double y", "double cenx", "double ceny", "double volume", "double fwhm"],@\\
+\mbox{}\verb@["Float value"] ],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_airy_disk_volume":["""@\\
+\mbox{}\verb@%apply double *OUTPUT {double *volumeout};@\\
+\mbox{}\verb@%inline {@\\
+\mbox{}\verb@void airy_disk_volume(double xlo, double ylo, double xhi, double yhi,@\\
+\mbox{}\verb@double cenx, double ceny, double volumein, double fwhm, double * volumeout) {@\\
+\mbox{}\verb@cbf_failnez(cbf_airy_disk_volume(xlo,ylo,xhi,yhi,cenx,ceny,volumein,fwhm,volumeout));@\\
+\mbox{}\verb@}@\\
+\mbox{}\verb@}@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@""","airy_disk_volume",["double xlo", "double ylo", "double xhi", "double yhi", "double cenx", "double ceny", "double volumein", "double fwhm"],@\\
+\mbox{}\verb@["Float volumeout"] ]@\\
+\mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@}@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@class genericwrapper:@\\
@@ -4159,7 +4337,13 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@print "\\end{verbatim}"@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
-\vspace{-2ex}
+\vspace{-1.5ex}
+\footnotesize
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+
+\item{}
+\end{list}
+\end{minipage}\vspace{4ex}
 \end{flushleft}
 \section{Building python extensions - the setup file}
 
@@ -4169,38 +4353,48 @@ pull in all of the library for now. We use the distutils approach.
 
 
 
-\begin{flushleft} \small \label{scrap9}
-\verb@"setup.py"@\nobreak\ {\footnotesize \NWtarget{nuweb62a}{62a} }$\equiv$
+\begin{flushleft} \small
+\begin{minipage}{\linewidth}\label{scrap9}\raggedright\small
+\NWtarget{nuweb11a}{} \verb@"py2setup_py.m4"@\nobreak\ {\footnotesize {11a}}$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
+\mbox{}\verb@#@\\
+\mbox{}\verb@#  py2setup_py.m4@\\
+\mbox{}\verb@#@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@# Import the things to build python binary extensions@\\
+\mbox{}\verb@`# Import the things to build python binary extensions@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@from distutils.core import setup, Extension@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@# Make our extension module@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@e = Extension('_pycbf',@\\
+\mbox{}\verb@e = Extension(''`_pycbf''`,@\\
 \mbox{}\verb@              sources = ["pycbf_wrap.c","../src/cbf_simple.c"],@\\
 \mbox{}\verb@         extra_compile_args=["-g"],@\\
-\mbox{}\verb@         library_dirs=["../lib/"],@\\
-\mbox{}\verb@         libraries=["cbf"],@\\
-\mbox{}\verb@         include_dirs = ["../include"] )@\\
+\mbox{}\verb@         'm4_ifelse(regexlibdir,`NOREGEXLIBDIR',`library_dirs=["../solib/","../lib/"],',`library_dirs=["../solib/","../lib/","'regexlibdir`"],')`@\\
+\mbox{}\verb@         'm4_ifelse(regexlib,`',`libraries=["cbf"],', `m4_ifelse(regexlib2,`',`libraries=["cbf","'regexlib`"],',`libraries=["cbf","'regexlib`","'regexlib2`"],')'  )`@\\
+\mbox{}\verb@         include_dirs = ["../include","'hdf5_prefix`/include"] )@\\
 \mbox{}\verb@            @\\
 \mbox{}\verb@# Build it@\\
-\mbox{}\verb@setup(name="_pycbf",ext_modules=[e],)@\\
+\mbox{}\verb@setup(name="_pycbf",ext_modules=[e],)'@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
-\vspace{-2ex}
+\vspace{-1.5ex}
+\footnotesize
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+
+\item{}
+\end{list}
+\end{minipage}\vspace{4ex}
 \end{flushleft}
 \section{Building and testing the resulting package}
 
 Aim to build and test in one go (so that the source and the binary match!!)
 
 \begin{flushleft} \small
-\begin{minipage}{\linewidth} \label{scrap10}
-\verb@"win32.bat"@\nobreak\ {\footnotesize \NWtarget{nuweb62b}{62b} }$\equiv$
+\begin{minipage}{\linewidth}\label{scrap10}\raggedright\small
+\NWtarget{nuweb11b}{} \verb@"win32.bat"@\nobreak\ {\footnotesize {11b}}$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
@@ -4221,12 +4415,17 @@ Aim to build and test in one go (so that the source and the binary match!!)
 \mbox{}\verb@C:\python24\python makeflatascii.py pycbf_ascii_help.txt@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
-\vspace{-2ex}
-\end{minipage}\\[4ex]
+\vspace{-1.5ex}
+\footnotesize
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+
+\item{}
+\end{list}
+\end{minipage}\vspace{4ex}
 \end{flushleft}
 \begin{flushleft} \small
-\begin{minipage}{\linewidth} \label{scrap11}
-\verb@"linux.sh"@\nobreak\ {\footnotesize \NWtarget{nuweb63a}{63a} }$\equiv$
+\begin{minipage}{\linewidth}\label{scrap11}\raggedright\small
+\NWtarget{nuweb12a}{} \verb@"linux.sh"@\nobreak\ {\footnotesize {12a}}$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
@@ -4248,13 +4447,19 @@ Aim to build and test in one go (so that the source and the binary match!!)
 \mbox{}\verb@python makeflatascii.py pycbf_ascii_help.txt@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
-\vspace{-2ex}
-\end{minipage}\\[4ex]
+\vspace{-1.5ex}
+\footnotesize
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+
+\item{}
+\end{list}
+\end{minipage}\vspace{4ex}
 \end{flushleft}
 This still gives bold in the ascii (=sucks)
 
-\begin{flushleft} \small \label{scrap12}
-\verb@"makeflatascii.py"@\nobreak\ {\footnotesize \NWtarget{nuweb63b}{63b} }$\equiv$
+\begin{flushleft} \small
+\begin{minipage}{\linewidth}\label{scrap12}\raggedright\small
+\NWtarget{nuweb12b}{} \verb@"makeflatascii.py"@\nobreak\ {\footnotesize {12b}}$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
@@ -4265,7 +4470,13 @@ This still gives bold in the ascii (=sucks)
 \mbox{}\verb@pydoc.help(pycbf)@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
-\vspace{-2ex}
+\vspace{-1.5ex}
+\footnotesize
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+
+\item{}
+\end{list}
+\end{minipage}\vspace{4ex}
 \end{flushleft}
 \section{Debugging compiled extensions}
 
@@ -4346,8 +4557,9 @@ all of the writing parts.
 It appeared to work with the file img2cif\_packed.cif which is built
 when you build CBFlib, hence that file is hardwired in.
 
-\begin{flushleft} \small \label{scrap13}
-\verb@"pycbf_test1.py"@\nobreak\ {\footnotesize \NWtarget{nuweb64}{64} }$\equiv$
+\begin{flushleft} \small
+\begin{minipage}{\linewidth}\label{scrap13}\raggedright\small
+\NWtarget{nuweb14}{} \verb@"pycbf_test1.py"@\nobreak\ {\footnotesize {14}}$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
@@ -4396,17 +4608,18 @@ when you build CBFlib, hence that file is hardwired in.
 \mbox{}\verb@                print dir(s)@\\
 \mbox{}\verb@                print len(s)@\\
 \mbox{}\verb@                try:@\\
-\mbox{}\verb@                   import Numeric@\\
-\mbox{}\verb@                   d = Numeric.fromstring(s,Numeric.UInt32) @\\
+\mbox{}\verb@                   import numpy @\\
+\mbox{}\verb@                   d = numpy.frombuffer(s,numpy.uint32)@\\
 \mbox{}\verb@                   # Hard wired Unsigned Int32@\\
 \mbox{}\verb@                   print d.shape@\\
 \mbox{}\verb@                   print d[0:10],d[d.shape[0]/2],d[-1]@\\
-\mbox{}\verb@                   d=Numeric.reshape(d,(2300,2300))@\\
+\mbox{}\verb@                   print d[d.shape[0]/3:d.shape[0]/3+20]@\\
+\mbox{}\verb@                   d=numpy.reshape(d,(2300,2300))@\\
 \mbox{}\verb@#                   from matplotlib import pylab@\\
 \mbox{}\verb@#                   pylab.imshow(d,vmin=0,vmax=1000)@\\
 \mbox{}\verb@#                   pylab.show()@\\
 \mbox{}\verb@                except ImportError:@\\
-\mbox{}\verb@                   print "You need to get Numeric and matplotlib to see the data"@\\
+\mbox{}\verb@                   print "You need to get numpy and matplotlib to see the data"@\\
 \mbox{}\verb@            else:@\\
 \mbox{}\verb@                value=object.get_value()@\\
 \mbox{}\verb@                print "Val:",value,i@\\
@@ -4414,10 +4627,16 @@ when you build CBFlib, hence that file is hardwired in.
 \mbox{}\verb@del(object)@\\
 \mbox{}\verb@#@\\
 \mbox{}\verb@print dir()@\\
-\mbox{}\verb@#object.free_handle(handle) @\\
+\mbox{}\verb@#object.free_handle(handle)@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
-\vspace{-2ex}
+\vspace{-1.5ex}
+\footnotesize
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+
+\item{}
+\end{list}
+\end{minipage}\vspace{4ex}
 \end{flushleft}
 \subsection{Try to test the goniometer and detector}
 
@@ -4429,8 +4648,9 @@ This test is clearly minimalistic for now - it only checks the objects
 for apparent existence of
 a single member function.
 
-\begin{flushleft} \small \label{scrap14}
-\verb@"pycbf_test2.py"@\nobreak\ {\footnotesize \NWtarget{nuweb65}{65} }$\equiv$
+\begin{flushleft} \small
+\begin{minipage}{\linewidth}\label{scrap14}\raggedright\small
+\NWtarget{nuweb15a}{} \verb@"pycbf_test2.py"@\nobreak\ {\footnotesize {15a}}$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
@@ -4442,16 +4662,26 @@ a single member function.
 \mbox{}\verb@print "Rotation axis is",g.get_rotation_axis()@\\
 \mbox{}\verb@d = obj.construct_detector(0)@\\
 \mbox{}\verb@print "Beam center is",d.get_beam_center()@\\
+\mbox{}\verb@print "Detector slow axis is", d.get_detector_axis_slow()@\\
+\mbox{}\verb@print "Detector fast axis is", d.get_detector_axis_fast()@\\
+\mbox{}\verb@print "Detector axes (fast, slow) are", d.get_detector_axes_fs()@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
-\vspace{-2ex}
+\vspace{-1.5ex}
+\footnotesize
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+
+\item{}
+\end{list}
+\end{minipage}\vspace{4ex}
 \end{flushleft}
 It appears to work - eventually. Surprising
 
 \subsection{Test cases for the generics}
 
-\begin{flushleft} \small \label{scrap15}
-\verb@"pycbf_test3.py"@\nobreak\ {\footnotesize \NWtarget{nuweb66a}{66a} }$\equiv$
+\begin{flushleft} \small
+\begin{minipage}{\linewidth}\label{scrap15}\raggedright\small
+\NWtarget{nuweb15b}{} \verb@"pycbf_test3.py"@\nobreak\ {\footnotesize {15b}}$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
@@ -4478,26 +4708,213 @@ It appears to work - eventually. Surprising
 \mbox{}\verb@@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
-\vspace{-2ex}
+\vspace{-1.5ex}
+\footnotesize
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+
+\item{}
+\end{list}
+\end{minipage}\vspace{4ex}
+\end{flushleft}
+\subsection{Version of pycbf_test1 with write logic added}
+
+\begin{flushleft} \small
+\begin{minipage}{\linewidth}\label{scrap16}\raggedright\small
+\NWtarget{nuweb17}{} \verb@"pycbf_test4.py"@\nobreak\ {\footnotesize {17}}$\equiv$
+\vspace{-1ex}
+\begin{list}{}{} \item
+\mbox{}\verb@@\\
+\mbox{}\verb@# version of pycbf_test1 with write logic added@\\
+\mbox{}\verb@import pycbf@\\
+\mbox{}\verb@object = pycbf.cbf_handle_struct()@\\
+\mbox{}\verb@newobject = pycbf.cbf_handle_struct()@\\
+\mbox{}\verb@object.read_file("../img2cif_packed.cif",pycbf.MSG_DIGEST)@\\
+\mbox{}\verb@object.rewind_datablock()@\\
+\mbox{}\verb@print "Found",object.count_datablocks(),"blocks"@\\
+\mbox{}\verb@object.select_datablock(0)@\\
+\mbox{}\verb@print "Zeroth is named",object.datablock_name()@\\
+\mbox{}\verb@newobject.force_new_datablock(object.datablock_name());@\\
+\mbox{}\verb@object.rewind_category()@\\
+\mbox{}\verb@categories = object.count_categories()@\\
+\mbox{}\verb@for i in range(categories):@\\
+\mbox{}\verb@    print "Category:",i,@\\
+\mbox{}\verb@    object.select_category(i)@\\
+\mbox{}\verb@    category_name = object.category_name()@\\
+\mbox{}\verb@    print "Name:",category_name,@\\
+\mbox{}\verb@    newobject.new_category(category_name)@\\
+\mbox{}\verb@    rows=object.count_rows()@\\
+\mbox{}\verb@    print "Rows:",rows,@\\
+\mbox{}\verb@    cols = object.count_columns()@\\
+\mbox{}\verb@    print "Cols:",cols@\\
+\mbox{}\verb@    loop=1@\\
+\mbox{}\verb@    object.rewind_column()@\\
+\mbox{}\verb@    while loop is not 0:@\\
+\mbox{}\verb@        column_name = object.column_name()@\\
+\mbox{}\verb@        print "column name \"",column_name,"\"",@\\
+\mbox{}\verb@        newobject.new_column(column_name)@\\
+\mbox{}\verb@        try:@\\
+\mbox{}\verb@            object.next_column()@\\
+\mbox{}\verb@        except:@\\
+\mbox{}\verb@            break@\\
+\mbox{}\verb@    print@\\
+\mbox{}\verb@    for j in range(rows):@\\
+\mbox{}\verb@        object.select_row(j)@\\
+\mbox{}\verb@        newobject.new_row()@\\
+\mbox{}\verb@        object.rewind_column()@\\
+\mbox{}\verb@        print "row:",j@\\
+\mbox{}\verb@        for k in range(cols):@\\
+\mbox{}\verb@            name=object.column_name()@\\
+\mbox{}\verb@            print "col:",name,@\\
+\mbox{}\verb@            object.select_column(k)@\\
+\mbox{}\verb@            newobject.select_column(k)@\\
+\mbox{}\verb@            typeofvalue=object.get_typeofvalue()@\\
+\mbox{}\verb@            print "type:",typeofvalue@\\
+\mbox{}\verb@            if typeofvalue.find("bnry") > -1:@\\
+\mbox{}\verb@                print "Found the binary!!",@\\
+\mbox{}\verb@                s=object.get_integerarray_as_string()@\\
+\mbox{}\verb@                print type(s)@\\
+\mbox{}\verb@                print dir(s)@\\
+\mbox{}\verb@                print len(s)@\\
+\mbox{}\verb@                (compression, binaryid, elsize, elsigned, \@\\
+\mbox{}\verb@                    elunsigned, elements, minelement, maxelement, \@\\
+\mbox{}\verb@                    byteorder,dimfast,dimmid,dimslow,padding) = \@\\
+\mbox{}\verb@                    object.get_integerarrayparameters_wdims_fs()@\\
+\mbox{}\verb@                if dimfast==0:@\\
+\mbox{}\verb@                    dimfast = 1@\\
+\mbox{}\verb@                if dimmid==0:@\\
+\mbox{}\verb@                    dimmid = 1@\\
+\mbox{}\verb@                if dimslow == 0:@\\
+\mbox{}\verb@                    dimslow = 1@\\
+\mbox{}\verb@                print "compression: ",compression@\\
+\mbox{}\verb@                print "binaryid", binaryid@\\
+\mbox{}\verb@                print "elsize", elsize@\\
+\mbox{}\verb@                print "elsigned", elsigned@\\
+\mbox{}\verb@                print "elunsigned",elunsigned@\\
+\mbox{}\verb@                print "elements", elements@\\
+\mbox{}\verb@                print "minelement", minelement@\\
+\mbox{}\verb@                print "maxelement", maxelement@\\
+\mbox{}\verb@                print "byteorder", byteorder@\\
+\mbox{}\verb@                print "dimfast", dimfast@\\
+\mbox{}\verb@                print "dimmid", dimmid@\\
+\mbox{}\verb@                print "dimslow",dimslow@\\
+\mbox{}\verb@                print "padding", padding@\\
+\mbox{}\verb@                newobject.set_integerarray_wdims_fs(\@\\
+\mbox{}\verb@                  pycbf.CBF_BYTE_OFFSET,binaryid,s,elsize,elsigned,\@\\
+\mbox{}\verb@                  elements,byteorder,dimfast,dimmid,dimslow,padding)@\\
+\mbox{}\verb@                try:@\\
+\mbox{}\verb@                   import numpy@\\
+\mbox{}\verb@                   d = numpy.frombuffer(s,numpy.uint32)@\\
+\mbox{}\verb@                   # Hard wired Unsigned Int32@\\
+\mbox{}\verb@                   print d.shape@\\
+\mbox{}\verb@                   print d[0:10],d[d.shape[0]/2],d[-1]@\\
+\mbox{}\verb@                   print d[d.shape[0]/3:d.shape[0]/3+20]@\\
+\mbox{}\verb@                   d=numpy.reshape(d,(2300,2300))@\\
+\mbox{}\verb@#                   from matplotlib import pylab@\\
+\mbox{}\verb@#                   pylab.imshow(d,vmin=0,vmax=1000)@\\
+\mbox{}\verb@#                   pylab.show()@\\
+\mbox{}\verb@                except ImportError:@\\
+\mbox{}\verb@                   print "You need to get numpy and matplotlib to see the data"@\\
+\mbox{}\verb@            else:@\\
+\mbox{}\verb@                value=object.get_value()@\\
+\mbox{}\verb@                newobject.set_value(value)@\\
+\mbox{}\verb@                print "Val:",value,i@\\
+\mbox{}\verb@    print@\\
+\mbox{}\verb@del(object)@\\
+\mbox{}\verb@newobject.write_widefile("newtest1.cbf",pycbf.CBF,\@\\
+\mbox{}\verb@    pycbf.MIME_HEADERS|pycbf.MSG_DIGEST|pycbf.PAD_4K,0)@\\
+\mbox{}\verb@#@\\
+\mbox{}\verb@print dir()@\\
+\mbox{}\verb@#object.free_handle(handle)@\\
+\mbox{}\verb@@{\NWsep}
+\end{list}
+\vspace{-1.5ex}
+\footnotesize
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+
+\item{}
+\end{list}
+\end{minipage}\vspace{4ex}
+\end{flushleft}
+\subsection{Processing of XFEL axes}
+
+\begin{flushleft} \small
+\begin{minipage}{\linewidth}\label{scrap17}\raggedright\small
+\NWtarget{nuweb18}{} \verb@"pycbf_testfelaxes.py"@\nobreak\ {\footnotesize {18}}$\equiv$
+\vspace{-1ex}
+\begin{list}{}{} \item
+\mbox{}\verb@@\\
+\mbox{}\verb@import pycbf, sys@\\
+\mbox{}\verb@from decimal import Decimal, ROUND_HALF_UP@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@image_file = sys.argv[1]@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@cbf = pycbf.cbf_handle_struct()@\\
+\mbox{}\verb@cbf.read_widefile(image_file, pycbf.MSG_DIGEST)@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@for element in range(64):@\\
+\mbox{}\verb@    d = cbf.construct_detector(element)@\\
+\mbox{}\verb@    print "element:", element@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@    v00 = d.get_pixel_coordinates(0, 0)@\\
+\mbox{}\verb@    v01 = d.get_pixel_coordinates(0, 1)@\\
+\mbox{}\verb@    v10 = d.get_pixel_coordinates(1, 0)@\\
+\mbox{}\verb@    v11 = d.get_pixel_coordinates(1, 1)@\\
+\mbox{}\verb@    prec = Decimal('1.000000000')@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@    print '(0, 0) v00 [ %.9f %.9f %.9f ]' %(round(v00[0],9), round(v00[1],9), round(v00[2],9))@\\
+\mbox{}\verb@    print '(0, 1) v01 [ %.9g %.9g %.9g ]' %(round(v01[0],9), round(v01[1],9), round(v01[2],9))@\\
+\mbox{}\verb@    print '(1, 0) v10 [ %.9g %.9g %.9g ]' %(round(v10[0],9), round(v10[1],9), round(v10[2],9))@\\
+\mbox{}\verb@    print '(1, 1) v11 [ %.9g %.9g %.9g ]' %(round(v11[0],9), round(v11[1],9), round(v11[2],9))@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@    print "surface axes:",  d.get_detector_surface_axes(0), d.get_detector_surface_axes(1)@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@    print d.get_detector_surface_axes(0), "has", cbf.count_axis_ancestors(d.get_detector_surface_axes(0)), "ancestors"@\\
+\mbox{}\verb@    print d.get_detector_surface_axes(1), "has", cbf.count_axis_ancestors(d.get_detector_surface_axes(1)), "ancestors"@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@    cur_axis = d.get_detector_surface_axes(0)@\\
+\mbox{}\verb@    count = cbf.count_axis_ancestors(cur_axis)@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@    for index in range(count):@\\
+\mbox{}\verb@        print "axis", cur_axis, "index: ", index@\\
+\mbox{}\verb@        print "    equipment", cbf.get_axis_equipment(cur_axis)@\\
+\mbox{}\verb@        print "    depends_on", cbf.get_axis_depends_on(cur_axis)@\\
+\mbox{}\verb@        print "    equipment_component", cbf.get_axis_equipment_component(cur_axis)@\\
+\mbox{}\verb@        vector = cbf.get_axis_vector(cur_axis)@\\
+\mbox{}\verb@        print "    vector [ %.8g %.8g %.8g ]" % (round(vector[0],7), round(vector[1],7), round(vector[2],7))@\\
+\mbox{}\verb@        offset = cbf.get_axis_offset(cur_axis)@\\
+\mbox{}\verb@        print "    offset [ %.8g %.8g %.8g ]" % (round(offset[0],7), round(offset[1],7), round(offset[2],7))@\\
+\mbox{}\verb@        print "    rotation", cbf.get_axis_rotation(cur_axis)@\\
+\mbox{}\verb@        print "    rotation_axis", cbf.get_axis_rotation_axis(cur_axis)@\\
+\mbox{}\verb@        cur_axis = cbf.get_axis_depends_on(cur_axis)@\\
+\mbox{}\verb@@{\NWsep}
+\end{list}
+\vspace{-1.5ex}
+\footnotesize
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+
+\item{}
+\end{list}
+\end{minipage}\vspace{4ex}
 \end{flushleft}
 \section{Worked example 1 : xmas beamline + mar ccd detector at the ESRF}
 
 Now for the interesting part. We will attempt to actually use pycbf for a real
 dataprocessing task. Crazy you might think.
 
-The idea is the following - we want to take the header information from some 
+The idea is the following - we want to take the header information from some
 mar ccd files (and eventually also the user or the spec control system) and
 pass this information into cif headers which can be read by fit2d (etc).
 
 \subsection{Reading marccd headers}
 
 Some relatively ugly code which parses a c header and then tries to interpret
-the mar ccd header format. 
+the mar ccd header format.
 
 FIXME : byteswapping and ends???
 
-\begin{flushleft} \small \label{scrap16}
-\verb@"xmas/readmarheader.py"@\nobreak\ {\footnotesize \NWtarget{nuweb66b}{66b} }$\equiv$
+\begin{flushleft} \small
+\begin{minipage}{\linewidth}\label{scrap18}\raggedright\small
+\NWtarget{nuweb20}{} \verb@"xmas/readmarheader.py"@\nobreak\ {\footnotesize {20}}$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@#!/usr/bin/env python@\\
@@ -4840,7 +5257,13 @@ FIXME : byteswapping and ends???
 \mbox{}\verb@@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
-\vspace{-2ex}
+\vspace{-1.5ex}
+\footnotesize
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+
+\item{}
+\end{list}
+\end{minipage}\vspace{4ex}
 \end{flushleft}
 \subsection{Writing out cif files for fit2d/xmas}
 
@@ -4849,8 +5272,9 @@ some more infomation from the user and the create cif files.
 
 This relies on a "template" cif file to get it started (avoids me programming everything).
 
-\begin{flushleft} \small \label{scrap17}
-\verb@"xmas/xmasheaders.py"@\nobreak\ {\footnotesize \NWtarget{nuweb72}{72} }$\equiv$
+\begin{flushleft} \small
+\begin{minipage}{\linewidth}\label{scrap19}\raggedright\small
+\NWtarget{nuweb22}{} \verb@"xmas/xmasheaders.py"@\nobreak\ {\footnotesize {22}}$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@#!/usr/bin/env python@\\
@@ -5112,15 +5536,22 @@ This relies on a "template" cif file to get it started (avoids me programming ev
 \mbox{}\verb@        obj.processfile(filename, outfile=fileout, UB=ub, distance=123.456)@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
-\vspace{-2ex}
+\vspace{-1.5ex}
+\footnotesize
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+
+\item{}
+\end{list}
+\end{minipage}\vspace{4ex}
 \end{flushleft}
 \subsection{A template cif file for the xmas beamline}
 
 This was sort of copied and modified from an example file. It has NOT been checked.
 Hopefully the four circle geometry at least vaguely matches what is at the beamline.
 
-\begin{flushleft} \small \label{scrap18}
-\verb@"xmas/xmas_cif_template.cif"@\nobreak\ {\footnotesize \NWtarget{nuweb76}{76} }$\equiv$
+\begin{flushleft} \small
+\begin{minipage}{\linewidth}\label{scrap20}\raggedright\small
+\NWtarget{nuweb24}{} \verb@"xmas/xmas_cif_template.cif"@\nobreak\ {\footnotesize {24}}$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
@@ -5345,6 +5776,12 @@ Hopefully the four circle geometry at least vaguely matches what is at the beaml
 \mbox{}\verb@ ARRAY1 "signed 32-bit integer" packed little_endian@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
-\vspace{-2ex}
+\vspace{-1.5ex}
+\footnotesize
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+
+\item{}
+\end{list}
+\end{minipage}\vspace{4ex}
 \end{flushleft}
 \end{document}

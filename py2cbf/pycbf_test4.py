@@ -1,3 +1,4 @@
+
 # version of pycbf_test1 with write logic added
 import pycbf
 object = pycbf.cbf_handle_struct()
@@ -27,9 +28,9 @@ for i in range(categories):
         print "column name \"",column_name,"\"",
         newobject.new_column(column_name)
         try:
-           object.next_column()
+            object.next_column()
         except:
-           break
+            break
     print
     for j in range(rows):
         object.select_row(j)
@@ -76,7 +77,7 @@ for i in range(categories):
                   pycbf.CBF_BYTE_OFFSET,binaryid,s,elsize,elsigned,\
                   elements,byteorder,dimfast,dimmid,dimslow,padding)
                 try:
-                   import numpy 
+                   import numpy
                    d = numpy.frombuffer(s,numpy.uint32)
                    # Hard wired Unsigned Int32
                    print d.shape
@@ -98,4 +99,4 @@ newobject.write_widefile("newtest1.cbf",pycbf.CBF,\
     pycbf.MIME_HEADERS|pycbf.MSG_DIGEST|pycbf.PAD_4K,0)
 #
 print dir()
-#object.free_handle(handle) 
+#object.free_handle(handle)

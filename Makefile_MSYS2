@@ -2,7 +2,7 @@
 ######################################################################
 #  Makefile - command file for make to create CBFlib                 #
 #                                                                    #
-# Version 0.9.7 22 June 2021                                          #
+# Version 0.9.7 28 June 2021                                          #
 #                                                                    #
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
@@ -288,6 +288,17 @@ CBFLIB_DONT_USE_LOCAL_HDF5?=yes
 CBFLIB_DONT_USE_LZ4?=yes
 CBFLIB_DONT_USE_BSHUF?=yes
 
+CBFLIB_DONT_USE_LOCAL_NUWEB?=no
+ifneq ($(CBFLIB_DONT_USE_LOCAL_NUWEB),yes)
+NUWEB=$(BIN)/nuweb
+NUWEB_DEP=nuweb-1.60
+else
+NUWEB=nuweb
+NUWEB_DEP=system
+endif
+
+
+
 CBFLIB_DONT_HAVE_FGETLN ?= yes
 ifeq ($(CBFLIB_DONT_HAVE_FGETLN),yes)
 SRC_FGETLN = $(SRC)/fgetln.c
@@ -556,12 +567,6 @@ PYSWIG = swig -python
 JSWIG = swig -java
 
 #
-# Program to generate LaTex and HTML program documentation
-#
-
-NUWEB = nuweb
-
-#
 # Compiler for Java
 #
 JAVAC = javac
@@ -686,6 +691,9 @@ endif
 REGEX_URL	?= http://downloads.sf.net/cbflib/$(REGEX).tar.gz
 TIFF_URL	?= http://downloads.sf.net/cbflib/$(TIFF).tar.gz
 HDF5_URL	?= http://downloads.sf.net/cbflib/$(HDF5).tar.gz
+ifneq ($(CBFLIB_DONT_USE_LOCAL_NUWEB),yes)
+NUWEB_URL	?= http://downloads.sf.net/cbflib/$(NUWEB_DEP).tar.gz
+endif
 ifneq ($(MSYS2),yes)
 LZ4_URL		= http://downloads.sf.net/cbflib/$(LZ4).tar.gz
 else
@@ -1145,12 +1153,12 @@ symlinksdone:
 	./.symlinks $(SLFLAGS)
 	touch symlinksdone
 
-install:  baseinstall py2cbfinstall /* py3cbfinstall */  \
+install:  baseinstall py2cbfinstall py3cbfinstall  \
 	$(HDF5_INSTALL) \
 	$(TIFF_INSTALL) \
 	$(REGEX_INSTALL)
 
-userinstall: baseinstall py2cbfuserinstall /* py3cbfuserinstall */ \
+userinstall: baseinstall py2cbfuserinstall py3cbfuserinstall \
 	$(HDF5_INSTALL) \
 	$(TIFF_INSTALL) \
 	$(REGEX_INSTALL)
@@ -1347,6 +1355,19 @@ $(PY3PLY):      build_py3ply
 endif
 
 
+#
+# NUWEB
+#
+ifneq ($(NUWEB_DEP),system)
+$(NUWEB_DEP):
+	-rm -rf $(NUWEB_DEP)
+	-rm -rf $(NUWEB_DEP).tar.gz
+	$(DOWNLOAD) $(NUWEB_URL)
+	tar -xvf $(NUWEB_DEP).tar.gz
+	touch $(NUWEB_DEP)
+	rm $(NUWEB_DEP).tar.gz
+	(cd $(NUWEB_DEP); make nuweb; cp nuweb $(BIN))
+endif
 
 
 #
@@ -1645,15 +1666,36 @@ endif
 #
 # Python bindings
 #
-$(PY2CBF)/_pycbf.$(PY2CBFEXT): $(PY2CBF)  shared \
-	$(PY2CBF)/$(SETUP_PY)     \
-	$(PY2CBF)/pycbf.i		 \
-	$(PY2CBF)/cbfhandlewrappers.i   \
-	$(PY2CBF)/cbfdetectorwrappers.i \
-	$(PY2CBF)/cbfgenericwrappers.i  \
+
+$(PY2CBF)/make_pycbf.py:	$(PY2CBF)/make_pycbf.w
+	(cd $(PY2CBF); $(NUWEB) make_pycbf.w)
+
+$(PY2CBF)/pycbf.i:        $(PY2CBF)/pycbf_i.w
+	(cd $(PY2CBF); $(NUWEB) pycbf_i.w)
+
+$(PY2CBF)/py2setup_py.m4   \
+$(PY2CBF)/win32.bat        \
+$(PY2CBF)/linux.sh         \
+$(PY2CBF)/makeflatascii.py \
+$(PY2CBF)/pycbf_test1.py   \
+$(PY2CBF)/pycbf_test2.py   \
+$(PY2CBF)/pycbf_test3.py   \
+$(PY2CBF)/pycbf_test4.py   \
+$(PY2CBF)/pycbf_testfelaxes.py  \
+$(PY2CBF)/xmas/readmarheader.py \
+$(PY2CBF)/xmas/xmasheaders.py   \
+$(PY2CBF)/xmas/xmas_cif_template.cif : $(PY2CBF)/pycbf.w
+	(cd $(PY2CBF); $(NUWEB) pycbf.w )
+ 
+$(PY2CBF)/_pycbf.$(PY2CBFEXT):	$(PY2CBF)  shared \
+	$(PY2CBF)/py2setup.py                    \
+	$(PY2CBF)/pycbf.i		         \
+	$(PY2CBF)/cbfhandlewrappers.i            \
+	$(PY2CBF)/cbfdetectorwrappers.i          \
+	$(PY2CBF)/cbfgenericwrappers.i           \
 	$(PY2CBF)/cbfgoniometerwrappers.i
 	-cp $(SOLIB)/*.so $(LIB)
-	(cd $(PY2CBF); $(PYTHON2) $(SETUP_PY) build $(PY2CBFBOPT); cp build/lib*/_pycbf*.$(PY2CBFEXT) .) 
+	(cd $(PY2CBF); $(PYTHON2) py2setup.py build $(PY2CBFBOPT); cp build/lib*/_pycbf*.$(PY2CBFEXT) .) 
 
 $(PY2CBF)/py2cbfinstall:
 	(cd $(PY2CBF); $(PYTHON2) $(INSTALLSETUP_PY) install $(PY2CBFIOPT) --prefix=$(CBF_PREFIX))
@@ -1661,19 +1703,19 @@ $(PY2CBF)/py2cbfinstall:
 $(PY2CBF)/py2cbfuserinstall:
 	(cd $(PY2CBF); $(PYTHON2) $(INSTALLSETUP_PY) install $(PY2CBFIOPT) --user)
 
-$(PY2CBF)/setup.py: $(M4)/setup_py.m4
+$(PY2CBF)/py2setup.py: $(PY2CBF)/py2setup_py.m4
 	(m4 -P -Dregexlib=$(REGEX_LIB) -Dregexlib2=$(REGEX_LIB2) \
 	   -Dregexlibdir=$(REGEX_LIBDIR) -Dhdf5_prefix=$(HDF5_PREFIX) \
-	   $(M4)/setup_py.m4 > $@)
+	   $(PY2CBF)/py2setup_py.m4 > $@)
 
-$(PY2CBF)/setup_MINGW.py: m4/setup_py.m4
+$(PY2CBF)/py2setup_MINGW.py: $(PY2CBF)/setup_py.m4
 	   (m4 -P -Dregexlib=$(REGEX_LIB) -Dregexlib2=$(REGEX_LIB2) \
 	   -Dregexlibdir=$(REGEX_LIBDIR) -Dhdf5_prefix=$(HDF5_PREFIX) \
-	   $(M4)/setup_py.m4 > $@)
+	   $(PY2CBF)/py2setup_py.m4 > $@)
 
-$(LIB)/_py2cbf.$(PY2CBFEXT): $(PY2CBF)/_pycbf.$(PY2CBFEXT)
+$(LIB)/_pycbf.$(PY2CBFEXT): $(PY2CBF)/_pycbf.$(PY2CBFEXT)
 	mkdir -p $(LIB)
-	cp $(PY2CBF)/_pycbf.$(PY2CBFEXT) $(LIB)/_py2cbf.$(PY2CBFEXT)
+	cp $(PY2CBF)/_pycbf.$(PY2CBFEXT) $(LIB)/_pycbf.$(PY2CBFEXT)
 	
 $(PY2CBF)/pycbf.pdf: $(PY2CBF)/pycbf.w
 	(cd $(PY2CBF); \
@@ -1686,11 +1728,13 @@ $(PY2CBF)/pycbf.pdf: $(PY2CBF)/pycbf.w
 $(PY2CBF)/CBFlib.txt: $(DOC)/CBFlib.html
 	links -dump $(DOC)/CBFlib.html > $(PY2CBF)/CBFlib.txt
 
-$(PY2CBF)/cbfhandlewrappers.i   \
-$(PY2CBF)/cbfdetectorwrappers.i \
-$(PY2CBF)/cbfgenericwrappers.i  \
-$(PY2CBF)/cbfgoniometerwrappers.i:  $(PY2CBF)/CBFlib.txt $(PY2CBF)/make_pycbf.py
-	(cd $(PY2CBF);  $(PYTHON2) make_pycbf.py; $(PYSWIG) pycbf.i; $(PYTHON2) setup.py build)
+$(PY2CBF)/pycbf.py:	$(PY2CBF)/pycbf.pdf $(PY2CBF)/cbfdetectorwrappers.i \
+			$(PY2CBF)/cbfgenericwrappers.i                   \
+			$(PY2CBF)/cbfgoniometerwrappers.i                \
+			$(PY2CBF)/CBFlib.txt $(PY2CBF)/make_pycbf.py 
+	(cd $(PY2CBF);  $(PYTHON2) make_pycbf.py; $(PYSWIG) pycbf.i;     \
+		$(PYTHON2) py2setup.py build; mv pycbf.py rawpycbf.py;   \
+		echo "# coding=utf-8" | cat - rawpycbf.py > pycbf.py)
 
 $(PY3CBF)/_pycbf.$(PY3CBFEXT): $(PY3CBF)  shared \
 	$(PY3CBF)/$(SETUP_PY)     \
@@ -2293,8 +2337,7 @@ $(TESTOUTPUT):	$(DATADIRO) $(DATADIRO_OUTPUT) $(DATADIRO_OUTPUT_SIGNATURES)
 #
 
 
-#tests:			all $(LIB) $(BIN) symlinksdone basic extra dectristests py2cbftests py3cbftests
-tests:			all $(LIB) $(BIN) symlinksdone basic extra dectristests py2cbftests
+tests:			all $(LIB) $(BIN) symlinksdone basic extra dectristests py2cbftests py3cbftests
 restore_output:		$(NEWTESTOUTPUT) $(DATADIRO) $(MINICBF_TEST)/minicbf.h5
 	$(SIGNATURE) < adscconverted_flat.cbf > $(DATADIRO)/adscconverted_flat_orig.cbf$(SEXT)
 	$(SIGNATURE) < adscconverted.cbf > $(DATADIRO)/adscconverted_orig.cbf$(SEXT)

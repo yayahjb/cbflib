@@ -66,7 +66,7 @@
 The program that does the conversion from CBFlib.txt to the SWIG
 input files is a python script named make\_pycbf.py.
 
-@O make_pycbf.py
+@o make_pycbf.py -i -t
 @{
 print "\\begin{verbatim}"
 print "This output comes from make_pycbf.py which generates the wrappers"
@@ -3343,12 +3343,12 @@ cbf_failnez(cbf_airy_disk(x,y,cenx,ceny,volume,fwhm,value));
 %apply double *OUTPUT {double *volumeout};
 %inline {
 void airy_disk_volume(double xlo, double ylo, double xhi, double yhi,
-double cenx, double ceny, double volume, double fwhm, double * volumeout) {
-cbf_failnez(cbf_airy_disk_volume(xlo,ylo,xhi,yhi,cenx,ceny,volume,fwhm,volumeout));
+double cenx, double ceny, double volumein, double fwhm, double * volumeout) {
+cbf_failnez(cbf_airy_disk_volume(xlo,ylo,xhi,yhi,cenx,ceny,volumein,fwhm,volumeout));
 }
 }
 
-""","airy_disk_volume",["double xlo", "double ylo", "double xhi", "double yhi", "double cenx", "double ceny", "double volume", "double fwhm"],
+""","airy_disk_volume",["double xlo", "double ylo", "double xhi", "double yhi", "double cenx", "double ceny", "double volumein", "double fwhm"],
 ["Float volumeout"] ]
 
 

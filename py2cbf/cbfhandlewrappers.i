@@ -789,13 +789,13 @@ Returns an error code on failure or 0 for success.
 ----------------------------------------------------------------------
 ")get_axis_depends_on;
 
-    const char *  get_axis_depends_on(const char *axis_id){
-    const char* dep_on;
-    cbf_failnez(cbf_get_axis_depends_on(self,axis_id,
-    &dep_on));
-    return dep_on;
-    }
-    
+   const char *  get_axis_depends_on(const char *axis_id){
+        const char* dep_on;
+        cbf_failnez(cbf_get_axis_depends_on(self,axis_id,
+           &dep_on));
+        return dep_on;
+        }
+
 /* cfunc cbf_rewind_column   pyfunc rewind_column  
    arg cbf_handle handle */
 
@@ -1158,15 +1158,15 @@ Returns an error code on failure or 0 for success.
 ----------------------------------------------------------------------
 ")get_axis_type;
 
-    const char *  get_axis_type(const char *axis_id){
-    cbf_axis_type axis_type;
-    cbf_failnez(cbf_get_axis_type(self,axis_id,
-    &axis_type));
-    if (axis_type == CBF_TRANSLATION_AXIS) return "translation";
-    if (axis_type == CBF_ROTATION_AXIS) return "rotation";
-    return "general";
-    }
-    
+   const char *  get_axis_type(const char *axis_id){
+        cbf_axis_type axis_type;
+        cbf_failnez(cbf_get_axis_type(self,axis_id,
+           &axis_type));
+        if (axis_type == CBF_TRANSLATION_AXIS) return "translation";
+        if (axis_type == CBF_ROTATION_AXIS) return "rotation";
+        return "general";
+        }
+
 /* cfunc cbf_remove_column   pyfunc remove_column  
    arg cbf_handle handle */
 
@@ -1442,13 +1442,13 @@ Returns an error code on failure or 0 for success.
 ----------------------------------------------------------------------
 ")get_axis_vector;
 
-    %apply double *OUTPUT {double *vector1, double *vector2, double vector3} get_axis_vector;
-    void get_axis_vector(const char *axis_id,
-    double *vector1, double *vector2, double *vector3){
-    cbf_failnez(cbf_get_axis_vector(self,axis_id,
-    vector1, vector2,vector3));
-    }
-    %feature("autodoc", "
+%apply double *OUTPUT {double *vector1, double *vector2, double vector3} get_axis_vector;
+   void get_axis_vector(const char *axis_id,
+                    double *vector1, double *vector2, double *vector3){
+        cbf_failnez(cbf_get_axis_vector(self,axis_id,
+                         vector1, vector2,vector3));
+        }
+%feature("autodoc", "
 Returns : 
 *args   : Int element_number,Int axis_number,Float pixel size
 
@@ -1587,13 +1587,13 @@ Returns an error code on failure or 0 for success.
 ----------------------------------------------------------------------
 ")get_axis_rotation;
 
-    %apply double *OUTPUT {double *rotation} get_axis_rotation;
-    void get_axis_rotation(const char *axis_id,
-    double *rotation){
-    cbf_failnez(cbf_get_axis_rotation(self,axis_id,
-    rotation));
-    }
-    
+%apply double *OUTPUT {double *rotation} get_axis_rotation;
+   void get_axis_rotation(const char *axis_id,
+                    double *rotation){
+        cbf_failnez(cbf_get_axis_rotation(self,axis_id,
+                         rotation));
+        }
+
 /* cfunc cbf_find_datablock   pyfunc find_datablock  
    arg cbf_handle handle    arg const char *datablockname */
 
@@ -2314,13 +2314,13 @@ Returns an error code on failure or 0 for success.
 ----------------------------------------------------------------------
 ")get_axis_equipment_component;
 
-    const char *  get_axis_equipment_component(const char *axis_id){
-    const char* equip_comp;
-    cbf_failnez(cbf_get_axis_equipment_component(self,axis_id,
-    &equip_comp));
-    return equip_comp;
-    }
-    %feature("autodoc", "
+   const char *  get_axis_equipment_component(const char *axis_id){
+        const char* equip_comp;
+        cbf_failnez(cbf_get_axis_equipment_component(self,axis_id,
+           &equip_comp));
+        return equip_comp;
+        }
+%feature("autodoc", "
 Returns : int compression,int binary_id,int elsize,int elements,char **bo,
           int *bolen,int dimslow,int dimmid,int dimfast,int padding
 *args   : 
@@ -4328,14 +4328,14 @@ Returns an error code on failure or 0 for success.
 ----------------------------------------------------------------------
 ")count_axis_ancestors;
 
-    %apply int *OUTPUT {int *ancestors} count_axis_ancestors;
-    void count_axis_ancestors(const char *axis_id,
-    int *ancestors){
-    unsigned int anc;
-    cbf_failnez(cbf_count_axis_ancestors(self,axis_id,&anc));
-    *ancestors = anc;
-    }
-    %feature("autodoc", "
+%apply int *OUTPUT {int *ancestors} count_axis_ancestors;
+   void count_axis_ancestors(const char *axis_id,
+                    int *ancestors){
+        unsigned int anc;
+        cbf_failnez(cbf_count_axis_ancestors(self,axis_id,&anc));
+        *ancestors = anc;
+        }
+%feature("autodoc", "
 Returns : pycbf goniometer object
 *args   : 
 
@@ -4808,13 +4808,13 @@ Returns an error code on failure or 0 for success.
 ----------------------------------------------------------------------
 ")get_axis_rotation_axis;
 
-    const char *  get_axis_rotation_axis(const char *axis_id){
-    const char* rot_axis;
-    cbf_failnez(cbf_get_axis_rotation_axis(self,axis_id,
-    &rot_axis));
-    return rot_axis;
-    }
-    %feature("autodoc", "
+   const char *  get_axis_rotation_axis(const char *axis_id){
+        const char* rot_axis;
+        cbf_failnez(cbf_get_axis_rotation_axis(self,axis_id,
+           &rot_axis));
+        return rot_axis;
+        }
+%feature("autodoc", "
 Returns : 
 *args   : int compression,int binary_id,(binary) String data,int elsize,
           int elsigned,int elements,String byteorder,int dimfast,int dimmid,
@@ -5075,14 +5075,14 @@ Returns an error code on failure or 0 for success.
 ----------------------------------------------------------------------
 ")get_axis_ancestor;
 
-    const char *  get_axis_ancestor(const char *axis_id,
-    int ancestor_index){
-    const char* anc;
-    cbf_failnez(cbf_get_axis_ancestor(self,axis_id,
-    (unsigned int)ancestor_index,&anc));
-    return anc;
-    }
-    %feature("autodoc", "
+   const char *  get_axis_ancestor(const char *axis_id,
+                    int ancestor_index){
+        const char* anc;
+        cbf_failnez(cbf_get_axis_ancestor(self,axis_id,
+           (unsigned int)ancestor_index,&anc));
+        return anc;
+        }
+%feature("autodoc", "
 Returns : (Binary)String
 *args   : int element_number,int elsize,int elsign,int ndimslow,int ndimmid,
           int ndimfast
@@ -7036,13 +7036,13 @@ Returns an error code on failure or 0 for success.
 ----------------------------------------------------------------------
 ")get_axis_offset;
 
-    %apply double *OUTPUT {double *offset1, double *offset2, double offset3} get_axis_offset;
-    void get_axis_offset(const char *axis_id,
-    double *offset1, double *offset2, double*offset3){
-    cbf_failnez(cbf_get_axis_offset(self,axis_id,
-    offset1, offset2,offset3));
-    }
-    %feature("autodoc", "
+%apply double *OUTPUT {double *offset1, double *offset2, double offset3} get_axis_offset;
+   void get_axis_offset(const char *axis_id,
+                    double *offset1, double *offset2, double*offset3){
+        cbf_failnez(cbf_get_axis_offset(self,axis_id,
+                         offset1, offset2,offset3));
+        }
+%feature("autodoc", "
 Returns : 
 *args   : Int element_number,Int axis_number,Float pixel size
 
@@ -8322,13 +8322,13 @@ Returns an error code on failure or 0 for success.
 ----------------------------------------------------------------------
 ")get_axis_equipment;
 
-    const char *  get_axis_equipment(const char *axis_id){
-    const char* equip;
-    cbf_failnez(cbf_get_axis_equipment(self,axis_id,
-    &equip));
-    return equip;
-    }
-    %feature("autodoc", "
+   const char *  get_axis_equipment(const char *axis_id){
+        const char* equip;
+        cbf_failnez(cbf_get_axis_equipment(self,axis_id,
+           &equip));
+        return equip;
+        }
+%feature("autodoc", "
 Returns : 
 *args   : double cell[6]
 

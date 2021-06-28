@@ -271,24 +271,27 @@ pull in all of the library for now. We use the distutils approach.
 
 
 
-@O setup.py
+@o py2setup_py.m4 -i -t
 @{
+#
+#  py2setup_py.m4
+#
 
-# Import the things to build python binary extensions
+`# Import the things to build python binary extensions
 
 from distutils.core import setup, Extension
 
 # Make our extension module
 
-e = Extension('_pycbf',
+e = Extension(''`_pycbf''`,
               sources = ["pycbf_wrap.c","../src/cbf_simple.c"],
          extra_compile_args=["-g"],
-         library_dirs=["../lib/"],
-         libraries=["cbf"],
-         include_dirs = ["../include"] )
+         'm4_ifelse(regexlibdir,`NOREGEXLIBDIR',`library_dirs=["../solib/","../lib/"],',`library_dirs=["../solib/","../lib/","'regexlibdir`"],')`
+         'm4_ifelse(regexlib,`',`libraries=["cbf"],', `m4_ifelse(regexlib2,`',`libraries=["cbf","'regexlib`"],',`libraries=["cbf","'regexlib`","'regexlib2`"],')'  )`
+         include_dirs = ["../include","'hdf5_prefix`/include"] )
             
 # Build it
-setup(name="_pycbf",ext_modules=[e],)
+setup(name="_pycbf",ext_modules=[e],)'
 @}
 
 
@@ -296,7 +299,7 @@ setup(name="_pycbf",ext_modules=[e],)
 
 Aim to build and test in one go (so that the source and the binary match!!)
 
-@o win32.bat
+@o win32.bat -i -t
 @{
 nuweb pycbf
 latex pycbf
@@ -340,7 +343,7 @@ python makeflatascii.py pycbf_ascii_help.txt
 
 This still gives bold in the ascii (=sucks)
 
-@O makeflatascii.py
+@o makeflatascii.py -i -t
 @{
 import pydoc, pycbf, sys
 f = open(sys.argv[1],"w")
@@ -428,7 +431,7 @@ all of the writing parts.
 It appeared to work with the file img2cif\_packed.cif which is built
 when you build CBFlib, hence that file is hardwired in.
 
-@O pycbf_test1.py
+@o pycbf_test1.py -i -t
 @{
 import pycbf
 object = pycbf.cbf_handle_struct() # FIXME
@@ -475,17 +478,18 @@ for i in range(categories):
                 print dir(s)
                 print len(s)
                 try:
-                   import Numeric
-                   d = Numeric.fromstring(s,Numeric.UInt32) 
+                   import numpy 
+                   d = numpy.frombuffer(s,numpy.uint32)
                    # Hard wired Unsigned Int32
                    print d.shape
                    print d[0:10],d[d.shape[0]/2],d[-1]
-                   d=Numeric.reshape(d,(2300,2300))
+                   print d[d.shape[0]/3:d.shape[0]/3+20]
+                   d=numpy.reshape(d,(2300,2300))
 #                   from matplotlib import pylab
 #                   pylab.imshow(d,vmin=0,vmax=1000)
 #                   pylab.show()
                 except ImportError:
-                   print "You need to get Numeric and matplotlib to see the data"
+                   print "You need to get numpy and matplotlib to see the data"
             else:
                 value=object.get_value()
                 print "Val:",value,i
@@ -493,7 +497,7 @@ for i in range(categories):
 del(object)
 #
 print dir()
-#object.free_handle(handle) 
+#object.free_handle(handle)
 @}
 
 
@@ -507,7 +511,7 @@ This test is clearly minimalistic for now - it only checks the objects
 for apparent existence of
 a single member function.
 
-@O pycbf_test2.py
+@o pycbf_test2.py -i -t
 @{
 import pycbf
 obj = pycbf.cbf_handle_struct()
@@ -517,6 +521,9 @@ g = obj.construct_goniometer()
 print "Rotation axis is",g.get_rotation_axis()
 d = obj.construct_detector(0)
 print "Beam center is",d.get_beam_center()
+print "Detector slow axis is", d.get_detector_axis_slow()
+print "Detector fast axis is", d.get_detector_axis_fast()
+print "Detector axes (fast, slow) are", d.get_detector_axes_fs()
 @}
 
 
@@ -524,7 +531,7 @@ It appears to work - eventually. Surprising
 
 \subsection{Test cases for the generics}
 
-@O pycbf_test3.py
+@o pycbf_test3.py -i -t
 @{
 import pycbf, unittest
 class GenericTests(unittest.TestCase):
@@ -549,23 +556,181 @@ if __name__=="__main__":
 
 @}
 
+
+\subsection{Version of pycbf_test1 with write logic added}
+
+@o pycbf_test4.py -i -t
+@{
+# version of pycbf_test1 with write logic added
+import pycbf
+object = pycbf.cbf_handle_struct()
+newobject = pycbf.cbf_handle_struct()
+object.read_file("../img2cif_packed.cif",pycbf.MSG_DIGEST)
+object.rewind_datablock()
+print "Found",object.count_datablocks(),"blocks"
+object.select_datablock(0)
+print "Zeroth is named",object.datablock_name()
+newobject.force_new_datablock(object.datablock_name());
+object.rewind_category()
+categories = object.count_categories()
+for i in range(categories):
+    print "Category:",i,
+    object.select_category(i)
+    category_name = object.category_name()
+    print "Name:",category_name,
+    newobject.new_category(category_name)
+    rows=object.count_rows()
+    print "Rows:",rows,
+    cols = object.count_columns()
+    print "Cols:",cols
+    loop=1
+    object.rewind_column()
+    while loop is not 0:
+        column_name = object.column_name()
+        print "column name \"",column_name,"\"",
+        newobject.new_column(column_name)
+        try:
+            object.next_column()
+        except:
+            break
+    print
+    for j in range(rows):
+        object.select_row(j)
+        newobject.new_row()
+        object.rewind_column()
+        print "row:",j
+        for k in range(cols):
+            name=object.column_name()
+            print "col:",name,
+            object.select_column(k)
+            newobject.select_column(k)
+            typeofvalue=object.get_typeofvalue()
+            print "type:",typeofvalue
+            if typeofvalue.find("bnry") > -1:
+                print "Found the binary!!",
+                s=object.get_integerarray_as_string()
+                print type(s)
+                print dir(s)
+                print len(s)
+                (compression, binaryid, elsize, elsigned, \
+                    elunsigned, elements, minelement, maxelement, \
+                    byteorder,dimfast,dimmid,dimslow,padding) = \
+                    object.get_integerarrayparameters_wdims_fs()
+                if dimfast==0:
+                    dimfast = 1
+                if dimmid==0:
+                    dimmid = 1
+                if dimslow == 0:
+                    dimslow = 1
+                print "compression: ",compression
+                print "binaryid", binaryid
+                print "elsize", elsize
+                print "elsigned", elsigned
+                print "elunsigned",elunsigned
+                print "elements", elements
+                print "minelement", minelement
+                print "maxelement", maxelement
+                print "byteorder", byteorder
+                print "dimfast", dimfast
+                print "dimmid", dimmid
+                print "dimslow",dimslow
+                print "padding", padding
+                newobject.set_integerarray_wdims_fs(\
+                  pycbf.CBF_BYTE_OFFSET,binaryid,s,elsize,elsigned,\
+                  elements,byteorder,dimfast,dimmid,dimslow,padding)
+                try:
+                   import numpy
+                   d = numpy.frombuffer(s,numpy.uint32)
+                   # Hard wired Unsigned Int32
+                   print d.shape
+                   print d[0:10],d[d.shape[0]/2],d[-1]
+                   print d[d.shape[0]/3:d.shape[0]/3+20]
+                   d=numpy.reshape(d,(2300,2300))
+#                   from matplotlib import pylab
+#                   pylab.imshow(d,vmin=0,vmax=1000)
+#                   pylab.show()
+                except ImportError:
+                   print "You need to get numpy and matplotlib to see the data"
+            else:
+                value=object.get_value()
+                newobject.set_value(value)
+                print "Val:",value,i
+    print
+del(object)
+newobject.write_widefile("newtest1.cbf",pycbf.CBF,\
+    pycbf.MIME_HEADERS|pycbf.MSG_DIGEST|pycbf.PAD_4K,0)
+#
+print dir()
+#object.free_handle(handle)
+@}
+
+
+\subsection{Processing of XFEL axes}
+
+@o pycbf_testfelaxes.py -i -t
+@{
+import pycbf, sys
+from decimal import Decimal, ROUND_HALF_UP
+
+image_file = sys.argv[1]
+
+cbf = pycbf.cbf_handle_struct()
+cbf.read_widefile(image_file, pycbf.MSG_DIGEST)
+
+for element in range(64):
+    d = cbf.construct_detector(element)
+    print "element:", element
+
+    v00 = d.get_pixel_coordinates(0, 0)
+    v01 = d.get_pixel_coordinates(0, 1)
+    v10 = d.get_pixel_coordinates(1, 0)
+    v11 = d.get_pixel_coordinates(1, 1)
+    prec = Decimal('1.000000000')
+
+    print '(0, 0) v00 [ %.9f %.9f %.9f ]' %(round(v00[0],9), round(v00[1],9), round(v00[2],9))
+    print '(0, 1) v01 [ %.9g %.9g %.9g ]' %(round(v01[0],9), round(v01[1],9), round(v01[2],9))
+    print '(1, 0) v10 [ %.9g %.9g %.9g ]' %(round(v10[0],9), round(v10[1],9), round(v10[2],9))
+    print '(1, 1) v11 [ %.9g %.9g %.9g ]' %(round(v11[0],9), round(v11[1],9), round(v11[2],9))
+
+    print "surface axes:",  d.get_detector_surface_axes(0), d.get_detector_surface_axes(1)
+
+    print d.get_detector_surface_axes(0), "has", cbf.count_axis_ancestors(d.get_detector_surface_axes(0)), "ancestors"
+    print d.get_detector_surface_axes(1), "has", cbf.count_axis_ancestors(d.get_detector_surface_axes(1)), "ancestors"
+
+    cur_axis = d.get_detector_surface_axes(0)
+    count = cbf.count_axis_ancestors(cur_axis)
+
+    for index in range(count):
+        print "axis", cur_axis, "index: ", index
+        print "    equipment", cbf.get_axis_equipment(cur_axis)
+        print "    depends_on", cbf.get_axis_depends_on(cur_axis)
+        print "    equipment_component", cbf.get_axis_equipment_component(cur_axis)
+        vector = cbf.get_axis_vector(cur_axis)
+        print "    vector [ %.8g %.8g %.8g ]" % (round(vector[0],7), round(vector[1],7), round(vector[2],7))
+        offset = cbf.get_axis_offset(cur_axis)
+        print "    offset [ %.8g %.8g %.8g ]" % (round(offset[0],7), round(offset[1],7), round(offset[2],7))
+        print "    rotation", cbf.get_axis_rotation(cur_axis)
+        print "    rotation_axis", cbf.get_axis_rotation_axis(cur_axis)
+        cur_axis = cbf.get_axis_depends_on(cur_axis)
+@}
+
 \section{Worked example 1 : xmas beamline + mar ccd detector at the ESRF}
 
 Now for the interesting part. We will attempt to actually use pycbf for a real
 dataprocessing task. Crazy you might think.
 
-The idea is the following - we want to take the header information from some 
+The idea is the following - we want to take the header information from some
 mar ccd files (and eventually also the user or the spec control system) and
 pass this information into cif headers which can be read by fit2d (etc).
 
 \subsection{Reading marccd headers}
 
 Some relatively ugly code which parses a c header and then tries to interpret
-the mar ccd header format. 
+the mar ccd header format.
 
 FIXME : byteswapping and ends???
 
-@O xmas/readmarheader.py
+@o xmas/readmarheader.py -i -t
 @{#!/usr/bin/env python
 import struct
 
@@ -913,7 +1078,7 @@ some more infomation from the user and the create cif files.
 
 This relies on a "template" cif file to get it started (avoids me programming everything).
 
-@O xmas/xmasheaders.py
+@o xmas/xmasheaders.py -i -t
 @{#!/usr/bin/env python
 
 
@@ -1179,7 +1344,7 @@ if __name__=="__main__":
 This was sort of copied and modified from an example file. It has NOT been checked.
 Hopefully the four circle geometry at least vaguely matches what is at the beamline.
 
-@O xmas/xmas_cif_template.cif
+@o xmas/xmas_cif_template.cif -i -t
 @{
 ###CBF: VERSION 0.6
 # CBF file written by cbflib v0.6

@@ -403,18 +403,18 @@ Returns an error code on failure or 0 for success.
 ----------------------------------------------------------------------
 ")cbf_get_detector_surface_axes;
 
-    const char * get_detector_surface_axes (int index ){
-    const char * axis_id1;
-    const char * axis_id2;
-    cbf_failnez(cbf_get_detector_surface_axes(self,
-    &axis_id1, &axis_id2));
-    if (index == 0) return axis_id1;
-    if (index == 1) return axis_id2;
-    return ".";
-    }
-    
-    
-    %feature("autodoc", "
+   const char * get_detector_surface_axes (int index ){
+       const char * axis_id1;
+       const char * axis_id2;
+       cbf_failnez(cbf_get_detector_surface_axes(self,
+                                    &axis_id1, &axis_id2));
+       if (index == 0) return axis_id1;
+       if (index == 1) return axis_id2;
+       return ".";
+   }
+
+
+%feature("autodoc", "
 Returns : double slowaxis1,double slowaxis2,double slowaxis3,double fastaxis1,
           double fastaxis2,double fastaxis3
 *args   : 
@@ -1011,7 +1011,7 @@ Returns an error code on failure or 0 for success.
  double *centerfast,double *centerslow};
     void get_beam_center_fs(double *indexfast, double *indexslow, 
                          double *centerfast,double *centerslow){
-        cbf_failnez(cbf_get_beam_center_fs(self, indexfast, indexslow,
+        cbf_failnez(cbf_get_beam_center_fs(self, indexfast, indexslow, 
                                        centerfast, centerslow));
         }
 %feature("autodoc", "

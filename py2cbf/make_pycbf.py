@@ -1871,105 +1871,105 @@ void require_column_integervalue(const char *columnname,
 
 
 "cbf_count_axis_ancestors":["""
-    %apply int *OUTPUT {int *ancestors} count_axis_ancestors;
-    void count_axis_ancestors(const char *axis_id,
-    int *ancestors){
-    unsigned int anc;
-    cbf_failnez(cbf_count_axis_ancestors(self,axis_id,&anc));
-    *ancestors = anc;
-    }
-    ""","count_axis_ancestors",["String axis_id"],["Integer"],],
+%apply int *OUTPUT {int *ancestors} count_axis_ancestors;
+   void count_axis_ancestors(const char *axis_id,
+                    int *ancestors){
+        unsigned int anc;
+        cbf_failnez(cbf_count_axis_ancestors(self,axis_id,&anc));
+        *ancestors = anc;
+        }
+""","count_axis_ancestors",["String axis_id"],["Integer"],],
 
 
 "cbf_get_axis_ancestor":["""
-    const char *  get_axis_ancestor(const char *axis_id,
-    int ancestor_index){
-    const char* anc;
-    cbf_failnez(cbf_get_axis_ancestor(self,axis_id,
-    (unsigned int)ancestor_index,&anc));
-    return anc;
-    }
-    ""","get_axis_ancestor",["String axis_id", "Integer ancestor_index"],["String"],],
+   const char *  get_axis_ancestor(const char *axis_id,
+                    int ancestor_index){
+        const char* anc;
+        cbf_failnez(cbf_get_axis_ancestor(self,axis_id,
+           (unsigned int)ancestor_index,&anc));
+        return anc;
+        }
+""","get_axis_ancestor",["String axis_id", "Integer ancestor_index"],["String"],],
 
 "cbf_get_axis_depends_on":["""
-    const char *  get_axis_depends_on(const char *axis_id){
-    const char* dep_on;
-    cbf_failnez(cbf_get_axis_depends_on(self,axis_id,
-    &dep_on));
-    return dep_on;
-    }
-    ""","get_axis_depends_on",["String axis_id"],["String"],],
+   const char *  get_axis_depends_on(const char *axis_id){
+        const char* dep_on;
+        cbf_failnez(cbf_get_axis_depends_on(self,axis_id,
+           &dep_on));
+        return dep_on;
+        }
+""","get_axis_depends_on",["String axis_id"],["String"],],
 
 "cbf_get_axis_equipment":["""
-    const char *  get_axis_equipment(const char *axis_id){
-    const char* equip;
-    cbf_failnez(cbf_get_axis_equipment(self,axis_id,
-    &equip));
-    return equip;
-    }
-    ""","get_axis_equipment",["String axis_id"],["String"],],
+   const char *  get_axis_equipment(const char *axis_id){
+        const char* equip;
+        cbf_failnez(cbf_get_axis_equipment(self,axis_id,
+           &equip));
+        return equip;
+        }
+""","get_axis_equipment",["String axis_id"],["String"],],
 
 
 "cbf_get_axis_equipment_component":["""
-    const char *  get_axis_equipment_component(const char *axis_id){
-    const char* equip_comp;
-    cbf_failnez(cbf_get_axis_equipment_component(self,axis_id,
-    &equip_comp));
-    return equip_comp;
-    }
-    ""","get_axis_equipment_component",["String axis_id"],["String"],],
+   const char *  get_axis_equipment_component(const char *axis_id){
+        const char* equip_comp;
+        cbf_failnez(cbf_get_axis_equipment_component(self,axis_id,
+           &equip_comp));
+        return equip_comp;
+        }
+""","get_axis_equipment_component",["String axis_id"],["String"],],
 
 
 "cbf_get_axis_offset":["""
-    %apply double *OUTPUT {double *offset1, double *offset2, double offset3} get_axis_offset;
-    void get_axis_offset(const char *axis_id,
-    double *offset1, double *offset2, double*offset3){
-    cbf_failnez(cbf_get_axis_offset(self,axis_id,
-    offset1, offset2,offset3));
-    }
-    ""","get_axis_offset",["String axis_id"],
-                       ["Float offset1", "Float offset2", "Float offset3"],],
+%apply double *OUTPUT {double *offset1, double *offset2, double offset3} get_axis_offset;
+   void get_axis_offset(const char *axis_id,
+                    double *offset1, double *offset2, double*offset3){
+        cbf_failnez(cbf_get_axis_offset(self,axis_id,
+                         offset1, offset2,offset3));
+        }
+""","get_axis_offset",["String axis_id"],
+  ["Float offset1", "Float offset2", "Float offset3"],],
 
 "cbf_get_axis_rotation":["""
-    %apply double *OUTPUT {double *rotation} get_axis_rotation;
-    void get_axis_rotation(const char *axis_id,
-    double *rotation){
-    cbf_failnez(cbf_get_axis_rotation(self,axis_id,
-    rotation));
-    }
-    ""","get_axis_rotation",["String axis_id"],
-                         ["Float"],],
+%apply double *OUTPUT {double *rotation} get_axis_rotation;
+   void get_axis_rotation(const char *axis_id,
+                    double *rotation){
+        cbf_failnez(cbf_get_axis_rotation(self,axis_id,
+                         rotation));
+        }
+""","get_axis_rotation",["String axis_id"],
+  ["Float"],],
 
 "cbf_get_axis_rotation_axis":["""
-    const char *  get_axis_rotation_axis(const char *axis_id){
-    const char* rot_axis;
-    cbf_failnez(cbf_get_axis_rotation_axis(self,axis_id,
-    &rot_axis));
-    return rot_axis;
-    }
-    ""","get_axis_rotation_axis",["String axis_id"],["String"],],
+   const char *  get_axis_rotation_axis(const char *axis_id){
+        const char* rot_axis;
+        cbf_failnez(cbf_get_axis_rotation_axis(self,axis_id,
+           &rot_axis));
+        return rot_axis;
+        }
+""","get_axis_rotation_axis",["String axis_id"],["String"],],
 
 "cbf_get_axis_type":["""
-    const char *  get_axis_type(const char *axis_id){
-    cbf_axis_type axis_type;
-    cbf_failnez(cbf_get_axis_type(self,axis_id,
-    &axis_type));
-    if (axis_type == CBF_TRANSLATION_AXIS) return "translation";
-    if (axis_type == CBF_ROTATION_AXIS) return "rotation";
-    return "general";
-    }
-    ""","get_axis_type",["String axis_id"],["String"],],
+   const char *  get_axis_type(const char *axis_id){
+        cbf_axis_type axis_type;
+        cbf_failnez(cbf_get_axis_type(self,axis_id,
+           &axis_type));
+        if (axis_type == CBF_TRANSLATION_AXIS) return "translation";
+        if (axis_type == CBF_ROTATION_AXIS) return "rotation";
+        return "general";
+        }
+""","get_axis_type",["String axis_id"],["String"],],
 
 
 "cbf_get_axis_vector":["""
-    %apply double *OUTPUT {double *vector1, double *vector2, double vector3} get_axis_vector;
-    void get_axis_vector(const char *axis_id,
-    double *vector1, double *vector2, double *vector3){
-    cbf_failnez(cbf_get_axis_vector(self,axis_id,
-    vector1, vector2,vector3));
-    }
-    ""","get_axis_vector",["String axis_id"],
-                       ["Float vector1", "Float vector2", "Float vector3"],],
+%apply double *OUTPUT {double *vector1, double *vector2, double vector3} get_axis_vector;
+   void get_axis_vector(const char *axis_id,
+                    double *vector1, double *vector2, double *vector3){
+        cbf_failnez(cbf_get_axis_vector(self,axis_id,
+                         vector1, vector2,vector3));
+        }
+""","get_axis_vector",["String axis_id"],
+  ["Float vector1", "Float vector2", "Float vector3"],],
 
 "cbf_get_axis_setting":["""
 %apply double *OUTPUT {double *start, double *increment} get_axis_setting;
@@ -2840,19 +2840,19 @@ cbf_detector_specials = {
 
 
 "cbf_get_detector_surface_axes":["""
-    const char * get_detector_surface_axes (int index ){
-    const char * axis_id1;
-    const char * axis_id2;
-    cbf_failnez(cbf_get_detector_surface_axes(self,
-    &axis_id1, &axis_id2));
-    if (index == 0) return axis_id1;
-    if (index == 1) return axis_id2;
-    return ".";
-    }
-    
-    
-    ""","cbf_get_detector_surface_axes", ["Integer index" ],
-                                 ["String" ] ],
+   const char * get_detector_surface_axes (int index ){
+       const char * axis_id1;
+       const char * axis_id2;
+       cbf_failnez(cbf_get_detector_surface_axes(self,
+                                    &axis_id1, &axis_id2));
+       if (index == 0) return axis_id1;
+       if (index == 1) return axis_id2;
+       return ".";
+   }
+
+
+""","cbf_get_detector_surface_axes", ["Integer index" ],
+ ["String" ] ],
 
 
 "cbf_get_pixel_area":["""
@@ -2965,7 +2965,7 @@ cbf_detector_specials = {
  double *centerfast,double *centerslow};
     void get_beam_center_fs(double *indexfast, double *indexslow, 
                          double *centerfast,double *centerslow){
-        cbf_failnez(cbf_get_beam_center_fs(self, indexfast, indexslow,
+        cbf_failnez(cbf_get_beam_center_fs(self, indexfast, indexslow, 
                                        centerfast, centerslow));
         }
 ""","get_beam_center_fs",[],

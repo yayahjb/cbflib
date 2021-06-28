@@ -63,4 +63,4 @@ for i in range(categories):
 del(object)
 #
 print dir()
-#object.free_handle(handle) 
+#object.free_handle(handle)
