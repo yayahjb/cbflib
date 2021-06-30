@@ -4369,7 +4369,7 @@ pull in all of the library for now. We use the distutils approach.
 \mbox{}\verb@@\\
 \mbox{}\verb@# Make our extension module@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@e = Extension(''`_pycbf''`,@\\
+\mbox{}\verb@e = Extension(''`_py2cbf''`,@\\
 \mbox{}\verb@              sources = ["pycbf_wrap.c","../src/cbf_simple.c"],@\\
 \mbox{}\verb@         extra_compile_args=["-g"],@\\
 \mbox{}\verb@         'm4_ifelse(regexlibdir,`NOREGEXLIBDIR',`library_dirs=["../solib/","../lib/"],',`library_dirs=["../solib/","../lib/","'regexlibdir`"],')`@\\
@@ -4377,7 +4377,7 @@ pull in all of the library for now. We use the distutils approach.
 \mbox{}\verb@         include_dirs = ["../include","'hdf5_prefix`/include"] )@\\
 \mbox{}\verb@            @\\
 \mbox{}\verb@# Build it@\\
-\mbox{}\verb@setup(name="_pycbf",ext_modules=[e],)'@\\
+\mbox{}\verb@setup(name="_py2cbf",ext_modules=[e],)'@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
 \vspace{-1.5ex}
@@ -4407,7 +4407,7 @@ Aim to build and test in one go (so that the source and the binary match!!)
 \mbox{}\verb@C:\python24\python make_pycbf.py > TODO.txt@\\
 \mbox{}\verb@"C:\program files\swigwin-1.3.31\swig.exe" -python pycbf.i@\\
 \mbox{}\verb@C:\python24\python setup.py build --compiler=mingw32@\\
-\mbox{}\verb@copy build\lib.win32-2.4\_pycbf.pyd .@\\
+\mbox{}\verb@copy build\lib.win32-2.4\_py2cbf.pyd .@\\
 \mbox{}\verb@REM C:\python24\python pycbf_test1.py@\\
 \mbox{}\verb@C:\python24\python pycbf_test2.py@\\
 \mbox{}\verb@C:\python24\python pycbf_test3.py@\\
@@ -4439,8 +4439,8 @@ Aim to build and test in one go (so that the source and the binary match!!)
 \mbox{}\verb@python make_pycbf.py @\\
 \mbox{}\verb@swig -python pycbf.i@\\
 \mbox{}\verb@python setup.py build @\\
-\mbox{}\verb@rm _pycbf.so@\\
-\mbox{}\verb@cp build/lib.linux-i686-2.4/_pycbf.so .@\\
+\mbox{}\verb@rm _py2cbf.so@\\
+\mbox{}\verb@cp build/lib.linux-i686-2.4/_py2cbf.so .@\\
 \mbox{}\verb@python pycbf_test1.py@\\
 \mbox{}\verb@python pycbf_test2.py@\\
 \mbox{}\verb@pydoc -w pycbf@\\
@@ -4507,15 +4507,15 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> import pycbf
 [Switching to Thread 16384 (LWP 18191)]
 
-Breakpoint 1, _PyImport_LoadDynamicModule (name=0xbfffd280 "_pycbf.so",
-    pathname=0xbfffd280 "_pycbf.so", fp=0x819e208) at Python/importdl.c:28
+Breakpoint 1, _PyImport_LoadDynamicModule (name=0xbfffd280 "_py2cbf.so",
+    pathname=0xbfffd280 "_py2cbf.so", fp=0x819e208) at Python/importdl.c:28
 28              if ((m = _PyImport_FindExtension(name, pathname)) != NULL) {
 (gdb) finish
 Run till exit from #0  _PyImport_LoadDynamicModule (
-    name=0xbfffd280 "_pycbf.so", pathname=0xbfffd280 "_pycbf.so", fp=0x819e208)
+    name=0xbfffd280 "_py2cbf.so", pathname=0xbfffd280 "_py2cbf.so", fp=0x819e208)
     at Python/importdl.c:28
-load_module (name=0xbfffd710 "_pycbf", fp=0x819e208,
-    buf=0xbfffd280 "_pycbf.so", type=3, loader=0x405b44f4)
+load_module (name=0xbfffd710 "_py2cbf", fp=0x819e208,
+    buf=0xbfffd280 "_py2cbf.so", type=3, loader=0x405b44f4)
     at Python/import.c:1678
 1678                    break;
 Value returned is $1 = (PyObject *) 0x405662fc

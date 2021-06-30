@@ -283,7 +283,7 @@ from distutils.core import setup, Extension
 
 # Make our extension module
 
-e = Extension(''`_pycbf''`,
+e = Extension(''`_py2cbf''`,
               sources = ["pycbf_wrap.c","../src/cbf_simple.c"],
          extra_compile_args=["-g"],
          'm4_ifelse(regexlibdir,`NOREGEXLIBDIR',`library_dirs=["../solib/","../lib/"],',`library_dirs=["../solib/","../lib/","'regexlibdir`"],')`
@@ -291,7 +291,7 @@ e = Extension(''`_pycbf''`,
          include_dirs = ["../include","'hdf5_prefix`/include"] )
             
 # Build it
-setup(name="_pycbf",ext_modules=[e],)'
+setup(name="_py2cbf",ext_modules=[e],)'
 @}
 
 
@@ -310,7 +310,7 @@ nuweb pycbf
 C:\python24\python make_pycbf.py > TODO.txt
 "C:\program files\swigwin-1.3.31\swig.exe" -python pycbf.i
 C:\python24\python setup.py build --compiler=mingw32
-copy build\lib.win32-2.4\_pycbf.pyd .
+copy build\lib.win32-2.4\_py2cbf.pyd .
 REM C:\python24\python pycbf_test1.py
 C:\python24\python pycbf_test2.py
 C:\python24\python pycbf_test3.py
@@ -330,8 +330,8 @@ lynx -dump CBFlib.html > CBFlib.txt
 python make_pycbf.py 
 swig -python pycbf.i
 python setup.py build 
-rm _pycbf.so
-cp build/lib.linux-i686-2.4/_pycbf.so .
+rm _py2cbf.so
+cp build/lib.linux-i686-2.4/_py2cbf.so .
 python pycbf_test1.py
 python pycbf_test2.py
 pydoc -w pycbf
@@ -381,15 +381,15 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> import pycbf
 [Switching to Thread 16384 (LWP 18191)]
 
-Breakpoint 1, _PyImport_LoadDynamicModule (name=0xbfffd280 "_pycbf.so",
-    pathname=0xbfffd280 "_pycbf.so", fp=0x819e208) at Python/importdl.c:28
+Breakpoint 1, _PyImport_LoadDynamicModule (name=0xbfffd280 "_py2cbf.so",
+    pathname=0xbfffd280 "_py2cbf.so", fp=0x819e208) at Python/importdl.c:28
 28              if ((m = _PyImport_FindExtension(name, pathname)) != NULL) {
 (gdb) finish
 Run till exit from #0  _PyImport_LoadDynamicModule (
-    name=0xbfffd280 "_pycbf.so", pathname=0xbfffd280 "_pycbf.so", fp=0x819e208)
+    name=0xbfffd280 "_py2cbf.so", pathname=0xbfffd280 "_py2cbf.so", fp=0x819e208)
     at Python/importdl.c:28
-load_module (name=0xbfffd710 "_pycbf", fp=0x819e208,
-    buf=0xbfffd280 "_pycbf.so", type=3, loader=0x405b44f4)
+load_module (name=0xbfffd710 "_py2cbf", fp=0x819e208,
+    buf=0xbfffd280 "_py2cbf.so", type=3, loader=0x405b44f4)
     at Python/import.c:1678
 1678                    break;
 Value returned is $1 = (PyObject *) 0x405662fc

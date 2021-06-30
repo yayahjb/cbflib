@@ -2698,16 +2698,16 @@ static swig_module_info swig_module = {swig_types, 20, 0, 0, 0, 0};
 #define SWIG_TypeQuery SWIG_Python_TypeQuery
 
 /*-----------------------------------------------
-              @(target):= _pycbf.so
+              @(target):= _py2cbf.so
   ------------------------------------------------*/
 #if PY_VERSION_HEX >= 0x03000000
-#  define SWIG_init    PyInit__pycbf
+#  define SWIG_init    PyInit__py2cbf
 
 #else
-#  define SWIG_init    init_pycbf
+#  define SWIG_init    init_py2cbf
 
 #endif
-#define SWIG_name    "_pycbf"
+#define SWIG_name    "_py2cbf"
 
 #define SWIGVERSION 0x040002 
 #define SWIG_VERSION SWIGVERSION

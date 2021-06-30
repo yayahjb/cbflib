@@ -266,7 +266,7 @@ SRC      = $(ROOT)/src
 INCLUDE  = $(ROOT)/include
 M4       = $(ROOT)/m4
 PY2CBF   = $(ROOT)/py2cbf
-PY3CBF   = $(ROOT)/py3cbf
+PY3CBF   = $(ROOT)/pycbf
 EXAMPLES = $(ROOT)/examples
 TEMPLATES= $(ROOT)/templates
 DECTRIS_EXAMPLES = $(EXAMPLES)/dectris_cbf_template_test
@@ -289,13 +289,15 @@ CBFLIB_DONT_USE_LZ4?=no
 CBFLIB_DONT_USE_BSHUF?=no
 
 
-CBFLIB_DONT_USE_LOCAL_NUWEB?=no
-ifneq ($(CBFLIB_DONT_USE_LOCAL_NUWEB),yes)
+CBFLIB_DONT_USE_LOCAL_NUWEB ?= no
+ifeq ($(CBFLIB_DONT_USE_LOCAL_NUWEB),yes)
+NUWEB=nuweb
+NUWEB_DEP=
+NUWEB_DEP2=
+else
 NUWEB=$(BIN)/nuweb
 NUWEB_DEP=nuweb-1.60
-else
-NUWEB=nuweb
-NUWEB_DEP=system
+NUWEB_DEP2=$(BIN)/nuweb
 endif
 
 
@@ -933,6 +935,26 @@ default:
 	@echo ' '
 	@echo '   $(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(PYCIFRWFLAG)'
 	@echo ' '
+	@echo ' If you have changed any of the nuweb .w input files, you will need'
+	@echo ' need nuweb installed, check that CBFLIB_DONT_USE_LOCAL_NUWEB,'
+	@echo ' and NUWEB are defined correctly :'
+	@echo ' '
+	@echo ' The current values are:'
+	@echo ' '
+	@echo '   CBFLIB_DONT_USE_LOCAL_NUWEB =  $(CBFLIB_DONT_USE_LOCAL_NUWEB)'
+	@echo '   NUWEB = $(NUWEB)'
+	@echo '   NUWEB_DEP = $(NUWEB_DEP)'
+	@echo '   NUWEB_DEP2 = $(NUWEB_DEP2)'
+	@echo ' '
+	@echo ' You will need either a system HDF5 1.12 or it to be installed here.'
+	@echo ' Check that CBFLIB_DONT_USE_LOCAL_HDF5 and HDF5 are defined correctly :'
+	@echo ' '
+	@echo ' The current values are:'
+	@echo ' '
+	@echo '   CBFLIB_DONT_USE_LOCAL_HDF5 = $(CBFLIB_DONT_USE_LOCAL_HDF5)'
+	@echo '   HDF5 = $(HDF5)'
+	@echo '   HDF5_PREFIX = $(HDF5_PREFIX)'
+	@echo ' '
 	@echo ' Before installing the CBF library and example programs, check'
 	@echo ' that the install directory is correct:'
 	@echo ' '
@@ -1370,7 +1392,7 @@ endif
 #
 # NUWEB
 #
-ifneq ($(NUWEB_DEP),system)
+ifneq ($(NUWEB_DEP),')
 $(NUWEB_DEP):
 	-rm -rf $(NUWEB_DEP)
 	-rm -rf $(NUWEB_DEP).tar.gz
@@ -1378,7 +1400,9 @@ $(NUWEB_DEP):
 	tar -xvf $(NUWEB_DEP).tar.gz
 	touch $(NUWEB_DEP)
 	rm $(NUWEB_DEP).tar.gz
-	(cd $(NUWEB_DEP); make nuweb; cp nuweb $(BIN))
+
+$(NUWEB_DEP2): $(NUWEB_DEP)
+	(cd $(NUWEB_DEP); make nuweb; cp nuweb $(NUWEB_DEP2))
 endif
 
 
@@ -1487,7 +1511,7 @@ ifneq ($(MSYS2),yes)
 	rm lz4.o h5zlz4.o)
 else
 	git clone $(LZ4_URL)
-	(cd $(LZ4); mkdir build; cd build; cmake .. -G 'MSYS Makefiles' -DENABLE_LZ4_PLUGIN="yes"; make all; cp plugins/* $(SOLIB))
+	(cd $(LZ4); mkdir build; cd build; cmake .. -G ''MSYS Makefiles' -DENABLE_LZ4_PLUGIN="yes"; make all; cp plugins/* $(SOLIB))
 endif 
 	touch $(LZ4)
 endif
@@ -1679,10 +1703,10 @@ endif
 # Python bindings
 #
 
-$(PY2CBF)/make_pycbf.py:	$(PY2CBF)/make_pycbf.w
+$(PY2CBF)/make_pycbf.py: $(NUWEB_DEP) $(NUWEB_DEP2) $(PY2CBF)/make_pycbf.w
 	(cd $(PY2CBF); $(NUWEB) make_pycbf.w)
 
-$(PY2CBF)/pycbf.i:        $(PY2CBF)/pycbf_i.w
+$(PY2CBF)/pycbf.i: $(NUWEB_DEP) $(NUWEB_DEP2) $(PY2CBF)/pycbf_i.w
 	(cd $(PY2CBF); $(NUWEB) pycbf_i.w)
 
 $(PY2CBF)/py2setup_py.m4   \
@@ -1696,10 +1720,10 @@ $(PY2CBF)/pycbf_test4.py   \
 $(PY2CBF)/pycbf_testfelaxes.py  \
 $(PY2CBF)/xmas/readmarheader.py \
 $(PY2CBF)/xmas/xmasheaders.py   \
-$(PY2CBF)/xmas/xmas_cif_template.cif : $(PY2CBF)/pycbf.w
+$(PY2CBF)/xmas/xmas_cif_template.cif : $(NUWEB_DEP) $(NUWEB_DEP2) $(PY2CBF)/pycbf.w
 	(cd $(PY2CBF); $(NUWEB) pycbf.w )
  
-$(PY2CBF)/_pycbf.$(PY2CBFEXT):	$(PY2CBF)  shared \
+$(PY2CBF)/_py2cbf.$(PY2CBFEXT):	$(PY2CBF)  shared \
 	$(PY2CBF)/py2setup.py                    \
 	$(PY2CBF)/pycbf.i		         \
 	$(PY2CBF)/cbfhandlewrappers.i            \
@@ -1707,7 +1731,7 @@ $(PY2CBF)/_pycbf.$(PY2CBFEXT):	$(PY2CBF)  shared \
 	$(PY2CBF)/cbfgenericwrappers.i           \
 	$(PY2CBF)/cbfgoniometerwrappers.i
 	-cp $(SOLIB)/*.so $(LIB)
-	(cd $(PY2CBF); $(PYTHON2) py2setup.py build $(PY2CBFBOPT); cp build/lib*/_pycbf*.$(PY2CBFEXT) .) 
+	(cd $(PY2CBF); $(PYTHON2) py2setup.py build $(PY2CBFBOPT); cp build/lib*/_py2cbf*.$(PY2CBFEXT) .) 
 
 $(PY2CBF)/py2cbfinstall:
 	(cd $(PY2CBF); $(PYTHON2) $(INSTALLSETUP_PY) install $(PY2CBFIOPT) --prefix=$(CBF_PREFIX))
@@ -1725,11 +1749,11 @@ $(PY2CBF)/py2setup_MINGW.py: $(PY2CBF)/setup_py.m4
 	   -Dregexlibdir=$(REGEX_LIBDIR) -Dhdf5_prefix=$(HDF5_PREFIX) \
 	   $(PY2CBF)/py2setup_py.m4 > $@)
 
-$(LIB)/_pycbf.$(PY2CBFEXT): $(PY2CBF)/_pycbf.$(PY2CBFEXT)
+$(LIB)/_py2cbf.$(PY2CBFEXT): $(PY2CBF)/_py2cbf.$(PY2CBFEXT)
 	mkdir -p $(LIB)
-	cp $(PY2CBF)/_pycbf.$(PY2CBFEXT) $(LIB)/_pycbf.$(PY2CBFEXT)
+	cp $(PY2CBF)/_py2cbf.$(PY2CBFEXT) $(LIB)/_py2cbf.$(PY2CBFEXT)
 	
-$(PY2CBF)/pycbf.pdf: $(PY2CBF)/pycbf.w
+$(PY2CBF)/pycbf.pdf: $(NUWEB_DEP) $(NUWEB_DEP2) $(PY2CBF)/pycbf.w
 	(cd $(PY2CBF); \
 	$(NUWEB) pycbf; \
 	latex pycbf; \
@@ -1744,19 +1768,40 @@ $(PY2CBF)/pycbf.py:	$(PY2CBF)/pycbf.pdf $(PY2CBF)/cbfdetectorwrappers.i \
 			$(PY2CBF)/cbfgenericwrappers.i                   \
 			$(PY2CBF)/cbfgoniometerwrappers.i                \
 			$(PY2CBF)/CBFlib.txt $(PY2CBF)/make_pycbf.py 
-	(cd $(PY2CBF);  $(PYTHON2) make_pycbf.py; $(PYSWIG) pycbf.i;     \
+	(cd $(PY2CBF);  $(PYTHON2) make_pycbf.py; $(PYSWIG) -module py2cbf pycbf.i;     \
 		$(PYTHON2) py2setup.py build; mv pycbf.py rawpycbf.py;   \
-		echo "# coding=utf-8" | cat - rawpycbf.py > pycbf.py)
+		cat rawpycbf.py | sed "s/ _pycbf/ _py2cbf/" > pycbf.py )
 
-$(PY3CBF)/_pycbf.$(PY3CBFEXT): $(PY3CBF)  shared \
-	$(PY3CBF)/$(SETUP_PY)     \
-	$(PY3CBF)/pycbf.i		 \
-	$(PY3CBF)/cbfhandlewrappers.i   \
-	$(PY3CBF)/cbfdetectorwrappers.i \
-	$(PY3CBF)/cbfgenericwrappers.i  \
+$(PY3CBF)/make_pycbf.py: $(NUWEB_DEP) $(NUWEB_DEP2) $(PY3CBF)/make_pycbf.w
+	(cd $(PY3CBF); $(NUWEB) make_pycbf.w)
+
+$(PY3CBF)/pycbf.i: $(NUWEB_DEP) $(NUWEB_DEP2) $(PY3CBF)/pycbf_i.w
+	(cd $(PY3CBF); $(NUWEB) pycbf_i.w)
+
+$(PY3CBF)/py3setup_py.m4   \
+$(PY3CBF)/win32.bat        \
+$(PY3CBF)/linux.sh         \
+$(PY3CBF)/makeflatascii.py \
+$(PY3CBF)/pycbf_test1.py   \
+$(PY3CBF)/pycbf_test2.py   \
+$(PY3CBF)/pycbf_test3.py   \
+$(PY3CBF)/pycbf_test4.py   \
+$(PY3CBF)/pycbf_testfelaxes.py  \
+$(PY3CBF)/xmas/readmarheader.py \
+$(PY3CBF)/xmas/xmasheaders.py   \
+$(PY3CBF)/xmas/xmas_cif_template.cif: $(NUWEB_DEP) $(NUWEB_DEP2) $(PY3CBF)/pycbf.w
+	(cd $(PY3CBF); $(NUWEB) pycbf.w )
+
+
+$(PY3CBF)/_pycbf.$(PY3CBFEXT):	$(PY3CBF)  shared \
+	$(PY3CBF)/py3setup.py                    \
+	$(PY3CBF)/pycbf.i		         \
+	$(PY3CBF)/cbfhandlewrappers.i            \
+	$(PY3CBF)/cbfdetectorwrappers.i          \
+	$(PY3CBF)/cbfgenericwrappers.i           \
 	$(PY3CBF)/cbfgoniometerwrappers.i
 	-cp $(SOLIB)/*.so $(LIB)
-	(cd $(PY3CBF); $(PYTHON3) $(SETUP_PY) build $(PY3CBFBOPT); cp build/lib*/_pycbf*.$(PY3CBFEXT) .) 
+	(cd $(PY3CBF); $(PYTHON3) py3setup.py build $(PY3CBFBOPT); cp build/lib*/_pycbf*.$(PY3CBFEXT) .) 
 
 $(PY3CBF)/py3cbfinstall:
 	(cd $(PY3CBF); $(PYTHON3) $(INSTALLSETUP_PY) install $(PY3CBFIOPT) --prefix=$(CBF_PREFIX))
@@ -1764,21 +1809,21 @@ $(PY3CBF)/py3cbfinstall:
 $(PY3CBF)/py3cbfuserinstall:
 	(cd $(PY3CBF); $(PYTHON3) $(INSTALLSETUP_PY) install $(PY3CBFIOPT) --user)
 
-$(PY3CBF)/setup.py: $(M4)/setup_py.m4
+$(PY3CBF)/py3setup.py: $(PY3CBF)/py3setup_py.m4
 	(m4 -P -Dregexlib=$(REGEX_LIB) -Dregexlib2=$(REGEX_LIB2) \
 	   -Dregexlibdir=$(REGEX_LIBDIR) -Dhdf5_prefix=$(HDF5_PREFIX) \
-	   $(M4)/setup_py.m4 > $@)
+	   $(PY2CBF)/py3setup_py.m4 > $@)
 
-$(PY3CBF)/setup_MINGW.py: m4/setup_py.m4
+$(PY3CBF)/py3setup_MINGW.py: $(PY3CBF)/py3setup_py.m4
 	   (m4 -P -Dregexlib=$(REGEX_LIB) -Dregexlib2=$(REGEX_LIB2) \
 	   -Dregexlibdir=$(REGEX_LIBDIR) -Dhdf5_prefix=$(HDF5_PREFIX) \
-	   $(M4)/setup_py.m4 > $@)
+	   $(PY2CBF)/py3setup_py.m4 > $@)
 
-$(LIB)/_py3cbf.$(PY3CBFEXT): $(PY3CBF)/_pycbf.$(PY3CBFEXT)
+$(LIB)/_pycbf.$(PY3CBFEXT): $(PY3CBF)/_pycbf.$(PY3CBFEXT)
 	mkdir -p $(LIB)
-	cp $(PY3CBF)/_pycbf.$(PY3CBFEXT) $(LIB)/_py3cbf.$(PY3CBFEXT)
+	cp $(PY3CBF)/_pycbf.$(PY3CBFEXT) $(LIB)/_pycbf.$(PY3CBFEXT)
 	
-$(PY3CBF)/pycbf.pdf: $(PY3CBF)/pycbf.w
+$(PY3CBF)/pycbf.pdf: $(NUWEB_DEP) $(NUWEB_DEP2) $(PY3CBF)/pycbf.w
 	(cd $(PY3CBF); \
 	$(NUWEB) pycbf; \
 	latex pycbf; \
@@ -1789,12 +1834,13 @@ $(PY3CBF)/pycbf.pdf: $(PY3CBF)/pycbf.w
 $(PY3CBF)/CBFlib.txt: $(DOC)/CBFlib.html
 	links -dump $(DOC)/CBFlib.html > $(PY3CBF)/CBFlib.txt
 
-$(PY3CBF)/cbfhandlewrappers.i   \
-$(PY3CBF)/cbfdetectorwrappers.i \
-$(PY3CBF)/cbfgenericwrappers.i  \
-$(PY3CBF)/cbfgoniometerwrappers.i:  $(PY3CBF)/CBFlib.txt $(PY3CBF)/make_pycbf.py
-	(cd $(PY3CBF);  $(PYTHON3) make_pycbf.py; $(PYSWIG) -py3 pycbf.i; $(PYTHON3) setup.py build)
-
+$(PY3CBF)/pycbf.py:	$(PY3CBF)/pycbf.pdf $(PY3CBF)/cbfdetectorwrappers.i \
+			$(PY3CBF)/cbfgenericwrappers.i                   \
+			$(PY3CBF)/cbfgoniometerwrappers.i                \
+			$(PY3CBF)/CBFlib.txt $(PY3CBF)/make_pycbf.py 
+	(cd $(PY3CBF);  $(PYTHON3) make_pycbf.py; $(PYSWIG) -py3  pycbf.i;     \
+		$(PYTHON3) py2setup.py build; mv pycbf.py rawpycbf.py;   \
+		echo "# coding=utf-8" | cat - rawpycbf.py > pycbf.py)
 
 #
 # Java bindings
@@ -2605,7 +2651,7 @@ endif
 	#-$(DIFF) XRD1621_I4encbC100.cbf XRD1621_I4encbC100_orig.cbf
 
 	
-py2cbftests:  $(PY2CBF)/_pycbf.$(PY2CBFEXT) $(BIN)/cbf_standardize_numbers $(TESTOUTPUT)
+py2cbftests:  $(PY2CBF)/_py2cbf.$(PY2CBFEXT) $(BIN)/cbf_standardize_numbers $(TESTOUTPUT)
 	($(RTLPEXPORTS) cd $(PY2CBF); $(PYTHON2) $(PY2CBF)/pycbf_test1.py | $(BIN)/cbf_standardize_numbers - 4 > pycbf_test1.out; $(DIFF) pycbf_test1.out $(ROOT)/pycbf_test1_orig.out )
 	($(RTLPEXPORTS) cd $(PY2CBF); $(PYTHON2) $(PY2CBF)/pycbf_test2.py | $(BIN)/cbf_standardize_numbers - 4 > pycbf_test2.out; $(DIFF) pycbf_test2.out $(ROOT)/pycbf_test2_orig.out )
 	($(RTLPEXPORTS) cd $(PY2CBF); $(PYTHON2) $(PY2CBF)/pycbf_test3.py | $(BIN)/cbf_standardize_numbers - 4 > pycbf_test3.out; $(DIFF) pycbf_test3.out $(ROOT)/pycbf_test3_orig.out )
@@ -2614,9 +2660,9 @@ py2cbftests:  $(PY2CBF)/_pycbf.$(PY2CBFEXT) $(BIN)/cbf_standardize_numbers $(TES
 	($(RTLPEXPORTS) cd $(PY2CBF); $(PYTHON2) $(PY2CBF)/pycbf_testfelaxes.py fel_test2.cbf | $(BIN)/cbf_standardize_numbers - 4 > fel_test2.out; $(DIFF) fel_test2.out $(ROOT)/fel_test2_orig.out )
 	($(RTLPEXPORTS) cd $(PY2CBF); $(PYTHON2) $(PY2CBF)/pycbf_testfelaxes.py ../hit-20140306005258847.cbf | $(BIN)/cbf_standardize_numbers - 4 > fel_test3.out; $(DIFF) fel_test3.out $(ROOT)/fel_test3_orig.out )
 
-py2cbfinstall: $(PY2CBF)/_pycbf.$(PY2CBFEXT) $(PY2CBF)/py2cbfinstall
+py2cbfinstall: $(PY2CBF)/_py2cbf.$(PY2CBFEXT) $(PY2CBF)/py2cbfinstall
 
-py2cbfuserinstall: $(PY2CBF)/_pycbf.$(PY2CBFEXT) $(PY2CBF)/py2cbfuserinstall
+py2cbfuserinstall: $(PY2CBF)/_py2cbf.$(PY2CBFEXT) $(PY2CBF)/py2cbfuserinstall
 
 py3cbftests:  $(PY3CBF)/_pycbf.$(PY3CBFEXT) $(BIN)/cbf_standardize_numbers $(TESTOUTPUT)
 	($(RTLPEXPORTS) cd $(PY3CBF); $(PYTHON3) $(PY3CBF)/pycbf_test1.py | $(BIN)/cbf_standardize_numbers - 4 > pycbf_test1.out; $(DIFF) pycbf_test1.out $(ROOT)/pycbf_test1_orig.out )
@@ -2648,7 +2694,7 @@ empty:
 	@-rm -rf $(INCLUDE)/bshuf*
 	@-rm -rf $(INCLUDE)/H5*
 	@-rm -rf $(BIN)/*
-	@-rm -f  $(PY2CBF)/_pycbf.$(PY2CBFEXT)
+	@-rm -f  $(PY2CBF)/_py2cbf.$(PY2CBFEXT)
 	@-rm -rf  $(PY2CBF)/build/*
 	@-rm -f  $(PY2CBF)/newtest1.cbf
 	@-rm -f  $(PY2CBF)/fel_test1.out
