@@ -1,3 +1,4 @@
+
 import pycbf, sys
 from decimal import Decimal, ROUND_HALF_UP
 
@@ -41,5 +42,3 @@ for element in range(64):
         print("    rotation", cbf.get_axis_rotation(cur_axis))
         print("    rotation_axis", cbf.get_axis_rotation_axis(cur_axis))
         cur_axis = cbf.get_axis_depends_on(cur_axis)
-
-

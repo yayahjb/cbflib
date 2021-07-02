@@ -1,8 +1,9 @@
+
 # version of pycbf_test1 with write logic added
 import pycbf
 object = pycbf.cbf_handle_struct()
 newobject = pycbf.cbf_handle_struct()
-object.read_file("../img2cif_packed.cif",pycbf.MSG_DIGEST)
+object.read_file(b"../img2cif_packed.cif",pycbf.MSG_DIGEST)
 object.rewind_datablock()
 print("Found",object.count_datablocks(),"blocks")
 object.select_datablock(0)
@@ -11,7 +12,7 @@ newobject.force_new_datablock(object.datablock_name());
 object.rewind_category()
 categories = object.count_categories()
 for i in range(categories):
-    print("Category:",i, end=' ')
+    print("Category:",i, end= ' ')
     object.select_category(i)
     category_name = object.category_name()
     print("Name:",category_name, end=' ')
@@ -19,17 +20,17 @@ for i in range(categories):
     rows=object.count_rows()
     print("Rows:",rows, end=' ')
     cols = object.count_columns()
-    print("Cols:",cols)
+    print "Cols:",cols
     loop=1
     object.rewind_column()
-    while loop is not 0:
+    while loop==1:
         column_name = object.column_name()
         print("column name \"",column_name,"\"", end=' ')
         newobject.new_column(column_name)
         try:
            object.next_column()
         except:
-           break
+            break
     print()
     for j in range(rows):
         object.select_row(j)
@@ -42,9 +43,9 @@ for i in range(categories):
             object.select_column(k)
             newobject.select_column(k)
             typeofvalue=object.get_typeofvalue()
-            print("type:",typeofvalue)
-            if typeofvalue.find("bnry") > -1:
-                print("Found the binary!!", end=' ')
+            print=("type:",typeofvalue)
+            if typeofvalue.find(b"bnry") > -1:
+                print "Found the binary!!",
                 s=object.get_integerarray_as_string()
                 print(type(s))
                 print(dir(s))
@@ -76,7 +77,7 @@ for i in range(categories):
                   pycbf.CBF_BYTE_OFFSET,binaryid,s,elsize,elsigned,\
                   elements,byteorder,dimfast,dimmid,dimslow,padding)
                 try:
-                   import numpy 
+                   import numpy
                    d = numpy.frombuffer(s,numpy.uint32)
                    # Hard wired Unsigned Int32
                    print(d.shape)
@@ -92,10 +93,10 @@ for i in range(categories):
                 value=object.get_value()
                 newobject.set_value(value)
                 print("Val:",value,i)
-    print()
+    print
 del(object)
 newobject.write_widefile("newtest1.cbf",pycbf.CBF,\
     pycbf.MIME_HEADERS|pycbf.MSG_DIGEST|pycbf.PAD_4K,0)
 #
 print(dir())
-#object.free_handle(handle) 
+#object.free_handle(handle)

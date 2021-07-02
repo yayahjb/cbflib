@@ -1733,10 +1733,10 @@ $(PY2CBF)/_py2cbf.$(PY2CBFEXT):	$(PY2CBF)  shared \
 	-cp $(SOLIB)/*.so $(LIB)
 	(cd $(PY2CBF); $(PYTHON2) py2setup.py build $(PY2CBFBOPT); cp build/lib*/_py2cbf*.$(PY2CBFEXT) .) 
 
-$(PY2CBF)/py2cbfinstall:
+$(PY2CBF)/py2cbfinstall: $(PY2CBF)/pycbf.py
 	(cd $(PY2CBF); $(PYTHON2) $(INSTALLSETUP_PY) install $(PY2CBFIOPT) --prefix=$(CBF_PREFIX))
 
-$(PY2CBF)/py2cbfuserinstall:
+$(PY2CBF)/py2cbfuserinstall: $(PY2CBF)/pycbf.py
 	(cd $(PY2CBF); $(PYTHON2) $(INSTALLSETUP_PY) install $(PY2CBFIOPT) --user)
 
 $(PY2CBF)/py2setup.py: $(PY2CBF)/py2setup_py.m4
@@ -1803,21 +1803,21 @@ $(PY3CBF)/_pycbf.$(PY3CBFEXT):	$(PY3CBF)  shared \
 	-cp $(SOLIB)/*.so $(LIB)
 	(cd $(PY3CBF); $(PYTHON3) py3setup.py build $(PY3CBFBOPT); cp build/lib*/_pycbf*.$(PY3CBFEXT) .) 
 
-$(PY3CBF)/py3cbfinstall:
+$(PY3CBF)/py3cbfinstall: $(PY3CBF)/pycbf.py
 	(cd $(PY3CBF); $(PYTHON3) $(INSTALLSETUP_PY) install $(PY3CBFIOPT) --prefix=$(CBF_PREFIX))
 
-$(PY3CBF)/py3cbfuserinstall:
+$(PY3CBF)/py3cbfuserinstall: $(PY3CBF)/pycbf.py
 	(cd $(PY3CBF); $(PYTHON3) $(INSTALLSETUP_PY) install $(PY3CBFIOPT) --user)
 
 $(PY3CBF)/py3setup.py: $(PY3CBF)/py3setup_py.m4
 	(m4 -P -Dregexlib=$(REGEX_LIB) -Dregexlib2=$(REGEX_LIB2) \
 	   -Dregexlibdir=$(REGEX_LIBDIR) -Dhdf5_prefix=$(HDF5_PREFIX) \
-	   $(PY2CBF)/py3setup_py.m4 > $@)
+	   $(PY3CBF)/py3setup_py.m4 > $@)
 
 $(PY3CBF)/py3setup_MINGW.py: $(PY3CBF)/py3setup_py.m4
 	   (m4 -P -Dregexlib=$(REGEX_LIB) -Dregexlib2=$(REGEX_LIB2) \
 	   -Dregexlibdir=$(REGEX_LIBDIR) -Dhdf5_prefix=$(HDF5_PREFIX) \
-	   $(PY2CBF)/py3setup_py.m4 > $@)
+	   $(PY3CBF)/py3setup_py.m4 > $@)
 
 $(LIB)/_pycbf.$(PY3CBFEXT): $(PY3CBF)/_pycbf.$(PY3CBFEXT)
 	mkdir -p $(LIB)
@@ -1838,8 +1838,8 @@ $(PY3CBF)/pycbf.py:	$(PY3CBF)/pycbf.pdf $(PY3CBF)/cbfdetectorwrappers.i \
 			$(PY3CBF)/cbfgenericwrappers.i                   \
 			$(PY3CBF)/cbfgoniometerwrappers.i                \
 			$(PY3CBF)/CBFlib.txt $(PY3CBF)/make_pycbf.py 
-	(cd $(PY3CBF);  $(PYTHON3) make_pycbf.py; $(PYSWIG) -py3  pycbf.i;     \
-		$(PYTHON3) py2setup.py build; mv pycbf.py rawpycbf.py;   \
+	(cd $(PY3CBF);  $(PYTHON3) make_pycbf.py; $(PYSWIG) pycbf.i;     \
+		$(PYTHON3) py3setup.py build; mv pycbf.py rawpycbf.py;   \
 		echo "# coding=utf-8" | cat - rawpycbf.py > pycbf.py)
 
 #
