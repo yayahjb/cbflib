@@ -20,7 +20,7 @@ for i in range(categories):
     rows=object.count_rows()
     print("Rows:",rows, end=' ')
     cols = object.count_columns()
-    print "Cols:",cols
+    print("Cols:",cols)
     loop=1
     object.rewind_column()
     while loop==1:
@@ -43,9 +43,9 @@ for i in range(categories):
             object.select_column(k)
             newobject.select_column(k)
             typeofvalue=object.get_typeofvalue()
-            print=("type:",typeofvalue)
+            print("type:",typeofvalue)
             if typeofvalue.find(b"bnry") > -1:
-                print "Found the binary!!",
+                print("Found the binary!!",end=' ')
                 s=object.get_integerarray_as_string()
                 print(type(s))
                 print(dir(s))
@@ -81,8 +81,8 @@ for i in range(categories):
                    d = numpy.frombuffer(s,numpy.uint32)
                    # Hard wired Unsigned Int32
                    print(d.shape)
-                   print(d[0:10],d[d.shape[0]/2],d[-1])
-                   print(d[d.shape[0]/3:d.shape[0]/3+20])
+                   print(d[0:10],d[int(d.shape[0]/2)],d[len(d)-1])
+                   print(d[int(d.shape[0]/3):int(d.shape[0]/3+20)])
                    d=numpy.reshape(d,(2300,2300))
 #                   from matplotlib import pylab
 #                   pylab.imshow(d,vmin=0,vmax=1000)
@@ -93,9 +93,9 @@ for i in range(categories):
                 value=object.get_value()
                 newobject.set_value(value)
                 print("Val:",value,i)
-    print
+    print()
 del(object)
-newobject.write_widefile("newtest1.cbf",pycbf.CBF,\
+newobject.write_widefile(b"newtest1.cbf",pycbf.CBF,\
     pycbf.MIME_HEADERS|pycbf.MSG_DIGEST|pycbf.PAD_4K,0)
 #
 print(dir())

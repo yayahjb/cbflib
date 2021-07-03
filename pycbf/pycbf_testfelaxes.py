@@ -2,7 +2,7 @@
 import pycbf, sys
 from decimal import Decimal, ROUND_HALF_UP
 
-image_file = sys.argv[1]
+image_file = bytes(sys.argv[1],'utf-8')
 
 cbf = pycbf.cbf_handle_struct()
 cbf.read_widefile(image_file, pycbf.MSG_DIGEST)

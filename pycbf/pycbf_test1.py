@@ -30,6 +30,7 @@ for i in range(categories):
     for j in range(rows):
         object.select_row(j)
         object.rewind_column()
+        if j==0: print()
         print("row:",j)
         for k in range(cols):
             name=object.column_name()
@@ -48,8 +49,8 @@ for i in range(categories):
                    d = numpy.frombuffer(bytes(s),numpy.uint32)
                    # Hard wired Unsigned Int32
                    print(d.shape)
-                   print(d[0:10],d[d.shape[0]/2],d[-1])
-                   print(d[d.shape[0]/3:d.shape[0]/3+20])
+                   print(d[0:10],d[int(d.shape[0]/2)],d[len(d)-1])
+                   print(d[int(d.shape[0]/3):int(d.shape[0]/3+20)])
                    d=numpy.reshape(d,(2300,2300))
 #                   from matplotlib import pylab
 #                   pylab.imshow(d,vmin=0,vmax=1000)

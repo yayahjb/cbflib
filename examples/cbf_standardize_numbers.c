@@ -40,6 +40,7 @@ int main (int argc, char ** argv) {
     int termc;
     int numcomp;
     int spacestarted;
+    int baposstarted;
     int digits = 6;
     double number, anumber, ascale, fpart;
     CBF_UNUSED( bracket );
@@ -65,10 +66,23 @@ int main (int argc, char ** argv) {
         bracket = '\0';
         termc = '\0';
         spacestarted = 1;
+        baposstarted = 0;
         numcomp = 0;
         while(lineln) {
             c = *line;
             c &= 0xFF;
+            if ( c == 'b' && line[1] == '\'' ) {
+              baposstarted = 1;
+              lineln -= 2;
+              line += 2;
+              continue;
+            } 
+            if( c == '\'' && baposstarted ) {
+              baposstarted = 0;
+              lineln--;
+              line++;
+              continue;
+            }
             if (isspace(c) || c == '[' || c == '(' || c == '{') {
                 bracket = c;
                 lineln--;

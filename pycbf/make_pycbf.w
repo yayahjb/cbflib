@@ -66,11 +66,11 @@
 The program that does the conversion from CBFlib.txt to the SWIG
 input files is a python script named make\_pycbf.py.
 
-@O make_pycbf.py
+@o make_pycbf.py -i -t
 @{
-print "\\begin{verbatim}"
-print "This output comes from make_pycbf.py which generates the wrappers"
-print "pycbf Copyright (C) 2005  Jonathan Wright, no warranty, LGPL"
+print("\\begin{verbatim}")
+print("This output comes from make_pycbf.py which generates the wrappers")
+print("pycbf Copyright (C) 2005  Jonathan Wright, no warranty, LGPL")
 
 
 ######################################################################
@@ -153,12 +153,12 @@ while i<len(lines)-1:
    if line.find("int cbf_")>=0: # We found a function
       # keep going up to DESCRIPTION
       prototypes+=""+lines[i].rstrip()+" "
-      # print lines[i].rstrip()
+      # print(lines[i].rstrip())
       check=0
       while lines[i+1].find("DESCRIPTION")==-1 and lines[i+1].find("int cbf_")==-1:
          i=i+1
          prototypes+=lines[i].rstrip()+" " # lose the \n
-         # print lines[i].rstrip()
+         # print(lines[i].rstrip())
          check+=1
          if check>50:
             raise Exception("Runaway prototype "+prototypes)
@@ -186,16 +186,16 @@ while i<len(lines)-1:
             line.find("________")>=0 or \
             line.find("--------")>=0:
          if len(docstring)>0:
-            # print "Prototypes: ",prototypes
+            # print("Prototypes: ",prototypes)
             docstring = docstring.replace("\"", " \\\"") # escape the quotes
             for prototype in prototypes.strip().split(";")[:-1]:
                 name = prototype.split("(")[0].strip()
                 cname = name.split()[1].strip()
                 prototype = prototype.strip()+";"
                 name_dict[cname]=[prototype,docstring]
-                # print "Prototype: ","::",cname,"::",name,"::", prototype
+                # print("Prototype: ","::",cname,"::",name,"::", prototype)
             prototypes = ""
-            # print "Found ",prototype
+            # print("Found ",prototype)
             docstring="\n"
             prototype=""
             cname=""
@@ -283,7 +283,7 @@ cbfhandle_specials = {
         }
 ""","get_integerarrayparameters",[],["int compression","int binary_id", 
      "int elsize", "int elsigned", "int elunsigned", 
-     "int elements", "int minelement", "int maxelement"]],
+     "int elements", "int minelement", "int maxelement"],],
 
 
 "cbf_get_integerarrayparameters_wdims":["""
@@ -323,7 +323,7 @@ cbfhandle_specials = {
 ""","get_integerarrayparameters_wdims",[],["int compression","int binary_id", 
      "int elsize", "int elsigned", "int elunsigned", 
      "int elements", "int minelement", "int maxelement", "char **bo", "int *bolen",
-     "int dimfast", "int dimmid", "int dimslow", "int padding"]],
+     "int dimfast", "int dimmid", "int dimslow", "int padding"],],
 
 
 "cbf_get_integerarrayparameters_wdims_fs":["""
@@ -363,7 +363,7 @@ cbfhandle_specials = {
 ""","get_integerarrayparameters_wdims_fs",[],["int compression","int binary_id", 
      "int elsize", "int elsigned", "int elunsigned", 
      "int elements", "int minelement", "int maxelement", "char **bo", "int *bolen",
-      "int dimfast", "int dimmid", "int dimslow", "int padding"]],
+      "int dimfast", "int dimmid", "int dimslow", "int padding"],],
 
 
 "cbf_get_integerarrayparameters_wdims_sf":["""
@@ -403,7 +403,7 @@ cbfhandle_specials = {
 ""","get_integerarrayparameters_wdims_sf",[],["int compression","int binary_id", 
      "int elsize", "int elsigned", "int elunsigned", 
      "int elements", "int minelement", "int maxelement", "char **bo", "int *bolen",
-      "int dimslow", "int dimmid", "int dimfast", "int padding"]],
+      "int dimslow", "int dimmid", "int dimfast", "int padding"],],
 
 
 "cbf_get_realarrayparameters":["""
@@ -422,7 +422,7 @@ cbfhandle_specials = {
         *elements = elem;
         }
 ""","get_realarrayparameters",[],["int compression","int binary_id", 
-     "int elsize", "int elements"]],
+     "int elsize", "int elements"],],
 
 
 "cbf_get_realarrayparameters_wdims":["""
@@ -462,7 +462,7 @@ cbfhandle_specials = {
 ""","get_realarrayparameters_wdims",[],["int compression","int binary_id", 
      "int elsize", 
      "int elements", "char **bo", "int *bolen",
-     "int dimfast", "int dimmid", "int dimslow", "int padding"]],
+     "int dimfast", "int dimmid", "int dimslow", "int padding"],],
 
 
 "cbf_get_realarrayparameters_wdims_fs":["""
@@ -502,7 +502,7 @@ cbfhandle_specials = {
 ""","get_realarrayparameters_wdims_fs",[],["int compression","int binary_id", 
      "int elsize", 
      "int elements", "char **bo", "int *bolen",
-      "int dimfast", "int dimmid", "int dimslow", "int padding"]],
+      "int dimfast", "int dimmid", "int dimslow", "int padding"],],
 
 
 "cbf_get_realarrayparameters_wdims_sf":["""
@@ -542,7 +542,7 @@ cbfhandle_specials = {
 ""","get_realarrayparameters_wdims_sf",[],["int compression","int binary_id", 
      "int elsize", 
      "int elements", "char **bo", "int *bolen",
-      "int dimslow", "int dimmid", "int dimfast", "int padding"]],
+      "int dimslow", "int dimmid", "int dimfast", "int padding"],],
 
 
 "cbf_get_integerarray":["""
@@ -550,7 +550,9 @@ cbfhandle_specials = {
 
 %cstring_output_allocate_size(char ** s, int *slen, free(*$1))
        get_integerarray_as_string;
-
+%{
+#define SWIG_PYTHON_STRICT_BYTE_CHAR
+%}
 // Get the length correct
 
     void get_integerarray_as_string(char **s, int *slen){
@@ -578,13 +580,13 @@ cbfhandle_specials = {
       }
 ""","get_integerarray_as_string",[],["(Binary)String"] ],
 
-
 "cbf_get_image":["""
 // Ensure we free the local temporary
-
+%{
+#define SWIG_PYTHON_STRICT_BYTE_CHAR
+%}
 %cstring_output_allocate_size(char ** s, int *slen, free(*$1))
        get_image_as_string;
-
 // Get the length correct
 
     void get_image_as_string(int element_number, char **s, int *slen,
@@ -609,10 +611,11 @@ cbfhandle_specials = {
 
 "cbf_get_image_fs":["""
 // Ensure we free the local temporary
-
+%{
+#define SWIG_PYTHON_STRICT_BYTE_CHAR
+%}
 %cstring_output_allocate_size(char ** s, int *slen, free(*$1))
        get_image_fs_as_string;
-
 // Get the length correct
 
     void get_image_fs_as_string(int element_number, char **s, int *slen,
@@ -637,10 +640,11 @@ cbfhandle_specials = {
 
 "cbf_get_image_sf":["""
 // Ensure we free the local temporary
-
+%{
+#define SWIG_PYTHON_STRICT_BYTE_CHAR
+%}
 %cstring_output_allocate_size(char ** s, int *slen, free(*$1))
        get_image_fs_as_string;
-
 // Get the length correct
 
     void get_image_sf_as_string(int element_number, char **s, int *slen,
@@ -665,10 +669,11 @@ cbfhandle_specials = {
 
 "cbf_get_real_image":["""
 // Ensure we free the local temporary
-
+%{
+#define SWIG_PYTHON_STRICT_BYTE_CHAR
+%}
 %cstring_output_allocate_size(char ** s, int *slen, free(*$1))
        get_real_image_as_string;
-
 // Get the length correct
 
     void get_real_image_as_string(int element_number, char **s, int *slen,
@@ -693,10 +698,11 @@ cbfhandle_specials = {
 
 "cbf_get_real_image_fs":["""
 // Ensure we free the local temporary
-
+%{
+#define SWIG_PYTHON_STRICT_BYTE_CHAR
+%}
 %cstring_output_allocate_size(char ** s, int *slen, free(*$1))
        get_real_image_fs_as_string;
-
 // Get the length correct
 
     void get_real_image_fs_as_string(int element_number, char **s, int *slen,
@@ -721,10 +727,11 @@ cbfhandle_specials = {
 
 "cbf_get_real_image_sf":["""
 // Ensure we free the local temporary
-
+%{
+#define SWIG_PYTHON_STRICT_BYTE_CHAR
+%}
 %cstring_output_allocate_size(char ** s, int *slen, free(*$1))
        get_real_image_sf_as_string;
-
 // Get the length correct
 
     void get_real_image_sf_as_string(int element_number, char **s, int *slen,
@@ -749,10 +756,11 @@ cbfhandle_specials = {
 
 "cbf_get_3d_image":["""
 // Ensure we free the local temporary
-
+%{
+#define SWIG_PYTHON_STRICT_BYTE_CHAR
+%}
 %cstring_output_allocate_size(char ** s, int *slen, free(*$1))
        get_3d_image_as_string;
-
 // Get the length correct
 
     void get_3d_image_as_string(int element_number, char **s, int *slen,
@@ -777,10 +785,11 @@ cbfhandle_specials = {
 
 "cbf_get_3d_image_fs":["""
 // Ensure we free the local temporary
-
+%{
+#define SWIG_PYTHON_STRICT_BYTE_CHAR
+%}
 %cstring_output_allocate_size(char ** s, int *slen, free(*$1))
        get_3d_image_fs_as_string;
-
 // Get the length correct
 
     void get_3d_image_fs_as_string(int element_number, char **s, int *slen,
@@ -805,9 +814,11 @@ cbfhandle_specials = {
 
 "cbf_get_3d_image_sf":["""
 // Ensure we free the local temporary
-
 %cstring_output_allocate_size(char ** s, int *slen, free(*$1))
        get_3d_image_sf_as_string;
+%{
+#define SWIG_PYTHON_STRICT_BYTE_CHAR
+%}
 
 // Get the length correct
 
@@ -833,9 +844,11 @@ cbfhandle_specials = {
 
 "cbf_get_real_3d_image":["""
 // Ensure we free the local temporary
-
 %cstring_output_allocate_size(char ** s, int *slen, free(*$1))
        get_real_3d_image_as_string;
+%{
+#define SWIG_PYTHON_STRICT_BYTE_CHAR
+%}
 
 // Get the length correct
 
@@ -861,10 +874,11 @@ cbfhandle_specials = {
 
 "cbf_get_real_3d_image_fs":["""
 // Ensure we free the local temporary
-
+%{
+#define SWIG_PYTHON_STRICT_BYTE_CHAR
+%}
 %cstring_output_allocate_size(char ** s, int *slen, free(*$1))
        get_real_3d_image_fs_as_string;
-
 // Get the length correct
 
     void get_real_3d_image_fs_as_string(int element_number, char **s, int *slen,
@@ -888,7 +902,9 @@ cbfhandle_specials = {
 
 "cbf_get_real_3d_image_sf":["""
 // Ensure we free the local temporary
-
+%{
+#define SWIG_PYTHON_STRICT_BYTE_CHAR
+%}
 %cstring_output_allocate_size(char ** s, int *slen, free(*$1))
        get_real_3d_image_sf_as_string;
 
@@ -916,10 +932,11 @@ cbfhandle_specials = {
 
 "cbf_get_realarray":["""
 // Ensure we free the local temporary
-
+%{
+#define SWIG_PYTHON_STRICT_BYTE_CHAR
+%}
 %cstring_output_allocate_size(char ** s, int *slen, free(*$1))
        get_realarray_as_string;
-
 // Get the length correct
 
     void get_realarray_as_string(char **s, int *slen){
@@ -970,7 +987,7 @@ cbfhandle_specials = {
     }
 ""","set_integerarray",
 [ "int compression", "int binary_id","(binary) String data", 
- "int elsize", "int elsigned","int elements"],[]],
+ "int elsize", "int elsigned","int elements"],[],],
 
 
 "cbf_set_integerarray_wdims":["""
@@ -1003,7 +1020,7 @@ cbfhandle_specials = {
     }
 ""","set_integerarray_wdims",
 [ "int compression", "int binary_id","(binary) String data", 
- "int elsize", "int elsigned", "int elements", "String byteorder", "int dimfast", "int dimmid", "int dimslow", "int padding"],[]],
+ "int elsize", "int elsigned", "int elements", "String byteorder", "int dimfast", "int dimmid", "int dimslow", "int padding"],[],],
 
 
 "cbf_set_integerarray_wdims_sf":["""
@@ -1036,7 +1053,7 @@ cbfhandle_specials = {
     }
 ""","set_integerarray_wdims_sf",
 [ "int compression", "int binary_id","(binary) String data", 
- "int elsize","int elsigned","int elements", "String byteorder", "int dimslow", "int dimmid", "int dimfast", "int padding"],[]],
+ "int elsize","int elsigned","int elements", "String byteorder", "int dimslow", "int dimmid", "int dimfast", "int padding"],[],],
 
 "cbf_set_integerarray_wdims_fs":["""
     /* CBFlib must NOT modify the data string nor the byteorder string
@@ -1068,7 +1085,7 @@ cbfhandle_specials = {
     }
 ""","set_integerarray_wdims_fs",
 [ "int compression", "int binary_id","(binary) String data", 
- "int elsize","int elsigned","int elements", "String byteorder", "int dimfast", "int dimmid", "int dimslow", "int padding"],[]],
+ "int elsize","int elsigned","int elements", "String byteorder", "int dimfast", "int dimmid", "int dimslow", "int padding"],[],],
 
 
 "cbf_set_realarray":["""
@@ -1094,7 +1111,7 @@ cbfhandle_specials = {
     }
 ""","set_realarray",
 [ "int compression", "int binary_id","(binary) String data", 
- "int elsize","int elements"],[]],
+ "int elsize","int elements"],[],],
 
 
 "cbf_set_realarray_wdims":["""
@@ -1127,7 +1144,7 @@ cbfhandle_specials = {
     }
 ""","set_realarray_wdims",
 [ "int compression", "int binary_id","(binary) String data", 
- "int elsize","int elements", "String byteorder", "int dimfast", "int dimmid", "int dimslow", "int padding"],[]],
+ "int elsize","int elements", "String byteorder", "int dimfast", "int dimmid", "int dimslow", "int padding"],[],],
 
 
 "cbf_set_realarray_wdims_sf":["""
@@ -1160,7 +1177,7 @@ cbfhandle_specials = {
     }
 ""","set_realarray_wdims_sf",
 [ "int compression", "int binary_id","(binary) String data", 
- "int elsize","int elements", "String byteorder", "int dimslow", "int dimmid", "int dimfast", "int padding"],[]],
+ "int elsize","int elements", "String byteorder", "int dimslow", "int dimmid", "int dimfast", "int padding"],[],],
 
 
 "cbf_set_realarray_wdims_fs":["""
@@ -1193,7 +1210,7 @@ cbfhandle_specials = {
     }
 ""","set_realarray_wdims_fs",
 [ "int compression", "int binary_id","(binary) String data", 
- "int elsize","int elements", "String byteorder", "int dimfast", "int dimmid", "int dimslow", "int padding"],[]],
+ "int elsize","int elements", "String byteorder", "int dimfast", "int dimmid", "int dimslow", "int padding"],[],],
 
 
 "cbf_set_image":["""
@@ -1221,7 +1238,7 @@ cbfhandle_specials = {
     }
 ""","set_image",
 [ "int element_number","int compression","(binary) String data", 
- "int elsize", "int elsign", "int dimslow", "int dimfast"],[]],
+ "int elsize", "int elsign", "int dimslow", "int dimfast"],[],],
 
 
 "cbf_set_image_fs":["""
@@ -1249,7 +1266,7 @@ cbfhandle_specials = {
     }
 ""","set_image_fs",
 [ "int element_number","int compression","(binary) String data", 
- "int elsize", "int elsign", "int dimfast", "int dimslow"],[]],
+ "int elsize", "int elsign", "int dimfast", "int dimslow"],[],],
 
 
 "cbf_set_image_sf":["""
@@ -1277,7 +1294,7 @@ cbfhandle_specials = {
     }
 ""","set_image_sf",
 [ "int element_number","int compression","(binary) String data", 
- "int elsize", "int elsign", "int dimslow", "int dimfast"],[]],
+ "int elsize", "int elsign", "int dimslow", "int dimfast"],[],],
 
 
 "cbf_set_real_image":["""
@@ -1305,7 +1322,7 @@ cbfhandle_specials = {
     }
 ""","set_real_image",
 [ "int element_number","int compression","(binary) String data", 
- "int elsize", "int dimslow", "int dimfast"],[]],
+ "int elsize", "int dimslow", "int dimfast"],[],],
 
 
 "cbf_set_real_image_fs":["""
@@ -1333,7 +1350,7 @@ cbfhandle_specials = {
     }
 ""","set_real_image_fs",
 [ "int element_number","int compression","(binary) String data", 
- "int elsize", "int dimfast", "int dimslow"],[]],
+ "int elsize", "int dimfast", "int dimslow"],[],],
 
 
 "cbf_set_real_image_sf":["""
@@ -1361,7 +1378,7 @@ cbfhandle_specials = {
     }
 ""","set_real_image_sf",
 [ "int element_number","int compression","(binary) String data", 
- "int elsize", "int dimslow", "int dimfast"],[]],
+ "int elsize", "int dimslow", "int dimfast"],[],],
 
 
 "cbf_set_3d_image":["""
@@ -1389,7 +1406,7 @@ cbfhandle_specials = {
     }
 ""","set_3d_image",
 [ "int element_number","int compression","(binary) String data", 
- "int elsize", "int elsign", "int dimslow", "int dimmid", "int dimfast"],[]],
+ "int elsize", "int elsign", "int dimslow", "int dimmid", "int dimfast"],[],],
 
 
 "cbf_set_3d_image_fs":["""
@@ -1417,7 +1434,7 @@ cbfhandle_specials = {
     }
 ""","set_3d_image_fs",
 [ "int element_number","int compression","(binary) String data", 
- "int elsize", "int elsign", "int dimfast", "int dimmid", "int dimslow"],[]],
+ "int elsize", "int elsign", "int dimfast", "int dimmid", "int dimslow"],[],],
 
 
 "cbf_set_3d_image_sf":["""
@@ -1445,7 +1462,7 @@ cbfhandle_specials = {
     }
 ""","set_3d_image_sf",
 [ "int element_number","int compression","(binary) String data", 
- "int elsize", "int elsign", "int dimslow", "int dimmid", "int dimfast"],[]],
+ "int elsize", "int elsign", "int dimslow", "int dimmid", "int dimfast"],[],],
 
 
 "cbf_set_real_3d_image":["""
@@ -1473,7 +1490,7 @@ cbfhandle_specials = {
     }
 ""","set_real_3d_image",
 [ "int element_number","int compression","(binary) String data", 
- "int elsize", "int dimslow", "int dimmid", "int dimfast"],[]],
+ "int elsize", "int dimslow", "int dimmid", "int dimfast"],[],],
 
 
 "cbf_set_real_3d_image_fs":["""
@@ -1501,7 +1518,7 @@ cbfhandle_specials = {
     }
 ""","set_real_3d_image_fs",
 [ "int element_number","int compression","(binary) String data", 
- "int elsize", "int dimfast", "int dimmid", "int dimslow"],[]],
+ "int elsize", "int dimfast", "int dimmid", "int dimslow"],[],],
 
 
 "cbf_set_real_3d_image_sf":["""
@@ -1529,7 +1546,7 @@ cbfhandle_specials = {
     }
 ""","set_real_3d_image_sf",
 [ "int element_number","int compression","(binary) String data", 
- "int elsize", "int dimslow", "int dimmid", "int dimfast"],[]],
+ "int elsize", "int dimslow", "int dimmid", "int dimfast"],[],],
 
 
 "cbf_get_image_size": ["""
@@ -1542,7 +1559,7 @@ cbfhandle_specials = {
         *ndimslow = (int)inslow;
         *ndimfast = (int)infast; 
         }
-""","get_image_size",["Integer element_number"],["size_t ndim1","size_t ndim2"]],
+""","get_image_size",["Integer element_number"],["size_t ndim1","size_t ndim2"],],
 
 
 "cbf_get_image_size_fs": ["""
@@ -1555,7 +1572,7 @@ cbfhandle_specials = {
         *ndimfast = (int)infast; /* FIXME - is that how to convert? */
         *ndimslow = (int)inslow; 
         }
-""","get_image_size_fs",["Integer element_number"],["size_t ndimfast","size_t ndimslow"]],
+""","get_image_size_fs",["Integer element_number"],["size_t ndimfast","size_t ndimslow"],],
 
 
 "cbf_get_image_size_sf": ["""
@@ -1568,7 +1585,7 @@ cbfhandle_specials = {
         *ndimslow = (int)inslow;
         *ndimfast = (int)infast; 
         }
-""","get_image_size_sf",["Integer element_number"],["size_t ndimslow","size_t ndimfast"]],
+""","get_image_size_sf",["Integer element_number"],["size_t ndimslow","size_t ndimfast"],],
 
 
 "cbf_get_3d_image_size": ["""
@@ -1582,7 +1599,7 @@ cbfhandle_specials = {
         *ndimmid = (int)inmid; 
         *ndimfast = (int)infast;
         }
-""","get_3d_image_size",["Integer element_number"],["size_t ndimslow","size_t ndimmid","size_t ndimfast"]],
+""","get_3d_image_size",["Integer element_number"],["size_t ndimslow","size_t ndimmid","size_t ndimfast"],],
 
 
 "cbf_get_3d_image_size_fs": ["""
@@ -1596,7 +1613,7 @@ cbfhandle_specials = {
         *ndimmid = (int)inmid; 
         *ndimfast = (int)infast;
         }
-""","get_3d_image_size",["Integer element_number"],["size_t ndimfast","size_t ndimmid","size_t ndimslow"]],
+""","get_3d_image_size",["Integer element_number"],["size_t ndimfast","size_t ndimmid","size_t ndimslow"],],
 
 
 "cbf_get_3d_image_size_sf": ["""
@@ -1610,7 +1627,7 @@ cbfhandle_specials = {
         *ndimmid = (int)inmid; 
         *ndimfast = (int)infast;
         }
-""","get_3d_image_size_sf",["Integer element_number"],["size_t ndimslow","size_t ndimmid","size_t ndimfast"]],
+""","get_3d_image_size_sf",["Integer element_number"],["size_t ndimslow","size_t ndimmid","size_t ndimfast"],],
 
 
 "cbf_get_pixel_size" : ["""
@@ -1661,7 +1678,7 @@ cbfhandle_specials = {
                                         psize));
      }
 ""","set_pixel_size",
-   ["Int element_number","Int axis_number","Float pixel size"],[]],
+   ["Int element_number","Int axis_number","Float pixel size"],[],],
 
 
 "cbf_set_pixel_size_fs":["""
@@ -1673,7 +1690,7 @@ cbfhandle_specials = {
                                         psize));
      }
 ""","set_pixel_size_fs",
-   ["Int element_number","Int axis_number","Float pixel size"],[]],
+   ["Int element_number","Int axis_number","Float pixel size"],[],],
 
 
 "cbf_set_pixel_size_sf":["""
@@ -1685,18 +1702,17 @@ cbfhandle_specials = {
                                         psize));
      }
 ""","set_pixel_size_sf",
-   ["Int element_number","Int axis_number","Float pixel size"],[]],
+   ["Int element_number","Int axis_number","Float pixel size"],[],],
 
 
 "cbf_write_file" : ["""
-    void write_file(const char* filename, int ciforcbf, int headers, 
+    void write_file(char* filename, int ciforcbf, int headers, 
                     int encoding){
        FILE *stream;
        int readable;
        /* Make readable false so we can close the file immediately */
        readable = 0;
        if ( ! ( stream = fopen (filename, "w+b")) ){
-         fprintf(stderr,"Failed to open '%s'\n",filename);
          cbf_failnez(CBF_FILEOPEN);
         }
         else{
@@ -1706,18 +1722,17 @@ cbfhandle_specials = {
         }
        }
 ""","write_file",["String filename","Integer ciforcbf","Integer Headers", 
-                  "Integer encoding"],[]],
+                  "Integer encoding"],[],],
 
 
 "cbf_write_widefile" : ["""
-    void write_widefile(const char* filename, int ciforcbf, int headers, 
+    void write_widefile(char* filename, int ciforcbf, int headers, 
                     int encoding){
        FILE *stream;
        int readable;
        /* Make readable false so we can close the file immediately */
        readable = 0;
        if ( ! ( stream = fopen (filename, "w+b")) ){
-         fprintf(stderr,"Failed to open '%s'\n",filename);
          cbf_failnez(CBF_FILEOPEN);
         }
         else{
@@ -1728,62 +1743,59 @@ cbfhandle_specials = {
         }
        }
 ""","write_widefile",["String filename","Integer ciforcbf","Integer Headers", 
-                  "Integer encoding"],[]],
+                  "Integer encoding"],[],],
 
 
 "cbf_read_template":["""
-    void read_template(const char* filename){
+    void read_template(char* filename){
        /* CBFlib needs a stream that will remain open 
         hence DO NOT open from python */
        FILE *stream;
        if ( ! ( stream = fopen (filename, "rb")) ){
-         fprintf(stderr,"Failed to open '%s'\n",filename);
          cbf_failnez(CBF_FILEOPEN);
         }
         else{
         cbf_failnez(cbf_read_template (self, stream)); }
     }
 
-""","read_template",["String filename"],[]],
+""","read_template",["String filename"],[],],
 
 
 "cbf_read_file" : ["""
-    void read_file(const char* filename, int headers){
+    void read_file(char* filename, int headers){
        /* CBFlib needs a stream that will remain open 
           hence DO NOT open from python */
        FILE *stream;
        if ( ! ( stream = fopen (filename, "rb")) ){
-         fprintf(stderr,"Failed to open '%s'\n",filename);
          cbf_failnez(CBF_FILEOPEN);
         }
         else{
          cbf_failnez(cbf_read_file(self, stream, headers)); 
     }
        }
-""","read_file",["String filename","Integer headers"],[]],
+""","read_file",["String filename","Integer headers"],[],],
 
 
 
 "cbf_read_widefile" : ["""
-    void read_widefile(const char* filename, int headers){
+    void read_widefile(char* filename, int headers){
        /* CBFlib needs a stream that will remain open 
           hence DO NOT open from python */
        FILE *stream;
        if ( ! ( stream = fopen (filename, "rb")) ){
-         fprintf(stderr,"Failed to open '%s'\n",filename);
          cbf_failnez(CBF_FILEOPEN);
         }
         else{
          cbf_failnez(cbf_read_widefile(self, stream, headers)); 
     }
        }
-""","read_widefile",["String filename","Integer headers"],[]],
+""","read_widefile",["String filename","Integer headers"],[],],
 
 
 "cbf_set_doublevalue":["""
      void set_doublevalue(const char *format, double number){
         cbf_failnez(cbf_set_doublevalue(self,format,number));}
-""","set_doublevalue",["String format","Float number"],[]],
+""","set_doublevalue",["String format","Float number"],[],],
 
 
 "cbf_require_integervalue":["""
@@ -1794,7 +1806,7 @@ cbfhandle_specials = {
      cbf_failnez(cbf_require_integervalue(self,number,thedefault));
 
      }
-""","require_integervalue", ["Int thedefault"],["Int number"]],
+""","require_integervalue", ["Int thedefault"],["Int number"],],
 
 
 "cbf_require_doublevalue":["""
@@ -1802,7 +1814,7 @@ cbfhandle_specials = {
 void require_doublevalue(double *number, double defaultvalue){
    cbf_failnez(cbf_require_doublevalue(self,number,defaultvalue));
 }
-""","require_doublevalue",["Float Default"],["Float Number"]],
+""","require_doublevalue",["Float Default"],["Float Number"],],
 
 
 "cbf_require_column_value":["""
@@ -1814,7 +1826,7 @@ void require_doublevalue(double *number, double defaultvalue){
    return result;
 }
 ""","require_column_value",
-    ["String columnnanme","String Default"],["String Name"]],
+    ["String columnnanme","String Default"],["String Name"],],
 
 
 "cbf_require_column_doublevalue":["""
@@ -1825,7 +1837,7 @@ void require_column_doublevalue(const char *columnname, double * number,
                   columnname,number,defaultvalue));
     }
 ""","require_column_doublevalue",["String columnname","Float Value"],
-                                 ["Float defaultvalue"]],
+                                 ["Float defaultvalue"],],
 
 
 "cbf_require_column_integervalue":["""
@@ -1836,7 +1848,7 @@ void require_column_integervalue(const char *columnname,
            columnname, number,defaultvalue));
     }
 ""","require_column_integervalue",["String Columnvalue","Int default"],
- ["Int Value"]],
+ ["Int Value"],],
 
            
 
@@ -1857,7 +1869,7 @@ void require_column_integervalue(const char *columnname,
      cbf_failnez(cbf_require_diffrn_id(self,&id,defaultid));
      return id;
      }
-""","require_diffrn_id", ["String Default_id"],["String diffrn_id"]],
+""","require_diffrn_id", ["String Default_id"],["String diffrn_id"],],
 
 
 
@@ -1868,7 +1880,7 @@ void require_column_integervalue(const char *columnname,
         cbf_failnez(cbf_get_polarization (self, in1, in2));
      }
 ""","get_polarization",[],
-    ["float polarizn_source_ratio","float polarizn_source_norm"]],
+    ["float polarizn_source_ratio","float polarizn_source_norm"],],
 
 
 "cbf_set_polarization":["""
@@ -1879,7 +1891,7 @@ void require_column_integervalue(const char *columnname,
                          polarizn_source_norm));
      }
 ""","set_polarization",
-   ["Float polarizn_source_ratio","Float polarizn_source_norm"],[]],
+   ["Float polarizn_source_ratio","Float polarizn_source_norm"],[],],
 
 
 "cbf_get_divergence":["""
@@ -1893,7 +1905,7 @@ void require_column_integervalue(const char *columnname,
                                      div_x_y_source)); 
        } 
 ""","get_divergence",[],
-     ["Float div_x_source","Float div_y_source","Float div_x_y_source"]],
+     ["Float div_x_source","Float div_y_source","Float div_x_y_source"],],
 
 
 "cbf_set_divergence":["""
@@ -1903,7 +1915,7 @@ void require_column_integervalue(const char *columnname,
                               div_y_source,div_x_y_source));
       }
 ""","set_divergence",
-    ["Float div_x_source","Float div_y_source","Float div_x_y_source"],[]],
+    ["Float div_x_source","Float div_y_source","Float div_x_y_source"],[],],
 
 "cbf_get_gain":["""
 %apply double *OUTPUT {double *gain, double *gain_esd} get_gain;
@@ -1912,14 +1924,14 @@ void require_column_integervalue(const char *columnname,
         cbf_failnez(cbf_get_gain (self, element_number, gain, gain_esd));
         }
 ""","get_gain",
-    [],["Float gain", "Float gain_esd"]],
+    [],["Float gain", "Float gain_esd"],],
 
 
 "cbf_set_gain":["""
     void set_gain (unsigned int element_number, double gain, double gain_esd){
         cbf_failnez(cbf_set_gain (self, element_number, gain, gain_esd));
         }
-""","set_gain",["Float gain", "Float gain_esd"],[]],
+""","set_gain",["Float gain", "Float gain_esd"],[],],
 
 "cbf_get_element_id":["""
    const char * get_element_id(unsigned int element_number){
@@ -1927,7 +1939,7 @@ void require_column_integervalue(const char *columnname,
        cbf_failnez(cbf_get_element_id (self, element_number, &result));
        return result;
        }
-""","get_element_id", ["Integer element_number"],["String"]],
+""","get_element_id", ["Integer element_number"],["String"],],
 
 
 
@@ -1940,7 +1952,7 @@ void require_column_integervalue(const char *columnname,
                          axis_id,start,increment));
         }
 ""","set_axis_setting",["String axis_id", "Float start", "Float increment"],
- []],
+ [],],
 
 
 
@@ -2069,7 +2081,7 @@ void require_column_integervalue(const char *columnname,
               year,month,day,hour,minute,second,timezone));
         }
 ""","get_datestamp",[],["int year", "int month", "int day", "int hour", 
-"int minute", "double second", "int timezone"]],
+"int minute", "double second", "int timezone"],],
 
 
 
@@ -2083,7 +2095,7 @@ void require_column_integervalue(const char *columnname,
               year,month,day,hour,minute,second,timezone,precision));
         }
 ""","set_datestamp",["int year", "int month", "int day", "int hour", 
-"int minute", "double second", "int timezone","Float precision"],[]],
+"int minute", "double second", "int timezone","Float precision"],[],],
 
 
 "cbf_get_timestamp":["""
@@ -2094,7 +2106,7 @@ void require_column_integervalue(const char *columnname,
         reserved = 0; 
         cbf_failnez(cbf_get_timestamp(self,reserved,time,timezone));
         }
-""","get_timestamp",[],["Float time","Integer timezone"]],
+""","get_timestamp",[],["Float time","Integer timezone"],],
 
 
 
@@ -2104,7 +2116,7 @@ void require_column_integervalue(const char *columnname,
         reserved = 0; 
         cbf_failnez(cbf_set_timestamp(self,reserved,time,timezone,precision));
         }
-""","set_timestamp",["Float time","Integer timezone","Float precision"],[]],
+""","set_timestamp",["Float time","Integer timezone","Float precision"],[],],
 
 
 "cbf_set_current_timestamp":["""
@@ -2113,7 +2125,7 @@ void require_column_integervalue(const char *columnname,
         reserved = 0; 
         cbf_failnez(cbf_set_current_timestamp(self,reserved,timezone));
         }
-""","set_current_timestamp",["Integer timezone"],[]],
+""","set_current_timestamp",["Integer timezone"],[],],
 
 
 
@@ -2122,13 +2134,13 @@ void require_column_integervalue(const char *columnname,
    void get_overload(unsigned int element_number, double *overload){
         cbf_failnez(cbf_get_overload(self,element_number,overload));
         }
-""","get_overload",["Integer element_number"],["Float overload"]],
+""","get_overload",["Integer element_number"],["Float overload"],],
 
 "cbf_set_overload":["""
    void set_overload(unsigned int element_number, double overload){
         cbf_failnez(cbf_set_overload(self,element_number,overload));
         }
-""","set_overload",["Integer element_number","Float overload"],[]],
+""","set_overload",["Integer element_number","Float overload"],[],],
 
 
 "cbf_set_integration_time":["""
@@ -2137,7 +2149,7 @@ void require_column_integervalue(const char *columnname,
         reserved = 0;
         cbf_failnez(cbf_set_integration_time(self,reserved,time));
         }
-""","set_integration_time",["Float time"],[]],
+""","set_integration_time",["Float time"],[],],
 
 
 
@@ -2150,7 +2162,7 @@ void require_column_integervalue(const char *columnname,
         cbf_failnez(cbf_get_integration_time(self,reserved,&tim));
         *time = tim;
         }
-""","get_integration_time",[],["Float time"]],
+""","get_integration_time",[],["Float time"],],
 
 "cbf_get_orientation_matrix":["""
 %apply double *OUTPUT {double *m0,double *m1,double *m2,
@@ -2293,7 +2305,7 @@ const char* require_tag_root(const char* tagname){
  cbf_failnez(cbf_require_tag_root(self,tagname,&result));
  return result;
  }
-""","require_tag_root",["String tagname"],["String tagroot"]],
+""","require_tag_root",["String tagname"],["String tagroot"],],
 
 "cbf_find_tag_root":["""
 const char * find_tag_root(const char* tagname){
@@ -2301,20 +2313,20 @@ const char * find_tag_root(const char* tagname){
    cbf_failnez(cbf_find_tag_root(self,tagname,&result));
    return result;
 }
-""","find_tag_root",["String tagname"],["String tagroot"]],
+""","find_tag_root",["String tagname"],["String tagroot"],],
 
 
 "cbf_set_tag_root":["""
 void  set_tag_root(const char* tagname, const char* tagroot_in){
    cbf_failnez(cbf_set_tag_root(self,tagname,tagroot_in));
 }
-""","set_tag_root",["String tagname","String tagroot_in"],[]],
+""","set_tag_root",["String tagname","String tagroot_in"],[],],
 
 "cbf_set_category_root":["""
 void  set_category_root(const char* categoryname, const char* categoryroot){
    cbf_failnez(cbf_set_category_root(self,categoryname,categoryroot));
 }
-""","set_category_root",["String categoryname","String categoryroot"],[]],
+""","set_category_root",["String categoryname","String categoryroot"],[],],
 
 
 "cbf_find_category_root":["""
@@ -2323,7 +2335,7 @@ const char*  find_category_root(const char* categoryname){
    cbf_failnez(cbf_find_category_root(self,categoryname,&result));
    return result;
 }
-""","find_category_root",["String categoryname"],["String categoryroot"]],
+""","find_category_root",["String categoryname"],["String categoryroot"],],
 
 
 
@@ -2336,7 +2348,7 @@ const char* require_category_root (const char* categoryname){
   cbf_failnez(cbf_require_category_root(self,categoryname, &result));
   return result;
 }
-""","cbf_require_category_root",["String Categoryname"],["String categoryroot"]],
+""","cbf_require_category_root",["String Categoryname"],["String categoryroot"],],
   
 
 "cbf_set_orientation_matrix":["""
@@ -2350,7 +2362,7 @@ double  m7,double  m8){
         cbf_failnez(cbf_get_orientation_matrix(self,m));
         }
 ""","set_orientation_matrix",
-    [ "Float matrix_%d"%(ind) for ind in range(9) ] ,[]],
+    [ "Float matrix_%d"%(ind) for ind in range(9) ] ,[],],
     
 "cbf_set_bin_sizes":["""
    void set_bin_sizes( int element_number, double slowbinsize_in, double fastbinsize_in) {
@@ -2377,7 +2389,7 @@ cbf_handle require_dictionary(){
    cbf_failnez(cbf_require_dictionary(self,&temp));
    return temp;
 }
-""","require_dictionary",[],["CBFHandle dictionary"]],
+""","require_dictionary",[],["CBFHandle dictionary"],],
 
 
 "cbf_get_dictionary":["""
@@ -2386,7 +2398,7 @@ cbf_handle get_dictionary(){
    cbf_failnez(cbf_get_dictionary(self,&temp));
    return temp;
 }
-""","get_dictionary",[],["CBFHandle dictionary"]],
+""","get_dictionary",[],["CBFHandle dictionary"],],
 
 
 
@@ -2394,7 +2406,7 @@ cbf_handle get_dictionary(){
 void set_dictionary(cbf_handle other){
    cbf_failnez(cbf_set_dictionary(self,other));
 }
-""","set_dictionary",["CBFHandle dictionary"],[]],
+""","set_dictionary",["CBFHandle dictionary"],[],],
 
 
 
@@ -2402,7 +2414,7 @@ void set_dictionary(cbf_handle other){
 void convert_dictionary(cbf_handle other){
    cbf_failnez(cbf_convert_dictionary(self,other));
 }
-""","convert_dictionary",["CBFHandle dictionary"],[]],
+""","convert_dictionary",["CBFHandle dictionary"],[],],
 
 
 "cbf_construct_detector":["""
@@ -2411,7 +2423,7 @@ void convert_dictionary(cbf_handle other){
     cbf_failnez(cbf_construct_detector(self,&detector,element_number));
     return detector;
     }
-""","construct_detector",["Integer element_number"],["pycbf detector object"]],
+""","construct_detector",["Integer element_number"],["pycbf detector object"],],
 
 "cbf_construct_reference_detector":["""
  cbf_detector construct_reference_detector(unsigned int element_number){
@@ -2419,7 +2431,7 @@ void convert_dictionary(cbf_handle other){
     cbf_failnez(cbf_construct_reference_detector(self,&detector,element_number));
     return detector;
     }
-""","construct_reference_detector",["Integer element_number"],["pycbf detector object"]],
+""","construct_reference_detector",["Integer element_number"],["pycbf detector object"],],
 
 "cbf_require_reference_detector":["""
  cbf_detector require_reference_detector(unsigned int element_number){
@@ -2427,7 +2439,7 @@ void convert_dictionary(cbf_handle other){
     cbf_failnez(cbf_require_reference_detector(self,&detector,element_number));
     return detector;
     }
-""","require_reference_detector",["Integer element_number"],["pycbf detector object"]],
+""","require_reference_detector",["Integer element_number"],["pycbf detector object"],],
 
 
 "cbf_construct_goniometer":["""
@@ -2436,7 +2448,7 @@ void convert_dictionary(cbf_handle other){
     cbf_failnez(cbf_construct_goniometer(self,&goniometer));
     return goniometer;
     }
-""","construct_goniometer",[],["pycbf goniometer object"]],
+""","construct_goniometer",[],["pycbf goniometer object"],],
 
 "cbf_construct_positioner":["""
  cbf_positioner construct_positioner(const char* axis_id){
@@ -2444,7 +2456,7 @@ void convert_dictionary(cbf_handle other){
     cbf_failnez(cbf_construct_positioner(self,&positioner,axis_id));
     return positioner;
     }
-""","construct_positioner",["String axis_id"],["pycbf positioner object"]],
+""","construct_positioner",["String axis_id"],["pycbf positioner object"],],
 
 "cbf_construct_reference_positioner":["""
  cbf_positioner construct_reference_positioner(const char* axis_id){
@@ -2452,7 +2464,7 @@ void convert_dictionary(cbf_handle other){
     cbf_failnez(cbf_construct_reference_positioner(self,&positioner,axis_id));
     return positioner;
     }
-""","construct_reference_positioner",["String axis_id"],["pycbf positioner object"]],
+""","construct_reference_positioner",["String axis_id"],["pycbf positioner object"],],
 
 "cbf_get_axis_reference_poise":["""
   %apply double *OUTPUT {double *vector1, double *vector2, double *vector3, 
@@ -2469,7 +2481,7 @@ void convert_dictionary(cbf_handle other){
 
 ""","get_axis_reference_poise",["String axis_id"],
      ["Float vector1","Float vector2","Float vector3",
-     "Float offset1","Float offset2","Float offset3"]],
+     "Float offset1","Float offset2","Float offset3"],],
      
 "cbf_get_axis_poise":["""
   %apply double *OUTPUT {double *vector1, double *vector2, double *vector3, 
@@ -2489,7 +2501,7 @@ void convert_dictionary(cbf_handle other){
 ""","get_axis_poise",
      ["Float ratio", "String axis_id", "String frame_id"],
      ["Float vector1","Float vector2","Float vector3",
-     "Float offset1","Float offset2","Float offset3","Float angle"]],
+     "Float offset1","Float offset2","Float offset3","Float angle"],],
 
 }
 
@@ -2555,7 +2567,7 @@ typedef cbf_handle_struct handle;
    def get_code(self):
        return self.code+self.tail
    def wrap(self,cfunc,prototype,args,docstring):
-       # print "cfunc: ", cfunc
+       # print("cfunc: ", cfunc)
        pyfunc = cfunc.replace("cbf_","")
        # Insert a comment for debugging this script
        code = "\n/* cfunc %s   pyfunc %s  \n"%(cfunc,pyfunc)
@@ -2567,7 +2579,7 @@ typedef cbf_handle_struct handle;
           # Constructor and destructor done in headers
           return
        if args[0] != "cbf_handle handle": # Must be for cbfhandle
-          print "problem",cfunc,pyfunc,args
+          print("problem",cfunc,pyfunc,args)
           return
        if len(args)==1: # Only takes CBFhandle arg
           code+= docstringwrite(pyfunc,[],[],prototype,docstring)
@@ -2585,11 +2597,11 @@ typedef cbf_handle_struct handle;
            return
        except KeyError:
            not_found = 1
-           # print "KeyError"
+           # print("KeyError")
        except ValueError:
-           print "problem in",cfunc
+           print("problem in",cfunc)
            for item in cbfhandle_specials[cfunc]:
-              print "***",item
+              print("***",item)
            raise
        if len(args)==2:
           if args[1].find("const char")>-1 and \
@@ -2656,12 +2668,12 @@ typedef cbf_handle_struct handle;
              code+= "     void %s(void){\n"%(pyfunc)
              code +="        cbf_failnez(CBF_NOTIMPLEMENTED);}\n"
              self.code=self.code+code
-             print "Have not implemented: cbfhandle.%s"%(pyfunc)
-             print "   ",cfunc
-             print "    args:"
+             print("Have not implemented: cbfhandle.%s"%(pyfunc))
+             print("   ",cfunc)
+             print("    args:")
              for a in args:
-                 print "       ",a 
-             print
+                 print("       ",a) 
+             print()
              return
 
 
@@ -2678,7 +2690,7 @@ cbf_goniometer_specials = {
        reserved = 0;
        cbf_failnez(cbf_get_rotation_range (self,reserved, start,increment));
     }
-""","get_rotation_range",[],["Float start","Float increment"]],
+""","get_rotation_range",[],["Float start","Float increment"],],
 
 "cbf_rotate_vector":["""
 
@@ -2744,7 +2756,7 @@ void get_rotation_axis (double *vector1, double *vector2, double *vector3){
 ""","get_goniometer_poise",["Float ratio"],
     ["Float vector1","Float vector2","Float vector3",
      "Float offset1","Float offset2","Float offset3",
-     "Float angle"]],
+     "Float angle"],],
 
 
 }
@@ -2805,7 +2817,7 @@ typedef cbf_positioner_struct *cbf_goniometer;
         self.code +=  docstringwrite(pyname,input,output,
                                      prototype,docstring)+ code
      except KeyError:
-        print "TODO: Goniometer:",prototype
+        print("TODO: Goniometer:",prototype)
    def get_code(self):
      return self.code+self.tail
 
@@ -2967,7 +2979,7 @@ cbf_detector_specials = {
  void get_detector_distance (double *distance){
   cbf_failnez(cbf_get_detector_distance(self,distance));
   }
-""","get_detector_distance",[],["double distance"]],
+""","get_detector_distance",[],["double distance"],],
 
 
 "cbf_get_detector_normal":["""
@@ -2979,7 +2991,7 @@ cbf_detector_specials = {
                     normal1, normal2, normal3));
    }
 ""","get_detector_normal",[],
-["double normal1", "double normal2", "double normal3"]],
+["double normal1", "double normal2", "double normal3"],],
 
 
 "cbf_get_pixel_coordinates":["""
@@ -3031,7 +3043,7 @@ cbf_detector_specials = {
                                        center1, center2));
         }
 ""","get_beam_center",[],
-["double index1", "double index2", "double center1","double center2"]],
+["double index1", "double index2", "double center1","double center2"],],
 
 
 "cbf_get_beam_center_fs":["""
@@ -3043,7 +3055,7 @@ cbf_detector_specials = {
                                        centerfast, centerslow));
         }
 ""","get_beam_center_fs",[],
-["double indexfast", "double indexslow", "double centerfast","double centerslow"]],
+["double indexfast", "double indexslow", "double centerfast","double centerslow"],],
 
 
 "cbf_get_beam_center_sf":["""
@@ -3055,7 +3067,7 @@ cbf_detector_specials = {
                                        centerslow, centerfast));
         }
 ""","get_beam_center_sf",[],
-["double indexslow", "double indexfast", "double centerslow","double centerfast"]],
+["double indexslow", "double indexfast", "double centerslow","double centerfast"],],
 
 
 "cbf_set_beam_center":["""
@@ -3065,7 +3077,7 @@ cbf_detector_specials = {
                                        centerslow, centerfast));
         }
 ""","set_beam_center",
-["double indexslow", "double indexfast", "double centerslow","double centerfast"],[]],
+["double indexslow", "double indexfast", "double centerslow","double centerfast"],[],],
 
 
 "cbf_set_beam_center_fs":["""
@@ -3075,7 +3087,7 @@ cbf_detector_specials = {
                                        centerfast, centerslow));
         }
 ""","set_beam_center_fs",
-["double indexfast", "double indexslow", "double centerfast","double centerslow"],[]],
+["double indexfast", "double indexslow", "double centerfast","double centerslow"],[],],
 
 
 "cbf_set_beam_center_sf":["""
@@ -3085,7 +3097,7 @@ cbf_detector_specials = {
                                        centerslow, centerfast));
         }
 ""","set_beam_center_sf",
-["double indexslow", "double indexfast", "double centerslow","double centerfast"],[]],
+["double indexslow", "double indexfast", "double centerslow","double centerfast"],[],],
 
 
 "cbf_set_reference_beam_center":["""
@@ -3095,7 +3107,7 @@ cbf_detector_specials = {
                                        centerslow, centerfast));
         }
 ""","set_reference_beam_center",
-["double indexslow", "double indexfast", "double centerslow","double centerfast"],[]],
+["double indexslow", "double indexfast", "double centerslow","double centerfast"],[],],
 
 
 "cbf_set_reference_beam_center_fs":["""
@@ -3105,7 +3117,7 @@ cbf_detector_specials = {
                                        centerfast, centerslow));
         }
 ""","set_reference_beam_center_fs",
-["double indexfast", "double indexslow", "double centerfast","double centerslow"],[]],
+["double indexfast", "double indexslow", "double centerfast","double centerslow"],[],],
 
 
 "cbf_set_reference_beam_center_sf":["""
@@ -3115,7 +3127,7 @@ cbf_detector_specials = {
                                        centerslow, centerfast));
         }
 ""","set_reference_beam_center_sf",
-["double indexslow", "double indexfast", "double centerslow","double centerfast"],[]],
+["double indexslow", "double indexfast", "double centerslow","double centerfast"],[],],
 
 
 "cbf_get_inferred_pixel_size" : ["""
@@ -3190,7 +3202,7 @@ typedef cbf_detector_struct *cbf_detector;
         self.code +=  docstringwrite(pyname,input,output,
                                      prototype,docstring)+ code
      except KeyError:
-        print "TODO: Detector:",prototype
+        print("TODO: Detector:",prototype)
    def get_code(self):
      return self.code+self.tail
 
@@ -3245,7 +3257,7 @@ typedef cbf_positioner_struct *cbf_positioner;
         self.code +=  docstringwrite(pyname,input,output,
                                      prototype,docstring)+ code
      except KeyError:
-        print "TODO: Positioner:",prototype
+        print("TODO: Positioner:",prototype)
    def get_code(self):
      return self.code+self.tail
      
@@ -3266,7 +3278,7 @@ cbfgeneric_specials = {
         *bo = bot;
   }
   }
-""","get_local_integer_byte_order",[],["char **bo", "int *bolen"]],
+""","get_local_integer_byte_order",[],["char **bo", "int *bolen"],],
 
 
 "cbf_get_local_real_format":["""
@@ -3282,7 +3294,7 @@ cbfgeneric_specials = {
         *rf = rft;
   }
   }
-""","get_local_real_format",[],["char **rf", "int *rflen"]],
+""","get_local_real_format",[],["char **rf", "int *rflen"],],
 
 
 "cbf_get_local_real_byte_order":["""
@@ -3298,7 +3310,7 @@ cbfgeneric_specials = {
         *bo = bot;
   }
   }
-""","get_local_real_byte_order",[],["char **bo", "int *bolen"]],
+""","get_local_real_byte_order",[],["char **bo", "int *bolen"],],
 
 
 "cbf_compute_cell_volume":["""
@@ -3309,7 +3321,7 @@ cbfgeneric_specials = {
   cbf_failnez(cbf_compute_cell_volume(cell,volume));
   }
   }
-""","compute_cell_volume",["double cell[6]"],["Float volume"]],
+""","compute_cell_volume",["double cell[6]"],["Float volume"],],
 
 
 "cbf_compute_reciprocal_cell":["""
@@ -3348,12 +3360,12 @@ cbf_failnez(cbf_airy_disk(x,y,cenx,ceny,volume,fwhm,value));
 %apply double *OUTPUT {double *volumeout};
 %inline {
 void airy_disk_volume(double xlo, double ylo, double xhi, double yhi,
-double cenx, double ceny, double volume, double fwhm, double * volumeout) {
-cbf_failnez(cbf_airy_disk_volume(xlo,ylo,xhi,yhi,cenx,ceny,volume,fwhm,volumeout));
+double cenx, double ceny, double volumein, double fwhm, double * volumeout) {
+cbf_failnez(cbf_airy_disk_volume(xlo,ylo,xhi,yhi,cenx,ceny,volumein,fwhm,volumeout));
 }
 }
 
-""","airy_disk_volume",["double xlo", "double ylo", "double xhi", "double yhi", "double cenx", "double ceny", "double volume", "double fwhm"],
+""","airy_disk_volume",["double xlo", "double ylo", "double xhi", "double yhi", "double cenx", "double ceny", "double volumein", "double fwhm"],
 ["Float volumeout"] ]
 
 
@@ -3388,11 +3400,11 @@ class genericwrapper:
            return
        except KeyError:
            not_found = 1
-           # print "KeyError"
+           # print("KeyError")
        except ValueError:
-           print "problem in generic",cfunc
+           print("problem in generic",cfunc)
            for item in cbfgeneric_specials[cfunc]:
-              print "***",item
+              print("***",item)
            raise
        if len(args)==1 and args[0].find("char")>-1 and \
                            args[0].find("**")>-1                :# return string
@@ -3411,10 +3423,10 @@ class genericwrapper:
 #       code+= "     void %s(void){\n"%(pyfunc)
 #       code +="        cbf_failnez(CBF_NOTIMPLEMENTED);}\n"
 #       self.code=self.code+code
-       print "Have not implemented:"
+       print("Have not implemented:")
        for s in [cfunc, pyfunc] + args:
-           print "\t",s 
-       print
+           print("\t",s) 
+       print()
        return
 
 
@@ -3422,22 +3434,22 @@ generic_wrapper = genericwrapper()
 
 
 def generate_wrappers(name_dict):
-   names = name_dict.keys()
+   names = list(name_dict.keys())
    for cname in names:
       prototype = name_dict[cname][0]
       docstring = name_dict[cname][1]
-      # print "Generate wrappers: ", "::",cname,"::", prototype,"::", docstring
+      # print("Generate wrappers: ", "::",cname,"::", prototype,"::", docstring)
       # Check prototype begins with "int cbf_"
       if prototype.find("int cbf_")!=0:
-         print "problem with:",prototype
+         print("problem with:",prototype)
       # Get arguments from prototypes
       try:
          args = prototype.split("(")[1].split(")")[0].split(",")
          args = [ s.lstrip().rstrip() for s in args ] # strip spaces off ends
-         # print "Args: ", args
+         # print("Args: ", args)
       except:
-         # print cname
-         # print prototype
+         # print(cname)
+         # print(prototype)
          raise
       if args[0].find("cbf_handle")>=0: # This is for the cbfhandle object
          cbf_handle_wrapper.wrap(cname,prototype,args,docstring)
@@ -3469,7 +3481,7 @@ open("cbfpositionerwrappers.i","w").write(cbf_positioner_wrapper.get_code())
 open("cbfhandlewrappers.i","w").write(cbf_handle_wrapper.get_code())
 open("cbfgenericwrappers.i","w").write(generic_wrapper.get_code())
 
-print "End of output from make_pycbf.py"
-print "\\end{verbatim}"
+print("End of output from make_pycbf.py")
+print("\\end{verbatim}")
 @}
 
