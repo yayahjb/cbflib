@@ -16,7 +16,7 @@
 #            Extending the Macromolecular CIF Dictionary (mmCIF)             #
 #                                                                            #
 #                              Version 1.8.5                                 #
-#                              of 2021-07-03                                 #
+#                              of 2021-07-09                                 #
 #                                                                            #
 #                                                                            #
 #    ###################################################################     #
@@ -1351,7 +1351,7 @@ save__array_data_external_data.frame
 
     The position of the raw data array in what may possibly be a
     multi-dimensional array of data referenced by
-       _array_data.external_location_uri and _array_data.external_path.
+       _array_data_external_data.uri and _array_data_external_data.path.
     For many of the formats, data for a single frame is identified by that
     reference.  If data for multiple frames or data for portions of
     one or more frames is referenced, the desired portion can be
@@ -1441,7 +1441,7 @@ save__array_data_external_data.format
     _array_data_external_data.id
     _array_data_external_data.format
     _array_data_external_data.uri
-    _array_data.external_data.path
+    _array_data_external_data.path
     _array_data_external_data.frame
     1 HDF5 https://zenodo.org/record/12345/files/tartaric.h5 /entry1/detector1/data 1
     2 HDF5 https://zenodo.org/record/12345/files/tartaric.h5 /entry1/detector1/data 2
@@ -1526,7 +1526,7 @@ save__array_data_external_data.id
                       '_array_data_external_data.id'
      save_
 
-save__array_data.external.data.path
+save__array_data_external_data.path
    _item_description.description
 
 ;
@@ -1537,7 +1537,7 @@ save__array_data.external.data.path
 
 ;
 
-    _item.name                 '_array_data.external_path'
+    _item.name                 '_array_data_external_data.path'
     _item.category_id            array_data_external_data
     _item_type.code              text
 
@@ -11821,7 +11821,7 @@ save__diffrn_frame_data.details
     _dictionary_history.update
     _dictionary_history.revision
 
-    1.8.5    2021-07-03
+    1.8.5    2021-07-09
 
 ;   Handling of external data (jrh, ab, hjb)
 
