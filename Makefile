@@ -1329,8 +1329,10 @@ $(PY2CIFRW):	build_py2cifrw
 	$(DOWNLOAD) $(PY2CIFRWURL)
 	tar -xvf $(PY2CIFRW).tar.gz
 	-rm $(PY2CIFRW).tar.gz
-	(cd $(PY2CIFRW); PYTHONPATH=$(PY2CIFRW_PREFIX)/lib/python; export PYTHONPATH; \
+	(cd $(PY2CIFRW); \
+        PYTHONPATH=$(PY2CIFRW_PREFIX)/lib/python:$(PY2CIFRW_PREFIX)/lib64/python; export PYTHONPATH; \
 	mkdir -p $(PY2CIFRW_PREFIX)/lib/python/site-packages; \
+	mkdir -p $(PY2CIFRW_PREFIX)/lib64/python/site-packages; \
 	$(PYTHON2) setup.py install --prefix= --home=$(PY2CIFRW_PREFIX) )
 
 #
@@ -1344,8 +1346,10 @@ $(PY2PLY):	build_py2ply
 	$(DOWNLOAD) $(PY2PLYURL)
 	tar -xvf $(PY2PLY).tar.gz
 	-rm $(PY2PLY).tar.gz
-	(cd $(PY2PLY); PYTHONPATH=$(PY2CIFRW_PREFIX)/lib/python; export PYTHONPATH; \
+	(cd $(PY2PLY); \
+	PYTHONPATH=$(PY2CIFRW_PREFIX)/lib/python:$(PY2CIFRW_PREFIX)/lib64/python; export PYTHONPATH; \
 	mkdir -p $(PY2CIFRW_PREFIX)/lib/python/site-packages; \
+	mkdir -p $(PY2CIFRW_PREFIX)/lib64/python/site-packages; \
 	$(PYTHON2) setup.py install --prefix= --home=$(PY2CIFRW_PREFIX) )
 endif
 
@@ -1361,8 +1365,10 @@ $(PY3CIFRW):    build_py3cifrw
 	$(DOWNLOAD) $(PY3CIFRWURL)
 	tar -xvf $(PY3CIFRW).tar.gz
 	-rm $(PY3CIFRW).tar.gz
-	(cd $(PY3CIFRW); PYTHONPATH=$(PY3CIFRW_PREFIX)/lib/python; export PYTHONPATH; \
+	(cd $(PY3CIFRW); \
+	PYTHONPATH=$(PY3CIFRW_PREFIX)/lib/python:$(PY3CIFRW_PREFIX)/lib64/python; export PYTHONPATH; \
 	mkdir -p $(PY3CIFRW_PREFIX)/lib/python/site-packages; \
+	mkdir -p $(PY3CIFRW_PREFIX)/lib64/python/site-packages; \
 	$(PYTHON3) setup.py install --prefix= --home=$(PY3CIFRW_PREFIX) )
 
 #
@@ -1376,8 +1382,10 @@ $(PY3PLY):      build_py3ply
 	$(DOWNLOAD) $(PY3PLYURL)
 	tar -xvf $(PY3PLY).tar.gz
 	-rm $(PY3PLY).tar.gz
-	(cd $(PY3PLY); PYTHONPATH=$(PY3CIFRW_PREFIX)/lib/python; export PYTHONPATH; \
+	(cd $(PY3PLY); \
+	PYTHONPATH=$(PY3CIFRW_PREFIX)/lib/python:$(PY3CIFRW_PREFIX)/lib64/python; export PYTHONPATH; \
 	mkdir -p $(PY3CIFRW_PREFIX)/lib/python/site-packages; \
+	mkdir -p $(PY3CIFRW_PREFIX)/lib64/python/site-packages; \
 	$(PYTHON3) setup.py install --prefix= --home=$(PY3CIFRW_PREFIX) )
 endif
 
@@ -1385,7 +1393,7 @@ endif
 #
 # NUWEB
 #
-ifneq ($(NUWEB_DEP),')
+ifneq ($(NUWEB_DEP),'')
 $(NUWEB_DEP):
 	-rm -rf $(NUWEB_DEP)
 	-rm -rf $(NUWEB_DEP).tar.gz
@@ -1504,7 +1512,7 @@ ifneq ($(MSYS2),yes)
 	rm lz4.o h5zlz4.o)
 else
 	git clone $(LZ4_URL)
-	(cd $(LZ4); mkdir build; cd build; cmake .. -G ''MSYS Makefiles' -DENABLE_LZ4_PLUGIN="yes"; make all; cp plugins/* $(SOLIB))
+	(cd $(LZ4); mkdir build; cd build; cmake .. -G 'MSYS Makefiles' -DENABLE_LZ4_PLUGIN="yes"; make all; cp plugins/* $(SOLIB))
 endif 
 	touch $(LZ4)
 endif
@@ -1715,6 +1723,7 @@ $(PY2CBF)/xmas/readmarheader.py \
 $(PY2CBF)/xmas/xmasheaders.py   \
 $(PY2CBF)/xmas/xmas_cif_template.cif : $(NUWEB_DEP) $(NUWEB_DEP2) $(PY2CBF)/pycbf.w
 	(cd $(PY2CBF); $(NUWEB) pycbf.w )
+	touch $(PY2CBF)/py2setup_py.m4
  
 $(PY2CBF)/_py2cbf.$(PY2CBFEXT):	$(PY2CBF)  shared \
 	$(PY2CBF)/py2setup.py                    \
@@ -1784,6 +1793,7 @@ $(PY3CBF)/xmas/readmarheader.py \
 $(PY3CBF)/xmas/xmasheaders.py   \
 $(PY3CBF)/xmas/xmas_cif_template.cif: $(NUWEB_DEP) $(NUWEB_DEP2) $(PY3CBF)/pycbf.w
 	(cd $(PY3CBF); $(NUWEB) pycbf.w )
+	touch $(PY3CBF)/py3setup_py.m4
 
 
 $(PY3CBF)/_pycbf.$(PY3CBFEXT):	$(PY3CBF)  shared \
@@ -2048,7 +2058,7 @@ $(BIN)/sequence_match: $(LIB)/libcbf.a $(EXAMPLES)/sequence_match.c $(LIB)/libim
 #
 # tiff2cbf example program
 #
-$(BIN)/tiff2cbf: $(LIB)/libcbf.a $(EXAMPLES)/tiff2cbf.c \
+$(BIN)/tiff2cbf: $(LIB)/libcbf.a $(EXAMPLES)/tiff2cbf.c $(EXAMPLES)/tif_sprint.c \
 	$(GOPTLIB)	$(GOPTINC) $(TIFF)
 	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
