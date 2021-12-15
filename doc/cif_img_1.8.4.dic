@@ -1233,7 +1233,7 @@ save__array_data.external_format
    described in the description of each format below.
 ;
 
-;
+
 
    _item.name                 '_array_data.external_format'
    _item.category_id            array_data
