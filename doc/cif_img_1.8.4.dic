@@ -1307,6 +1307,8 @@ save__array_data.external_format
    Frames are contained in individual Smart6000 Bruker-format files
    accessible using https://uni_repo.edu/5341 in subdirectory run1.
 ;
+
+; 
    loop_
    _array_data.array_id
    _array_data.binary_id
@@ -1409,6 +1411,8 @@ save__array_data.external_version
    Frames are contained in individual Smart6000 Bruker-format files
    accessible using https://uni_repo.edu/5341 in subdirectory run1.
 ;
+
+;
    loop_
    _array_data.array_id
    _array_data.binary_id
@@ -1433,19 +1437,6 @@ save__array_data.external_version
    
 ;
    save_
-
-save__array_data.external_version
-   _item_description.description
-;
-   An identifier for the version of the file format described by _array_data.external_format. 
-;
-
-   _item.name              '_array_data.external_version'
-   _item.category_id         array_data
-   _item_type.code           code
-
-save_
-
 
 save__array_data.external_location_uri
    _item_description.description
