@@ -233,15 +233,15 @@ class cifheader:
         
 
     def updateitems(self,dict):
-        names = dict.keys()
+        names = list(dict.keys())
         for name in names:
             value = dict[name]
             # use a dictionary of functions
-            if functiondict.has_key(name):
-                # print "calling",functiondict[name],value
-                apply(functiondict[name],(self.cbf,value))
+            if name in functiondict:
+                # print("calling",functiondict[name],value)
+                functiondict[name](*(self.cbf,value))
             else:
-                #print "ignoring",name,value
+                #print("ignoring",name,value)
                 pass
 
         

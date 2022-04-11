@@ -3655,7 +3655,7 @@ int cbf_get_doublevalue (cbf_handle handle, double *number)
     
     if (!*endptr) return 0;
     
-    strncpy(buffer,value,79);
+    memcpy(buffer,value,79);
     
     buffer[79] = '\0';
     
@@ -5215,9 +5215,9 @@ int cbf_convert_dictionary_definition(cbf_handle cbfdictionary, cbf_handle dicti
 
     const char *mandatory_code;
 
-    const char *itemname;
+    const char *itemname=NULL;
 	
-	const char *expression;
+    const char *expression;
 
     const char *columnname;
     
@@ -6096,7 +6096,7 @@ int cbf_find_tag (cbf_handle handle, const char *tag)
     catlen = colstart-tag;
 
   }
-  if (catlen) strncpy(categoryname,tag,catlen);
+  if (catlen) memcpy(categoryname,tag,catlen);
 
   categoryname[catlen] = '\0';
 
@@ -6104,7 +6104,7 @@ int cbf_find_tag (cbf_handle handle, const char *tag)
 
   columnname[0] = '_';
 
-  if (collen) strncpy(columnname+(catlen?0:1),colstart+1,collen);
+  if (collen) memcpy(columnname+(catlen?0:1),colstart+1,collen);
 
   columnname[collen+(catlen?0:1)] = '\0';
 
@@ -6149,7 +6149,7 @@ int cbf_find_local_tag (cbf_handle handle, const char *tag)
     catlen = colstart-tag;
 
   }
-  if (catlen) strncpy(categoryname,tag,catlen);
+  if (catlen) memcpy(categoryname,tag,catlen);
 
   categoryname[catlen] = '\0';
 
@@ -6157,7 +6157,7 @@ int cbf_find_local_tag (cbf_handle handle, const char *tag)
   
   columnname[0] = '_';
 
-  if (collen) strncpy(columnname+(catlen?0:1),colstart+1,collen);
+  if (collen) memcpy(columnname+(catlen?0:1),colstart+1,collen);
 
   columnname[collen+(catlen?0:1)] = '\0';
 
@@ -7602,7 +7602,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
 					
 					cbf_failnez(cbf_row_number(handle->dictionary, (unsigned int *) &nextrow))
 					
-					strncpy(mainitemname, itemname, 80);
+					memcpy(mainitemname, itemname, 80);
 				
 					if(!cbf_find_tag(handle->dictionary, "_items.method_expression")) {
 						
@@ -7683,7 +7683,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
                       
                         cbf_failnez(cbf_row_number(handle->dictionary, (unsigned int *) &nextrow))
              
-                        strncpy(mainitemname, itemname, 80);
+                        memcpy(mainitemname, itemname, 80);
                     
                         if(!cbf_find_tag(handle->dictionary, "_items.method_expression")) {
                 
@@ -7837,7 +7837,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	                    
     	                    if (colonpos)  {
     	                    
-    	                      strncpy(loval, enumvalue, (size_t)(colonpos-enumvalue));
+    	                      memcpy(loval, enumvalue, (size_t)(colonpos-enumvalue));
     	                      
     	                      loval[colonpos-enumvalue] = '\0';
     	                      

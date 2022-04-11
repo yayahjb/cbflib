@@ -1,0 +1,1383 @@
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021) (preloaded format=latex 2021.6.28)  30 JUN 2021 18:46
+entering extended mode
+ restricted \write18 enabled.
+ %&-line parsing enabled.
+**pycbf
+(./pycbf.tex
+LaTeX2e <2020-10-01> patch level 4
+L3 programming layer <2021-02-18>
+(/usr/local/texlive/2021/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2020/04/10 v1.4m Standard LaTeX document class
+(/usr/local/texlive/2021/texmf-dist/tex/latex/base/size10.clo
+File: size10.clo 2020/04/10 v1.4m Standard LaTeX file (size option)
+)
+\c@part=\count179
+\c@section=\count180
+\c@subsection=\count181
+\c@subsubsection=\count182
+\c@paragraph=\count183
+\c@subparagraph=\count184
+\c@figure=\count185
+\c@table=\count186
+\abovecaptionskip=\skip47
+\belowcaptionskip=\skip48
+\bibindent=\dimen138
+)
+(/Users/yaya/Library/texmf/tex/latex/iucr/utilities/graphics/graphics.sty
+Package: graphics 1999/02/16 v1.0l Standard LaTeX Graphics (DPC,SPQR)
+
+(/Users/yaya/Library/texmf/tex/latex/iucr/utilities/graphics/trig.sty
+Package: trig 1999/03/16 v1.09 sin cos tan (DPC)
+)
+(/usr/local/texlive/2021/texmf-dist/tex/latex/graphics-cfg/graphics.cfg
+File: graphics.cfg 2016/06/04 v1.11 sample graphics configuration
+)
+Package graphics Info: Driver file: dvips.def on input line 80.
+
+(/Users/yaya/Library/texmf/tex/latex/iucr/utilities/graphics/dvips.def
+File: dvips.def 1999/02/16 v3.0i Driver-dependant file (DPC,SPQR)
+))
+(/usr/local/texlive/2021/texmf-dist/tex/latex/anysize/anysize.sty
+Package: anysize 1994/08/13 setting margin sizes
+
+document style option `anysize' loaded
+Michael Salzenberg, Thomas Esser, Dirk Hillbrecht
+Version 1.0, Aug 13, 1994
+\@Leftmargin=\dimen139
+\@Rightmargin=\dimen140
+\@Topmargin=\dimen141
+\@Bottommargin=\dimen142
+) (/usr/local/texlive/2021/texmf-dist/tex/latex/fancyhdr/fancyhdr.sty
+Package: fancyhdr 2021/01/28 v4.0.1 Extensive control of page headers and foote
+rs
+\f@nch@headwidth=\skip49
+\f@nch@O@elh=\skip50
+\f@nch@O@erh=\skip51
+\f@nch@O@olh=\skip52
+\f@nch@O@orh=\skip53
+\f@nch@O@elf=\skip54
+\f@nch@O@erf=\skip55
+\f@nch@O@olf=\skip56
+\f@nch@O@orf=\skip57
+)
+(/Users/yaya/Library/texmf/tex/latex/hyperref/hyperref.sty
+Package: hyperref 2003/11/30 v6.74m Hypertext links for LaTeX
+
+(/Users/yaya/Library/texmf/tex/latex/iucr/utilities/graphics/keyval.sty
+Package: keyval 1999/03/16 v1.13 key=value parser (DPC)
+\KV@toks@=\toks15
+)
+\@linkdim=\dimen143
+\Hy@linkcounter=\count187
+\Hy@pagecounter=\count188
+
+(/Users/yaya/Library/texmf/tex/latex/hyperref/pd1enc.def
+File: pd1enc.def 2003/11/30 v6.74m Hyperref: PDFDocEncoding definition (HO)
+Now handling font encoding PD1 ...
+... no UTF-8 mapping file for font encoding PD1
+LaTeX Info: Composite with undeclared \k in encoding PD1 on input line 227.
+)
+Package hyperref Info: Option `bookmarks' set `true' on input line 1830.
+Package hyperref Info: Option `bookmarksnumbered' set `true' on input line 1830
+.
+Package hyperref Info: Hyper figures OFF on input line 1880.
+Package hyperref Info: Link nesting OFF on input line 1885.
+Package hyperref Info: Hyper index ON on input line 1888.
+Package hyperref Info: Plain pages ON on input line 1893.
+Package hyperref Info: Backreferencing ON on input line 1898.
+
+Implicit mode ON; LaTeX internals redefined
+Package hyperref Info: Bookmarks ON on input line 2004.
+(/Users/yaya/Library/texmf/tex/latex/hyperref/backref.sty
+Package: backref 2003/03/20 v1.23 Bibliographical back referencing
+)
+(/usr/local/texlive/2021/texmf-dist/tex/latex/url/url.sty
+\Urlmuskip=\muskip16
+Package: url 2013/09/16  ver 3.4  Verb mode for urls, etc.
+)
+LaTeX Info: Redefining \url on input line 2143.
+\Fld@menulength=\count189
+\Field@Width=\dimen144
+\Fld@charsize=\dimen145
+\Choice@toks=\toks16
+\Field@toks=\toks17
+Package hyperref Info: Hyper figures OFF on input line 2618.
+Package hyperref Info: Link nesting OFF on input line 2623.
+Package hyperref Info: Hyper index ON on input line 2626.
+Package hyperref Info: backreferencing ON on input line 2631.
+Package hyperref Info: Link coloring OFF on input line 2638.
+\c@Item=\count190
+\c@Hfootnote=\count191
+)
+*hyperref using driver hdvipdfm*
+(/Users/yaya/Library/texmf/tex/latex/hyperref/hdvipdfm.def
+File: hdvipdfm.def 2003/11/30 v6.74m Hyperref driver for dvipdfm
+\pdfm@box=\box47
+\Fld@listcount=\count192
+\@outlinefile=\write3
+)
+(/usr/local/texlive/2021/texmf-dist/tex/latex/l3backend/l3backend-dvips.def
+File: l3backend-dvips.def 2021-03-18 L3 backend support: dvips
+\l__pdf_internal_box=\box48
+\g__pdf_backend_object_int=\count193
+\l__pdf_backend_content_box=\box49
+\l__pdf_backend_model_box=\box50
+\g__pdf_backend_annotation_int=\count194
+\g__pdf_backend_link_int=\count195
+\g__pdf_backend_link_sf_int=\count196
+)
+(./pycbf.aux)
+\openout1 = `pycbf.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 102.
+LaTeX Font Info:    ... okay on input line 102.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 102.
+LaTeX Font Info:    ... okay on input line 102.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 102.
+LaTeX Font Info:    ... okay on input line 102.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 102.
+LaTeX Font Info:    ... okay on input line 102.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 102.
+LaTeX Font Info:    ... okay on input line 102.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 102.
+LaTeX Font Info:    ... okay on input line 102.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 102.
+LaTeX Font Info:    ... okay on input line 102.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 102.
+LaTeX Font Info:    ... okay on input line 102.
+Package hyperref Info: Link coloring OFF on input line 102.
+ (/Users/yaya/Library/texmf/tex/latex/hyperref/nameref.sty
+Package: nameref 2003/12/03 v2.21 Cross-referencing by name of section
+\c@section@level=\count197
+)
+LaTeX Info: Redefining \ref on input line 102.
+LaTeX Info: Redefining \pageref on input line 102.
+\openout3 = `pycbf.out'.
+
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <12> on input line 132.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <8> on input line 132.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <6> on input line 132.
+
+(./pycbf.toc
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <9> on input line 4.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <5> on input line 4.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+l.16 ...th write logic added}{17}{subsection.10.4}
+                                                  
+? 
+! Extra }, or forgotten $.
+<argument> ... pycbf_test1 with write logic added}
+                                                  \hyper@linkend 
+l.16 ...th write logic added}{17}{subsection.10.4}
+                                                  
+? 
+! Missing $ inserted.
+<inserted text> 
+                $
+l.16 ...th write logic added}{17}{subsection.10.4}
+                                                  
+? 
+! Missing } inserted.
+<inserted text> 
+                }
+l.16 ...th write logic added}{17}{subsection.10.4}
+                                                  
+? 
+)
+\tf@toc=\write4
+\openout4 = `pycbf.toc'.
+
+ [1
+
+]
+Overfull \hbox (10.09409pt too wide) in paragraph at lines 213--219
+[]\OT1/cmr/m/n/9 The li-brary ap-pears to de-fine (at least) three ob-jects. Th
+e one we started on was the cbf[]handle[]struct
+ []
+
+[2] [3]
+Overfull \hbox (27.82617pt too wide) in paragraph at lines 415--415
+[][][][]\OT1/cmtt/m/n/9 #define CBF_PARSE_TQ    0x0800  /* PARSE treble quotes 
+"""...""" and '''...'''       */  
+ []
+
+
+Overfull \hbox (4.20145pt too wide) in paragraph at lines 427--427
+[][][][]\OT1/cmtt/m/n/9 #define CBF_PARSE_WIDE      0x4000  /* PARSE wide files
+                         */  
+ []
+
+
+Overfull \hbox (4.20145pt too wide) in paragraph at lines 429--429
+[][][][]\OT1/cmtt/m/n/9 #define CBF_PARSE_UTF8      0x10000 /* PARSE UTF-8     
+                         */  
+ []
+
+[4] [5]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [6]
+Overfull \hbox (42.001pt too wide) in paragraph at lines 664--664
+[][][]                []\OT1/cmtt/m/n/9 PyErr_SetString(PyExc_ValueError,"Expec
+ting a sequence of long integers");  
+ []
+
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [7]
+Overfull \hbox (42.001pt too wide) in paragraph at lines 696--696
+[][][]                []\OT1/cmtt/m/n/9 PyErr_SetString(PyExc_ValueError,"Expec
+ting a sequence of long integers");  
+ []
+
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [8]
+[9]
+Overfull \hbox (11.92642pt too wide) in paragraph at lines 1027--1027
+[][][]      []\OT1/cmtt/m/n/9 while lines[i+1].find("DESCRIPTION")==-1 and line
+s[i+1].find("int cbf_")==-1:  
+ []
+
+
+Overfull \hbox (11.92642pt too wide) in paragraph at lines 1194--1194
+[][][]     []\OT1/cmtt/m/n/9 "int elements", "int minelement", "int maxelement"
+, "char **bo", "int *bolen",  
+ []
+
+
+Overfull \hbox (11.92642pt too wide) in paragraph at lines 1234--1234
+[][][]     []\OT1/cmtt/m/n/9 "int elements", "int minelement", "int maxelement"
+, "char **bo", "int *bolen",  
+ []
+
+
+Overfull \hbox (11.92642pt too wide) in paragraph at lines 1274--1274
+[][][]     []\OT1/cmtt/m/n/9 "int elements", "int minelement", "int maxelement"
+, "char **bo", "int *bolen",  
+ []
+
+
+Overfull \hbox (21.37631pt too wide) in paragraph at lines 1476--1476
+[][][]    []\OT1/cmtt/m/n/9 "int elsize", "int elsign", "int ndimslow", "int nd
+imfast"],["(Binary)String"] ],  
+ []
+
+
+Overfull \hbox (21.37631pt too wide) in paragraph at lines 1504--1504
+[][][]    []\OT1/cmtt/m/n/9 "int elsize", "int elsign", "int ndimfast", "int nd
+imslow"],["(Binary)String"] ],  
+ []
+
+
+Overfull \hbox (21.37631pt too wide) in paragraph at lines 1532--1532
+[][][]    []\OT1/cmtt/m/n/9 "int elsize", "int elsign", "int ndimslow", "int nd
+imfast"],["(Binary)String"] ],  
+ []
+
+
+Overfull \hbox (92.25049pt too wide) in paragraph at lines 1644--1644
+[][][]    []\OT1/cmtt/m/n/9 "int elsize", "int elsign", "int ndimslow", "int nd
+immid", "int ndimfast"],["(Binary)String"] ],  
+ []
+
+
+Overfull \hbox (92.25049pt too wide) in paragraph at lines 1672--1672
+[][][]    []\OT1/cmtt/m/n/9 "int elsize", "int elsign", "int ndimfast", "int nd
+immid", "int ndimslow"],["(Binary)String"] ],  
+ []
+
+
+Overfull \hbox (92.25049pt too wide) in paragraph at lines 1700--1700
+[][][]    []\OT1/cmtt/m/n/9 "int elsize", "int elsign", "int ndimslow", "int nd
+immid", "int ndimfast"],["(Binary)String"] ],  
+ []
+
+
+Overfull \hbox (26.10126pt too wide) in paragraph at lines 1728--1728
+[][][]    []\OT1/cmtt/m/n/9 "int elsize", "int ndimslow", "int ndimmid", "int n
+dimfast"],["(Binary)String"] ],  
+ []
+
+
+Overfull \hbox (26.10126pt too wide) in paragraph at lines 1756--1756
+[][][]    []\OT1/cmtt/m/n/9 "int elsize", "int ndimfast", "int ndimmid", "int n
+dimslow"],["(Binary)String"] ],  
+ []
+
+
+Overfull \hbox (26.10126pt too wide) in paragraph at lines 1783--1783
+[][][]    []\OT1/cmtt/m/n/9 "int elsize", "int ndimslow", "int ndimmid", "int n
+dimfast"],["(Binary)String"] ],  
+ []
+
+
+Overfull \hbox (11.92642pt too wide) in paragraph at lines 1850--1850
+[][][][]\OT1/cmtt/m/n/9 %apply (char *STRING, int LENGTH) { (char *data, int le
+n) } set_integerarray_wdims;  
+ []
+
+
+Overfull \hbox (11.92642pt too wide) in paragraph at lines 1851--1851
+[][][][]\OT1/cmtt/m/n/9 %apply (char *STRING, int LENGTH) { (char *bo, int bole
+n) } set_integerarray_wdims;  
+ []
+
+
+Overfull \hbox (21.37631pt too wide) in paragraph at lines 1855--1855
+[][][]             []\OT1/cmtt/m/n/9 char *bo, int bolen, int dimfast, int dimm
+id, int dimslow, int padding){  
+ []
+
+
+Overfull \hbox (78.07565pt too wide) in paragraph at lines 1867--1867
+[][][]           []\OT1/cmtt/m/n/9 (void *) data,  (size_t) elsize, elsigned, (
+size_t) elements, (const char *)byteorder,  
+ []
+
+
+Overfull \hbox (233.99884pt too wide) in paragraph at lines 1875--1875
+[][][] []\OT1/cmtt/m/n/9 "int elsize", "int elsigned", "int elements", "String 
+byteorder", "int dimfast", "int dimmid", "int dimslow", "int padding"],[]],  
+ []
+
+
+Overfull \hbox (26.10126pt too wide) in paragraph at lines 1883--1883
+[][][][]\OT1/cmtt/m/n/9 %apply (char *STRING, int LENGTH) { (char *data, int le
+n) } set_integerarray_wdims_sf;  
+ []
+
+
+Overfull \hbox (26.10126pt too wide) in paragraph at lines 1884--1884
+[][][][]\OT1/cmtt/m/n/9 %apply (char *STRING, int LENGTH) { (char *bo, int bole
+n) } set_integerarray_wdims_sf;  
+ []
+
+
+Overfull \hbox (21.37631pt too wide) in paragraph at lines 1888--1888
+[][][]             []\OT1/cmtt/m/n/9 char *bo, int bolen, int dimslow, int dimm
+id, int dimfast, int padding){  
+ []
+
+
+Overfull \hbox (11.92642pt too wide) in paragraph at lines 1899--1899
+[][][]           []\OT1/cmtt/m/n/9 cbf_failnez(cbf_set_integerarray_wdims_sf (s
+elf, compression, binary_id,  
+ []
+
+
+Overfull \hbox (78.07565pt too wide) in paragraph at lines 1900--1900
+[][][]           []\OT1/cmtt/m/n/9 (void *) data,  (size_t) elsize, elsigned, (
+size_t) elements, (const char *)byteorder,  
+ []
+
+
+Overfull \hbox (224.54895pt too wide) in paragraph at lines 1908--1908
+[][][] []\OT1/cmtt/m/n/9 "int elsize","int elsigned","int elements", "String by
+teorder", "int dimslow", "int dimmid", "int dimfast", "int padding"],[]],  
+ []
+
+
+Overfull \hbox (26.10126pt too wide) in paragraph at lines 1915--1915
+[][][][]\OT1/cmtt/m/n/9 %apply (char *STRING, int LENGTH) { (char *data, int le
+n) } set_integerarray_wdims_fs;  
+ []
+
+
+Overfull \hbox (26.10126pt too wide) in paragraph at lines 1916--1916
+[][][][]\OT1/cmtt/m/n/9 %apply (char *STRING, int LENGTH) { (char *bo, int bole
+n) } set_integerarray_wdims_fs;  
+ []
+
+
+Overfull \hbox (21.37631pt too wide) in paragraph at lines 1920--1920
+[][][]             []\OT1/cmtt/m/n/9 char *bo, int bolen, int dimfast, int dimm
+id, int dimslow, int padding){  
+ []
+
+
+Overfull \hbox (11.92642pt too wide) in paragraph at lines 1931--1931
+[][][]           []\OT1/cmtt/m/n/9 cbf_failnez(cbf_set_integerarray_wdims_fs (s
+elf, compression, binary_id,  
+ []
+
+
+Overfull \hbox (78.07565pt too wide) in paragraph at lines 1932--1932
+[][][]           []\OT1/cmtt/m/n/9 (void *) data,  (size_t) elsize, elsigned, (
+size_t) elements, (const char *)byteorder,  
+ []
+
+
+Overfull \hbox (224.54895pt too wide) in paragraph at lines 1940--1940
+[][][] []\OT1/cmtt/m/n/9 "int elsize","int elsigned","int elements", "String by
+teorder", "int dimfast", "int dimmid", "int dimslow", "int padding"],[]],  
+ []
+
+
+Overfull \hbox (21.37631pt too wide) in paragraph at lines 1979--1979
+[][][]             []\OT1/cmtt/m/n/9 char *bo, int bolen, int dimfast, int dimm
+id, int dimslow, int padding){  
+ []
+
+
+Overfull \hbox (30.8262pt too wide) in paragraph at lines 1991--1991
+[][][]           []\OT1/cmtt/m/n/9 (void *) data,  (size_t) elsize, (size_t) el
+ements, (const char *)byteorder,  
+ []
+
+
+Overfull \hbox (153.67477pt too wide) in paragraph at lines 1999--1999
+[][][] []\OT1/cmtt/m/n/9 "int elsize","int elements", "String byteorder", "int 
+dimfast", "int dimmid", "int dimslow", "int padding"],[]],  
+ []
+
+
+Overfull \hbox (11.92642pt too wide) in paragraph at lines 2007--2007
+[][][][]\OT1/cmtt/m/n/9 %apply (char *STRING, int LENGTH) { (char *data, int le
+n) } set_realarray_wdims_sf;  
+ []
+
+
+Overfull \hbox (11.92642pt too wide) in paragraph at lines 2008--2008
+[][][][]\OT1/cmtt/m/n/9 %apply (char *STRING, int LENGTH) { (char *bo, int bole
+n) } set_realarray_wdims_sf;  
+ []
+
+
+Overfull \hbox (21.37631pt too wide) in paragraph at lines 2012--2012
+[][][]             []\OT1/cmtt/m/n/9 char *bo, int bolen, int dimslow, int dimm
+id, int dimfast, int padding){  
+ []
+
+
+Overfull \hbox (30.8262pt too wide) in paragraph at lines 2024--2024
+[][][]           []\OT1/cmtt/m/n/9 (void *) data,  (size_t) elsize, (size_t) el
+ements, (const char *)byteorder,  
+ []
+
+
+Overfull \hbox (7.20148pt too wide) in paragraph at lines 2025--2025
+[][][]           []\OT1/cmtt/m/n/9 (size_t) dimslow, (size_t) dimmid, (size_t) 
+dimfast, (size_t)padding));  
+ []
+
+
+Overfull \hbox (153.67477pt too wide) in paragraph at lines 2032--2032
+[][][] []\OT1/cmtt/m/n/9 "int elsize","int elements", "String byteorder", "int 
+dimslow", "int dimmid", "int dimfast", "int padding"],[]],  
+ []
+
+
+Overfull \hbox (11.92642pt too wide) in paragraph at lines 2040--2040
+[][][][]\OT1/cmtt/m/n/9 %apply (char *STRING, int LENGTH) { (char *data, int le
+n) } set_realarray_wdims_fs;  
+ []
+
+
+Overfull \hbox (11.92642pt too wide) in paragraph at lines 2041--2041
+[][][][]\OT1/cmtt/m/n/9 %apply (char *STRING, int LENGTH) { (char *bo, int bole
+n) } set_realarray_wdims_fs;  
+ []
+
+
+Overfull \hbox (21.37631pt too wide) in paragraph at lines 2045--2045
+[][][]             []\OT1/cmtt/m/n/9 char *bo, int bolen, int dimfast, int dimm
+id, int dimslow, int padding){  
+ []
+
+
+Overfull \hbox (30.8262pt too wide) in paragraph at lines 2057--2057
+[][][]           []\OT1/cmtt/m/n/9 (void *) data,  (size_t) elsize, (size_t) el
+ements, (const char *)byteorder,  
+ []
+
+
+Overfull \hbox (7.20148pt too wide) in paragraph at lines 2058--2058
+[][][]           []\OT1/cmtt/m/n/9 (size_t) dimfast, (size_t) dimmid, (size_t) 
+dimslow, (size_t)padding));  
+ []
+
+
+Overfull \hbox (153.67477pt too wide) in paragraph at lines 2065--2065
+[][][] []\OT1/cmtt/m/n/9 "int elsize","int elements", "String byteorder", "int 
+dimfast", "int dimmid", "int dimslow", "int padding"],[]],  
+ []
+
+
+Overfull \hbox (26.10126pt too wide) in paragraph at lines 2076--2076
+[][][]             []\OT1/cmtt/m/n/9 char *data, int len, int elsize, int elsig
+n, int ndimslow, int ndimfast){  
+ []
+
+
+Overfull \hbox (7.20148pt too wide) in paragraph at lines 2085--2085
+[][][]           []\OT1/cmtt/m/n/9 cbf_failnez(cbf_set_image (self, reserved, e
+lement_number, compression,  
+ []
+
+
+Overfull \hbox (45.00104pt too wide) in paragraph at lines 2086--2086
+[][][]           []\OT1/cmtt/m/n/9 (void *) data,  (size_t) elsize, elsign, (si
+ze_t) ndimslow, (size_t)ndimfast));  
+ []
+
+
+Overfull \hbox (26.10126pt too wide) in paragraph at lines 2104--2104
+[][][]             []\OT1/cmtt/m/n/9 char *data, int len, int elsize, int elsig
+n, int ndimfast, int ndimslow){  
+ []
+
+
+Overfull \hbox (7.20148pt too wide) in paragraph at lines 2113--2113
+[][][]           []\OT1/cmtt/m/n/9 cbf_failnez(cbf_set_image (self, reserved, e
+lement_number, compression,  
+ []
+
+
+Overfull \hbox (45.00104pt too wide) in paragraph at lines 2114--2114
+[][][]           []\OT1/cmtt/m/n/9 (void *) data,  (size_t) elsize, elsign, (si
+ze_t) ndimfast, (size_t)ndimslow));  
+ []
+
+
+Overfull \hbox (26.10126pt too wide) in paragraph at lines 2132--2132
+[][][]             []\OT1/cmtt/m/n/9 char *data, int len, int elsize, int elsig
+n, int ndimslow, int ndimfast){  
+ []
+
+
+Overfull \hbox (21.37631pt too wide) in paragraph at lines 2141--2141
+[][][]           []\OT1/cmtt/m/n/9 cbf_failnez(cbf_set_image_sf (self, reserved
+, element_number, compression,  
+ []
+
+
+Overfull \hbox (45.00104pt too wide) in paragraph at lines 2142--2142
+[][][]           []\OT1/cmtt/m/n/9 (void *) data,  (size_t) elsize, elsign, (si
+ze_t) ndimslow, (size_t)ndimfast));  
+ []
+
+
+Overfull \hbox (30.8262pt too wide) in paragraph at lines 2169--2169
+[][][]           []\OT1/cmtt/m/n/9 cbf_failnez(cbf_set_real_image (self, reserv
+ed, element_number, compression,  
+ []
+
+
+Overfull \hbox (7.20148pt too wide) in paragraph at lines 2170--2170
+[][][]           []\OT1/cmtt/m/n/9 (void *) data,  (size_t) elsize, (size_t) nd
+imslow, (size_t)ndimfast));  
+ []
+
+
+Overfull \hbox (45.00104pt too wide) in paragraph at lines 2197--2197
+[][][]           []\OT1/cmtt/m/n/9 cbf_failnez(cbf_set_real_image_fs (self, res
+erved, element_number, compression,  
+ []
+
+
+Overfull \hbox (7.20148pt too wide) in paragraph at lines 2198--2198
+[][][]           []\OT1/cmtt/m/n/9 (void *) data,  (size_t) elsize, (size_t) nd
+imfast, (size_t)ndimslow));  
+ []
+
+
+Overfull \hbox (45.00104pt too wide) in paragraph at lines 2225--2225
+[][][]           []\OT1/cmtt/m/n/9 cbf_failnez(cbf_set_real_image_sf (self, res
+erved, element_number, compression,  
+ []
+
+
+Overfull \hbox (7.20148pt too wide) in paragraph at lines 2226--2226
+[][][]           []\OT1/cmtt/m/n/9 (void *) data,  (size_t) elsize, (size_t) nd
+imslow, (size_t)ndimfast));  
+ []
+
+
+Overfull \hbox (87.52554pt too wide) in paragraph at lines 2244--2244
+[][][]             []\OT1/cmtt/m/n/9 char *data, int len, int elsize, int elsig
+n, int ndimslow, int ndimmid, int ndimfast){  
+ []
+
+
+Overfull \hbox (21.37631pt too wide) in paragraph at lines 2253--2253
+[][][]           []\OT1/cmtt/m/n/9 cbf_failnez(cbf_set_3d_image (self, reserved
+, element_number, compression,  
+ []
+
+
+Overfull \hbox (130.05005pt too wide) in paragraph at lines 2254--2254
+[][][]           []\OT1/cmtt/m/n/9 (void *) data,  (size_t) elsize, elsign, (si
+ze_t) ndimslow, (size_t) ndimmid, (size_t)ndimfast));  
+ []
+
+
+Overfull \hbox (87.52554pt too wide) in paragraph at lines 2272--2272
+[][][]             []\OT1/cmtt/m/n/9 char *data, int len, int elsize, int elsig
+n, int ndimfast, int ndimmid, int ndimslow){  
+ []
+
+
+Overfull \hbox (35.55115pt too wide) in paragraph at lines 2281--2281
+[][][]           []\OT1/cmtt/m/n/9 cbf_failnez(cbf_set_3d_image_fs (self, reser
+ved, element_number, compression,  
+ []
+
+
+Overfull \hbox (130.05005pt too wide) in paragraph at lines 2282--2282
+[][][]           []\OT1/cmtt/m/n/9 (void *) data,  (size_t) elsize, elsign, (si
+ze_t) ndimfast, (size_t) ndimmid, (size_t)ndimslow));  
+ []
+
+
+Overfull \hbox (87.52554pt too wide) in paragraph at lines 2300--2300
+[][][]             []\OT1/cmtt/m/n/9 char *data, int len, int elsize, int elsig
+n, int ndimslow, int ndimmid, int ndimfast){  
+ []
+
+
+Overfull \hbox (35.55115pt too wide) in paragraph at lines 2309--2309
+[][][]           []\OT1/cmtt/m/n/9 cbf_failnez(cbf_set_3d_image_sf (self, reser
+ved, element_number, compression,  
+ []
+
+
+Overfull \hbox (130.05005pt too wide) in paragraph at lines 2310--2310
+[][][]           []\OT1/cmtt/m/n/9 (void *) data,  (size_t) elsize, elsign, (si
+ze_t) ndimslow, (size_t) ndimmid, (size_t)ndimfast));  
+ []
+
+
+Overfull \hbox (2.47653pt too wide) in paragraph at lines 2324--2324
+[][][][]\OT1/cmtt/m/n/9 %apply (char *STRING, int LENGTH) { (char *data, int le
+n) } set_real_3d_image_sf;  
+ []
+
+
+Overfull \hbox (30.8262pt too wide) in paragraph at lines 2328--2328
+[][][]             []\OT1/cmtt/m/n/9 char *data, int len, int elsize, int ndims
+low, int ndimmid, int ndimfast){  
+ []
+
+
+Overfull \hbox (45.00104pt too wide) in paragraph at lines 2337--2337
+[][][]           []\OT1/cmtt/m/n/9 cbf_failnez(cbf_set_real_3d_image (self, res
+erved, element_number, compression,  
+ []
+
+
+Overfull \hbox (87.52554pt too wide) in paragraph at lines 2338--2338
+[][][]           []\OT1/cmtt/m/n/9 (void *) data,  (size_t) elsize, (size_t) nd
+imslow, (size_t)ndimmid, (size_t)ndimfast));  
+ []
+
+
+Overfull \hbox (2.47653pt too wide) in paragraph at lines 2352--2352
+[][][][]\OT1/cmtt/m/n/9 %apply (char *STRING, int LENGTH) { (char *data, int le
+n) } set_real_3d_image_fs;  
+ []
+
+
+Overfull \hbox (30.8262pt too wide) in paragraph at lines 2356--2356
+[][][]             []\OT1/cmtt/m/n/9 char *data, int len, int elsize, int ndimf
+ast, int ndimmid, int ndimslow){  
+ []
+
+
+Overfull \hbox (59.17587pt too wide) in paragraph at lines 2365--2365
+[][][]           []\OT1/cmtt/m/n/9 cbf_failnez(cbf_set_real_3d_image_fs (self, 
+reserved, element_number, compression,  
+ []
+
+
+Overfull \hbox (87.52554pt too wide) in paragraph at lines 2366--2366
+[][][]           []\OT1/cmtt/m/n/9 (void *) data,  (size_t) elsize, (size_t) nd
+imfast, (size_t)ndimmid, (size_t)ndimslow));  
+ []
+
+
+Overfull \hbox (2.47653pt too wide) in paragraph at lines 2380--2380
+[][][][]\OT1/cmtt/m/n/9 %apply (char *STRING, int LENGTH) { (char *data, int le
+n) } set_real_3d_image_sf;  
+ []
+
+
+Overfull \hbox (30.8262pt too wide) in paragraph at lines 2384--2384
+[][][]             []\OT1/cmtt/m/n/9 char *data, int len, int elsize, int ndims
+low, int ndimmid, int ndimfast){  
+ []
+
+
+Overfull \hbox (59.17587pt too wide) in paragraph at lines 2393--2393
+[][][]           []\OT1/cmtt/m/n/9 cbf_failnez(cbf_set_real_3d_image_sf (self, 
+reserved, element_number, compression,  
+ []
+
+
+Overfull \hbox (87.52554pt too wide) in paragraph at lines 2394--2394
+[][][]           []\OT1/cmtt/m/n/9 (void *) data,  (size_t) elsize, (size_t) nd
+imslow, (size_t)ndimmid, (size_t)ndimfast));  
+ []
+
+
+Overfull \hbox (16.65137pt too wide) in paragraph at lines 2406--2406
+[][][]     []\OT1/cmtt/m/n/9 void get_image_size(unsigned int element_number, i
+nt *ndimslow, int *ndimfast){  
+ []
+
+
+Overfull \hbox (26.10126pt too wide) in paragraph at lines 2410--2410
+[][][]        []\OT1/cmtt/m/n/9 cbf_failnez(cbf_get_image_size(self,reserved,el
+ement_number,&inslow,&infast));  
+ []
+
+
+Overfull \hbox (2.47653pt too wide) in paragraph at lines 2414--2414
+[][][][]\OT1/cmtt/m/n/9 ""","get_image_size",["Integer element_number"],["size_
+t ndim1","size_t ndim2"]],  
+ []
+
+
+Overfull \hbox (30.8262pt too wide) in paragraph at lines 2419--2419
+[][][]     []\OT1/cmtt/m/n/9 void get_image_size_fs(unsigned int element_number
+, int *ndimfast, int *ndimslow){  
+ []
+
+
+Overfull \hbox (40.2761pt too wide) in paragraph at lines 2423--2423
+[][][]        []\OT1/cmtt/m/n/9 cbf_failnez(cbf_get_image_size_fs(self,reserved
+,element_number,&infast,&inslow));  
+ []
+
+
+Overfull \hbox (45.00104pt too wide) in paragraph at lines 2427--2427
+[][][][]\OT1/cmtt/m/n/9 ""","get_image_size_fs",["Integer element_number"],["si
+ze_t ndimfast","size_t ndimslow"]],  
+ []
+
+
+Overfull \hbox (30.8262pt too wide) in paragraph at lines 2432--2432
+[][][]     []\OT1/cmtt/m/n/9 void get_image_size_sf(unsigned int element_number
+, int *ndimslow, int *ndimfast){  
+ []
+
+
+Overfull \hbox (26.10126pt too wide) in paragraph at lines 2436--2436
+[][][]        []\OT1/cmtt/m/n/9 cbf_failnez(cbf_get_image_size(self,reserved,el
+ement_number,&inslow,&infast));  
+ []
+
+
+Overfull \hbox (45.00104pt too wide) in paragraph at lines 2440--2440
+[][][][]\OT1/cmtt/m/n/9 ""","get_image_size_sf",["Integer element_number"],["si
+ze_t ndimslow","size_t ndimfast"]],  
+ []
+
+
+Overfull \hbox (7.20148pt too wide) in paragraph at lines 2444--2444
+[][][][]\OT1/cmtt/m/n/9 %apply int *OUTPUT {int *ndimslow, int *ndimmid, int *n
+dimfast} get_3d_image_size;  
+ []
+
+
+Overfull \hbox (96.97543pt too wide) in paragraph at lines 2445--2445
+[][][]     []\OT1/cmtt/m/n/9 void get_3d_image_size(unsigned int element_number
+, int *ndimslow, int *ndimmid, int *ndimfast){  
+ []
+
+
+Overfull \hbox (73.35071pt too wide) in paragraph at lines 2449--2449
+[][][]        []\OT1/cmtt/m/n/9 cbf_failnez(cbf_get_3d_image_size(self,reserved
+,element_number,&inslow,&inmid,&infast));  
+ []
+
+
+Overfull \hbox (125.3251pt too wide) in paragraph at lines 2454--2454
+[][][][]\OT1/cmtt/m/n/9 ""","get_3d_image_size",["Integer element_number"],["si
+ze_t ndimslow","size_t ndimmid","size_t ndimfast"]],  
+ []
+
+
+Overfull \hbox (7.20148pt too wide) in paragraph at lines 2458--2458
+[][][][]\OT1/cmtt/m/n/9 %apply int *OUTPUT {int *ndimslow, int *ndimmid, int *n
+dimfast} get_3d_image_size;  
+ []
+
+
+Overfull \hbox (111.15027pt too wide) in paragraph at lines 2459--2459
+[][][]     []\OT1/cmtt/m/n/9 void get_3d_image_size_fs(unsigned int element_num
+ber, int *ndimfast, int *ndimmid, int *ndimslow){  
+ []
+
+
+Overfull \hbox (87.52554pt too wide) in paragraph at lines 2463--2463
+[][][]        []\OT1/cmtt/m/n/9 cbf_failnez(cbf_get_3d_image_size_fs(self,reser
+ved,element_number,&infast,&inmid,&inslow));  
+ []
+
+
+Overfull \hbox (125.3251pt too wide) in paragraph at lines 2468--2468
+[][][][]\OT1/cmtt/m/n/9 ""","get_3d_image_size",["Integer element_number"],["si
+ze_t ndimfast","size_t ndimmid","size_t ndimslow"]],  
+ []
+
+
+Overfull \hbox (21.37631pt too wide) in paragraph at lines 2472--2472
+[][][][]\OT1/cmtt/m/n/9 %apply int *OUTPUT {int *ndimslow, int *ndimmid, int *n
+dimfast} get_3d_image_size_sf;  
+ []
+
+
+Overfull \hbox (111.15027pt too wide) in paragraph at lines 2473--2473
+[][][]     []\OT1/cmtt/m/n/9 void get_3d_image_size_sf(unsigned int element_num
+ber, int *ndimslow, int *ndimmid, int *ndimfast){  
+ []
+
+
+Overfull \hbox (87.52554pt too wide) in paragraph at lines 2477--2477
+[][][]        []\OT1/cmtt/m/n/9 cbf_failnez(cbf_get_3d_image_size_sf(self,reser
+ved,element_number,&inslow,&inmid,&infast));  
+ []
+
+
+Overfull \hbox (139.49994pt too wide) in paragraph at lines 2482--2482
+[][][][]\OT1/cmtt/m/n/9 ""","get_3d_image_size_sf",["Integer element_number"],[
+"size_t ndimslow","size_t ndimmid","size_t ndimfast"]],  
+ []
+
+
+Overfull \hbox (7.20148pt too wide) in paragraph at lines 2830--2830
+[][][][]\OT1/cmtt/m/n/9 ""","get_axis_ancestor",["String axis_id", "Integer anc
+estor_index"],["String"],],  
+ []
+
+
+Overfull \hbox (40.2761pt too wide) in paragraph at lines 2862--2862
+[][][][]\OT1/cmtt/m/n/9 %apply double *OUTPUT {double *offset1, double *offset2
+, double offset3} get_axis_offset;  
+ []
+
+
+Overfull \hbox (40.2761pt too wide) in paragraph at lines 2903--2903
+[][][][]\OT1/cmtt/m/n/9 %apply double *OUTPUT {double *vector1, double *vector2
+, double vector3} get_axis_vector;  
+ []
+
+
+Overfull \hbox (35.55115pt too wide) in paragraph at lines 3050--3050
+[][][]    []\OT1/cmtt/m/n/9 [],["Float a", "Float b", "Float c", "Float alpha",
+ "Float beta", "Float gamma" ] ],  
+ []
+
+
+Overfull \hbox (144.22488pt too wide) in paragraph at lines 3085--3085
+[][][]    []\OT1/cmtt/m/n/9 [],["Float astar", "Float bstar", "Float cstar", "F
+loat alphastar", "Float betastar", "Float gammastar"] ],  
+ []
+
+
+Overfull \hbox (7.20148pt too wide) in paragraph at lines 3089--3089
+[][][]  []\OT1/cmtt/m/n/9 double *alpha_esd, double *beta_esd, double *gamma_es
+d} get_reciprocal_cell_esd;  
+ []
+
+
+Overfull \hbox (2.47653pt too wide) in paragraph at lines 3203--3203
+[][][][]\OT1/cmtt/m/n/9 ""","cbf_require_category_root",["String Categoryname"]
+,["String categoryroot"]],  
+ []
+
+
+Overfull \hbox (45.00104pt too wide) in paragraph at lines 3220--3220
+[][][]   []\OT1/cmtt/m/n/9 void set_bin_sizes( int element_number, double slowb
+insize_in, double fastbinsize_in) {  
+ []
+
+
+Overfull \hbox (30.8262pt too wide) in paragraph at lines 3221--3221
+[][][]     []\OT1/cmtt/m/n/9 cbf_failnez(cbf_set_bin_sizes(self,element_number,
+slowbinsize_in,fastbinsize_in));  
+ []
+
+
+Overfull \hbox (82.8006pt too wide) in paragraph at lines 3223--3223
+[][][][]\OT1/cmtt/m/n/9 ""","set_bin_sizes",["Integer element_number","Float sl
+owbinsize_in","Float fastbinsize_in"],[] ],  
+ []
+
+
+Overfull \hbox (16.65137pt too wide) in paragraph at lines 3228--3228
+[][][]  []\OT1/cmtt/m/n/9 void get_bin_sizes(int element_number, double *slowbi
+nsize, double *fastbinsize) {  
+ []
+
+
+Overfull \hbox (82.8006pt too wide) in paragraph at lines 3229--3229
+[][][]    []\OT1/cmtt/m/n/9 cbf_failnez(cbf_get_bin_sizes (self, (unsigned int)
+element_number, slowbinsize, fastbinsize));  
+ []
+
+
+Overfull \hbox (49.72598pt too wide) in paragraph at lines 3231--3231
+[][][][]\OT1/cmtt/m/n/9 ""","get_bin_sizes",["Integer element_number"],["Float 
+slowbinsize","Float fastbinsize"] ],  
+ []
+
+
+Overfull \hbox (2.47653pt too wide) in paragraph at lines 3283--3283
+[][][]    []\OT1/cmtt/m/n/9 cbf_failnez(cbf_construct_reference_detector(self,&
+detector,element_number));  
+ []
+
+
+Overfull \hbox (40.2761pt too wide) in paragraph at lines 3286--3286
+[][][][]\OT1/cmtt/m/n/9 ""","construct_reference_detector",["Integer element_nu
+mber"],["pycbf detector object"]],  
+ []
+
+
+Overfull \hbox (30.8262pt too wide) in paragraph at lines 3294--3294
+[][][][]\OT1/cmtt/m/n/9 ""","require_reference_detector",["Integer element_numb
+er"],["pycbf detector object"]],  
+ []
+
+
+Overfull \hbox (21.37631pt too wide) in paragraph at lines 3319--3319
+[][][][]\OT1/cmtt/m/n/9 ""","construct_reference_positioner",["String axis_id"]
+,["pycbf positioner object"]],  
+ []
+
+
+Overfull \hbox (7.20148pt too wide) in paragraph at lines 3325--3325
+[][][]  []\OT1/cmtt/m/n/9 void get_axis_reference_poise(double *vector1, double
+ *vector2, double *vector3,  
+ []
+
+
+Overfull \hbox (2.47653pt too wide) in paragraph at lines 3500--3500
+[][][]          []\OT1/cmtt/m/n/9 if args[1].find("cbf")==-1: # but do not try 
+the goniometer constructor  
+ []
+
+
+Overfull \hbox (243.44873pt too wide) in paragraph at lines 3596--3596
+[][][]  []\OT1/cmtt/m/n/9 %apply double *OUTPUT {double * vector1, double * vec
+tor2, double * vector3, double * offset1, double * offset2, double * offset3,  
+
+ []
+
+
+Overfull \hbox (7.20148pt too wide) in paragraph at lines 3698--3698
+[][][]                                    []\OT1/cmtt/m/n/9 indexfast,indexslow
+,normal1,normal2,normal3));  
+ []
+
+
+Overfull \hbox (7.20148pt too wide) in paragraph at lines 3710--3710
+[][][]                                    []\OT1/cmtt/m/n/9 indexslow,indexfast
+,normal1,normal2,normal3));  
+ []
+
+
+Overfull \hbox (45.00104pt too wide) in paragraph at lines 3719--3719
+[][][]   []\OT1/cmtt/m/n/9 void get_detector_axis_slow ( double *slowaxis1, dou
+ble *slowaxis2, double *slowaxis3){  
+ []
+
+
+Overfull \hbox (45.00104pt too wide) in paragraph at lines 3729--3729
+[][][]   []\OT1/cmtt/m/n/9 void get_detector_axis_fast ( double *fastaxis1, dou
+ble *fastaxis2, double *fastaxis3){  
+ []
+
+
+Overfull \hbox (16.65137pt too wide) in paragraph at lines 3740--3740
+[][][]   []\OT1/cmtt/m/n/9 void get_detector_axes ( double *slowaxis1, double *
+slowaxis2, double *slowaxis3,  
+ []
+
+
+Overfull \hbox (21.37631pt too wide) in paragraph at lines 3741--3741
+[][][]                            []\OT1/cmtt/m/n/9 double *fastaxis1, double *
+fastaxis2, double *fastaxis3){  
+ []
+
+
+Overfull \hbox (30.8262pt too wide) in paragraph at lines 3754--3754
+[][][]   []\OT1/cmtt/m/n/9 void get_detector_axes_fs ( double *fastaxis1, doubl
+e *fastaxis2, double *fastaxis3,  
+ []
+
+
+Overfull \hbox (35.55115pt too wide) in paragraph at lines 3755--3755
+[][][]                               []\OT1/cmtt/m/n/9 double *slowaxis1, doubl
+e *slowaxis2, double *slowaxis3){  
+ []
+
+
+Overfull \hbox (30.8262pt too wide) in paragraph at lines 3768--3768
+[][][]   []\OT1/cmtt/m/n/9 void get_detector_axes_sf ( double *slowaxis1, doubl
+e *slowaxis2, double *slowaxis3,  
+ []
+
+
+Overfull \hbox (21.37631pt too wide) in paragraph at lines 3769--3769
+[][][]                            []\OT1/cmtt/m/n/9 double *fastaxis1, double *
+fastaxis2, double *fastaxis3){  
+ []
+
+
+Overfull \hbox (11.92642pt too wide) in paragraph at lines 3812--3812
+[][][]                                       []\OT1/cmtt/m/n/9 indexfast, index
+slow, area,projected_area));  
+ []
+
+
+Overfull \hbox (11.92642pt too wide) in paragraph at lines 3823--3823
+[][][]                                       []\OT1/cmtt/m/n/9 indexslow, index
+fast, area,projected_area));  
+ []
+
+
+Overfull \hbox (163.12466pt too wide) in paragraph at lines 3870--3870
+[][][]      []\OT1/cmtt/m/n/9 cbf_failnez(cbf_get_pixel_coordinates_fs(self, in
+dexfast, indexslow, coordinate1, coordinate2, coordinate3));  
+ []
+
+
+Overfull \hbox (163.12466pt too wide) in paragraph at lines 3883--3883
+[][][]      []\OT1/cmtt/m/n/9 cbf_failnez(cbf_get_pixel_coordinates_sf(self, in
+dexslow, indexfast, coordinate1, coordinate2, coordinate3));  
+ []
+
+
+Overfull \hbox (11.92642pt too wide) in paragraph at lines 3910--3910
+[][][][]\OT1/cmtt/m/n/9 ["double indexfast", "double indexslow", "double center
+fast","double centerslow"]],  
+ []
+
+
+Overfull \hbox (11.92642pt too wide) in paragraph at lines 3922--3922
+[][][][]\OT1/cmtt/m/n/9 ["double indexslow", "double indexfast", "double center
+slow","double centerfast"]],  
+ []
+
+
+Overfull \hbox (26.10126pt too wide) in paragraph at lines 3932--3932
+[][][][]\OT1/cmtt/m/n/9 ["double indexslow", "double indexfast", "double center
+slow","double centerfast"],[]],  
+ []
+
+
+Overfull \hbox (26.10126pt too wide) in paragraph at lines 3942--3942
+[][][][]\OT1/cmtt/m/n/9 ["double indexfast", "double indexslow", "double center
+fast","double centerslow"],[]],  
+ []
+
+
+Overfull \hbox (26.10126pt too wide) in paragraph at lines 3952--3952
+[][][][]\OT1/cmtt/m/n/9 ["double indexslow", "double indexfast", "double center
+slow","double centerfast"],[]],  
+ []
+
+
+Overfull \hbox (26.10126pt too wide) in paragraph at lines 3962--3962
+[][][][]\OT1/cmtt/m/n/9 ["double indexslow", "double indexfast", "double center
+slow","double centerfast"],[]],  
+ []
+
+
+Overfull \hbox (26.10126pt too wide) in paragraph at lines 3972--3972
+[][][][]\OT1/cmtt/m/n/9 ["double indexfast", "double indexslow", "double center
+fast","double centerslow"],[]],  
+ []
+
+
+Overfull \hbox (26.10126pt too wide) in paragraph at lines 3982--3982
+[][][][]\OT1/cmtt/m/n/9 ["double indexslow", "double indexfast", "double center
+slow","double centerfast"],[]],  
+ []
+
+
+Overfull \hbox (49.72598pt too wide) in paragraph at lines 4183--4183
+[][][]  []\OT1/cmtt/m/n/9 void compute_reciprocal_cell(double cell[6], double *
+astar, double *bstar, double *cstar,  
+ []
+
+
+Overfull \hbox (111.15027pt too wide) in paragraph at lines 4197--4197
+[][][][]\OT1/cmtt/m/n/9 ["Float astar", "Float bstar", "Float cstar", "Float al
+phastar", "Float betastar", "Float gammastar"] ],  
+ []
+
+
+Overfull \hbox (106.42532pt too wide) in paragraph at lines 4208--4208
+[][][][]\OT1/cmtt/m/n/9 ""","airy_disk",["double x", "double y", "double cenx",
+ "double ceny", "double volume", "double fwhm"],  
+ []
+
+
+Overfull \hbox (21.37631pt too wide) in paragraph at lines 4216--4216
+[][][][]\OT1/cmtt/m/n/9 cbf_failnez(cbf_airy_disk_volume(xlo,ylo,xhi,yhi,cenx,c
+eny,volumein,fwhm,volumeout));  
+ []
+
+
+Overfull \hbox (300.14807pt too wide) in paragraph at lines 4220--4220
+[][][][]\OT1/cmtt/m/n/9 ""","airy_disk_volume",["double xlo", "double ylo", "do
+uble xhi", "double yhi", "double cenx", "double ceny", "double volumein", "doub
+le fwhm"],  
+ []
+
+
+Overfull \hbox (16.65137pt too wide) in paragraph at lines 4309--4309
+[][][]           []\OT1/cmtt/m/n/9 cbf_handle_wrapper.wrap("cbf_get_unit_cell_e
+sd",prototype,args,docstring)  
+ []
+
+
+Overfull \hbox (45.00104pt too wide) in paragraph at lines 4311--4311
+[][][]           []\OT1/cmtt/m/n/9 cbf_handle_wrapper.wrap("cbf_get_reciprocal_
+cell_esd",prototype,args,docstring)  
+ []
+
+
+Overfull \hbox (16.65137pt too wide) in paragraph at lines 4313--4313
+[][][]           []\OT1/cmtt/m/n/9 cbf_handle_wrapper.wrap("cbf_set_unit_cell_e
+sd",prototype,args,docstring)  
+ []
+
+
+Overfull \hbox (45.00104pt too wide) in paragraph at lines 4315--4315
+[][][]           []\OT1/cmtt/m/n/9 cbf_handle_wrapper.wrap("cbf_set_reciprocal_
+cell_esd",prototype,args,docstring)  
+ []
+
+! Dimension too large.
+\height ->\ht \@tempboxa 
+                         
+l.4346 \end{minipage}
+                     \vspace{4ex}
+? 
+
+Overfull \hbox (304.87302pt too wide) in paragraph at lines 4375--4375
+[][][]         []\OT1/cmtt/m/n/9 'm4_ifelse(regexlibdir,`NOREGEXLIBDIR',`librar
+y_dirs=["../solib/","../lib/"],',`library_dirs=["../solib/","../lib/","'regexli
+bdir`"],')`  
+ []
+
+
+Overfull \hbox (399.37192pt too wide) in paragraph at lines 4376--4376
+[][][]         []\OT1/cmtt/m/n/9 'm4_ifelse(regexlib,`',`libraries=["cbf"],', `
+m4_ifelse(regexlib2,`',`libraries=["cbf","'regexlib`"],',`libraries=["cbf","'re
+gexlib`","'regexlib2`"],')'  )`  
+ []
+
+
+Underfull \vbox (badness 1248) has occurred while \output is active []
+
+ [10]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [11]
+[12] (./TODO.txt)
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [13]
+Overfull \vbox (57.62393pt too high) has occurred while \output is active []
+
+
+[14]
+! Missing $ inserted.
+<inserted text> 
+                $
+l.4719 ...n of pycbf_test1 with write logic added}
+                                                  
+? 
+! Missing $ inserted.
+<inserted text> 
+                $
+l.4719 ...n of pycbf_test1 with write logic added}
+                                                  
+? 
+
+Package hyperref Warning: Token not allowed in a PDFDocEncoded string,
+(hyperref)                removing `subscript' on input line 4719.
+
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [15]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [16]
+Overfull \vbox (472.76971pt too high) has occurred while \output is active []
+
+
+! Missing $ inserted.
+<inserted text> 
+                $
+l.4837 \end{flushleft}
+                      
+? 
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <7> on input line 4837.
+! Missing $ inserted.
+<inserted text> 
+                $
+l.4837 \end{flushleft}
+                      
+? 
+[17]
+Overfull \hbox (63.90082pt too wide) in paragraph at lines 4864--4864
+[][][]    []\OT1/cmtt/m/n/9 print '(0, 0) v00 [ %.9f %.9f %.9f ]' %(round(v00[0
+],9), round(v00[1],9), round(v00[2],9))  
+ []
+
+
+Overfull \hbox (63.90082pt too wide) in paragraph at lines 4865--4865
+[][][]    []\OT1/cmtt/m/n/9 print '(0, 1) v01 [ %.9g %.9g %.9g ]' %(round(v01[0
+],9), round(v01[1],9), round(v01[2],9))  
+ []
+
+
+Overfull \hbox (63.90082pt too wide) in paragraph at lines 4866--4866
+[][][]    []\OT1/cmtt/m/n/9 print '(1, 0) v10 [ %.9g %.9g %.9g ]' %(round(v10[0
+],9), round(v10[1],9), round(v10[2],9))  
+ []
+
+
+Overfull \hbox (63.90082pt too wide) in paragraph at lines 4867--4867
+[][][]    []\OT1/cmtt/m/n/9 print '(1, 1) v11 [ %.9g %.9g %.9g ]' %(round(v11[0
+],9), round(v11[1],9), round(v11[2],9))  
+ []
+
+
+Overfull \hbox (45.00104pt too wide) in paragraph at lines 4869--4869
+[][][]    []\OT1/cmtt/m/n/9 print "surface axes:",  d.get_detector_surface_axes
+(0), d.get_detector_surface_axes(1)  
+ []
+
+
+Overfull \hbox (177.2995pt too wide) in paragraph at lines 4871--4871
+[][][]    []\OT1/cmtt/m/n/9 print d.get_detector_surface_axes(0), "has", cbf.co
+unt_axis_ancestors(d.get_detector_surface_axes(0)), "ancestors"  
+ []
+
+
+Overfull \hbox (177.2995pt too wide) in paragraph at lines 4872--4872
+[][][]    []\OT1/cmtt/m/n/9 print d.get_detector_surface_axes(1), "has", cbf.co
+unt_axis_ancestors(d.get_detector_surface_axes(1)), "ancestors"  
+ []
+
+
+Overfull \hbox (11.92642pt too wide) in paragraph at lines 4881--4881
+[][][]        []\OT1/cmtt/m/n/9 print "    equipment_component", cbf.get_axis_e
+quipment_component(cur_axis)  
+ []
+
+
+Overfull \hbox (130.05005pt too wide) in paragraph at lines 4883--4883
+[][][]        []\OT1/cmtt/m/n/9 print "    vector [ %.8g %.8g %.8g ]" % (round(
+vector[0],7), round(vector[1],7), round(vector[2],7))  
+ []
+
+
+Overfull \hbox (130.05005pt too wide) in paragraph at lines 4885--4885
+[][][]        []\OT1/cmtt/m/n/9 print "    offset [ %.8g %.8g %.8g ]" % (round(
+offset[0],7), round(offset[1],7), round(offset[2],7))  
+ []
+
+
+Underfull \vbox (badness 6675) has occurred while \output is active []
+
+ [18]
+Overfull \hbox (2.47653pt too wide) in paragraph at lines 5030--5030
+[][][]         []\OT1/cmtt/m/n/9 UINT32        header_major_version;     /* hea
+der_major_version  (n.) */  
+ []
+
+
+Overfull \hbox (2.47653pt too wide) in paragraph at lines 5031--5031
+[][][]         []\OT1/cmtt/m/n/9 UINT32        header_minor_version;     /* hea
+der_minor_version  (.n) */  
+ []
+
+
+Overfull \hbox (2.47653pt too wide) in paragraph at lines 5068--5068
+[][][]         []\OT1/cmtt/m/n/9 UINT32        background_applied; /* flags cor
+rection has been applied -  
+ []
+
+
+Overfull \hbox (2.47653pt too wide) in paragraph at lines 5070--5070
+[][][]         []\OT1/cmtt/m/n/9 UINT32        bias_applied;       /* flags cor
+rection has been applied -  
+ []
+
+
+Overfull \hbox (2.47653pt too wide) in paragraph at lines 5072--5072
+[][][]         []\OT1/cmtt/m/n/9 UINT32        flatfield_applied;  /* flags cor
+rection has been applied -  
+ []
+
+
+Overfull \hbox (2.47653pt too wide) in paragraph at lines 5074--5074
+[][][]         []\OT1/cmtt/m/n/9 UINT32        distortion_applied; /* flags cor
+rection has been applied -  
+ []
+
+
+Overfull \hbox (2.47653pt too wide) in paragraph at lines 5093--5093
+[][][]         []\OT1/cmtt/m/n/9 UINT32        pixel_noise[MAXIMAGES]; /* 1000*
+base noise value (ADUs) */  
+ []
+
+
+Overfull \hbox (2.47653pt too wide) in paragraph at lines 5137--5137
+[][][]         []\OT1/cmtt/m/n/9 INT32 measured_bias[MAXIMAGES]; /* 1000*mean b
+ias value for each image*/  
+ []
+
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [19]
+Overfull \vbox (3050.37395pt too high) has occurred while \output is active []
+
+
+[20]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [21]
+Overfull \vbox (2159.37395pt too high) has occurred while \output is active []
+
+
+[22]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [23]
+Overfull \vbox (1752.37395pt too high) has occurred while \output is active []
+
+
+[24] (./pycbf.aux) ) 
+Here is how much of TeX's memory you used:
+ 2545 strings out of 478995
+ 37127 string characters out of 5858210
+ 1496958 words of memory out of 5000000
+ 20043 multiletter control sequences out of 15000+600000
+ 410047 words of font info for 49 fonts, out of 8000000 for 9000
+ 1141 hyphenation exceptions out of 8191
+ 53i,11n,60p,220b,378s stack positions out of 5000i,500n,10000p,200000b,80000s
+
+Output written on pycbf.dvi (24 pages, 219384 bytes).

@@ -1203,7 +1203,7 @@ static testResult_t testDatasets(const hid_t grp)
 		TEST_CBF_FAIL(cbf_H5Drequire(grp,&dset,"name",2,max,0,buf,H5T_STD_I32LE));
 		TEST_CBF_FAIL(cbf_H5Drequire(grp,&dset,"name",2,max,cnk,buf,CBF_H5FAIL));
 		/* check if things work */
-		TEST_CBF_PASS(cbf_H5Drequire(grp,0,"dataset_require_0",2,max,cnk,buf,H5T_STD_I32LE));
+		TEST_CBF_PASS(cbf_H5Drequire(grp,&dset,"dataset_require_0",2,max,cnk,buf,H5T_STD_I32LE));
 		TEST_COMPONENT(test_H5Drequire(grp,"dataset_require_1",2,max,cnk,buf,H5T_STD_I32LE));
 		TEST_COMPONENT(test_H5Drequire(grp,"dataset_require_2",2,max,cnk,0,H5T_STD_I32LE));
 		TEST_COMPONENT(test_H5Drequire(grp,"dataset_require_3",0,0,cnk,buf,H5T_STD_I32LE));

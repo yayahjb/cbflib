@@ -8598,6 +8598,10 @@ extern "C" {
 
         const char *element_id;
 
+        CBF_UNUSED( ncenter1 );
+
+        CBF_UNUSED( ncenter2 );
+
         if (!detector)
 
             return CBF_ARGUMENT;

@@ -11,8 +11,10 @@
       DO I = ARRAYLEN,1,-1
 	 IF (FCB_NBLEN_ARRAY.NE.0)EXIT
 	 J=ARRAY(I)
-	 IF ((J.NE.IACHAR(' ')).AND.(J.NE.Z'09').AND.(J.NE.Z'0A').AND.  &
-	     (J.NE.Z'0D').AND.(J.NE.0)) FCB_NBLEN_ARRAY = I
+	 IF ((J.NE.IACHAR(' ')).AND.(J.NE.int(Z'09')).AND. &
+             (J.NE.int(Z'0A')).AND. &
+	     (J.NE.int(Z'0D')).AND. &
+             (J.NE.0)) FCB_NBLEN_ARRAY = I
       END DO
       RETURN
       END FUNCTION FCB_NBLEN_ARRAY

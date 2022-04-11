@@ -3,58 +3,58 @@ m4_define(`fcb_is_last',`is_last')m4_dnl
 m4_dnl Error codes:
 m4_define(`fcb_errcode_CBF_FORMAT',
 `m4_ifelse(fcb_not_first,`',``INTEGER,PARAMETER:: &
-        '',``'')CBF_FORMAT            = Z''`00000001''`m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !      1')m4_dnl
+        '',``'')CBF_FORMAT            = int(Z''`00000001''`)m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !      1')m4_dnl
 m4_define(`fcb_errcode_CBF_ALLOC',
 `m4_ifelse(fcb_not_first,`',``INTEGER,PARAMETER:: &
-        '',``'')CBF_ALLOC             = Z''`00000002''`m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !      2')m4_dnl
+        '',``'')CBF_ALLOC             = int(Z''`00000002''`)m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !      2')m4_dnl
 m4_define(`fcb_errcode_CBF_ARGUMENT',
 `m4_ifelse(fcb_not_first,`',``INTEGER,PARAMETER:: &
-        '',``'')CBF_ARGUMENT          = Z''`00000004''`m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !      4')m4_dnl
+        '',``'')CBF_ARGUMENT          = int(Z''`00000004''`)m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !      4')m4_dnl
 m4_define(`fcb_errcode_CBF_ASCII',
 `m4_ifelse(fcb_not_first,`',``INTEGER,PARAMETER:: &
-        '',``'')CBF_ASCII             = Z''`00000008''`m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !      8')m4_dnl
+        '',``'')CBF_ASCII             = int(Z''`00000008''`)m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !      8')m4_dnl
 m4_define(`fcb_errcode_CBF_BINARY',
 `m4_ifelse(fcb_not_first,`',``INTEGER,PARAMETER:: &
-        '',``'')CBF_BINARY            = Z''`00000010''`m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !     16')m4_dnl
+        '',``'')CBF_BINARY            = int(Z''`00000010''`)m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !     16')m4_dnl
 m4_define(`fcb_errcode_CBF_BITCOUNT',
 `m4_ifelse(fcb_not_first,`',``INTEGER,PARAMETER:: &
-        '',``'')CBF_BITCOUNT          = Z''`00000020''`m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !     32')m4_dnl
+        '',``'')CBF_BITCOUNT          = int(Z''`00000020''`)m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !     32')m4_dnl
 m4_define(`fcb_errcode_CBF_ENDOFDATA',
 `m4_ifelse(fcb_not_first,`',``INTEGER,PARAMETER:: &
-        '',``'')CBF_ENDOFDATA         = Z''`00000040''`m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !     64')m4_dnl
+        '',``'')CBF_ENDOFDATA         = int(Z''`00000040''`)m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !     64')m4_dnl
 m4_define(`fcb_errcode_CBF_FILECLOSE',
 `m4_ifelse(fcb_not_first,`',``INTEGER,PARAMETER:: &
-        '',``'')CBF_FILECLOSE         = Z''`00000080''`m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !    128')m4_dnl
+        '',``'')CBF_FILECLOSE         = int(Z''`00000080''`)m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !    128')m4_dnl
 m4_define(`fcb_errcode_CBF_FILEOPEN',
 `m4_ifelse(fcb_not_first,`',``INTEGER,PARAMETER:: &
-        '',``'')CBF_FILEOPEN          = Z''`00000100''`m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !    256')m4_dnl
+        '',``'')CBF_FILEOPEN          = int(Z''`00000100''`)m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !    256')m4_dnl
 m4_define(`fcb_errcode_CBF_FILEREAD',
 `m4_ifelse(fcb_not_first,`',``INTEGER,PARAMETER:: &
-        '',``'')CBF_FILEREAD          = Z''`00000200''`m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !    512')m4_dnl
+        '',``'')CBF_FILEREAD          = int(Z''`00000200''`)m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !    512')m4_dnl
 m4_define(`fcb_errcode_CBF_FILESEEK',
 `m4_ifelse(fcb_not_first,`',``INTEGER,PARAMETER:: &
-        '',``'')CBF_FILESEEK          = Z''`00000400''`m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !   1024')m4_dnl
+        '',``'')CBF_FILESEEK          = int(Z''`00000400''`)m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !   1024')m4_dnl
 m4_define(`fcb_errcode_CBF_FILETELL',
 `m4_ifelse(fcb_not_first,`',``INTEGER,PARAMETER:: &
-        '',``'')CBF_FILETELL          = Z''`00000800''`m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !   2048')m4_dnl
+        '',``'')CBF_FILETELL          = int(Z''`00000800''`)m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !   2048')m4_dnl
 m4_define(`fcb_errcode_CBF_FILEWRITE',
 `m4_ifelse(fcb_not_first,`',``INTEGER,PARAMETER:: &
-        '',``'')CBF_FILEWRITE         = Z''`00001000''`m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !   4096')m4_dnl
+        '',``'')CBF_FILEWRITE         = int(Z''`00001000''`)m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !   4096')m4_dnl
 m4_define(`fcb_errcode_CBF_IDENTICAL',
 `m4_ifelse(fcb_not_first,`',``INTEGER,PARAMETER:: &
-        '',``'')CBF_IDENTICAL         = Z''`00002000''`m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !   8192')m4_dnl
+        '',``'')CBF_IDENTICAL         = int(Z''`00002000''`)m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !   8192')m4_dnl
 m4_define(`fcb_errcode_CBF_NOTFOUND',
 `m4_ifelse(fcb_not_first,`',``INTEGER,PARAMETER:: &
-        '',``'')CBF_NOTFOUND          = Z''`00004000''`m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !  16384')m4_dnl
+        '',``'')CBF_NOTFOUND          = int(Z''`00004000''`)m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !  16384')m4_dnl
 m4_define(`fcb_errcode_CBF_OVERFLOW',
 `m4_ifelse(fcb_not_first,`',``INTEGER,PARAMETER:: &
-        '',``'')CBF_OVERFLOW          = Z''`00008000''`m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !  32768')m4_dnl
+        '',``'')CBF_OVERFLOW          = int(Z''`00008000''`)m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !  32768')m4_dnl
 m4_define(`fcb_errcode_CBF_UNDEFINED',
 `m4_ifelse(fcb_not_first,`',``INTEGER,PARAMETER:: &
-        '',``'')CBF_UNDEFINED         = Z''`00010000''`m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !  65536')m4_dnl
+        '',``'')CBF_UNDEFINED         = int(Z''`00010000''`)m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !  65536')m4_dnl
 m4_define(`fcb_errcode_CBF_NOTIMPLEMENTED',
 `m4_ifelse(fcb_not_first,`',``INTEGER,PARAMETER:: &
-        '',``'')CBF_NOTIMPLEMENTED    = Z''`00020000''`m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` ! 131072')m4_dnl
+        '',``'')CBF_NOTIMPLEMENTED    = int(Z''`00020000''`)m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` ! 131072')m4_dnl
 m4_define(`fcb_errcode_LIST_ALL',
 m4_define(`fcb_is_last',`')m4_dnl
 !
@@ -86,25 +86,25 @@ m4_dnl
 m4_dnl Possible parameter values for ENCODING are:
 m4_define(`fcb_param_ENC_NONE',
 `m4_ifelse(fcb_not_first,`',``INTEGER,PARAMETER:: &
-        '',``'')ENC_NONE         = Z''`0001''`m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !Use BINARY encoding')m4_dnl
+        '',``'')ENC_NONE         = int(Z''`0001''`)m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !Use BINARY encoding')m4_dnl
 m4_define(`fcb_param_ENC_BASE64',
 `m4_ifelse(fcb_not_first,`',``INTEGER,PARAMETER:: &
-        '',``'')ENC_BASE64       = Z''`0002''`m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !Use BASE64 encoding')m4_dnl
+        '',``'')ENC_BASE64       = int(Z''`0002''`)m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !Use BASE64 encoding')m4_dnl
 m4_define(`fcb_param_ENC_BASE32k',
 `m4_ifelse(fcb_not_first,`',``INTEGER,PARAMETER:: &
-        '',``'')ENC_BASE32K      = Z''`0004''`m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !Use X-BASE32K encoding')m4_dnl
+        '',``'')ENC_BASE32K      = int(Z''`0004''`)m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !Use X-BASE32K encoding')m4_dnl
 m4_define(`fcb_param_ENC_QP',
 `m4_ifelse(fcb_not_first,`',``INTEGER,PARAMETER:: &
-        '',``'')ENC_QP           = Z''`0008''`m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !Use QUOTED-PRINTABLE encoding')m4_dnl
+        '',``'')ENC_QP           = int(Z''`0008''`)m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !Use QUOTED-PRINTABLE encoding')m4_dnl
 m4_define(`fcb_param_ENC_BASE10',
 `m4_ifelse(fcb_not_first,`',``INTEGER,PARAMETER:: &
-        '',``'')ENC_BASE10       = Z''`0010''`m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !Use BASE10 encoding')m4_dnl
+        '',``'')ENC_BASE10       = int(Z''`0010''`)m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !Use BASE10 encoding')m4_dnl
 m4_define(`fcb_param_ENC_BASE16',
 `m4_ifelse(fcb_not_first,`',``INTEGER,PARAMETER:: &
-        '',``'')ENC_BASE16       = Z''`0020''`m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !Use BASE16 encoding')m4_dnl
+        '',``'')ENC_BASE16       = int(Z''`0020''`)m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !Use BASE16 encoding')m4_dnl
 m4_define(`fcb_param_ENC_BASE8',
 `m4_ifelse(fcb_not_first,`',``INTEGER,PARAMETER:: &
-        '',``'')ENC_BASE8        = Z''`0040''`m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !Use BASE8  encoding')m4_dnl
+        '',``'')ENC_BASE8        = int(Z''`0040''`)m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !Use BASE8  encoding')m4_dnl
 m4_define(`fcb_param_ENC_LIST_ALL',
 m4_define(`fcb_is_last',`')m4_dnl
 !
@@ -126,42 +126,42 @@ m4_dnl Possible parameter values for COMPRESSION are:
 m4_dnl
 m4_define(`fcb_param_CBF_INTEGER',
 `m4_ifelse(fcb_not_first,`',``INTEGER,PARAMETER:: &
-        '',``'')CBF_INTEGER      = Z''`0010''`m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !Uncompressed integer')m4_dnl
+        '',``'')CBF_INTEGER      = int(Z''`0010''`)m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !Uncompressed integer')m4_dnl
 m4_define(`fcb_param_CBF_FLOAT',
 `m4_ifelse(fcb_not_first,`',``INTEGER,PARAMETER:: &
-        '',``'')CBF_FLOAT        = Z''`0020''`m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !Uncompressed IEEE floating point')m4_dnl
+        '',``'')CBF_FLOAT        = int(Z''`0020''`)m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !Uncompressed IEEE floating point')m4_dnl
 m4_define(`fcb_param_CBF_CANONICAL',
 `m4_ifelse(fcb_not_first,`',``INTEGER,PARAMETER:: &
-        '',``'')CBF_CANONICAL    = Z''`0050''`m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !Canonical compression')m4_dnl
+        '',``'')CBF_CANONICAL    = int(Z''`0050''`)m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !Canonical compression')m4_dnl
 m4_define(`fcb_param_CBF_PACKED',
 `m4_ifelse(fcb_not_first,`',``INTEGER,PARAMETER:: &
-        '',``'')CBF_PACKED       = Z''`0060''`m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !Packed compression')m4_dnl
+        '',``'')CBF_PACKED       = int(Z''`0060''`)m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !Packed compression')m4_dnl
 m4_define(`fcb_param_CBF_PACKED_V2',
 `m4_ifelse(fcb_not_first,`',``INTEGER,PARAMETER:: &
-        '',``'')CBF_PACKED_V2    = Z''`0090''`m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !Packed compression')m4_dnl
+        '',``'')CBF_PACKED_V2    = int(Z''`0090''`)m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !Packed compression')m4_dnl
 m4_define(`fcb_param_CBF_BYTE_OFFSET',
 `m4_ifelse(fcb_not_first,`',``INTEGER,PARAMETER:: &
-        '',``'')CBF_BYTE_OFFSET  = Z''`0070''`m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !Byte Offset Compression')m4_dnl
+        '',``'')CBF_BYTE_OFFSET  = int(Z''`0070''`)m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !Byte Offset Compression')m4_dnl
 m4_define(`fcb_param_CBF_PREDICTOR',
 `m4_ifelse(fcb_not_first,`',``INTEGER,PARAMETER:: &
-        '',``'')CBF_PREDICTOR    = Z''`0080''`m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !Predictor_Huffman Compression')m4_dnl
+        '',``'')CBF_PREDICTOR    = int(Z''`0080''`)m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !Predictor_Huffman Compression')m4_dnl
 m4_define(`fcb_param_CBF_NONE',
 `m4_ifelse(fcb_not_first,`',``INTEGER,PARAMETER:: &
-        '',``'')CBF_NONE         = Z''`0040''`m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !No compression flag')m4_dnl
+        '',``'')CBF_NONE         = int(Z''`0040''`)m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !No compression flag')m4_dnl
 m4_define(`fcb_param_CBF_COMPRESSION_MASK',
 `m4_ifelse(fcb_not_first,`',``INTEGER,PARAMETER:: &
         '',``'')CBF_COMPRESSION_MASK =     &
-                           Z''`00FF''`m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !Mask to sep compressiontype from flags')m4_dnl
+                           int(Z''`00FF''`)m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !Mask to sep compressiontype from flags')m4_dnl
 m4_define(`fcb_param_CBF_FLAG_MASK',
 `m4_ifelse(fcb_not_first,`',``INTEGER,PARAMETER:: &
-        '',``'')CBF_FLAG_MASK    = Z''`0F00''`m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !Mask to sep flags from compression type')m4_dnl
+        '',``'')CBF_FLAG_MASK    = int(Z''`0F00''`)m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !Mask to sep flags from compression type')m4_dnl
 m4_define(`fcb_param_CBF_UNCORRELATED_SECTIONS',
 `m4_ifelse(fcb_not_first,`',``INTEGER,PARAMETER:: &
         '',``'')CBF_UNCORRELATED_SECTIONS =&
-                           Z''`0100''`m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !Flag for uncorrelated sections')m4_dnl
+                           int(Z''`0100''`)m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !Flag for uncorrelated sections')m4_dnl
 m4_define(`fcb_param_CBF_FLAT_IMAGE',
 `m4_ifelse(fcb_not_first,`',``INTEGER,PARAMETER:: &
-        '',``'')CBF_FLAT_IMAGE   = Z''`0200''`m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !Flag for flat (linear) images')m4_dnl
+        '',``'')CBF_FLAT_IMAGE   = int(Z''`0200''`)m4_ifelse(fcb_is_last,`is_last',`   ',``, &'')'` !Flag for flat (linear) images')m4_dnl
 m4_define(`fcb_param_CBF_LIST_ALL',
 m4_define(`fcb_is_last',`')m4_dnl
 !

@@ -28,7 +28,7 @@ static void gethd ( char* field, char* value, char* header )
   l = strlen (field);
   newfield = (char*) malloc ( l + 3 );
   *newfield = 10;
-  strncpy (newfield+1, field, l);
+  memcpy (newfield+1, field, l);
   *(newfield+l+1) = '=';
   *(newfield+l+2) = (char) 0;
   l += 2;
@@ -158,27 +158,27 @@ int	main(int argc, char *argv[])
     int     argtype_array[argc];
     int     *argtype=argtype_array;
     int     filec;
-	int		file_size, header_size_char, actread;
-	int		cbf_status;
-	int		i, j, k=0;
-	int		size1, size2;
-	int		file_type;
-	int		pack_flags;
-	int     pad_flag;
-	int		status_pclose;
-	int		beam_center_convention;
-	int     add_minicbf_header=0;
+    int		file_size, header_size_char, actread;
+    int		cbf_status;
+    int		i, j, k=0;
+    int		size1, size2;
+    int		file_type;
+    int		pack_flags;
+    int     pad_flag;
+    int		status_pclose;
+    int		beam_center_convention;
+    int     add_minicbf_header=0;
     int     bin=0;
     int     transpose=0;
     int     interleave=0;
     int     *new_int_data, *old_int_data;
     size_t  new_int_data_size, old_int_data_size;
-	double  thickness=0.;
+    double  thickness=0.;
     const char *    argval_array[argc];
     const char * *  argval=argval_array;
-	const char *    roi=NULL;
-	const char *    thickstr=NULL;
-	const char *    polarstr=NULL;
+    const char *    roi=NULL;
+    const char *    thickstr=NULL;
+    const char *    polarstr=NULL;
     const char *    scalestr=NULL;
     const char *    offsetstr=NULL;
     const char *    cliplowstr=NULL;
@@ -186,15 +186,15 @@ int	main(int argc, char *argv[])
     const char *    rad_smoothstr=NULL;
     const char *    ifile=NULL;
     const char *    ofile=NULL;
-	char *     strstrhit;
-	static char	*endings[] = {
+    char *     strstrhit;
+    static char	*endings[] = {
 					".img",
 					".img.gz",
 					".img.bz2",
 					".img.Z",
 					NULL
 				     };
-	static char	*flags[32] = {
+    static char	*flags[32] = {
 					"--cbf_byte_offset",            /* 0 */
 					"--cbf_packed_v2",              /* 1 */
 					"--cbf_packed",                 /* 2 */
@@ -229,6 +229,8 @@ int	main(int argc, char *argv[])
 					NULL
 				   };
 
+        CBF_UNUSED( cbf_status );
+        CBF_UNUSED( thickness );
 
 	if(argc < 2)
 	{
@@ -242,7 +244,7 @@ int	main(int argc, char *argv[])
         char modc;
         if ( argv[iarg][0] == '-' && argv[iarg][1] == '-' ) {
             for(j = 0; flags[j] != NULL; j++) {
-                strstrhit = cbf_cistrnstr(argv[iarg], flags[j], strlen(flags[j]));
+                strstrhit = (char *)cbf_cistrnstr(argv[iarg], flags[j], strlen(flags[j]));
                 if(NULL != strstrhit && strstrhit==argv[iarg] )
                     break;
             }

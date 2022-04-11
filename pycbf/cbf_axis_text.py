@@ -76,7 +76,7 @@ while foundfile == 0:
         object.read_file(cbf,pycbf.MSG_DIGEST)
         foundfile = 1
       except:
-        print "Unable to open ",cbf
+        print("Unable to open ",cbf)
 
 if foundfile == -1:
     sys.exit(0)
@@ -84,7 +84,7 @@ object.rewind_datablock()
 try:
     object.find_category("axis")
 except:
-    print "No axis category found"
+    print("No axis category found")
     sys.exit()
 axis_table = {}
 axis_objects = {}
@@ -93,13 +93,13 @@ dependent_table = {}
 equipment_table = {}
 
 axis_rows = object.count_rows()
-print axis_rows, "rows in axis table"
+print(axis_rows, "rows in axis table")
 if axis_rows < 1:
-    print "Axis category has no rows"
+    print("Axis category has no rows")
     sys.exit()
 for jrow in range(axis_rows):
     object.rewind_column()
-    # print "jrow: ", jrow
+    # print("jrow: ", jrow)
     object.select_row(jrow)
     temp_dictionary = {}
     id = get_table_entry(object,"id")
@@ -142,7 +142,7 @@ for jrow in range(axis_rows):
     base_axis_table[temp_dictionary["id"]] = temp_dictionary["depends_on"]
         
 
-#print "axis table: "
+#print("axis table: ")
 for key in axis_table.keys():
-    print key+": vector: ",  axis_table[key]["vector"],", offset: ", axis_table[key]["offset"]
-    print "axis chain:", get_axis_chain(axis_table,key)
+    print(key+": vector: ",  axis_table[key]["vector"],", offset: ", axis_table[key]["offset"])
+    print("axis chain:", get_axis_chain(axis_table,key))

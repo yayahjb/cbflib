@@ -128,6 +128,10 @@ extern "C" {
     int         img_get_dimension  (img_handle img,
                                     int dimension);
     
+    void *      img_memcpy(void * dst, 
+                                    const void * src, 
+                                    const size_t n);
+    
 #ifdef __cplusplus
     
 }

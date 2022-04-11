@@ -38,9 +38,9 @@ def make_format(cdefinition):
         try:
             [type, name] = decl.split()
         except:
-            #print "skipping:",line
+            #print("skipping:",line)
             continue
-        #        print "type:",type,"  name:",name
+        #        print("type:",type,"  name:",name)
 
         if name.find("[")>-1:
             # repeated ... times
@@ -50,7 +50,7 @@ def make_format(cdefinition):
                 num = num.replace("sizeof(INT32)","4")
                 times = eval(num)
             except:
-                print "Please decode",decl
+                print("Please decode",decl)
                 raise
         else:
             times=1
@@ -59,10 +59,10 @@ def make_format(cdefinition):
             names += [name]*times
             expected += mar_c_sizes[type]*times
         except:
-            #print "skipping",line
+            #print("skipping",line)
             continue
-        #print "%4d %4d"%(mar_c_sizes[type]*times,expected),name,":",times,line
-    #print struct.calcsize(fmt),expected
+        #print("%4d %4d"%(mar_c_sizes[type]*times,expected),name,":",times,line)
+    #print(struct.calcsize(fmt),expected)
     return names, fmt
 
 def read_mar_header(filename):
@@ -84,7 +84,7 @@ def interpret_header(header, fmt, names):
     dict = {}
     i=0
     for name in names:
-        if dict.has_key(name):
+        if name in dict:
             if type(values[i]) == type("string"): 
                  dict[name] = dict[name]+values[i]
             else:
@@ -313,8 +313,8 @@ class marheaderreader:
         which are in comment sections
         """
         s=s.replace("\000","")
-        items = filter(None, [len(x)>1 and x or None for x in [
-            item.split("=") for item in s.split(";")]])
+        items = [_f for _f in [len(x)>1 and x or None for x in [
+            item.split("=") for item in s.split(";")]] if _f]
         return items
 
 
@@ -323,16 +323,16 @@ if __name__=="__main__":
     Make a little program to process files
     """
     import sys
-    print "Starting"
+    print("Starting")
     names,fmt = make_format(cdefinition)
-    print "Names and format made"
+    print("Names and format made")
     h = read_mar_header(sys.argv[1])
-    print "Read header, interpreting"
+    print("Read header, interpreting")
     d = interpret_header(h,fmt,names)
     printed = {}
     for name in names:
-        if printed.has_key(name):
+        if name in printed:
             continue
-        print name,":",d[name]
+        print(name,":",d[name])
         printed[name]=1
 

@@ -33,6 +33,18 @@ int img_swap_i4 (int i4)
          ((i4 >> 24) & 0x0000000FF);
 }
 
+  /* Replacement for memcpy */
+
+void * img_memcpy(void * dst, const void * src, const size_t n){
+  size_t ii = 0;
+  unsigned char * xdst; 
+  unsigned char * xsrc; 
+  xdst = (unsigned char *) dst;
+  xsrc = (unsigned char *) src;
+  for (ii=0; ii<n; ii++) *(xdst++)=*(xsrc++);
+  return dst;
+}
+
 
 float img_float_i4 (int i4, int VAX)
 {
@@ -172,7 +184,7 @@ int img_read_smvheader (img_handle img, FILE *file)
 
       if (count)
 
-        memcpy (line, oline, count);
+        img_memcpy (line, oline, count);
     }
 
     line [count] = (char) c;
@@ -1778,7 +1790,7 @@ int img_set_tags (img_handle img, int tags)
 
     if (old_tag)
     {
-      memcpy (img->tag, old_tag, img->tags * sizeof (img_tag));
+      img_memcpy (img->tag, old_tag, img->tags * sizeof (img_tag));
 
       free (old_tag);
     }

@@ -7,12 +7,12 @@
       INTEGER,   INTENT(IN):: N
       INTEGER(1),INTENT(IN):: ARRAY(N)
 
-      INTEGER, PARAMETER :: I0=Z'30',& !IACHAR('0')
-			    I9=Z'39',& !IACHAR('9')
-			    IM=Z'2D',& !IACHAR('-')
-			    IP=Z'2B',& !IACHAR('+')
-			    SP=Z'20',& !IACHAR(' ')
-			    HT=Z'09'   !tab position in the ASCII code
+      INTEGER, PARAMETER :: I0=int(Z'30'),& !IACHAR('0')
+			    I9=int(Z'39'),& !IACHAR('9')
+			    IM=int(Z'2D'),& !IACHAR('-')
+			    IP=int(Z'2B'),& !IACHAR('+')
+			    SP=int(Z'20'),& !IACHAR(' ')
+			    HT=int(Z'09')   !tab position in the ASCII code
       INTEGER               I,K,BLANK,VORZEICHEN
 !-----------------------------------------------------------------------
       FCB_ATOL_WCNT = 0

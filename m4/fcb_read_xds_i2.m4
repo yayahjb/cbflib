@@ -89,12 +89,12 @@ m4_include(`fcblib_defines.m4')
 !-----------------------------------------------------------------------
       PIXVALUE=TRANSFER(ENDIANORDER,PIXVALUE)
       STEP=0
-      IF (PIXVALUE .EQ. Z''`78563412''`) THEN !Little Endian machine
+      IF (PIXVALUE .EQ. int(Z''`78563412''`)) THEN !Little Endian machine
 	 STEP=1
 	 FIRST2=1;LAST2=2
 	 FIRST4=1;LAST4=4
       ENDIF
-      IF (PIXVALUE .EQ. Z''`12345678''`) THEN ! Big Endian machine
+      IF (PIXVALUE .EQ. int(Z''`12345678''`)) THEN ! Big Endian machine
 	 STEP=-1
 	 FIRST2=2;LAST2=1
 	 FIRST4=4;LAST4=1

@@ -40,6 +40,39 @@ typedef cbf_positioner_struct *cbf_goniometer;
        cbf_failnez(cbf_free_positioner(self));
        }
 %feature("autodoc", "
+Returns : double vector1,double vector2,double vector3
+*args   : 
+
+C prototype: int cbf_get_rotation_axis (cbf_goniometer goniometer,
+                 unsigned int      reserved, double *vector1, double *vector2,
+                 double *vector3);
+
+CBFLib documentation:
+DESCRIPTION
+cbf_get_rotation_axis sets *vector1, *vector2, and *vector3 to the 3 
+components of the goniometer rotation axis used for the exposure.
+Any of the destination pointers may be NULL.
+The parameter reserved is presently unused and should be set to 0.
+ARGUMENTS
+goniometer   Goniometer handle. reserved     Unused. Any value other 
+than 0 is invalid. vector1      Pointer to the destination x 
+component of the rotation axis. vector2      Pointer to the 
+destination y component of the rotation axis. vector3      Pointer to 
+the destination z component of the rotation axis.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+----------------------------------------------------------------------
+")get_rotation_axis;
+
+%apply double *OUTPUT {double *vector1, double *vector2, double *vector3};
+
+void get_rotation_axis (double *vector1, double *vector2, double *vector3){
+     unsigned int reserved;
+     reserved = 0;
+     cbf_failnez(cbf_get_rotation_axis (self, reserved, 
+                                        vector1, vector2, vector3));
+    }
+%feature("autodoc", "
 Returns : Float start,Float increment
 *args   : 
 
@@ -113,6 +146,57 @@ Returns an error code on failure or 0 for success.
          initial2, initial3, final1, final2, final3));
     }
 %feature("autodoc", "
+Returns : double reciprocal1,double reciprocal2,double reciprocal3
+*args   : double ratio,double wavelength,double real1,double real2,double real3
+
+C prototype: int cbf_get_reciprocal (cbf_goniometer goniometer,
+                 unsigned int      reserved, double ratio, double wavelength,
+                 double real1, double real2,      double real3,
+                 double *reciprocal1, double *reciprocal2,
+                 double      *reciprocal3);
+
+CBFLib documentation:
+DESCRIPTION
+cbf_get_reciprocal sets *reciprocal1, * reciprocal2, and * 
+reciprocal3 to the 3 components of the of the reciprocal-space vector 
+corresponding to the real-space vector (real1, real2, real3). The 
+reciprocal-space vector is oriented to correspond to the goniometer 
+setting with all axes at 0. The value wavelength is the wavlength in 
+AA and the value ratio specifies the current goniometer setting and 
+varies from 0.0 at the beginning of the exposur e to 1.0 at the end, 
+irrespective of the actual rotation range.
+Any of the destination pointers may be NULL.
+The parameter reserved is presently unused and should be set to 0.
+ARGUMENTS
+goniometer    Goniometer handle. reserved      Unused. Any value 
+other than 0 is invalid. ratio         Goniometer setting. 0 = 
+beginning of exposure, 1 = end. wavelength    Wavelength in AA. real1 
+        x component of the real-space vector. real2         y 
+component of the real-space vector. real3         z component of the 
+real-space vector. reciprocal1   Pointer to the destination x 
+component of the reciprocal-space vector. reciprocal2   Pointer to 
+the destination y component of the reciprocal-space vector. 
+reciprocal3   Pointer to the destination z component of the 
+reciprocal-space vector.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+----------------------------------------------------------------------
+")get_reciprocal;
+
+%apply double *OUTPUT {double *reciprocal1, double *reciprocal2, 
+              double *reciprocal3};
+
+    void get_reciprocal (double ratio,double wavelength, 
+                         double real1, double real2, double real3, 
+                         double *reciprocal1, double *reciprocal2, 
+                         double *reciprocal3){
+        unsigned int reserved;
+        reserved = 0;
+        cbf_failnez(cbf_get_reciprocal(self,reserved, ratio, wavelength, 
+                         real1, real2, real3,reciprocal1,
+                         reciprocal2,reciprocal3));
+    }
+%feature("autodoc", "
 Returns : Float vector1,Float vector2,Float vector3,Float offset1,Float offset2,
           Float offset3,Float angle
 *args   : Float ratio
@@ -178,89 +262,5 @@ Returns an error code on failure or 0 for success.
                 offset1, offset2, offset3,angle));
         }
 
-%feature("autodoc", "
-Returns : double reciprocal1,double reciprocal2,double reciprocal3
-*args   : double ratio,double wavelength,double real1,double real2,double real3
-
-C prototype: int cbf_get_reciprocal (cbf_goniometer goniometer,
-                 unsigned int      reserved, double ratio, double wavelength,
-                 double real1, double real2,      double real3,
-                 double *reciprocal1, double *reciprocal2,
-                 double      *reciprocal3);
-
-CBFLib documentation:
-DESCRIPTION
-cbf_get_reciprocal sets *reciprocal1, * reciprocal2, and * 
-reciprocal3 to the 3 components of the of the reciprocal-space vector 
-corresponding to the real-space vector (real1, real2, real3). The 
-reciprocal-space vector is oriented to correspond to the goniometer 
-setting with all axes at 0. The value wavelength is the wavlength in 
-AA and the value ratio specifies the current goniometer setting and 
-varies from 0.0 at the beginning of the exposur e to 1.0 at the end, 
-irrespective of the actual rotation range.
-Any of the destination pointers may be NULL.
-The parameter reserved is presently unused and should be set to 0.
-ARGUMENTS
-goniometer    Goniometer handle. reserved      Unused. Any value 
-other than 0 is invalid. ratio         Goniometer setting. 0 = 
-beginning of exposure, 1 = end. wavelength    Wavelength in AA. real1 
-        x component of the real-space vector. real2         y 
-component of the real-space vector. real3         z component of the 
-real-space vector. reciprocal1   Pointer to the destination x 
-component of the reciprocal-space vector. reciprocal2   Pointer to 
-the destination y component of the reciprocal-space vector. 
-reciprocal3   Pointer to the destination z component of the 
-reciprocal-space vector.
-RETURN VALUE
-Returns an error code on failure or 0 for success.
-----------------------------------------------------------------------
-")get_reciprocal;
-
-%apply double *OUTPUT {double *reciprocal1, double *reciprocal2, 
-              double *reciprocal3};
-
-    void get_reciprocal (double ratio,double wavelength, 
-                         double real1, double real2, double real3, 
-                         double *reciprocal1, double *reciprocal2, 
-                         double *reciprocal3){
-        unsigned int reserved;
-        reserved = 0;
-        cbf_failnez(cbf_get_reciprocal(self,reserved, ratio, wavelength, 
-                         real1, real2, real3,reciprocal1,
-                         reciprocal2,reciprocal3));
-    }
-%feature("autodoc", "
-Returns : double vector1,double vector2,double vector3
-*args   : 
-
-C prototype: int cbf_get_rotation_axis (cbf_goniometer goniometer,
-                 unsigned int      reserved, double *vector1, double *vector2,
-                 double *vector3);
-
-CBFLib documentation:
-DESCRIPTION
-cbf_get_rotation_axis sets *vector1, *vector2, and *vector3 to the 3 
-components of the goniometer rotation axis used for the exposure.
-Any of the destination pointers may be NULL.
-The parameter reserved is presently unused and should be set to 0.
-ARGUMENTS
-goniometer   Goniometer handle. reserved     Unused. Any value other 
-than 0 is invalid. vector1      Pointer to the destination x 
-component of the rotation axis. vector2      Pointer to the 
-destination y component of the rotation axis. vector3      Pointer to 
-the destination z component of the rotation axis.
-RETURN VALUE
-Returns an error code on failure or 0 for success.
-----------------------------------------------------------------------
-")get_rotation_axis;
-
-%apply double *OUTPUT {double *vector1, double *vector2, double *vector3};
-
-void get_rotation_axis (double *vector1, double *vector2, double *vector3){
-     unsigned int reserved;
-     reserved = 0;
-     cbf_failnez(cbf_get_rotation_axis (self, reserved, 
-                                        vector1, vector2, vector3));
-    }
 
 }; // End of cbf_positioner

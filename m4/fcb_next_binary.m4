@@ -137,7 +137,7 @@ m4_include(`fcblib_defines.m4')m4_dnl
           ENDIF
           IF (LINELEN.GT.0 .AND. LINE(1).EQ.IACHAR(''`;''`) .AND.         &
             (LINELEN.EQ.1 .OR. LINE(2).EQ.IACHAR(''` ''`) .OR.            &
-            LINE(2).EQ.Z''`09''`) )  GO TO 100
+            LINE(2).EQ.int(Z''`09''`)) )  GO TO 100
           IF (FCB_CI_STRNCMPARR(BOUNDARY,LINE,LINELEN,29).EQ.0)       &
             GO TO 100
         END IF
@@ -146,7 +146,7 @@ m4_include(`fcblib_defines.m4')m4_dnl
         LINE_COUNT = LINE_COUNT+1
         CONTINUATION = 0
         IF (LINELEN.GT.0.AND.                                          &
-          (LINE(1).EQ.IACHAR(''` ''`).OR.LINE(1).EQ.Z''`09''`))CONTINUATION=1
+          (LINE(1).EQ.IACHAR(''` ''`).OR.LINE(1).EQ.int(Z''`09''`)))CONTINUATION=1
         ITEM = 0
         IF (CONTINUATION .EQ. 0 )  THEN
           DO IC = 1, LINELEN
@@ -197,15 +197,15 @@ m4_include(`fcblib_defines.m4')m4_dnl
             ! Skip to the end of the section (a semicolon)
             DO
               IF (IC.GT.LINELEN)EXIT
-              IF (LINE(IC).EQ.Z''`22''`) THEN    ! double quote
+              IF (LINE(IC).EQ.int(Z''`22''`)) THEN    ! double quote
                 IC = IC+1
                 DO
                   IF (IC.GT.LINELEN)EXIT
-                  IF (LINE(IC).EQ.Z''`22''`) THEN  !double quote
+                  IF (LINE(IC).EQ.int(Z''`22''`)) THEN  !double quote
                     IC = IC+1
                     EXIT
                   ELSE
-                    IF (LINE(IC).EQ.Z''`5C''`) THEN !backslash
+                    IF (LINE(IC).EQ.int(Z''`5C''`)) THEN !backslash
                       IC = IC+1
                       END IF
                     IF (IC .LE. LINELEN) IC = IC+1
@@ -246,7 +246,7 @@ m4_include(`fcblib_defines.m4')m4_dnl
                    LINE,LINESIZE,LINELEN,IC,FRESH_LINE)
                 IF (FCB_NEXT_BINARY.NE.0) RETURN
                 QUOTE = 0
-                IF (LINE(IC).EQ.Z''`22''`) QUOTE=1  ! double quote
+                IF (LINE(IC).EQ.int(Z''`22''`)) QUOTE=1  ! double quote
                 COMPRESSION = CBF_NONE
                 IF (FCB_CI_STRNCMPARR("x-CBF_PACKED",                   &
                    LINE(IC+QUOTE:LINELEN),LINELEN-IC-QUOTE+1,12).EQ.0)  &
@@ -270,15 +270,15 @@ m4_include(`fcblib_defines.m4')m4_dnl
                     ! Skip to the end of the section (a semicolon)
                     DO
                       IF (IC.GT.LINELEN)EXIT
-                      IF (LINE(IC).EQ.Z''`22''`) THEN    ! double quote
+                      IF (LINE(IC).EQ.int(Z''`22''`)) THEN    ! double quote
                         IC = IC+1
                         DO
                           IF (IC.GT.LINELEN)EXIT
-                          IF (LINE(IC).EQ.Z''`22''`) THEN  !double quote
+                          IF (LINE(IC).EQ.int(Z''`22''`)) THEN  !double quote
                             IC = IC+1
                             EXIT
                           ELSE
-                            IF (LINE(IC).EQ.Z''`5C''`) THEN !backslash
+                            IF (LINE(IC).EQ.int(Z''`5C''`)) THEN !backslash
                               IC = IC+1
                               END IF
                             IF (IC .LE. LINELEN) IC = IC+1
@@ -306,7 +306,7 @@ m4_include(`fcblib_defines.m4')m4_dnl
                         FRESH_LINE)
                       IF (FCB_NEXT_BINARY.NE.0) RETURN
                       QUOTE = 0
-                      IF (LINE(IC).EQ.Z''`22''`) QUOTE=1  ! double quote
+                      IF (LINE(IC).EQ.int(Z''`22''`)) QUOTE=1  ! double quote
                       IF (FCB_CI_STRNCMPARR("uncorrelated_sections",    &
                         LINE(IC+QUOTE:LINELEN),LINELEN-IC-QUOTE+1,21).EQ.0)  &
                         COMPRESSION = IOR(COMPRESSION,CBF_UNCORRELATED_SECTIONS)
@@ -325,13 +325,13 @@ m4_include(`fcblib_defines.m4')m4_dnl
       CASE (1)  ! Binary encoding
          FAILURE = 1
          QUOTE = 0;
-         IF (LINE(IC) .EQ. Z''`22''`) QUOTE = 1  !double quote
+         IF (LINE(IC) .EQ. int(Z''`22''`)) QUOTE = 1  !double quote
          IF (FCB_CI_STRNCMPARR("Quoted-Printable",                      &
             LINE(IC+QUOTE:LINELEN), LINELEN-IC-QUOTE+1, 16) .EQ. 0)THEN
             IF (IC+16.EQ.LINELEN+1 .OR.                                 &
                FCB_NBLEN_ARRAY(LINE(IC+16),1).EQ.0 .OR.                 &
                LINE(IC+16).EQ.IACHAR(''`(''`).OR.                           &
-               (QUOTE.EQ.1.AND.LINE(IC+16).EQ.Z''`22''`)) THEN  !double quote
+               (QUOTE.EQ.1.AND.LINE(IC+16).EQ.int(Z''`22''`))) THEN  !double quote
                FAILURE = 0
                ENCODING = ENC_QP
             END IF
@@ -341,7 +341,7 @@ m4_include(`fcblib_defines.m4')m4_dnl
             IF (IC+6.EQ.LINELEN+1 .OR.                                  &
                FCB_NBLEN_ARRAY(LINE(IC+6),1).EQ.0 .OR.                  &
                LINE(IC+6).EQ.IACHAR(''`(''`).OR.                            &
-               (QUOTE.EQ.1.AND.LINE(IC+6).EQ.Z''`22''`)) THEN  ! double quote
+               (QUOTE.EQ.1.AND.LINE(IC+6).EQ.int(Z''`22''`))) THEN  ! double quote
                FAILURE = 0
                ENCODING = ENC_BASE64
             END IF
@@ -351,7 +351,7 @@ m4_include(`fcblib_defines.m4')m4_dnl
             IF (IC+9.EQ.LINELEN+1 .OR.                                  &
                FCB_NBLEN_ARRAY(LINE(IC+9),1).EQ.0 .OR.                  &
                LINE(IC+9).EQ.IACHAR(''`(''`).OR.                            &
-               (QUOTE.EQ.1.AND.LINE(IC+9).EQ.Z''`22''`)) THEN  ! double quote
+               (QUOTE.EQ.1.AND.LINE(IC+9).EQ.int(Z''`22''`))) THEN  ! double quote
                FAILURE = 0
                ENCODING = ENC_BASE32K
             END IF
@@ -361,7 +361,7 @@ m4_include(`fcblib_defines.m4')m4_dnl
             IF (IC+7.EQ.LINELEN+1 .OR.                                  &
                FCB_NBLEN_ARRAY(LINE(IC+7),1).EQ.0 .OR.                  &
                LINE(IC+7).EQ.IACHAR(''`(''`).OR.                            &
-               (QUOTE.EQ.1.AND.LINE(IC+7).EQ.Z''`22''`)) THEN  ! double quote
+               (QUOTE.EQ.1.AND.LINE(IC+7).EQ.int(Z''`22''`))) THEN  ! double quote
                FAILURE = 0
                ENCODING = ENC_BASE8
             END IF
@@ -371,7 +371,7 @@ m4_include(`fcblib_defines.m4')m4_dnl
             IF (IC+8.EQ.LINELEN+1 .OR.                                  &
                FCB_NBLEN_ARRAY(LINE(IC+8),1).EQ.0 .OR.                  &
                LINE(IC+8).EQ.IACHAR(''`(''`).OR.                            &
-               (QUOTE.EQ.1.AND.LINE(IC+8).EQ.Z''`22''`)) THEN  ! double quote
+               (QUOTE.EQ.1.AND.LINE(IC+8).EQ.int(Z''`22''`))) THEN  ! double quote
                FAILURE = 0
                ENCODING = ENC_BASE10
             END IF
@@ -381,7 +381,7 @@ m4_include(`fcblib_defines.m4')m4_dnl
             IF (IC+8.EQ.LINELEN+1 .OR.                                  &
                FCB_NBLEN_ARRAY(LINE(IC+8),1).EQ.0 .OR.                  &
                LINE(IC+8).EQ.IACHAR(''`(''`).OR.                            &
-               (QUOTE.EQ.1.AND.LINE(IC+8).EQ.Z''`22''`)) THEN   !double quote
+               (QUOTE.EQ.1.AND.LINE(IC+8).EQ.int(Z''`22''`))) THEN   !double quote
                FAILURE = 0
                ENCODING = ENC_BASE16
             END IF
@@ -393,7 +393,7 @@ m4_include(`fcblib_defines.m4')m4_dnl
             IF (IC+4.EQ.LINELEN+1 .OR.                                  &
                FCB_NBLEN_ARRAY(LINE(IC+4),1).EQ.0 .OR.                  &
                LINE(IC+4).EQ.IACHAR(''`(''`).OR.                            &
-               (QUOTE.EQ.1.AND.LINE(IC+4).EQ.Z''`22''`)) THEN  !double quote
+               (QUOTE.EQ.1.AND.LINE(IC+4).EQ.int(Z''`22''`))) THEN  !double quote
                FAILURE = 0
                ENCODING = ENC_NONE
             END IF
@@ -403,7 +403,7 @@ m4_include(`fcblib_defines.m4')m4_dnl
             IF (IC+6.EQ.LINELEN+1 .OR.                                  &
                FCB_NBLEN_ARRAY(LINE(IC+6),1).EQ.0 .OR.                  &
                LINE(IC+6).EQ.IACHAR(''`(''`).OR.                            &
-               (QUOTE.EQ.1.AND.LINE(IC+6).EQ.Z''`22''`)) THEN  ! double quote
+               (QUOTE.EQ.1.AND.LINE(IC+6).EQ.int(Z''`22''`))) THEN  ! double quote
                FAILURE = 0
                ENCODING = ENC_NONE
             END IF
@@ -443,7 +443,7 @@ m4_include(`fcblib_defines.m4')m4_dnl
                FCB_BYTES_IN_REC,BYTE_IN_FILE,REC_IN_FILE,BUFFER,        &
                LINE,LINESIZE,LINELEN,IC,FRESH_LINE)
             IF (FCB_NEXT_BINARY.NE.0) RETURN
-            IF (LINE(IC) .EQ. Z''`22''`) THEN     ! double quote
+            IF (LINE(IC) .EQ. int(Z''`22''`)) THEN     ! double quote
                IF (QUOTE.NE.0) EXIT
                IC = IC+1
                QUOTE = QUOTE+1
