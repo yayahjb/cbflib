@@ -875,7 +875,7 @@ extern "C" {
                                         
                                         cbf_failnez (cbf_write_string (outfile, "# Hexadecimal encoding"))
                                         
-                                        sprintf (line, ", byte %lu", (unsigned long) block_count * elsize);
+                                        sprintf (line, ", byte %lu", (unsigned long) (block_count * elsize));
                 
                 cbf_failnez (cbf_write_string (outfile, line))
                 
