@@ -23,7 +23,7 @@ jobs:
       max-parallel: 2
       matrix:
         ARCH: ["x86_64"]
-        PLAT: ["2010", "2014"]
+        PLAT: ["2014"]
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:

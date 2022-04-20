@@ -277,6 +277,7 @@ DATADIRI  = $(ROOT)/../CBFlib_$(VERSION)_Data_Files_Input
 DATADIRO  = $(ROOT)/../CBFlib_$(VERSION)_Data_Files_Output
 CBF_PREFIX  ?= $(HOME)
 
+
 #
 # Comment out the next line if scratch test files should be retained
 #
@@ -670,7 +671,7 @@ INSTALLSETUP_PY = installsetup.py
 #########################################################
 CC	= gcc
 C++	= g++
-CFLAGS  = -g -O2  -Wall -I/usr/include -fno-strict-aliasing  $(HDF5CFLAGS)
+CFLAGS  = -g -O2 -Wall -I/usr/include -fno-strict-aliasing  $(HDF5CFLAGS)
 LDFLAGS =
 F90C = g95
 F90FLAGS = -g
@@ -697,6 +698,8 @@ LN = cp
 SHAR	= shar
 AR		=  ar
 RANLIB  =  ranlib
+SO_PREFIX =
+SO_EXT = dll
 
 ifeq ($(NOFORTRAN),yes)
 F90C =
@@ -1096,9 +1099,20 @@ all::	$(BIN)/test_xds_binary   \
 	$(BIN)/test_fcb_read_image
 endif
 
-shared:	$(SOLIB)/libcbf.so $(SOLIB)/libfcb.so $(SOLIB)/libimg.so
+SO_PREFIX ?= lib
+SO_EXT ?= so
 
-javawrapper: shared $(JCBF) $(JCBF)/cbflib-$(VERSION).jar $(SOLIB)/libcbf_wrap.so
+SO_LIB_CBF = $(SO_PREFIX)cbf.$(SO_EXT)
+SO_LIB_IMG = $(SO_PREFIX)img.$(SO_EXT)
+SO_LIB_FCB = $(SO_PREFIX)fcb.$(SO_EXT)
+SO_LIB__CBF = $(SO_PREFIX)_cbf.$(SO_EXT)
+SO_LIB__IMG = $(SO_PREFIX)_img.$(SO_EXT)
+SO_LIB__FCB = $(SO_PREFIX)_fcb.$(SO_EXT)
+
+shared:	$(SOLIB)/$(SO_LIB_CBF) $(SOLIB)/$(SO_LIB_IMG) $(SOLIB)/$(SO_LIB_FCB)
+
+SO_LIB_CBF_WRAP = $(SO_PREFIX)cbf_wrap.$(SO_EXT)
+javawrapper: shared $(JCBF) $(JCBF)/cbflib-$(VERSION).jar $(SOLIB)/$(SO_LIB_CBF_WRAP)
 
 ifneq ($(CBFLIB_DONT_USE_PY2CIFRW),yes)
 PY2CIFRWDEF = -Dcbf_use_py2cifrw=yes
@@ -1181,6 +1195,11 @@ Makefile_MINGW: $(M4)/Makefile.m4
 	m4 -P $(PY2CIFRWDEF) $(PY3CIFRWDEF) -Dcbf_system=MINGW $(M4)/Makefile.m4 > Makefile_MINGW.tmp
 	mv Makefile_MINGW.tmp Makefile_MINGW
 
+Makefile_MINGW_CROSS: $(M4)/Makefile.m4
+	-cp Makefile_MINGW_CROSS Makefile_MINGW_CROSS_old
+	m4 -P $(PY2CIFRWDEF) $(PY3CIFRWDEF) -Dcbf_system=MINGW_CROSS $(M4)/Makefile.m4 > Makefile_MINGW_CROSS.tmp
+	mv Makefile_MINGW_CROSS.tmp Makefile_MINGW_CROSS
+
 Makefile_MSYS2: $(M4)/Makefile.m4
 	-cp Makefile_MSYS2 Makefile_MSYS2_old
 	m4 -P $(PY2CIFRWDEF) $(PY3CIFRWDEF) -Dcbf_system=MSYS2 $(M4)/Makefile.m4 > Makefile_MSYS2.tmp
@@ -1223,8 +1242,7 @@ userinstall: baseinstall py2cbfuserinstall py3cbfuserinstall \
 baseinstall:  all $(CBF_PREFIX) $(CBF_PREFIX)/lib $(CBF_PREFIX)/bin \
 	$(CBF_PREFIX)/include $(CBF_PREFIX)/include/cbflib \
 	$(PYSOURCE) shared $(EXAMPLES)/batch_convert_minicbf.sh \
-	$(LIB)/libcbf.a $(LIB)/libimg.a $(LIB)/libfcb.a \
-	$(SOLIB)/libcbf.so $(SOLIB)/libimg.so $(SOLIB)/libfcb.so
+	$(LIB)/libcbf.a $(LIB)/libimg.a $(LIB)/libfcb.a
 	-chmod -R 755 $(CBF_PREFIX)/include/cbflib
 	-chmod 755 $(CBF_PREFIX)/lib/libcbf.a
 	-cp $(CBF_PREFIX)/lib/libcbf.a $(CBF_PREFIX)/lib/libcbf_old.a
@@ -1235,18 +1253,18 @@ baseinstall:  all $(CBF_PREFIX) $(CBF_PREFIX)/lib $(CBF_PREFIX)/bin \
 	-chmod 755 $(CBF_PREFIX)/lib/libfcb.a
 	-cp $(CBF_PREFIX)/lib/libfcb.a $(CBF_PREFIX)/lib/libfcb_old.a
 	cp $(LIB)/libfcb.a $(CBF_PREFIX)/lib/libfcb.a
-	-chmod 755 $(CBF_PREFIX)/lib/libcbf.so
-	-cp $(CBF_PREFIX)/lib/libcbf.so $(CBF_PREFIX)/lib/libcbf_old.so
-	cp $(SOLIB)/libcbf.so $(CBF_PREFIX)/lib/libcbf.so
-	$(LN) $(CBF_PREFIX)/lib/libcbf.so $(CBF_PREFIX)/lib/lib_cbf.so
-	-chmod 755 $(CBF_PREFIX)/lib/libimg.so
-	-cp $(CBF_PREFIX)/lib/libimg.so $(CBF_PREFIX)/lib/libimg_old.so
-	cp $(SOLIB)/libimg.so $(CBF_PREFIX)/lib/libimg.so
-	$(LN) $(CBF_PREFIX)/lib/libimg.so $(CBF_PREFIX)/lib/lib_img.so
-	-chmod 755 $(CBF_PREFIX)/lib/libfcb.so
-	-cp $(CBF_PREFIX)/lib/libfcb.so $(CBF_PREFIX)/lib/libfcb_old.so
-	cp $(SOLIB)/libfcb.so $(CBF_PREFIX)/lib/libfcb.so
-	$(LN) $(CBF_PREFIX)/lib/libfcb.so $(CBF_PREFIX)/lib/lib_fcb.so
+	-chmod 755 $(CBF_PREFIX)/lib/$(SO_LIB_CBF)
+	-cp $(CBF_PREFIX)/lib/$(SO_LIB_CBF) $(CBF_PREFIX)/lib/$(SO_LIB_CBF)_old
+	cp $(SOLIB)/$(SO_LIB_CBF) $(CBF_PREFIX)/lib/
+	$(LN) $(CBF_PREFIX)/lib/$(SO_LIB_CBF) $(CBF_PREFIX)/lib/$(SO_LIB__CBF)
+	-chmod 755 $(CBF_PREFIX)/lib/$(SO_LIB_IMG)
+	-cp $(CBF_PREFIX)/lib/$(SO_LIB_IMG) $(CBF_PREFIX)/lib/$(SO_LIB_IMG)_old
+	cp $(SOLIB)/$(SO_LIB_IMG) $(CBF_PREFIX)/lib/
+	$(LN) $(CBF_PREFIX)/lib/$(SO_LIB_IMG) $(CBF_PREFIX)/lib/$(SO_LIB__IMG)
+	-chmod 755 $(CBF_PREFIX)/lib/$(SO_LIB_FCB)
+	-cp $(CBF_PREFIX)/lib/$(SO_LIB_FCB) $(CBF_PREFIX)/lib/$(SO_LIB_FCB)_old
+	cp $(SOLIB)/$(SO_LIB_FCB) $(CBF_PREFIX)/lib/
+	$(LN) $(CBF_PREFIX)/lib/$(SO_LIB_FCB) $(CBF_PREFIX)/lib/$(SO_LIB__FCB)
 	-cp $(CBF_PREFIX)/bin/cbflib.ini $(CBF_PREFIX)/bin/cbflib.ini_old
 	echo  "$(RUNLDPREFIX)" > $(CBF_PREFIX)/bin/cbflib.ini
 	echo  "HDF5_PLUGIN_PATH=$(CBF_PREFIX)/lib:$$HDF5_PLUGIN_PATH" >> $(CBF_PREFIX)/bin/cbflib.ini
@@ -1318,9 +1336,9 @@ endif
 	chmod 644 $(CBF_PREFIX)/lib/libcbf.a
 	chmod 644 $(CBF_PREFIX)/lib/libimg.a
 	chmod 644 $(CBF_PREFIX)/lib/libfcb.a
-	chmod 755 $(CBF_PREFIX)/lib/libcbf.so
-	chmod 755 $(CBF_PREFIX)/lib/libimg.so
-	chmod 755 $(CBF_PREFIX)/lib/libfcb.so
+	chmod 755 $(CBF_PREFIX)/lib/$(SO_PREFIX)cbf.$(SO_EXT)
+	chmod 755 $(CBF_PREFIX)/lib/$(SO_PREFIX)img.$(SO_EXT)
+	chmod 755 $(CBF_PREFIX)/lib/$(SO_PREFIX)fcb.$(SO_EXT)
 	chmod 755 $(CBF_PREFIX)/bin/arvai_test
 	chmod 755 $(CBF_PREFIX)/bin/cbf2nexus
 	chmod 755 $(CBF_PREFIX)/bin/cbf_standardize_numbers
@@ -1654,7 +1672,7 @@ ifneq ($(RANLIB),)
 endif
 	-rm -f *.o
 
-$(SOLIB)/libcbf.so: $(SOURCE) $(HEADERS) $(COMMONDEP)  $(HDF5) $(LZ4DEPS) $(BSHUFDEPS)
+$(SOLIB)/$(SO_LIB_CBF): $(SOURCE) $(HEADERS) $(COMMONDEP)  $(HDF5) $(LZ4DEPS) $(BSHUFDEPS)
 	-rm -f $@
 	-rm -f *.o
 	mkdir -p $(SOLIB)
@@ -1674,7 +1692,7 @@ ifneq ($(CBFLIB_DONT_USE_BSHUF),yes)
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) $(SOCFLAGS) -DCBF_FILTER_STATIC -c $(BSHUFsrc)/../lz4/lz4.c -o lz4.o
 endif
 
-	$(CC) -o $@ *.o $(SOLDFLAGS) $(EXTRALIBS) $(REGEX_LIBS) $(HDF5SOLIBS_LOCAL) $(HDF5SOLIBS_SYSTEM)
+	$(CC) -o $@ *.o $(SOLDFLAGS) $(SOLDEXPORT) $(EXTRALIBS) $(REGEX_LIBS) $(HDF5SOLIBS_LOCAL) $(HDF5SOLIBS_SYSTEM)
 	-rm -f *.o
 
 #
@@ -1689,7 +1707,7 @@ ifneq ($(RANLIB),)
 endif
 	rm img.o
 	
-$(SOLIB)/libimg.so: $(SOURCE) $(HEADERS) $(COMMONDEP)
+$(SOLIB)/$(SO_LIB_IMG): $(SOURCE) $(HEADERS) $(COMMONDEP)
 	-rm -f $@
 	mkdir -p $(SOLIB)
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(SRC)/img.c
@@ -1718,7 +1736,7 @@ else
 	echo "Define F90C to build $(LIB)/libfcb.a"
 endif
 
-$(SOLIB)/libfcb.so: $(F90SOURCE) $(HEADERS) $(COMMONDEP) $(SOLIB)
+$(SOLIB)/$(SO_LIB_FCB): $(F90SOURCE) $(HEADERS) $(COMMONDEP) $(SOLIB)
 ifneq ($(F90C),)
 	-rm -f $@
 	mkdir -p $(SOLIB)
@@ -1726,7 +1744,7 @@ ifneq ($(F90C),)
 	$(F90C) $(F90FLAGS) -o $@ *.o $(SOLDFLAGS)
 	rm *.o
 else
-	echo "Define F90C to build $(SOLIB)/libfcb.so"
+	echo "Define F90C to build $(SOLIB)/$(SO_LIB_FCB)"
 endif
 
 
@@ -1762,7 +1780,7 @@ $(PY2CBF)/_py2cbf.$(PY2CBFEXT):	$(PY2CBF)  shared \
 	$(PY2CBF)/cbfdetectorwrappers.i          \
 	$(PY2CBF)/cbfgenericwrappers.i           \
 	$(PY2CBF)/cbfgoniometerwrappers.i
-	-cp $(SOLIB)/*.so $(LIB)
+	-cp $(SOLIB)/*.$(SO_EXT) $(LIB)
 	(cd $(PY2CBF); $(PYTHON2) py2setup.py build $(PY2CBFBOPT); cp build/lib*/_py2cbf*.$(PY2CBFEXT) .) 
 
 $(PY2CBF)/py2cbfinstall: $(PY2CBF)/pycbf.py
@@ -1833,7 +1851,7 @@ $(PY3CBF)/_pycbf.$(PY3CBFEXT):	$(PY3CBF)  shared \
 	$(PY3CBF)/cbfdetectorwrappers.i          \
 	$(PY3CBF)/cbfgenericwrappers.i           \
 	$(PY3CBF)/cbfgoniometerwrappers.i
-	-cp $(SOLIB)/*.so $(LIB)
+	-cp $(SOLIB)/*.$(SO_EXT) $(LIB)
 	(cd $(PY3CBF); $(PYTHON3) py3setup.py build $(PY3CBFBOPT); cp build/lib*/_pycbf*.$(PY3CBFEXT) .) 
 
 $(PY3CBF)/py3cbfinstall: $(PY3CBF)/pycbf.py
@@ -1883,7 +1901,7 @@ $(JCBF)/cbflib-$(VERSION).jar: $(JCBF) $(SRC)/jcbf.i
 	$(JAVAC) -d . $(JCBF)/*.java
 	$(JAR) cf $@ org
 
-$(SOLIB)/libcbf_wrap.so: $(JCBF)/cbflib-$(VERSION).jar $(SOLIB)/libcbf.so
+$(SOLIB)/$(SO_LIB_CBF_WRAP): $(JCBF)/cbflib-$(VERSION).jar $(SOLIB)/$(SO_LIB_CBF)
 	mkdir -p $(SOLIB)
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) $(JAVAINCLUDES) -c $(JCBF)/jcbf_wrap.c
 	$(CC) -o $@ jcbf_wrap.o $(SOLDFLAGS) -L$(SOLIB) -lcbf $(REGEX_LIBS)
@@ -2161,7 +2179,7 @@ $(BIN)/ctestcbf: $(EXAMPLES)/testcbf.c $(LIB)/libcbf.a
 #
 # testcbf (Java)
 #
-$(BIN)/testcbf.class: $(EXAMPLES)/testcbf.java $(JCBF)/cbflib-$(VERSION).jar $(SOLIB)/libcbf_wrap.so
+$(BIN)/testcbf.class: $(EXAMPLES)/testcbf.java $(JCBF)/cbflib-$(VERSION).jar $(SOLIB)/$(SO_LIB_CBF_WRAP)
 	mkdir -p $(BIN)
 	$(JAVAC) -cp $(JCBF)/cbflib-$(VERSION).jar -d $(BIN) $(EXAMPLES)/testcbf.java
 	
@@ -2730,7 +2748,7 @@ py3cbfinstall: $(PY3CBF)/_pycbf.$(PY3CBFEXT) $(PY3CBF)/py3cbfinstall
 
 py3cbfuserinstall: $(PY3CBF)/_pycbf.$(PY3CBFEXT) $(PY3CBF)/py3cbfuserinstall
 
-javatests: $(BIN)/ctestcbf $(BIN)/testcbf.class $(SOLIB)/libcbf_wrap.so
+javatests: $(BIN)/ctestcbf $(BIN)/testcbf.class $(SOLIB)/$(SO_LIB_CBF_WRAP)
 	$(LDPREFIX)  $(BIN)/ctestcbf > testcbfc.txt
 	$(LDPREFIX) java -cp $(JCBF)/cbflib-$(VERSION).jar:$(BIN) testcbf > testcbfj.txt
 	$(DIFF) testcbfc.txt testcbfj.txt
