@@ -1410,7 +1410,7 @@ save__array_data_external_data.format
 ;
     HDF5
 ;
-    A narray of numbers contained in a dataset in an HDF5 file as returned by HDF5
+    An array of numbers contained in a dataset in an HDF5 file as returned by HDF5
     library functions.  '_array_data_external_data.path' is the
     internal HDF5 path.  In an HDF5 file, the path typically identifies a dataset
     with multiple images.
@@ -1484,8 +1484,8 @@ save__array_data_external_data.format
     loop_
     _array_data_external_data.format
     _array_data_external_data.uri
-    _array_data_external_data.format
-    _array_data_external_data.path
+    _array_data_external_data.archive_format
+    _array_data_external_data.archive_path
     1 SMV
         https://data.proteindiffraction.org/ssgcid/MyulA_01062_a_B12-sddc0001574_7k69.tar.bz2
         TBZ
@@ -1533,7 +1533,7 @@ save__array_data_external_data.path
 
     An optional format-dependent path that is used to locate the
     external image within the object referenced by the combination of
-    _array_data_external_data.uri and _array_data_external_data.path.
+    _array_data_external_data.uri and _array_data_external_data.archive_path.
 
 ;
 
@@ -1553,6 +1553,44 @@ save__array_data_external_data.uri
     _item_type.code             code
 
     save_
+
+save__array_data_external_data.archive_path
+  _item_description.description
+
+;
+
+   The location of the image within an archive.
+
+;
+
+   _item.name                 '_array_data_external_data.archive_path'
+   _item.category_id            array_data_external_data
+   _item_type.code              text
+
+   save_
+
+save__array_data_external_data.archive_format
+   _item_description.description
+;
+
+   The type of single-file archive in which image data have been encapsulated,
+   if any. The archive is located at _array_data_external_data.uri.
+
+;
+
+   _item.name                 '_array_data_external_data.archive_format'
+   _item.category_id            array_data_external_data
+   _item.type_code              code
+   _item_default.value          .
+
+   loop_
+   _item_enumeration.value
+   _item_enumeration.detail
+   ZIP           'A ZIP archive'
+   TGZ           'A Gzipped tar archive'
+   TBZ           'A Bzip2 tar archive'
+   .             'No compressed archive is present'
+save_
 
 save__array_data_external_data.variant
     _item_description.description
