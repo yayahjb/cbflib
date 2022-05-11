@@ -14,14 +14,14 @@ public class testcbf {
 
 	static {
 		try {
-			System.loadLibrary("libpcre");
+			System.loadLibrary("cbf");
 		} catch (UnsatisfiedLinkError e) {
-			System.err.println("Could not load regex");
+			System.err.println("Could not load CBF library");
 		}
 		try {
 			System.loadLibrary("cbf_wrap");
 		} catch (UnsatisfiedLinkError e) {
-			System.err.println("Could not load wrapper");
+			System.err.println("Could not load CBF wrapper");
 		}
 	}
 

@@ -576,21 +576,27 @@ PYSWIG = swig -python
 JSWIG = swig -java
 
 #
+# Java SDK root directory
+#
+ifeq ($(JDKDIR),)
+	JDKDIR 	=	/etc/alternatives/java_sdk
+endif
+
+#
+# Launcher for Java
+#
+JAVA = $(JDKDIR)/bin/java
+
+#
 # Compiler for Java
 #
-JAVAC = javac
+JAVAC = $(JDKDIR)/bin/javac
 
 #
 # Java archiver for compiled classes
 #
-JAR = jar
+JAR = $(JDKDIR)/bin/jar
 
-#
-# Java SDK root directory
-#
-ifeq ($(JDKDIR),)
-	JDKDIR 	=	/usr/lib/java
-endif
 
 ifneq ($(CBF_DONT_USE_LONG_LONG),)
 NOLLFLAG = -DCBF_DONT_USE_LONG_LONG
@@ -657,14 +663,14 @@ INSTALLSETUP_PY = installsetup.py
 #########################################################
 CC	= gcc
 C++	= g++
-CFLAGS  = -g -O2  -Wall -ansi -pedantic $(HDF5CFLAGS)
+CFLAGS  = -g -O2 -Wall -std=c99 -pedantic $(HDF5CFLAGS)
 LDFLAGS =
 F90C = gfortran
 F90FLAGS = -g -fno-range-check -fallow-invalid-boz
 F90LDFLAGS = -bind_at_load
 SOCFLAGS = -fPIC
 SOLDFLAGS = -dynamiclib -Wl,-rpath,$(CBF_PREFIX)/lib
-JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
+JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/darwin
 LDPREFIX = DYLD_LIBRARY_PATH=$(SOLIB):$$DYLD_LIBRARY_PATH;export DYLD_LIBRARY_PATH;
 RUNLDPREFIX = DYLD_LIBRARY_PATH=$(CBF_PREFIX)/lib:$$DYLD_LIBRARY_PATH;export DYLD_LIBRARY_PATH;
 EXTRALIBS = -lm
@@ -681,14 +687,14 @@ cbf_system,`OSX_gcc42',`
 #########################################################
 CC	= gcc
 C++	= g++
-CFLAGS  = -g -O2  -Wall -ansi -pedantic  $(HDF5CFLAGS)
+CFLAGS  = -g -O2 -Wall -std=c99 -pedantic $(HDF5CFLAGS)
 LDFLAGS =
 F90C = gfortran
 F90FLAGS = -g -fno-range-check -fallow-invalid-boz
 F90LDFLAGS = -bind_at_load
 SOCFLAGS = -fPIC
 SOLDFLAGS = -dynamiclib -Wl,-rpath,$(CBF_PREFIX)/lib
-JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
+JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/darwin
 LDPREFIX = DYLD_LIBRARY_PATH=$(SOLIB):$$DYLD_LIBRARY_PATH;export DYLD_LIBRARY_PATH;
 RUNLDPREFIX = DYLD_LIBRARY_PATH=$(CBF_PREFIX)/lib:$$DYLD_LIBRARY_PATH;export DYLD_LIBRARY_PATH;
 EXTRALIBS = -lm
@@ -705,14 +711,14 @@ cbf_system,`OSX_gcc42_DMALLOC',`
 #########################################################
 CC	= gcc
 C++	= g++
-CFLAGS  = -g -O2  -Wall -ansi -pedantic -DDMALLOC -DDMALLOC_FUNC_CHECK -I$(HOME)/include  $(HDF5CFLAGS)
+CFLAGS  = -g -O2 -Wall -std=c99 -pedantic -DDMALLOC -DDMALLOC_FUNC_CHECK -I$(HOME)/include $(HDF5CFLAGS)
 LDFLAGS =
 F90C = gfortran
 F90FLAGS = -g -fno-range-check -fallow-invalid-boz
 F90LDFLAGS = -bind_at_load
 SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(CBF_PREFIX)/lib
-JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
+JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/darwin
 LDPREFIX = DYLD_LIBRARY_PATH=$(SOLIB):$$DYLD_LIBRARY_PATH;export DYLD_LIBRARY_PATH;
 RUNLDPREFIX = DYLD_LIBRARY_PATH=$(CBF_PREFIX)/lib:$$DYLD_LIBRARY_PATH;export DYLD_LIBRARY_PATH;
 EXTRALIBS = -lm -L$(HOME)/lib -ldmalloc
@@ -2459,7 +2465,7 @@ $(BIN)/ctestcbf: $(EXAMPLES)/testcbf.c $(LIB)/libcbf.a
 $(BIN)/testcbf.class: $(EXAMPLES)/testcbf.java $(JCBF)/cbflib-$(VERSION).jar $(SOLIB)/libcbf_wrap.so
 	mkdir -p $(BIN)
 	$(JAVAC) -cp $(JCBF)/cbflib-$(VERSION).jar -d $(BIN) $(EXAMPLES)/testcbf.java
-	
+
 ifneq ($(CBF_USE_ULP),)
 #
 # testulp test program
@@ -3027,7 +3033,7 @@ py3cbfuserinstall: $(PY3CBF)/_pycbf.$(PY3CBFEXT) $(PY3CBF)/py3cbfuserinstall
 
 javatests: $(BIN)/ctestcbf $(BIN)/testcbf.class $(SOLIB)/libcbf_wrap.so
 	$(LDPREFIX)  $(BIN)/ctestcbf > testcbfc.txt
-	$(LDPREFIX) java -cp $(JCBF)/cbflib-$(VERSION).jar:$(BIN) testcbf > testcbfj.txt
+	$(LDPREFIX) $(JAVA) -cp $(JCBF)/cbflib-$(VERSION).jar:$(BIN) testcbf > testcbfj.txt
 	$(DIFF) testcbfc.txt testcbfj.txt
 
 dectristests: $(BIN)/cbf_template_t $(TEMPLATES)/cbf_test_orig.out
