@@ -1820,12 +1820,14 @@ int cbf_check_type_contents(const char *type, const char *value);
 
 int cbf_match(const char *string, char *pattern);
 
+#ifdef CBF_USE_PYCIFRW
   /* Interpreter for dREL method expression */
 
 int cbf_drel(cbf_handle handle, cbf_handle dict, 
                                const char *mainitemname, 
                                const char *datablock, 
                                const char *expression);
+#endif
 
   /* Construct Functions dictionary */
 
