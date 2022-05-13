@@ -284,6 +284,8 @@ CBF_PREFIX  ?= $(HOME)
 #
 CLEANTESTS = yes
 
+CBFLIB_DONT_BUILD_HDF5?=no
+
 'm4_ifelse(cbf_system,`MSYS2',`
 MSYS2=yes
 CBFLIB_DONT_USE_LOCAL_HDF5?=yes
@@ -306,6 +308,13 @@ NUWEB_DEP=nuweb-1.60
 NUWEB_DEP2=$(BIN)/nuweb
 endif
 
+
+ifeq ($(CBFLIB_DONT_BUILD_HDF5),yes)
+CBFLIB_DONT_USE_LOCAL_HDF5=yes
+CBFLIB_DONT_USE_LZ4=yes
+CBFLIB_DONT_USE_BSHUF=yes
+CBFLIB_DONT_USE_BLOSC=yes
+endif
 
 
 CBFLIB_DONT_HAVE_FGETLN ?= yes
@@ -409,6 +418,12 @@ else
 H5DUMP = /MINGW32/bin/h5dump
 endif
 
+ifeq ($(CBFLIB_DONT_BUILD_HDF5),yes)
+HDF5LIBS_LOCAL =
+HDF5LIBS_SYSTEM =
+HDF5SOLIBS_LOCAL =
+HDF5SOLIBS_SYSTEM =
+endif
 
 CBFLIB_DONT_USE_LZ4 ?= no
 ifneq ($(CBFLIB_DONT_USE_LZ4),yes)
@@ -629,8 +644,10 @@ BSHUFFLAG =
 endif
 
 
-
 MISCFLAG = $(NOLLFLAG) $(ULPFLAG)
+ifneq ($(CBFLIB_DONT_BUILD_HDF5),yes)
+MISCFLAG += -DUSE_HDF5
+endif
 
 #
 # PY2CBF definitions
@@ -1004,7 +1021,7 @@ EXTRALIBS = -lm
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time')`
 
-ifneq ($(NOFORTRAN),)
+ifeq ($(NOFORTRAN),yes)
 F90C =
 endif
 
@@ -1111,8 +1128,6 @@ SOURCE   =  $(SRC)/cbf.c               \
 	$(SRC)/cbf_copy.c          \
 	$(SRC)/cbf_file.c          \
 	$(SRC)/cbf_getopt.c        \
-	$(SRC)/cbf_hdf5.c          \
-	$(SRC)/cbf_hdf5_filter.c   \
 	$(SRC)/cbf_lex.c           \
 	$(SRC)/cbf_minicbf_header.c\
 	$(SRC)/cbf_nibble_offset.c \
@@ -1133,6 +1148,10 @@ SOURCE   =  $(SRC)/cbf.c               \
 	$(SRC)/md5c.c              \
 	$(SRC)/img.c               \
 	$(SRC_FGETLN) $(SRC_REALPATH)
+ifneq ($(CBFLIB_DONT_BUILD_HDF5),yes)
+SOURCE  += $(SRC)/cbf_hdf5.c \
+	$(SRC)/cbf_hdf5_filter.c
+endif
 
 ifneq ($(CBFLIB_DONT_USE_PY2CIFRW),yes)
 PY2SOURCE  = $(SRC)/drel_lex.py		   \
@@ -1148,6 +1167,7 @@ PY3SOURCE  = $(SRC)/drel_lex.py		   \
 	$(SRC)/drel_prep.py
 endif
 
+ifneq ($(NOFORTRAN),yes)
 F90SOURCE = $(SRC)/fcb_atol_wcnt.f90     \
 	$(SRC)/fcb_ci_strncmparr.f90 \
 	$(SRC)/fcb_exit_binary.f90   \
@@ -1161,8 +1181,8 @@ F90SOURCE = $(SRC)/fcb_atol_wcnt.f90     \
 	$(SRC)/fcb_read_line.f90     \
 	$(SRC)/fcb_read_xds_i2.f90   \
 	$(SRC)/fcb_skip_whitespace.f90
-	
-	
+endif
+
 #
 # Header files
 #
@@ -1179,8 +1199,6 @@ HEADERS   =  $(INCLUDE)/cbf.h               \
 	$(INCLUDE)/cbf_copy.h          \
 	$(INCLUDE)/cbf_file.h          \
 	$(INCLUDE)/cbf_getopt.h        \
-	$(INCLUDE)/cbf_hdf5.h          \
-	$(INCLUDE)/cbf_hdf5_filter.h   \
 	$(INCLUDE)/cbf_lex.h           \
 	$(INCLUDE)/cbf_minicbf_header.h\
 	$(INCLUDE)/cbf_nibble_offset.h \
@@ -1201,6 +1219,10 @@ HEADERS   =  $(INCLUDE)/cbf.h               \
 	$(INCLUDE)/cbff.h              \
 	$(INCLUDE)/md5.h               \
 	$(INCLUDE)/img.h
+ifneq ($(CBFLIB_DONT_BUILD_HDF5),yes)
+HEADERS  += $(INCLUDE)/cbf_hdf5.h \
+	$(INCLUDE)/cbf_hdf5_filter.h
+endif
 
 #
 # m4 macro files
@@ -2393,7 +2415,7 @@ $(BIN)/tiff2cbf: $(LIB)/libcbf.a $(EXAMPLES)/tiff2cbf.c $(EXAMPLES)/tif_sprint.c
 	$(GOPTLIB)	$(GOPTINC) $(TIFF)
 	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
-	-I$(TIFF)/libtiff $(EXAMPLES)/tiff2cbf.c $(GOPTLIB) -L$(LIB) \
+	-I$(TIFF)/libtiff $(EXAMPLES)/tiff2cbf.c $(EXAMPLES)/tif_sprint.c $(GOPTLIB) -L$(LIB) \
 	-lcbf -L$(TIFF_PREFIX)/lib -ltiff $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -limg -o $@
 
 #
