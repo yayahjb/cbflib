@@ -1567,7 +1567,7 @@ save__array_data_external_data.format
     1 1 1
     1 2 2
     loop_
-    _array_data.external_data_id
+    _array_data_external_data,id
     _array_data_external_data.format
     _array_data_external_data.uri
     _array_data_external_data.archive_format
