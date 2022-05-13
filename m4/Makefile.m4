@@ -922,6 +922,34 @@ AR		=  ar
 RANLIB  =  ranlib
 SO_PREFIX =
 SO_EXT = dll',
+cbf_system,`MINGW_CROSS',`
+#########################################################
+#
+#  Appropriate compiler definitions for Mingw cross-compiling
+#  Also change from symlinks to copies and
+#  use default paths for utilities
+#
+#########################################################
+CFLAGS  = -m64 -g -O2 -Wall -fno-strict-aliasing -DH5_HAVE_MINGW
+LDFLAGS =
+F90FLAGS = -g
+F90LDFLAGS =
+M4FLAGS = -Dfcb_bytes_in_rec=4096
+LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$(LIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
+RUNLDPREFIX = LD_LIBRARY_PATH=$(CBF_PREFIX)/lib:$(LIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
+SOCFLAGS = -D_JNI_IMPLEMENTATION_
+SOLDFLAGS = -shared
+SOLDEXPORT=-Wl,--out-implib,solib/cbf.lib
+JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/win32
+EXTRALIBS = -lm
+TIME =
+SLFLAGS = --use_cp
+LN = cp
+SHAR	= shar
+AR		=  ar
+RANLIB  =  ranlib
+SO_PREFIX =
+SO_EXT = dll',
 cbf_system,`MSYS2',`
 #########################################################
 #
@@ -1497,6 +1525,11 @@ Makefile_MINGW: $(M4)/Makefile.m4
 	-cp Makefile_MINGW Makefile_MINGW_old
 	m4 -P $(PY2CIFRWDEF) $(PY3CIFRWDEF) -Dcbf_system=MINGW $(M4)/Makefile.m4 > Makefile_MINGW.tmp
 	mv Makefile_MINGW.tmp Makefile_MINGW
+
+Makefile_MINGW_CROSS: $(M4)/Makefile.m4
+	-cp Makefile_MINGW_CROSS Makefile_MINGW_CROSS_old
+	m4 -P $(PY2CIFRWDEF) $(PY3CIFRWDEF) -Dcbf_system=MINGW_CROSS $(M4)/Makefile.m4 > Makefile_MINGW_CROSS.tmp
+	mv Makefile_MINGW_CROSS.tmp Makefile_MINGW_CROSS
 
 Makefile_MSYS2: $(M4)/Makefile.m4
 	-cp Makefile_MSYS2 Makefile_MSYS2_old

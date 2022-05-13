@@ -1177,6 +1177,11 @@ Makefile_MINGW: $(M4)/Makefile.m4
 	m4 -P $(PY2CIFRWDEF) $(PY3CIFRWDEF) -Dcbf_system=MINGW $(M4)/Makefile.m4 > Makefile_MINGW.tmp
 	mv Makefile_MINGW.tmp Makefile_MINGW
 
+Makefile_MINGW_CROSS: $(M4)/Makefile.m4
+	-cp Makefile_MINGW_CROSS Makefile_MINGW_CROSS_old
+	m4 -P $(PY2CIFRWDEF) $(PY3CIFRWDEF) -Dcbf_system=MINGW_CROSS $(M4)/Makefile.m4 > Makefile_MINGW_CROSS.tmp
+	mv Makefile_MINGW_CROSS.tmp Makefile_MINGW_CROSS
+
 Makefile_MSYS2: $(M4)/Makefile.m4
 	-cp Makefile_MSYS2 Makefile_MSYS2_old
 	m4 -P $(PY2CIFRWDEF) $(PY3CIFRWDEF) -Dcbf_system=MSYS2 $(M4)/Makefile.m4 > Makefile_MSYS2.tmp
