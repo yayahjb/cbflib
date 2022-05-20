@@ -778,9 +778,7 @@ save_ARRAY_DATA
     _category.id                   array_data
     _category.mandatory_code       no
   _category.NX_mapping_details 
-; in online version
 ;
-
     _array_data.array_id ARRAYID
     _array_data.binary_id BINARYID
     _array_data.data  DATAARRAY
@@ -1325,7 +1323,6 @@ save_ARRAY_DATA_EXTERNAL_DATA
     _category.id                   array_data_external_data
     _category.mandatory_code       no
   _category.NX_mapping_details 
-; in online version
 ;
 
     _array_data.array_id ARRAYID
@@ -1373,13 +1370,13 @@ save_ARRAY_DATA_EXTERNAL_DATA
 
 save__array_data_external_data.archive_format
     _item_description.description
- ;
+;
 
     The type of single-file archive in which image data or multi-image
     inage containers have been encapsulated, if any. The archive is
     located at _array_data_external_data.uri .
 
- ;
+;
 
     _item.name                 '_array_data_external_data.archive_format '
     _item.category_id            array_data_external_data
@@ -1399,12 +1396,12 @@ save_
 save__array_data_external_data.archive_path
    _item_description.description
 
- ;
+;
 
     The location of the image or multi-image image container,
     such as HDF5 or CBF, within an archive such as a tarball.
 
- ;
+;
 
     _item.name                 '_array_data_external_data.archive_path '
     _item.category_id            array_data_external_data
@@ -1693,9 +1690,6 @@ save_ARRAY_ELEMENT_SIZE
 ;
     _category.id                   array_element_size
     _category.mandatory_code       no
-   _category.NX_mapping_details 
-; in online version
-;
 
   loop_
     _category_key.name             '_array_element_size.array_id '
@@ -1808,7 +1802,6 @@ save_ARRAY_INTENSITIES
     _category.id                   array_intensities
     _category.mandatory_code       no
   _category.NX_mapping_details 
-; in online version
 ;
 
     _array_intensities.array_id ARRAYID
@@ -2270,7 +2263,6 @@ save_ARRAY_STRUCTURE
     _category.id                   array_structure
     _category.mandatory_code       no
      _category.NX_mapping_details 
-; in online version
 ;
     Note that this is essentially a type that may apply to multiple
     binary images, and corresponds to some of the detailed HDF5
@@ -2521,7 +2513,6 @@ save_ARRAY_STRUCTURE_LIST
     _category.id                   array_structure_list
     _category.mandatory_code       no
   _category.NX_mapping_details 
-; in online version
 ;
 
     _array_structure_list.axis_set_id AXISSETID
@@ -2921,7 +2912,6 @@ save_ARRAY_STRUCTURE_LIST_SECTION
     _category.id                   array_structure_list_section
     _category.mandatory_code       no
   _category.NX_mapping_details 
-; in online version
 ;
 
     _array_structure_list_section.array_id ARRAYID -->
@@ -3191,7 +3181,6 @@ save_ARRAY_STRUCTURE_LIST_AXIS
     _category.id                   array_structure_list_axis
     _category.mandatory_code       no
   _category.NX_mapping_details 
-; in online version
 ;
 
     _array_structure_list.axis_set_id AXISSETID
@@ -3981,7 +3970,6 @@ save_AXIS
     _category.id                   axis
     _category.mandatory_code       no
   _category.NX_mapping_details 
-; in online version
 ;
     _axis.id                  AXISID
     _axis.type                AXISTYPE
@@ -5787,7 +5775,6 @@ save_DIFFRN_DATA_FRAME
     _category.id                   diffrn_data_frame
     _category.mandatory_code       no
   _category.NX_mapping_details 
-; in online version
 ;
 
     _diffrn_data_frame.array_id ARRAYID
@@ -6171,7 +6158,6 @@ save_DIFFRN_DETECTOR
     _category.id                  diffrn_detector
     _category.mandatory_code      no
   _category.NX_mapping_details 
-; in online version
 ;
 
     _diffrn_detector.diffrn_id DIFFRNID
@@ -6446,7 +6432,6 @@ save_DIFFRN_DETECTOR_AXIS
     _category.id                   diffrn_detector_axis
     _category.mandatory_code       no
   _category.NX_mapping_details 
-; in online version
 ;
 
     _diffrn_detector_axis.axis_id AXISID -->
@@ -6540,7 +6525,6 @@ save_DIFFRN_DETECTOR_ELEMENT
     _category.id                   diffrn_detector_element
     _category.mandatory_code       no
   _category.NX_mapping_details 
-; in online version
 ;
 
     _diffrn_detector_element.id ELEMENTID
@@ -6768,7 +6752,6 @@ save_DIFFRN_MEASUREMENT
     _category.id                  diffrn_measurement
     _category.mandatory_code      no
   _category.NX_mapping_details 
-; in online version
 ;
 
     _diffrn_measurement.diffrn_id DIFFRNID
@@ -7128,7 +7111,6 @@ save_DIFFRN_MEASUREMENT_AXIS
     _category.id                   diffrn_measurement_axis
     _category.mandatory_code       no
   _category.NX_mapping_details 
-; in online version
 ;
 
     _diffrn_measurement_axis.axis_id AXISID
@@ -7241,7 +7223,6 @@ save_DIFFRN_RADIATION
     _category.id                  diffrn_radiation
     _category.mandatory_code      no
   _category.NX_mapping_details 
-; in online version
 ;
 
     _diffrn_radiation.collimation    COLLIMATION
@@ -8196,7 +8177,6 @@ save_DIFFRN_REFLN
     _category.id                   diffrn_refln
     _category.mandatory_code       no
   _category.NX_mapping_details 
-; in online version
 ;
     This category will be addressed at a future date.
 ;
@@ -8277,7 +8257,6 @@ save_DIFFRN_SCAN
     _category.id                   diffrn_scan
     _category.mandatory_code       no
   _category.NX_mapping_details 
-; in online version
 ;
     _diffrn_scan.id SCANID
     _diffrn_scan.date_end ENDDATETIME
@@ -9120,7 +9099,6 @@ save_DIFFRN_SCAN_AXIS
     _category.id                   diffrn_scan_axis
     _category.mandatory_code       no
   _category.NX_mapping_details 
-; in online version
 ;
 
     _diffrn_scan_axis.axis_id AXISID-->
@@ -9456,7 +9434,6 @@ save_DIFFRN_SCAN_COLLECTION
     _category.id                   diffrn_scan_collection
     _category.mandatory_code       no
    _category.NX_mapping_details 
-; in online version
 ;
 
     _diffrn_scan_collection.type  COLLECTIONTYPE
@@ -9593,7 +9570,6 @@ save_DIFFRN_SCAN_FRAME
     _category.id                   diffrn_scan_frame
     _category.mandatory_code       no
    _category.NX_mapping_details 
-; in online version
 ;
     _diffrn_scan_frame.date  DATETIME
     _diffrn_scan_frame.frame_id ID
@@ -10059,7 +10035,6 @@ save_DIFFRN_SCAN_FRAME_AXIS
     _category.id                   diffrn_scan_frame_axis
     _category.mandatory_code       no
   _category.NX_mapping_details 
-; in online version
 ;
 
     _diffrn_scan_frame_axis.axis_id AXISID
@@ -10359,7 +10334,6 @@ save_DIFFRN_SCAN_FRAME_MONITOR
     _category.id                   diffrn_scan_frame_monitor
     _category.mandatory_code       no
    _category.NX_mapping_details 
-; in online version
 ;
 
     _diffrn_scan_frame_monitor.id MONID -->
