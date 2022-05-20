@@ -780,27 +780,6 @@ save_ARRAY_DATA
     _category.NX_mapping_details 
 ; in online version
 ;
-
-    _array_data.array_id ARRAYID
-    _array_data.binary_id BINARYID
-    _array_data.data  DATAARRAY
-    _array_data.header_contents HEADER
-    _array_data.header_convention HEADERCONVENTION
-
-    -->
-
-    /entry:NXentry
-     /instrument:NXinstrument
-       /DETECTORNAME:NXdetector_group
-       /DETECTORELEMENTNAME:NXdetector
-           /data_ARRAYID_BINARYID -- >
-                /entry/data_ARRAYID_BINARYID/data_ARRAYID_BINARYID
-            @CBF_array_id="ARRAYID"
-            @CBF_binary_id="BINARYID"
-            @CBF_header_contents="HEADER"
-            @CBF_header_convention="HEADERCONVENTION"
-;
-
      loop_
     _category_key.name             '_array_data.array_id '
                                    '_array_data.binary_id '
@@ -1328,42 +1307,6 @@ save_ARRAY_DATA_EXTERNAL_DATA
 ; in online version
 ;
 
-    _array_data.array_id ARRAYID
-    _array_data.binary_id BINARYID
-    _array_data.external_data_id EXTERNAL_DATA_ID
-    _array_data.header_contents HEADER
-    _array_data.header_convention HEADERCONVENTION
-
-    _array_data_external_data.archive_format ARCHIVEFORMAT
-    _array_data_external_data.archive_path ARCHIVEPATH
-    _array_data_external_data.id EXTERNAL_DATA_ID
-    _array_data_external_data.format HDF5
-    _array_data_external_data.uri DATAURI
-    _array_data_external_data.path DATAPATH
-    _array_data_external_data.frame DATAFRAME
-
-
-    -->
-
-    /entry:NXentry
-     /data_ARRAYID_BINARYID:NXdata
-       data_ARRAYID_BINARYID --> DATAURI//DATAPATH
-     /instrument:NXinstrument
-       /DETECTORNAME:NXdetector_group
-       /DETECTORELEMENTNAME:NXdetector
-           /data_ARRAYID_BINARYID -->
-                /entry/data_ARRAYID_BINARYID/data_ARRAYID_BINARYID
-            @CBF_array_id="ARRAYID"
-            @CBF_binary_id="BINARYID"
-            @CBF_header_contents="HEADER"
-            @CBF_header_convention="HEADERCONVENTION"
-            @CBF_external_data_archive_format="ARCHIVEFORMAT"
-            @CBF_external_data_archive_path="ARCHIVEPATH""
-            @CBF_external_data_uri="DATAURI"
-            @CBF_external_data_path="DATAPATH"
-            @CBF_external_data_frame="DATAFRAME"
-;
-
     _category_key.name             '_array_data_external_data.id '
      loop_
     _category_group.id             'inclusive_group'
@@ -1811,65 +1754,6 @@ save_ARRAY_INTENSITIES
 ; in online version
 ;
 
-    _array_intensities.array_id ARRAYID
-    _array_intensities.binary_id BINARYID
-    _array_intensities.details DETAILS
-    _array_intensities.gain GAIN
-    _array_intensities.gain_esd GAINESD
-    _array_intensities.linearity LINEARITY
-    _array_intensities.offset OFFSET
-    _array_intensities.scaling SCALING
-    _array_intensities.overload OVERLOAD
-    _array_intensities.undefined_value UNDEFVAL
-    _array_intensities.underload UNDERLOAD
-    _array_intensities.pixel_fast_bin_size FBINSIZE
-    _array_intensities.pixel_slow_bin_size SBINSIZE
-    _array_intensities.pixel_binning_method METHOD
-
-
-    -->
-
-      /entry:NXentry
-        /data_ARRAYID_BINARYID:NXdata
-          /data_ARRAYID_BINARYID
-              @CBF_array_id="ARRAYID"
-              @CBF_binary_id="BINARYID"
-              @details="DETAILS"
-              @gain=[GAIN]
-              @gain_esd=[GAINESD]
-              @linearity="LINEARITY"
-              @offset=[OFFSET]
-              @saturation_value=[OVERLOAD]
-              @scaling_factor=[SCALING]
-              @undefined_value=[UNDEFVAL]
-              @underload_value=[UNDERLOAD]
-              @CBF_array_intensities__pixel_fast_bin_size=[FBINSIZE]
-              @CBF_array_intensities__pixel_slow_bin_size=[SBINSIZE]
-              @CBF_array_intensities__pixel_binning_method="METHOD"
-       /instrument:NXinstrument
-         /DETECTORNAME:NXdetector_group
-         /DETECTORELEMENTNAME:NXdetector
-           /data_ARRAYID_BINARYID -->
-                /entry/data_ARRAYID_BINARYID/data_ARRAYID_BINARYID
-
-    The argument has been made that these attributes are not needed
-    because NeXus files are supposed to have 'true values' stored.
-    In many cases that is true and then none of these attributes
-    are needed.  However, with some detectors and some experiments
-    there are good technical and scientific reasons to bring in values
-    that will need processing later to derive 'true values', and in
-    those case some or all of these attributes will be needed.  They
-    are provided for such cases.
-
-    The same attributes could be used as fields in the case of a single
-    data array, but in that case links for all the fields would be needed
-    from NXdata to NXdetector, so it is preferable to use attributes even
-    in the case of a single data array.  The reverse mapping will support
-    both uses.
-
-
-;
-
      loop_
     _category_key.name             '_array_intensities.array_id '
                                    '_array_intensities.binary_id '
@@ -2272,20 +2156,6 @@ save_ARRAY_STRUCTURE
     _category.NX_mapping_details 
 ; in online version
 ;
-    Note that this is essentially a type that may apply to multiple
-    binary images, and corresponds to some of the detailed HDF5
-    information about an array.   The following mapping is a placeholder
-    for the names given for future reference, if needed.
-
-    The information in this category is the byte order, the compression
-    information, and the encoding, which is carried in and retrievable
-    from the HDF5 types, properties lists, etc.
-
-    At present NeXus does not expose this information.  This should be
-    discussed.
-
-;
-
      loop_
     _category_key.name             '_array_structure.id '
                                    '_array_structure.variant '
@@ -2524,176 +2394,6 @@ save_ARRAY_STRUCTURE_LIST
 ; in online version
 ;
 
-    _array_structure_list.axis_set_id AXISSETID
-    _array_structure_list.array_id ARRAYID
-    _array_structure_list.array_section_id ARRAYSECTIONID
-    _array_structure_list.dimension DIM
-    _array_structure_list.direction DIR
-    _array_structure_list.index INDEX
-    _array_structure_list.precedence PRECEDENCE
-
-    _array_structure_list_section.array_id ARRAYID -->
-    _array_structure_list_section.id ARRAYSECTIONID -->
-    _array_structure_list_section.index PRECEDENCE-->
-    _array_structure_list_section.end END -->
-    _array_structure_list_section.start START -->
-    _array_structure_list_section.stride STRIDE -->
-
-
-     loop_
-    _array_structure_list_axis.axis_id
-    _array_structure_list_axis.axis_set_id
-    _array_structure_list_axis.angle
-    _array_structure_list_axis.angle_increment
-    _array_structure_list_axis.displacement
-    _array_structure_list_axis.fract_displacement
-    _array_structure_list_axis.displacement_increment
-    _array_structure_list_axis.fract_displacement_increment
-    _array_structure_list_axis.angular_pitch
-    _array_structure_list_axis.reference_angle
-    _array_structure_list_axis.reference_displacement REFDISP
-    AXISID1 AXISSETID ANGLE1 ANGLEINC1 DISP1 FRACTDISP1
-         DISPINC1 FRACTINC1 ANGPITCH1 REFANG1
-    AXISID2 AXISSETID ANGLE2 ANGLEINC2 DISP2 FRACTDISP2
-         DISPINC2 FRACTINC2 ANGPITCH2 REFANG2
-    AXISID3 AXISSETID ANGLE3 ANGLEINC3 DISP3 FRACTDISP3
-         DISPINC3 FRACTINC3 ANGPITCH3 REFANG3
-
-    _diffrn_data_frame.array_id ARRAYID
-    _diffrn_data_frame.binary_id BINARYID
-    _diffrn_data_frame.center_fast CENF
-    _diffrn_data_frame.center_slow CENS
-    _diffrn_data_frame.center_derived CENDERIVED
-    _diffrn_data_frame.center_units UNITS
-    _diffrn_data_frame.detector_element_id ELEMENTID
-    _diffrn_data_frame.id FRAMEID
-    _diffrn_data_frame.details DETAILS
-
-    -->
-
-    ...
-
-
-   /entry:NXentry
-     /data_ARRAYID_BINARYID:NXdata
-        @signal="data_ARRAYID_BINARY_ID"
-        /data_ARRAYID_BINARYID[ the data for the array ARRAYID,
-                                binary BINARYID, all sections,
-                                all FRAMES]
-        @axes=[...,AXISID1,...] with AXISID1 inserted at PRECEDENCE-1
-        @AXISID1_indices=[PRECEDENCE-1]
-        @AXISID2_indices=[PRECEDENCE-1]
-        @AXISID3_indices=[PRECEDENCE-1]
-        @AXISID1_origins=[origin1]  (default 0)
-        @AXISID2_origins=[origin2]  (default 0)
-        @AXISID3_origins=[origin3]  (default 0)
-        @AXISID1_sizes=[size1]
-        @AXISID2_sizes=[size2]
-        @AXISID3_sizes=[size3]
-        @AXISID1_strides=[stride1]
-        @AXISID2_strides=[stride2]
-        @AXISID3_strides=[stride3]
-
-        ...
-        /AXISID1 -->
-            /entry/instrument/DETECTORELEMENTNAME/transformations/AXISID1
-        /AXISID2 -->
-            /entry/instrument/DETECTORELEMENTNAME/transformations/AXISID2
-        /AXISID2 -->
-            /entry/instrument/DETECTORELEMENTNAME/transformations/AXISID3
-        ...
-
-     /instrument:NXinstrument
-       /DETECTORNAME:NXdetector_group
-       /DETECTORELEMENTNAME:NXdetector
-           /data_ARRAYID_BINARYID -->
-                /entry/data_ARRAYID_BINARYID/data_ARRAYID_BINARYID
-           /AXISID1 -->
-                /entry/instrument/DETECTORELEMENTNAME/transformations/AXISID1
-           /AXISID2 -->
-                /entry/instrument/DETECTORELEMENTNAME/transformations/AXISID2
-           /AXISID2 -->
-                /entry/instrument/DETECTORELEMENTNAME/transformations/AXISID3
-           /ARRAYSECTIONID:NXdetector_module
-             /data_origin=[...] -- the 0-based origins indices of ARRAYSECTIONID
-             /data_size=[...] the sizes in pixels of ARRAYSECTIONID
-             /data_stride[...] the strides of ARRAYSECTIONID
-               ..
-           /transformations:NXtransformations
-             /AXISID1=[DISP1,DISP1+DISPINC1,...]
-                  (or using angles where appropriate)
-                @depends_on=...   determined from AXIS definitions
-                @equipment="detector"
-                @offset=[...] determined from AXIS definitions
-                @offset_units="mm"
-                @transformation_type="..." from AXIS definitions
-                @units="mm"
-                @vector=[...] determined from AXIS definitions
-                @CBF_array_structure_list_axis__axis_id="AXISID1"
-                @CBF_array_structure_list_axis__axis_set_id="AXISSETID"
-                @CBF_array_structure_list_axis__angle=ANGLE1
-                @CBF_array_structure_list_axis__angle_increment=ANGLEINC1
-                @CBF_array_structure_list_axis__displacement=DISP1
-                @CBF_array_structure_list_axis__displacement=FRACTDISP1
-                @CBF_array_structure_list_axis__displacement_increment=DISPINC1
-                @CBF_array_structure_list_axis__fract_displacement_increment
-                  =FRACTINC1
-                @CBF_array_structure_list_axis__angular_pitch=ANGPITCH1
-                @CBF_array_structure_list_axis__radial_pitch=RADPITCH1
-                @CBF_array_structure_list_axis__reference_angle=REFANG1
-                @CBF_array_structure_list_axis__reference_displacement=REFDISP1
-             /AXISID2=[DISP2,DISP2+DISPINC2,...]
-                  (or using angles where appropriate)
-                @depends_on=...   determined from AXIS definitions
-                @equipment="detector"
-                @offset=[...] determined from AXIS definitions
-                @offset_units="mm"
-                @transformation_type="..." from AXIS definitions
-                @units="mm"
-                @vector=[...] determined from AXIS definitions
-                @CBF_array_structure_list_axis__axis_id="AXISID2"
-                @CBF_array_structure_list_axis__axis_set_id="AXISSETID"
-                @CBF_array_structure_list_axis__angle=ANGLE2
-                @CBF_array_structure_list_axis__angle_increment=ANGLEINC2
-                @CBF_array_structure_list_axis__displacement=DISP2
-                @CBF_array_structure_list_axis__displacement=FRACTDISP2
-                @CBF_array_structure_list_axis__displacement_increment=DISPINC2
-                @CBF_array_structure_list_axis__fract_displacement_increment
-                  =FRACTINC2
-                @CBF_array_structure_list_axis__angular_pitch=ANGPITCH2
-                @CBF_array_structure_list_axis__radial_pitch=RADPITCH2
-                @CBF_array_structure_list_axis__reference_angle=REFANG2
-                @CBF_array_structure_list_axis__reference_displacement=REFDISP2
-             /AXISID3=[DISP3,DISP3+DISPINC3,...]
-                  (or using angles where appropriate)
-                @depends_on=...   determined from AXIS definitions
-                @equipment="detector"
-                @offset=[...] determined from AXIS definitions
-                @offset_units="mm"
-                @transformation_type="..." from AXIS definitions
-                @units="mm"
-                @vector=[...] determined from AXIS definitions
-                @CBF_array_structure_list_axis__axis_id="AXISID3"
-                @CBF_array_structure_list_axis__axis_set_id="AXISSETID"
-                @CBF_array_structure_list_axis__angle=ANGLE3
-                @CBF_array_structure_list_axis__angle_increment=ANGLEINC3
-                @CBF_array_structure_list_axis__displacement=DISP3
-                @CBF_array_structure_list_axis__displacement=FRACTDISP3
-                @CBF_array_structure_list_axis__displacement_increment=DISPINC3
-                @CBF_array_structure_list_axis__fract_displacement_increment
-                  =FRACTINC3
-                @CBF_array_structure_list_axis__angular_pitch=ANGPITCH3
-                @CBF_array_structure_list_axis__radial_pitch=RADPITCH3
-                @CBF_array_structure_list_axis__reference_angle=REFANG3
-                @CBF_array_structure_list_axis__reference_displacement=REFDISP3
-
-    Notes: The same axis AXISIDn may appear in multiple axis sets for different
-           values of PRECEDENCE of the data array, in which case the values
-           in AXISIDn_indices will be the sorted list of PRECEDENCE-1 values
-           and the array section information will be organized by the
-           same ordering.
-;
-
      loop_
     _category_key.name             '_array_structure_list.array_id '
                                    '_array_structure_list.index '
@@ -2922,30 +2622,6 @@ save_ARRAY_STRUCTURE_LIST_SECTION
     _category.mandatory_code       no
     _category.NX_mapping_details 
 ; in online version
-;
-
-    _array_structure_list_section.array_id ARRAYID -->
-    _array_structure_list_section.id SECTIONID -->
-    _array_structure_list_section.index INDEX-->
-    _array_structure_list_section.end END -->
-    _array_structure_list_section.start START -->
-    _array_structure_list_section.stride STRIDE -->
-    /instrument:NXinstrument
-       /DETECTORNAME:NXdetector_group
-       /DETECTORELEMENTNAME:NXdetector
-           /data_ARRAYID_BINARYID -->
-                /entry/data_ARRAYID_BINARYID/data_ARRAYID_BINARYID
-           /AXISID1 -->
-                /entry/instrument/DETECTORELEMENTNAME/transformations/AXISID1
-           /AXISID2 -->
-                /entry/instrument/DETECTORELEMENTNAME/transformations/AXISID2
-           /AXISID2 -->
-                /entry/instrument/DETECTORELEMENTNAME/transformations/AXISID3
-           /ARRAYSECTIONID:NXdetector_module
-             /data_origin=[...] -- the 0-based origins indices of ARRAYSECTIONID
-             /data_size=[...] the sizes in pixels of ARRAYSECTIONID
-             /data_stride[...] the strides of ARRAYSECTIONID
-
 ;
 
      loop_
@@ -3192,169 +2868,6 @@ save_ARRAY_STRUCTURE_LIST_AXIS
     _category.mandatory_code       no
     _category.NX_mapping_details 
 ; in online version
-;
-
-    _array_structure_list.axis_set_id AXISSETID
-    _array_structure_list.array_id ARRAYID
-    _array_structure_list.array_section_id ARRAYSECTIONID
-    _array_structure_list.dimension DIM
-    _array_structure_list.direction DIR
-    _array_structure_list.index INDEX
-    _array_structure_list.precedence PRECEDENCE
-
-    _array_structure_list_section.array_id ARRAYID -->
-    _array_structure_list_section.id ARRAYSECTIONID -->
-    _array_structure_list_section.index PRECEDENCE-->
-    _array_structure_list_section.end END -->
-    _array_structure_list_section.start START -->
-    _array_structure_list_section.stride STRIDE -->
-
-
-     loop_
-    _array_structure_list_axis.axis_id
-    _array_structure_list_axis.axis_set_id
-    _array_structure_list_axis.angle
-    _array_structure_list_axis.angle_increment
-    _array_structure_list_axis.displacement
-    _array_structure_list_axis.fract_displacement
-    _array_structure_list_axis.displacement_increment
-    _array_structure_list_axis.fract_displacement_increment
-    _array_structure_list_axis.angular_pitch
-    _array_structure_list_axis.reference_angle
-    _array_structure_list_axis.reference_displacement REFDISP
-    AXISID1 AXISSETID ANGLE1 ANGLEINC1 DISP1 FRACTDISP1
-         DISPINC1 FRACTINC1 ANGPITCH1 REFANG1
-    AXISID2 AXISSETID ANGLE2 ANGLEINC2 DISP2 FRACTDISP2
-         DISPINC2 FRACTINC2 ANGPITCH2 REFANG2
-    AXISID3 AXISSETID ANGLE3 ANGLEINC3 DISP3 FRACTDISP3
-         DISPINC3 FRACTINC3 ANGPITCH3 REFANG3
-
-    _diffrn_data_frame.array_id ARRAYID
-    _diffrn_data_frame.binary_id BINARYID
-    _diffrn_data_frame.center_fast CENF
-    _diffrn_data_frame.center_slow CENS
-    _diffrn_data_frame.center_units UNITS
-    _diffrn_data_frame.detector_element_id ELEMENTID
-    _diffrn_data_frame.id FRAMEID
-    _diffrn_data_frame.details DETAILS
-
-    -->
-
-    ...
-
-
-   /entry:NXentry
-     /data_ARRAYID_BINARYID:NXdata
-        @signal="data_ARRAYID_BINARY_ID"
-        /data_ARRAYID_BINARYID[ the data for the array ARRAYID,
-                                binary BINARYID, all sections,
-                                all FRAMES]
-        @axes=[...,AXISID1,...] with AXISID1 inserted at PRECEDENCE-1
-        @AXISID1_indices=[PRECEDENCE-1]
-        @AXISID2_indices=[PRECEDENCE-1]
-        @AXISID3_indices=[PRECEDENCE-1]
-        @AXISID1_origins=[origin1]  (default 0)
-        @AXISID2_origins=[origin2]  (default 0)
-        @AXISID3_origins=[origin3]  (default 0)
-        @AXISID1_sizes=[size1]
-        @AXISID2_sizes=[size2]
-        @AXISID3_sizes=[size3]
-        @AXISID1_strides=[stride1]
-        @AXISID2_strides=[stride2]
-        @AXISID3_strides=[stride3]
-
-        ...
-        /AXISID1 -->
-            /entry/instrument/DETECTORELEMENTNAME/transformations/AXISID1
-        /AXISID2 -->
-            /entry/instrument/DETECTORELEMENTNAME/transformations/AXISID2
-        /AXISID2 -->
-            /entry/instrument/DETECTORELEMENTNAME/transformations/AXISID3
-        ...
-
-     /instrument:NXinstrument
-       /DETECTORNAME:NXdetector_group
-       /DETECTORELEMENTNAME:NXdetector
-           /data_ARRAYID_BINARYID -->
-                /entry/data_ARRAYID_BINARYID/data_ARRAYID_BINARYID
-           /AXISID1 -->
-                /entry/instrument/DETECTORELEMENTNAME/transformations/AXISID1
-           /AXISID2 -->
-                /entry/instrument/DETECTORELEMENTNAME/transformations/AXISID2
-           /AXISID2 -->
-                /entry/instrument/DETECTORELEMENTNAME/transformations/AXISID3
-           /ARRAYSECTIONID:NXdetector_module
-             /data_origin=[...] -- the 0-based origins indices of ARRAYSECTIONID
-             /data_size=[...] the sizes in pixels of ARRAYSECTIONID
-             /data_stride[...] the strides of ARRAYSECTIONID
-               ..
-           /transformations:NXtransformations
-             /AXISID1=[DISP1,DISP1+DISPINC1,...]   (or using angles where appropriate)
-                @depends_on=...   determined from AXIS definitions
-                @equipment="detector"
-                @offset=[...] determined from AXIS definitions
-                @offset_units="mm"
-                @transformation_type="..." from AXIS definitions
-                @units="mm"
-                @vector=[...] determined from AXIS definitions
-                @CBF_array_structure_list_axis__axis_id="AXISID1"
-                @CBF_array_structure_list_axis__axis_set_id="AXISSETID"
-                @CBF_array_structure_list_axis__angle=ANGLE1
-                @CBF_array_structure_list_axis__angle_increment=ANGLEINC1
-                @CBF_array_structure_list_axis__displacement=DISP1
-                @CBF_array_structure_list_axis__displacement=FRACTDISP1
-                @CBF_array_structure_list_axis__displacement_increment=DISPINC1
-                @CBF_array_structure_list_axis__fract_displacement_increment=FRACTINC1
-                @CBF_array_structure_list_axis__angular_pitch=ANGPITCH1
-                @CBF_array_structure_list_axis__radial_pitch=RADPITCH1
-                @CBF_array_structure_list_axis__reference_angle=REFANG1
-                @CBF_array_structure_list_axis__reference_displacement=REFDISP1
-             /AXISID2=[DISP2,DISP2+DISPINC2,...]   (or using angles where appropriate)
-                @depends_on=...   determined from AXIS definitions
-                @equipment="detector"
-                @offset=[...] determined from AXIS definitions
-                @offset_units="mm"
-                @transformation_type="..." from AXIS definitions
-                @units="mm"
-                @vector=[...] determined from AXIS definitions
-                @CBF_array_structure_list_axis__axis_id="AXISID2"
-                @CBF_array_structure_list_axis__axis_set_id="AXISSETID"
-                @CBF_array_structure_list_axis__angle=ANGLE2
-                @CBF_array_structure_list_axis__angle_increment=ANGLEINC2
-                @CBF_array_structure_list_axis__displacement=DISP2
-                @CBF_array_structure_list_axis__displacement=FRACTDISP2
-                @CBF_array_structure_list_axis__displacement_increment=DISPINC2
-                @CBF_array_structure_list_axis__fract_displacement_increment=FRACTINC2
-                @CBF_array_structure_list_axis__angular_pitch=ANGPITCH2
-                @CBF_array_structure_list_axis__radial_pitch=RADPITCH2
-                @CBF_array_structure_list_axis__reference_angle=REFANG2
-                @CBF_array_structure_list_axis__reference_displacement=REFDISP2
-             /AXISID3=[DISP3,DISP3+DISPINC3,...]   (or using angles where appropriate)
-                @depends_on=...   determined from AXIS definitions
-                @equipment="detector"
-                @offset=[...] determined from AXIS definitions
-                @offset_units="mm"
-                @transformation_type="..." from AXIS definitions
-                @units="mm"
-                @vector=[...] determined from AXIS definitions
-                @CBF_array_structure_list_axis__axis_id="AXISID3"
-                @CBF_array_structure_list_axis__axis_set_id="AXISSETID"
-                @CBF_array_structure_list_axis__angle=ANGLE3
-                @CBF_array_structure_list_axis__angle_increment=ANGLEINC3
-                @CBF_array_structure_list_axis__displacement=DISP3
-                @CBF_array_structure_list_axis__displacement=FRACTDISP3
-                @CBF_array_structure_list_axis__displacement_increment=DISPINC3
-                @CBF_array_structure_list_axis__fract_displacement_increment=FRACTINC3
-                @CBF_array_structure_list_axis__angular_pitch=ANGPITCH3
-                @CBF_array_structure_list_axis__radial_pitch=RADPITCH3
-                @CBF_array_structure_list_axis__reference_angle=REFANG3
-                @CBF_array_structure_list_axis__reference_displacement=REFDISP3
-
-    Notes: The same axis AXISIDn may appear in multiple axis sets for different
-           values of PRECEDENCE of the data array, in which case the values
-           in AXISIDn_indices will be the sorted list of PRECEDENCE-1 values
-           and the array section information will be organized by the
-           same ordering.
 ;
 
      loop_
@@ -3982,51 +3495,6 @@ save_AXIS
     _category.mandatory_code       no
   _category.NX_mapping_details 
 ; in online version
-;
-    _axis.id                  AXISID
-    _axis.type                AXISTYPE
-    _axis.equipment           AXISEQUIPMENT
-    _axis.equipment_component AXISEQUIPCOMP
-    _axis.depends_on          AXISDEPENDSON
-    _axis.rotation_axis       AXISROTAXIS
-    _axis.rotation            AXISROTATION
-    _axis.vector[1]           AXISV1
-    _axis.vector[2]           AXISV2
-    _axis.vector[3]           AXISV3
-    _axis.offset[1]           AXISO1
-    _axis.offset[2]           AXISO2
-    _axis.offset[3]           AXISO3
-    _axis.system              AXISSYSTEM
-
-    -->
-
-{     /entry:NXentry
-        /instrument:NXinstrument
-         /DETECTORELEMENTNAME:NXdetector
-for AXISEQUIPMENT=="detector"}
-{     /entry:NXentry
-        /sample:NXsample
-for AXISEQUIPMENT=="goniometer"}
-{     /entry:NXentry
-for AXISEQUIPMENT=="general"}
-          /transformations:NXtransformations
-            /AXISID=[]
-              @units="mm"  if AXISTYPE=="translation"
-              or @units="degrees"  if AXISTYPE=="rotation"
-              @transformation_type="AXISTYPE"
-              @equipment_component="AXISEQUIPCOMP"
-              @depends_on="AXISDEPENDSON"
-              @rotation_axis="AXISROTAXIS"
-              @rotation=AXISROTATION
-              @rotation_units="degrees"
-              @offset=offsetxform([O1,O2,O3])
-              @offset_inits="mm"
-              @vector=coordxform([V1,V2,V3])
-
-
-
-
-
 ;
 
      loop_
@@ -5790,65 +5258,6 @@ save_DIFFRN_DATA_FRAME
 ; in online version
 ;
 
-    _diffrn_data_frame.array_id ARRAYID
-    _diffrn_data_frame.array_section_id SECTIONID
-    _diffrn_data_frame.binary_id BINID
-    _diffrn_data_frame.center_fast CENF
-    _diffrn_data_frame.center_slow CENS
-    _diffrn_data_frame.center_units UNITS
-    _diffrn_data_frame.detector_element_id ELEMENTID
-    _diffrn_data_frame.id FRAMEID
-    _diffrn_data_frame.details DETAILS
-
-    -->
-
-    /entry:NXentry
-      /instrument:NXinstrument
-       /DETECTORNAME:NXdetector_group
-       /DETECTORELEMENTNAME:NXdetector
-          /CBF_diffrn_data_frame__section_id=[SECTIONIDARRAY]
-          /CBF_diffrn_data_frame__binary_id=[BINARYIDARRAY]
-          /CBF_diffrn_data_frame__center_fast_slow=[CENTERARRAY]
-            @units="UNITS"
-          /CBF_diffrn_data_frame__details=["DETAILSARRAY"]
-
-    inserts either ARRAYID (if SECTIONID is not specified or SECTIONID
-    into the element of SECTIONIDARRY for this frame and for this detector
-    element (see below);
-
-    inserts BINID
-    into the element of BINARYIDARRAY for this frame and for this detector
-    element (see below);
-
-    inserts CENF
-    into the element of CENTERARRAY for this frame, for this detector element
-    and for the fast centre (see below);
-
-    inserts CENS
-    into the element of CENTERARRAY for this frame, for this detector element
-    and for the slow centre (see below);
-
-    only one CENTERARRY unit is provided.  If there is variation, the values in
-    CENTERARRAY should be rescaled to uniform units.
-
-    _diffrn_data_frame.detector_element_id ELEMENTID -->
-    ELEMENTID used to index into the arrays of this category by the ordinal of
-    the matching ELEMENTID in DIFFRN_DETECTOR_ELEMENT__id for the fast index;
-
-    FRAMEID used to index into the arrays of this category by the ordinal of
-    the matching ELEMENTID in DIFFRN_DETECTOR_ELEMENT__id for the slow index
-    by matching FRAMEID against _diffrn_scan_frame.frame_id and using
-    _diffrn_scan_frame.frame_number from the same row.
-
-    inserts DETAILS
-    into the element of DETAILSARRAY for this frame and for this detector
-    element (see below);
-
-    The arrays created in the mapping have a slow index of the number of frames
-    and a fast index of the number of detector elements.  There is a middle
-    index for CENTERARRAY in the order fast and then slow.
-;
-
      loop_
     _category_key.name             '_diffrn_data_frame.id '
                                    '_diffrn_data_frame.detector_element_id '
@@ -6174,32 +5583,6 @@ save_DIFFRN_DETECTOR
 ; in online version
 ;
 
-    _diffrn_detector.diffrn_id DIFFRNID
-    _diffrn_detector.id DETECTORNAME
-    _diffrn_detector.details DETAILS
-    _diffrn_detector.detector DETECTOR
-    _diffrn_detector.dtime DTIME
-    _diffrn_detector.gain_setting GAINSETTING
-    _diffrn_detector.number_of_axes NAXES
-    _diffrn_detector.type DETTYPE
-
-    -->
-
-      /entry:NXentry
-        /CBF_scan_id="SCANID"
-        /CBF_diffrn_id="DIFFRNID"
-          /instrument:NXinstrument
-           /DETECTORNAME:NXdetector_group
-           /DETECTORELEMENTNAME:NXdetector
-              /details="DETAILS"
-              /type="DETECTOR"
-              /deadtime=DTIME
-              /number_of_axes=NAXES
-              /description="DETTYPE"
-              /gain_setting="GAINSETTING"
-
-;
-
      loop_
     _category_key.name          '_diffrn_detector.diffrn_id '
                                 '_diffrn_detector.id '
@@ -6449,18 +5832,6 @@ save_DIFFRN_DETECTOR_AXIS
 ; in online version
 ;
 
-    _diffrn_detector_axis.axis_id AXISID -->
-    _diffrn_detector_axis.detector_id DETECTORNAME -->
-        /instrument:NXinstrument
-         /DETECTORNAME:NXdetector_group
-         /DETECTORELEMENTNAME:NXdetector
-            /transformations:NXtransformations
-              /AXISID=[]
-
-This information normally will duplicate information obtained from
-the ARRAY_STRUCTURE_LIST_AXIS.
-;
-
      loop_
     _category_key.name          '_diffrn_detector_axis.detector_id '
                                 '_diffrn_detector_axis.axis_id '
@@ -6541,35 +5912,6 @@ save_DIFFRN_DETECTOR_ELEMENT
     _category.mandatory_code       no
     _category.NX_mapping_details 
 ; in online version
-;
-
-    _diffrn_detector_element.id ELEMENTID
-    _diffrn_detector_element.detector_id DETECTORNAME
-    _diffrn_detector_element.reference_center_fast RCF
-    _diffrn_detector_element.reference_center_slow RCS
-    _diffrn_detector_element.reference_center_units UNITS
-
-    -->
-
-    /entry:NXentry
-      /CBF_scan_id="SCANID"
-      /CBF_diffrn_id="DIFFRNID"
-      /instrument:NXinstrument
-       /DETECTORNAME:NXdetector_group
-       /DETECTORELEMENTNAME:NXdetector
-          /beam_center_x=[RCS]  (converted from UNITS as needed)
-            @units=mm
-          /beam_center_y=[RCF]  (converted from UNITS as needed)
-            @units=mm
-          /CBF_diffrn_detector_element__id="ELEMENTID1:ELEMENTID2:..."
-          /CBF_diffrn_detector_element__reference_center_fast=[RCF1,RCF2,...]
-          /CBF_diffrn_detector_element__reference_center_slow=[RCS1,RCS2,...]
-          /CBF_diffrn_detector_element__id="UNITS1:UNITS2:..."
-     inserts ELEMENTID into the colon-separated list of element IDs
-     inserts RCF into the array of reference centres
-     inserts RCS into the array of reference centres
-     inserts ELEMENTID into the colon-separated list of units
-
 ;
 
      loop_
@@ -6771,40 +6113,6 @@ save_DIFFRN_MEASUREMENT
 ; in online version
 ;
 
-    _diffrn_measurement.diffrn_id DIFFRNID
-    _diffrn_measurement.details DETAILS
-    _diffrn_measurement.device DEVICE
-    _diffrn_measurement.device_details DEVDETAILS
-    _diffrn_measurement.device_type DEVTYPE
-    _diffrn_measurement.id GONIOMETER
-    _diffrn_measurement.method METHOD
-    _diffrn_measurement.number_of_axes NUMBER
-    _diffrn_measurement.sample_detector_distance DIST
-    _diffrn_measurement.sample_detector_distance_derived DISTDERIVED
-    _diffrn_measurement.sample_detector_voffset VOFST
-    _diffrn_measurement.specimen_support SPECSPRT
-
-    -->
-
-    /entry:NXentry
-      /CBF_scan_id="SCANID
-      /CBF_diffrn_id="DIFFRNID"
-      /instrument:NXinstrument
-      /CBF_diffrn_measurement__GONIOMETER:NXgoniometer
-        /details="DETAILS"
-        /local_name="DEVICE"
-        /description="DEVDETAILS"
-        /type="DEVTYPE"
-        /CBF_diffrn_measurement__method="METHOD"
-          /number_of_axes=NUMBER
-        /CBF_diffrn_measurement__specimen_support="SPECSPRT"
-      /CBF_diffrn_detector__DETECTORNAME:NXdetector
-        /distance=DIST
-          @units="mm"
-        /distance_derived=DISTDERIVED
-        /CBF_diffrn_measurement__sample_detector_voffset=VOFST
-          @units="mm"
-;
      loop_
     _category_key.name          '_diffrn_measurement.device '
                                 '_diffrn_measurement.diffrn_id '
@@ -7131,24 +6439,6 @@ save_DIFFRN_MEASUREMENT_AXIS
 ; in online version
 ;
 
-    _diffrn_measurement_axis.axis_id AXISID
-    _diffrn_measurement_axis.measurement_device DEVICE
-    _diffrn_measurement_axis.measurement_id GONIOMETER
-
-    -->
-
-    /entry:NXentry
-      /CBF_scan_id="SCANID
-      /CBF_diffrn_id="DIFFRNID"
-      /sample:NXsample
-        /transformations:NXtransformations
-          /AXISID=[]
-      /instrument:NXinstrument
-        /CBF_diffrn_measurement__GONIOMETER:NXgoniometer
-          /CBF_diffrn_measurement__device="DEVICE"
-
-
-;
      loop_
     _category_key.name
                               '_diffrn_measurement_axis.measurement_device '
@@ -7240,99 +6530,10 @@ save_DIFFRN_RADIATION
 ;
     _category.id                  diffrn_radiation
     _category.mandatory_code      no
-  _category.NX_mapping_details 
+    _category.NX_mapping_details 
 ; in online version
 ;
 
-    _diffrn_radiation.collimation    COLLIMATION
-    _diffrn_radiation.diffrn_id      DIFFRNID
-    _diffrn_radiation.div_x_source   DIVX
-    _diffrn_radiation.div_y_source   DIVY
-    _diffrn_radiation.div_x_y_source DIVXY
-    _diffrn_radiation.filter_edge'   ABSEDGE
-    _diffrn_radiation.inhomogeneity  HWIDTH
-    _diffrn_radiation.monochromator  MONOCHROMATOR
-    _diffrn_radiation.polarisn_norm  POLNANG
-    _diffrn_radiation.polarisn_ratio POLRAT
-    _diffrn_radiation.polarizn_source_norm   POLSNANG
-    _diffrn_radiation.polarizn_source_ratio  POLSRAT
-    _diffrn_radiation.polarizn_Stokes_I  SVECI
-    _diffrn_radiation.polarizn_Stokes_Q  SVECQ
-    _diffrn_radiation.polarizn_Stokes_U  SVECU
-    _diffrn_radiation.polarizn_Stokes_V  SVECV
-    _diffrn_radiation.polarisn_norm_esd  POLNANGESD
-    _diffrn_radiation.polarisn_ratio_esd POLRATESD
-    _diffrn_radiation.polarizn_source_norm_esd   POLSNANGESD
-    _diffrn_radiation.polarizn_source_ratio_esd  POLSRATESD
-    _diffrn_radiation.polarizn_Stokes_I_esd  SVECIESD
-    _diffrn_radiation.polarizn_Stokes_Q_esd  SVECQESD
-    _diffrn_radiation.polarizn_Stokes_U_esd  SVECUESD
-    _diffrn_radiation.polarizn_Stokes_V_esd  SVECVESD
-    _diffrn_radiation.probe          RADIATION
-    _diffrn_radiation.type           SIEGBAHNTYPE
-    _diffrn_radiation.xray_symbol    IUPACXRAYSYMB
-    _diffrn_radiation.wavelength_id  ID
-    _diffrn_radiation_wavelength.id  ID
-    _diffrn_radiation_wavelength.wavelength    WAVELENGTH
-    _diffrn_radiation_wavelength.wt            WEIGHT
-    _diffrn_scan_frame.polarizn_Stokes_I STOKESI
-    _diffrn_scan_frame.polarizn_Stokes_Q STOKESQ
-    _diffrn_scan_frame.polarizn_Stokes_U STOKESU
-    _diffrn_scan_frame.polarizn_Stokes_V STOKESV
-    _diffrn_scan_frame.polarizn_Stokes_I_esd STOKESIESD
-    _diffrn_scan_frame.polarizn_Stokes_Q_esd STOKESQESD
-    _diffrn_scan_frame.polarizn_Stokes_U_esd STOKESUESD
-    _diffrn_scan_frame.polarizn_Stokes_V_esd STOKESVESD
-    _diffrn_scan_frame.frame_number FRAMENO
-
-    -->
-
-       /entry:NXentry
-         /CBF_scan_id="SCANID"
-         /sample:NXsample
-           /beam:NXbeam
-             /incident_divergence_x=DIVX
-               @units="degrees"
-             /incident_divergence_y=DIVY
-               @units="degrees"
-             /incident_divergence_xy=DIXXY
-               @units="degrees^2"
-             /CBF_diffrn_radiation_wavelength__wavelength_id=[WAVELENGTH_ID]
-             /incident_wavelength=[WAVELENGTH]
-               @units="A"
-             /weight=[WEIGHT]
-             /incident_polarisation_stokes_average=[SVECI,SVECQ,SVECU,SVECV]
-             /incident_polarisation_stokes_average_uncertainty=[SVECIESD,SVECQESD,SVECUESD,SVECVESD]
-             /incident_polarisation_stokes=[STOKESI,STOKESQ,STOKESU,STOKESV]
-             /incident_polarisation_stokes_uncertainty=[STOKESIESD,STOKESQESD,STOKESUESD,STOKESVESD]
-               @units="Watts/meter^2"
-             /CBF_diffrn_radiation__polarisn_norm=POLNANG
-               @units="deg"
-             /CBF_diffrn_radiation__polarisn_ratio=POLRAT
-             /CBF_diffrn_radiation__polarisn_norm_uncertainty=POLNANGESD
-               @units="deg"
-             /CBF_diffrn_radiation__polarisn_ratio_uncertainty=POLRATESD
-             /CBF_diffrn_radiation__polarisn_source_norm=POLSNANG
-               @units="deg"
-             /CBF_diffrn_radiation__polarizn_source_ratio=POLSRAT
-             /CBF_diffrn_radiation__polarisn_source_norm_uncertainty=POLSNANGESD
-               @units="deg"
-             /CBF_diffrn_radiation__polarizn_source_ratio_uncertainty=POLSRATESD
-             /CBF_diffrn_radiation__filter_edge=ABSEDGE
-                @units="angstroms"
-             /CBF_diffrn_radiation__inhomogeneity=HWIDTH
-                @units="mm"
-         /instrument:NXinstrument
-           /monochromator:NXmonochromator
-             /description="MONOCHROMATOR"
-           /source:NXsource
-             /probe="RADIATION"
-             /CBF_diffrn_radiation__type="SIEGBAHNTYPE"
-             /CBF_diffrn_radiation__xray_symbol="IUPACXRAYSYMB"
-
-         With the incident_polarisation_stokes array indexed by FRAMENO
-
-;
 
      loop_
     _category_key.name          '_diffrn_radiation.diffrn_id '
@@ -8198,8 +7399,6 @@ save_DIFFRN_REFLN
     _category.NX_mapping_details 
 ; in online version
 ;
-    This category will be addressed at a future date.
-;
      loop_
     _category_key.name             '_diffrn_refln.diffrn_id'
                                    '_diffrn_refln.id'
@@ -8279,41 +7478,7 @@ save_DIFFRN_SCAN
     _category.NX_mapping_details 
 ; in online version
 ;
-    _diffrn_scan.id SCANID
-    _diffrn_scan.date_end ENDDATETIME
-    _diffrn_scan.date_end_estimated ENDDATETIMEEST
-    _diffrn_scan.date_start STARTDATETIME
-    _diffrn_scan.integration_time AVGCOUNTTIME
-    _diffrn_scan.frame_id_start FRAMESTARTID
-    _diffrn_scan.frame_id_end FRAMEENDID
-    _diffrn_scan.frames FRAMES
-    _diffrn_scan.time_period TIMEPER
-    _diffrn_scan.time_rstrt_incr RSTRTTIME
-
-    -->
-
-        /entry:NXentry
-          /CBF_scan_id="SCANID"
-          /end_time=ENDDATETIME
-          /end_time_estimated=ENDDATETIMEEST
-          /start_time=STARTDATETIME
-          /average_count_time=AVGCOUNTTIME
-            @units="sec"
-          /average_frame_time=TIMEPER
-            @units="sec"
-          /average_frame_restart_time=RSTRTTIME
-            @units="sec"
-          /instrument:NXinstrument
-           /DETECTORNAME:NXdetector_group
-           /DETECTORELEMENTNAME:NXdetector
-              /frame_start_number=FRAMESTARTNO
-              /frame_end_number=FRAMEENDNO
-
-    FRAMESTARTNO is the value of _diffrn_scan_frame.frame_number
-    for which the value of _diffrn_scan_frame.frame_id equals FRAMESTARTID
-    FRAMEENDNO is the value of _diffrn_scan_frame.frame_number
-    for which the value of _diffrn_scan_frame.frame_id equals FRAMEENDID
-;
+ 
      loop_
     _category_key.name            '_diffrn_scan.id '
                                   '_diffrn_scan.variant '
@@ -9123,48 +8288,6 @@ save_DIFFRN_SCAN_AXIS
 ; in online version
 ;
 
-    _diffrn_scan_axis.axis_id AXISID-->
-    _diffrn_scan_axis.angle_start ANGSTART
-    _diffrn_scan_axis.angle_range ANGRANGE
-    _diffrn_scan_axis.angle_increment ANGINC
-    _diffrn_scan_axis.angle_rstrt_incr ANGRSTRT
-    _diffrn_scan_axis.displacement_start DISPSTART
-    _diffrn_scan_axis.displacement_range DISPRANGE
-    _diffrn_scan_axis.displacement_increment DISPINC
-    _diffrn_scan_axis.displacement_increment DISPINC
-    _diffrn_scan_axis.displacement_rstrt_incr DISPRSTRT
-    _diffrn_scan_axis.reference_angle ANG
-    _diffrn_scan_axis.reference_displacement DISP
-    _diffrn_scan_axis.scan_id SCANID
-
-    -->
-
-    { /entry:NXentry
-      /CBF_scan_id="SCANID"
-      /instrument:NXinstrument
-       /DETECTORNAME:NXdetector_group
-       /DETECTORELEMENTNAME:NXdetector
-    for AXISEQUIPMENT=="detector"}
-    {  /CBF_diffrn_scan__SCANID:NXentry
-         /sample:NXsample
-    for AXISEQUIPMENT=="goniometer"}
-    {  /CBF_diffrn_scan__SCANID:NXentry
-    for AXISEQUIPMENT=="general"}
-         /transformations:NXtransformations
-           /AXISID=[]
-             @diffrn_scan_axis__angle_start=ANGSTART
-             @diffrn_scan_axis__angle_range=ANGRANGE
-             @diffrn_scan_axis__angle_increment=ANGINC
-             @diffrn_scan_axis__angle_rstrt_incr=ANGRSTRT
-             @diffrn_scan_axis__displacement_start=DISPSTART
-             @diffrn_scan_axis__displacement_range=DISPRANGE
-             @diffrn_scan_axis__displacement_increment=DISPINC
-             @diffrn_scan_axis__displacement_rstrt_incr=DISPRSTRT
-             @diffrn_scan_axis__reference_angle=ANG
-             @diffrn_scan_axis__reference_displacement=DISP
-
-
-;
      loop_
     _category_key.name
                                   '_diffrn_scan_axis.scan_id '
@@ -9458,21 +8581,6 @@ save_DIFFRN_SCAN_COLLECTION
     _category.NX_mapping_details 
 ; in online version
 ;
-
-    _diffrn_scan_collection.type  COLLECTIONTYPE
-    _diffrn_scan_collection.translation_width TRANSLATION_WIDTH
-
-    -->
-
-    /entry:NXentry
-      /CBF_cbf:NXpdb
-        /image1:NXpdb
-          @NXpdb="CBF_cbfdb"
-          /diffrn_scan_collection:NXpdb
-            @NXpdb="CBF_cbfcat"
-              /type=["COLLECTIONTYP"]
-              /translation_width=["TRANSLATION_WIDTH"]
-;
      loop_
     _category_key.name
                                   '_diffrn_scan_collection.scan_id '
@@ -9595,36 +8703,7 @@ save_DIFFRN_SCAN_FRAME
     _category.NX_mapping_details 
 ; in online version
 ;
-    _diffrn_scan_frame.date  DATETIME
-    _diffrn_scan_frame.frame_id ID
-    _diffrn_scan_frame.frame_number FRAMENUMBER
-    _diffrn_scan_frame.integration_time COUNTTIME
-    _diffrn_scan_frame.polarizn_Stokes_I STOKESI
-    _diffrn_scan_frame.polarizn_Stokes_Q STOKESQ
-    _diffrn_scan_frame.polarizn_Stokes_U STOKESU
-    _diffrn_scan_frame.polarizn_Stokes_V STOKESV
-    _diffrn_scan_frame.scan_id SCANID
-    _diffrn_scan_frame.time_period FRAMETIME
-    _diffrn_scan_frame.time_rstrt_incr RSTRTTIME
 
-    -->
-
-    /entry:NXentry
-      /CBF_scan_id="SCANID"
-      /instrument:NXinstrument
-       /DETECTORNAME:NXdetector_group
-       /DETECTORELEMENTNAME:NXdetector
-          /CBF_diffrn_scan_frame__date=["DATETIME"]
-          /CBF_diffrn_scan_frame__frame_id=["ID"]
-          /count_time=[COUNTIME]
-          /frame_time=[FRAMETIME]
-          /frame_restart_time=[RSTRTTIME]
-      /sample:NXsample
-        /beam:NXbeam
-          /incident_polarisation_stokes=[STOKESI,STOKESQ,STOKESU,STOKESV]
-             @units="Watts/meter^2"
-     where each array element is inserted at index FRAMENUMBER
-;
      loop_
     _category_key.name
                                   '_diffrn_scan_frame.scan_id '
@@ -10062,55 +9141,6 @@ save_DIFFRN_SCAN_FRAME_AXIS
 ; in online version
 ;
 
-    _diffrn_scan_frame_axis.axis_id AXISID
-    _diffrn_scan_frame_axis.angle ANGLE
-    _diffrn_scan_frame_axis.angle_increment ANGLEINCREMENT
-    _diffrn_scan_frame_axis.angle_rstrt_incr ANGLERSTRTINCREMENT
-    _diffrn_scan_frame_axis.displacement DISP
-    _diffrn_scan_frame_axis.displacement_increment DISPINCREMENT
-    _diffrn_scan_frame_axis.displacement_rstrt_incr DISPRSTRTINCREMENT
-    _diffrn_scan_frame_axis.reference_angle REFANGLE
-    _diffrn_scan_frame_axis.reference_displacement REFDISP
-
-
-    { /entry:NXentry
-      /CBF_scan_id="SCANID"
-      /instrument:NXinstrument
-       /DETECTORNAME:NXdetector_group
-       /DETECTORELEMENTNAME:NXdetector
-    for AXISEQUIPMENT=="detector"}
-    {  /entry:NXentry
-         /sample:NXsample
-    for AXISEQUIPMENT=="goniometer"}
-    {  /entry:NXentry
-    for AXISEQUIPMENT=="general"}
-         /transformations:NXtransformations
-           /AXISID=[]
-             @diffrn_scan_frame_axis__angle_start=[ANGSTART]
-             @diffrn_scan_frame_axis__angle_range=[ANGRANGE]
-             @diffrn_scan_frame_axis__angle_increment=[ANGINC]
-             @diffrn_scan_frame_axis__angle_rstrt_incr=[ANGRSTRT]
-             @diffrn_scan_frame_axis__displacement_start=[DISPSTART]
-             @diffrn_scan_frame_axis__displacement_range=[DISPRANGE]
-             @diffrn_scan_frame_axis__displacement_increment=[DISPINC]
-             @diffrn_scan_frame_axis__displacement_rstrt_incr=[DISPRSTRT]
-             @diffrn_scan_frame_axis__reference_angle=[ANG]
-             @diffrn_scan_frame_axis__reference_displacement=[DISP]
-
-
-    note that @units="mm" or @units="deg" should also be specified.
-
-    The dimensions of the array depend on np (the number of frames = the
-    value of _diffrn_scan.frames)
-
-    either DISP OR ANGLE is inserted as the i-th element
-    counting from 1 in AXISID where i is the value of
-    _diffrn_scan_frame.frame_number for which the value
-    of _diffrn_scan_frame.frame_id agrees with the
-    value of _diffrn_scan_frame_axis.frame_id
-
-    The remaining tags similarly populate the attribute arrays
-;
      loop_
     _category_key.name
                                   '_diffrn_scan_frame_axis.frame_id '
@@ -10360,27 +9390,6 @@ save_DIFFRN_SCAN_FRAME_MONITOR
     _category.mandatory_code       no
     _category.NX_mapping_details 
 ; in online version
-;
-
-    _diffrn_scan_frame_monitor.id MONID -->
-    _diffrn_scan_frame_monitor.detector_id DETECTORNAME -->
-    _diffrn_scan_frame_monitor.scan_id SCANID -->
-    _diffrn_scan_frame_monitor.frame_id FRAMEID -->
-    _diffrn_scan_frame_monitor.integration_time INTEGRATIONTIME -->
-    _diffrn_scan_frame_monitor.monitor_value MONITORVALUE -->
-
-    -->
-
-    /entry:NXentry
-      /CBF_scan_id="SCANID"
-        /instrument:NXinstrument
-          /CBF_diffrn_scan_frame_monitor__DETECTORNAME_MONID:NXmonitor
-            @CBF_detector_id="DETECTORNAME"
-            @CBF_diffrn_scan_frame_monitor__id="MONID"
-            /data=[MONITORVALUE]
-            /count_time=[INTEGRATIONTIME]
-
-
 ;
      loop_
     _category_key.name             '_diffrn_scan_frame_monitor.id '
