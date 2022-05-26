@@ -1643,6 +1643,7 @@ save_ARRAY_ELEMENT_SIZE
     _category_key.name             '_array_element_size.array_id'
                                    '_array_element_size.index'
                                    '_array_element_size.variant'
+  loop_
     _category_group.id             'inclusive_group'
                                    'array_data_group'
      loop_
