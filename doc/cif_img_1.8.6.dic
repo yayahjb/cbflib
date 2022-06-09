@@ -7544,7 +7544,7 @@ save_DIFFRN_SCAN
       _diffrn_scan_axis.displacement_range
       _diffrn_scan_axis.displacement_increment
 
-       1 omega 200.0 20.0 0.1 . . .
+       1 omega 200.0 20.1 0.1 . . .
        1 kappa -40.0  0.0 0.0 . . .
        1 phi   127.5  0.0 0.0 . . .
        1 tranz  . . .   2.3 0.0 0.0
@@ -8354,8 +8354,8 @@ save__diffrn_scan_axis.angle_start
 
 save__diffrn_scan_axis.angle_range
     _item_description.description
-;             The range from the starting position for the specified axis
-              in degrees.
+;             The total range covered during the scan from the starting position 
+              to the end of the final step for the specified axis in degrees.
 ;
     _item.name                 '_diffrn_scan_axis.angle_range'
     _item.category_id          diffrn_scan_axis
