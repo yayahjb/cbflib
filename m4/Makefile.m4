@@ -639,7 +639,7 @@ PY2CBFEXT = so
 PY2CBFBOPT =
 PY2CBFIOPT =
 SETUP_PY = setup.py
-INSTALLSETUP_PY = installsetup.py
+PY2INSTALLSETUP_PY =  py2setup.py
 
 #
 # PY3CBF definitions
@@ -648,7 +648,7 @@ PY3CBFEXT = so
 PY3CBFBOPT =
 PY3CBFIOPT =
 SETUP_PY = setup.py
-INSTALLSETUP_PY = installsetup.py
+PY3INSTALLSETUP_PY =  py3setup.py
 
 
 #
@@ -911,7 +911,8 @@ PY2CBFBOPT = --compiler=mingw32
 PY3CBFEXT = pyd
 PY3CBFBOPT = --compiler=mingw32
 SETUP_PY = setup_MINGW.py
-INSTALLSETUP_PY = installsetup_MINGW.py
+PY2INSTALLSETUP_PY = py2setup_MINGW.py
+PY3INSTALLSETUP_PY = py3setup_MINGW.py
 JDKDIR = /java
 JSWIG = /swig/swig -java
 PYSWIG = /swig/swig -python
@@ -2115,10 +2116,10 @@ $(PY2CBF)/_py2cbf.$(PY2CBFEXT):	$(PY2CBF)  shared \
 	(cd $(PY2CBF); $(PYTHON2) py2setup.py build $(PY2CBFBOPT); cp build/lib*/_py2cbf*.$(PY2CBFEXT) .) 
 
 $(PY2CBF)/py2cbfinstall: $(PY2CBF)/pycbf.py
-	(cd $(PY2CBF); $(PYTHON2) $(INSTALLSETUP_PY) install $(PY2CBFIOPT) --prefix=$(CBF_PREFIX))
+	(cd $(PY2CBF); $(PYTHON2) $(PY2INSTALLSETUP_PY) install $(PY2CBFIOPT) --prefix=$(CBF_PREFIX))
 
 $(PY2CBF)/py2cbfuserinstall: $(PY2CBF)/pycbf.py
-	(cd $(PY2CBF); $(PYTHON2) $(INSTALLSETUP_PY) install $(PY2CBFIOPT) --user)
+	(cd $(PY2CBF); $(PYTHON2) $(PY2INSTALLSETUP_PY) install $(PY2CBFIOPT) --user)
 
 $(PY2CBF)/py2setup.py: $(PY2CBF)/py2setup_py.m4
 	(m4 -P -Dregexlib=$(REGEX_LIB) -Dregexlib2=$(REGEX_LIB2) \
@@ -2186,10 +2187,10 @@ $(PY3CBF)/_pycbf.$(PY3CBFEXT):	$(PY3CBF)  shared \
 	(cd $(PY3CBF); $(PYTHON3) py3setup.py build $(PY3CBFBOPT); cp build/lib*/_pycbf*.$(PY3CBFEXT) .) 
 
 $(PY3CBF)/py3cbfinstall: $(PY3CBF)/pycbf.py
-	(cd $(PY3CBF); $(PYTHON3) $(INSTALLSETUP_PY) install $(PY3CBFIOPT) --prefix=$(CBF_PREFIX))
+	(cd $(PY3CBF); $(PYTHON3) $(PY3INSTALLSETUP_PY) install $(PY3CBFIOPT) --prefix=$(CBF_PREFIX))
 
 $(PY3CBF)/py3cbfuserinstall: $(PY3CBF)/pycbf.py
-	(cd $(PY3CBF); $(PYTHON3) $(INSTALLSETUP_PY) install $(PY3CBFIOPT) --user)
+	(cd $(PY3CBF); $(PYTHON3) $(PY3INSTALLSETUP_PY) install $(PY3CBFIOPT) --user)
 
 $(PY3CBF)/py3setup.py: $(PY3CBF)/py3setup_py.m4
 	(m4 -P -Dregexlib=$(REGEX_LIB) -Dregexlib2=$(REGEX_LIB2) \
@@ -3101,8 +3102,15 @@ empty:
 	@-rm -f  $(PY2CBF)/newtest1.cbf
 	@-rm -f  $(PY2CBF)/fel_test1.out
 	@-rm -f  $(PY2CBF)/fel_test2.out
-	@-rm -f  $(PY2CBF)/setup.py
-	@-rm -f  $(PY2CBF)/setup_MINGW.py
+	@-rm -f  $(PY2CBF)/py2setup.py
+	@-rm -f  $(PY2CBF)/py2setup_MINGW.py
+	@-rm -f  $(PY3CBF)/_pycbf.$(PY3CBFEXT)
+	@-rm -rf  $(PY3CBF)/build/*
+	@-rm -f  $(PY3CBF)/newtest1.cbf
+	@-rm -f  $(PY3CBF)/fel_test1.out
+	@-rm -f  $(PY3CBF)/fel_test2.out
+	@-rm -f  $(PY3CBF)/py3setup.py
+	@-rm -f  $(PY3CBF)/py3setup_MINGW.py
 	@-rm -f  makecbf.cbf
 	@-rm -f  img2cif_packed.cif
 	@-rm -f  img2cif_canonical.cif

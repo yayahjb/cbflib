@@ -119,7 +119,7 @@ class doubleArray(object):
     def frompointer(t):
         return _py2cbf.doubleArray_frompointer(t)
 
-# Register doubleArray in _pycbf:
+# Register doubleArray in _py2cbf:
 _py2cbf.doubleArray_swigregister(doubleArray)
 
 def doubleArray_frompointer(t):
@@ -146,7 +146,7 @@ class intArray(object):
     def frompointer(t):
         return _py2cbf.intArray_frompointer(t)
 
-# Register intArray in _pycbf:
+# Register intArray in _py2cbf:
 _py2cbf.intArray_swigregister(intArray)
 
 def intArray_frompointer(t):
@@ -173,7 +173,7 @@ class shortArray(object):
     def frompointer(t):
         return _py2cbf.shortArray_frompointer(t)
 
-# Register shortArray in _pycbf:
+# Register shortArray in _py2cbf:
 _py2cbf.shortArray_swigregister(shortArray)
 
 def shortArray_frompointer(t):
@@ -200,7 +200,7 @@ class longArray(object):
     def frompointer(t):
         return _py2cbf.longArray_frompointer(t)
 
-# Register longArray in _pycbf:
+# Register longArray in _py2cbf:
 _py2cbf.longArray_swigregister(longArray)
 
 def longArray_frompointer(t):
@@ -713,7 +713,7 @@ class cbf_positioner_struct(object):
         """
         return _py2cbf.cbf_positioner_struct_get_rotation_axis(self)
 
-# Register cbf_positioner_struct in _pycbf:
+# Register cbf_positioner_struct in _py2cbf:
 _py2cbf.cbf_positioner_struct_swigregister(cbf_positioner_struct)
 
 class cbf_detector_struct(object):
@@ -1902,7 +1902,7 @@ class cbf_detector_struct(object):
         """
         return _py2cbf.cbf_detector_struct_get_pixel_normal(self, index1, index2)
 
-# Register cbf_detector_struct in _pycbf:
+# Register cbf_detector_struct in _py2cbf:
 _py2cbf.cbf_detector_struct_swigregister(cbf_detector_struct)
 
 CBF_UNDEFNODE = _py2cbf.CBF_UNDEFNODE
@@ -8973,7 +8973,7 @@ class cbf_handle_struct(object):
         """
         return _py2cbf.cbf_handle_struct_set_unit_cell_esd(self, cell_esd)
 
-# Register cbf_handle_struct in _pycbf:
+# Register cbf_handle_struct in _py2cbf:
 _py2cbf.cbf_handle_struct_swigregister(cbf_handle_struct)
 
 
