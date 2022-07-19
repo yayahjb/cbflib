@@ -2,7 +2,7 @@
 ######################################################################
 #  Makefile - command file for make to create CBFlib                 #
 #                                                                    #
-# Version 0.9.7 28 June 2021                                          #
+# Version 0.9.7 18 July 2022                                          #
 #                                                                    #
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
@@ -349,6 +349,7 @@ CBFLIB_DONT_USE_LOCAL_HDF5 = yes
 HDF5CFLAGS=-DH5_USE_110_API
 endif
 
+
 ifneq ($(CBFLIB_DONT_USE_LOCAL_HDF5),yes)
 HDF5_PREFIX ?= $(PWD)
 HDF5 ?= hdf5-1.12.0
@@ -363,15 +364,15 @@ endif
 HDF5dep = $(HDF5)
 HDF5_INSTALL = $(HDF5)_INSTALL
 ifneq ($(MSYS2),yes)
-HDF5LIBS_LOCAL = $(LIB)/libhdf5.a
-HDF5LIBS_SYSTEM = -lz -ldl
-HDF5SOLIBS_LOCAL = -L$(LIB) -lhdf5
-HDF5SOLIBS_SYSTEM = -lz
+HDF5LIBS_LOCAL = $(LIB)/libhdf5.a $(HDF5PTHREAD)
+HDF5LIBS_SYSTEM = -lz -ldl $(HDF5PTHREAD)
+HDF5SOLIBS_LOCAL = -L$(LIB) -lhdf5 $(HDF5PTHREAD)
+HDF5SOLIBS_SYSTEM = -lz $(HDF5PTHREAD)
 else
-HDF5LIBS_LOCAL = -L$(LIB) -lhdf5 -lhdf5.dll
-HDF5LIBS_SYSTEM = -lz -ldl
-HDF5SOLIBS_LOCAL = -L$(LIB) -lhdf5 -lhdf5.dll
-HDF5SOLIBS_SYSTEM = -lz
+HDF5LIBS_LOCAL = -L$(LIB) -lhdf5 -lhdf5.dll $(HDF5PTHREAD)
+HDF5LIBS_SYSTEM = -lz -ldl $(HDF5PTHREAD)
+HDF5SOLIBS_LOCAL = -L$(LIB) -lhdf5 -lhdf5.dll $(HDF5PTHREAD)
+HDF5SOLIBS_SYSTEM = -lz $(HDF5PTHREAD)
 endif
 else
 HDF5 =
@@ -382,13 +383,13 @@ ifneq ($(HDF5_PREFIX),)
 HDF5lib = -L$(HDF5_PREFIX)/lib
 endif
 ifneq ($(MSYS2),yes)
-HDF5LIBS_SYSTEM = $(HDF5lib) -lhdf5 -lz -ldl
+HDF5LIBS_SYSTEM = $(HDF5lib) -lhdf5 -lz -ldl $(HDF5PTHREAD)
 HDF5SOLIBS_LOCAL =
-HDF5SOLIBS_SYSTEM = $(HDF5lib) -lhdf5 -lz
+HDF5SOLIBS_SYSTEM = $(HDF5lib) -lhdf5 -lz $(HDF5PTHREAD)
 else
-HDF5LIBS_SYSTEM = $(HDF5lib) -lhdf5 -lhdf5.dll -lz -ldl
+HDF5LIBS_SYSTEM = $(HDF5lib) -lhdf5 -lhdf5.dll -lz -ldl $(HDF5PTHREAD)
 HDF5SOLIBS_LOCAL =
-HDF5SOLIBS_SYSTEM = $(HDF5lib) -lhdf5 -lhdf5.dll -lz
+HDF5SOLIBS_SYSTEM = $(HDF5lib) -lhdf5 -lhdf5.dll -lz $(HDF5PTHREAD)
 endif
 endif
 
@@ -1503,7 +1504,7 @@ $(HDF5):	build_hdf5
 	-rm $(HDF5).tar.gz
 	echo  "first level HDF5 install in "$(HDF5_PREFIX)
 	(cd $(ROOT)/$(HDF5); \
-	CFLAGS="$(CFLAGS)"; export CFLAGS; \
+	CFLAGS="$(CFLAGS) $(HDF5CFLAGS)"; export CFLAGS; \
 	mkdir -p hdf5; prefix=$(ROOT)/$(HDF5)/hdf5; export prefix; \
 	./configure --prefix=$(ROOT)/$(HDF5)/hdf5 --enable-build-mode=production \
 	--enable-trace --enable-fortran --enable-using-memchecker  ;\

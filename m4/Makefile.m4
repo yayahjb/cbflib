@@ -1,5 +1,5 @@
 m4_define(`cbf_version',`0.9.7')m4_dnl
-m4_define(`cbf_date',`28 June 2021')m4_dnl
+m4_define(`cbf_date',`18 July 2022')m4_dnl
 m4_ifelse(cbf_system,`',`m4_define(`cbf_system',`LINUX')')
 `######################################################################
 #  Makefile - command file for make to create CBFlib                 #
@@ -355,6 +355,14 @@ CBFLIB_DONT_USE_LOCAL_HDF5 = yes
 HDF5CFLAGS=-DH5_USE_110_API
 endif
 
+'m4_ifelse(cbf_system,`LINUX',`
+HDF5PTHREAD = -lpthread
+HDF5CFLAGS=$(HDF5CFLAGS) -fPIC
+',
+cbf_system,`default',`
+HDF5PTHREAD = -lpthread
+HDF5CFLAGS=$(HDF5CFLAGS) -fPIC
+')`
 ifneq ($(CBFLIB_DONT_USE_LOCAL_HDF5),yes)
 HDF5_PREFIX ?= $(PWD)
 HDF5 ?= hdf5-1.12.0
@@ -369,15 +377,15 @@ endif
 HDF5dep = $(HDF5)
 HDF5_INSTALL = $(HDF5)_INSTALL
 ifneq ($(MSYS2),yes)
-HDF5LIBS_LOCAL = $(LIB)/libhdf5.a
-HDF5LIBS_SYSTEM = -lz -ldl
-HDF5SOLIBS_LOCAL = -L$(LIB) -lhdf5
-HDF5SOLIBS_SYSTEM = -lz
+HDF5LIBS_LOCAL = $(LIB)/libhdf5.a $(HDF5PTHREAD)
+HDF5LIBS_SYSTEM = -lz -ldl $(HDF5PTHREAD)
+HDF5SOLIBS_LOCAL = -L$(LIB) -lhdf5 $(HDF5PTHREAD)
+HDF5SOLIBS_SYSTEM = -lz $(HDF5PTHREAD)
 else
-HDF5LIBS_LOCAL = -L$(LIB) -lhdf5 -lhdf5.dll
-HDF5LIBS_SYSTEM = -lz -ldl
-HDF5SOLIBS_LOCAL = -L$(LIB) -lhdf5 -lhdf5.dll
-HDF5SOLIBS_SYSTEM = -lz
+HDF5LIBS_LOCAL = -L$(LIB) -lhdf5 -lhdf5.dll $(HDF5PTHREAD)
+HDF5LIBS_SYSTEM = -lz -ldl $(HDF5PTHREAD)
+HDF5SOLIBS_LOCAL = -L$(LIB) -lhdf5 -lhdf5.dll $(HDF5PTHREAD)
+HDF5SOLIBS_SYSTEM = -lz $(HDF5PTHREAD)
 endif
 else
 HDF5 =
@@ -388,13 +396,13 @@ ifneq ($(HDF5_PREFIX),)
 HDF5lib = -L$(HDF5_PREFIX)/lib
 endif
 ifneq ($(MSYS2),yes)
-HDF5LIBS_SYSTEM = $(HDF5lib) -lhdf5 -lz -ldl
+HDF5LIBS_SYSTEM = $(HDF5lib) -lhdf5 -lz -ldl $(HDF5PTHREAD)
 HDF5SOLIBS_LOCAL =
-HDF5SOLIBS_SYSTEM = $(HDF5lib) -lhdf5 -lz
+HDF5SOLIBS_SYSTEM = $(HDF5lib) -lhdf5 -lz $(HDF5PTHREAD)
 else
-HDF5LIBS_SYSTEM = $(HDF5lib) -lhdf5 -lhdf5.dll -lz -ldl
+HDF5LIBS_SYSTEM = $(HDF5lib) -lhdf5 -lhdf5.dll -lz -ldl $(HDF5PTHREAD)
 HDF5SOLIBS_LOCAL =
-HDF5SOLIBS_SYSTEM = $(HDF5lib) -lhdf5 -lhdf5.dll -lz
+HDF5SOLIBS_SYSTEM = $(HDF5lib) -lhdf5 -lhdf5.dll -lz $(HDF5PTHREAD)
 endif
 endif
 
@@ -793,7 +801,7 @@ cbf_system,`LINUX',`
 CC	= gcc
 C++	= g++
 CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing  $(HDF5CFLAGS)
-LDFLAGS =
+LDFLAGS = -lpthread
 F90C = gfortran
 F90FLAGS = -g -fno-range-check -fallow-invalid-boz
 F90LDFLAGS = 
@@ -1852,7 +1860,7 @@ $(HDF5):	build_hdf5
 	-rm $(HDF5).tar.gz
 	echo  "first level HDF5 install in "$(HDF5_PREFIX)
 	(cd $(ROOT)/$(HDF5); \
-	CFLAGS="$(CFLAGS)"; export CFLAGS; \
+	CFLAGS="$(CFLAGS) $(HDF5CFLAGS)"; export CFLAGS; \
 	mkdir -p hdf5; prefix=$(ROOT)/$(HDF5)/hdf5; export prefix; \
 	./configure --prefix=$(ROOT)/$(HDF5)/hdf5 --enable-build-mode=production \
 	--enable-trace --enable-fortran --enable-using-memchecker  ;\
