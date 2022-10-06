@@ -352,7 +352,7 @@ endif
 
 ifneq ($(CBFLIB_DONT_USE_LOCAL_HDF5),yes)
 HDF5_PREFIX ?= $(PWD)
-HDF5 ?= hdf5-1.12.2
+HDF5 ?= hdf5-1.12.0
 #HDF5 ?= hdf5-1.10.6
 #HDF5 = hdf5-1.8.18
 #HDF5 = hdf5-1.10.5
@@ -429,7 +429,7 @@ ifneq ($(CBFLIB_DONT_USE_BSHUF),yes)
 #
 # Definitions to get a version of HDF5Plugin for BSHUFFLE WITH LZ4
 #
-BSHUF ?= bitshuffle-0.4.2_5Oct22
+BSHUF ?= bitshuffle
 BSUFdep = $(BSHUF)
 BSHUFsrc = $(BSHUF)/src
 BSHUFinclude = $(BSHUF)/src
@@ -747,7 +747,7 @@ LZ4_URL		= http://downloads.sf.net/cbflib/$(LZ4).tar.gz
 else
 LZ4_URL		= http://www.github.com/yayahjb/$(LZ4).git
 endif
-BSHUF_URL    = http://downloads.sf.net/cbflib/$(BSHUF).tar.gz
+BSHUF_URL    = http://www.github.com/yayahjb/$(BSHUF).git
 
 
 #
@@ -1585,7 +1585,7 @@ $(BSHUF): $(HDF5)  build_BSHUF $(LZ4dep)
 	mkdir -p $(SOLIB)
 	-rm -rf $(BSHUF)
 	git clone $(BSHUF_URL)
-	(cd $(BSHUF); python3 setup.py install --h5plugin --h5plugin-dir=../solib --zstd --user) 
+	(cd $(BSHUF); git submodule update --init; python3 setup.py install --h5plugin --h5plugin-dir=../solib --zstd --user) 
 	touch $(BSHUF)
 endif
 
@@ -1661,7 +1661,7 @@ $(LIB)/libcbf.a: $(SOURCE) $(HEADERS) $(COMMONDEP) $(HDF5) $(LZ4DEPS) $(BSHUFDEP
 	-rm -f *.o
 	mkdir -p $(LIB)
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) \
-	-DCBF_FILTER_STATIC $(LZ4FLAG) $(BSHUFFLAG)  $(PYCIFRWFLAG) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
+	-DCBF_FILTER_STATIC $(LZ4FLAG) $(BSHUFFLAG) $(ZSTDFLAG)  $(PYCIFRWFLAG) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
 ifneq ($(CBFLIB_DONT_USE_LZ4),yes)
 ifneq ($(MSYS2),yes)
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) -DCBF_FILTER_STATIC -c $(LZ4src)/h5zlz4.c -o h5zlz4.o
@@ -1686,7 +1686,7 @@ $(SOLIB)/$(SO_LIB_CBF): $(SOURCE) $(HEADERS) $(COMMONDEP)  $(HDF5) $(LZ4DEPS) $(
 	-rm -f $@
 	-rm -f *.o
 	mkdir -p $(SOLIB)
-	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(LZ4FLAG) $(BSHUFFLAG) $(PYCIFRWFLAG) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(LZ4FLAG) $(BSHUFFLAG) $(ZSTDFLAG) $(PYCIFRWFLAG) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
 ifneq ($(CBFLIB_DONT_USE_LZ4),yes)
 ifneq ($(MSYS2),yes)
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) $(SOCFLAGS) -DCBF_FILTER_STATIC -c $(LZ4src)/h5zlz4.c -o h5zlz4.o
