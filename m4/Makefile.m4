@@ -1,5 +1,5 @@
-m4_define(`cbf_version',`0.9.7')m4_dnl
-m4_define(`cbf_date',`28 June 2021')m4_dnl
+m4_define(`cbf_version',`0.9.8')m4_dnl
+m4_define(`cbf_date',`05 Oct 2022')m4_dnl
 m4_ifelse(cbf_system,`',`m4_define(`cbf_system',`LINUX')')
 `######################################################################
 #  Makefile - command file for make to create CBFlib                 #
@@ -9,7 +9,7 @@ m4_ifelse(cbf_system,`',`m4_define(`cbf_system',`LINUX')')
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
 #                                                                    #
-# (C) Copyright 2006 - 2021 Herbert J. Bernstein                     #
+# (C) Copyright 2006 - 2022 Herbert J. Bernstein                     #
 #                                                                    #
 ######################################################################
 
@@ -288,11 +288,13 @@ CLEANTESTS = yes
 MSYS2=yes
 CBFLIB_DONT_USE_LOCAL_HDF5?=yes
 CBFLIB_DONT_USE_LZ4?=yes
-CBFLIB_DONT_USE_BSHUF?=yes',`
+CBFLIB_DONT_USE_BSHUF?=yes
+CBFLIB_DONT_USE_ZSTD?=yes',`
 MSYS2=no
 CBFLIB_DONT_USE_LOCAL_HDF5?=no
 CBFLIB_DONT_USE_LZ4?=no
 CBFLIB_DONT_USE_BSHUF?=no
+CBFLIB_DONT_USE_ZSTD?=no
 ')`
 
 CBFLIB_DONT_USE_LOCAL_NUWEB ?= no
@@ -357,7 +359,7 @@ endif
 
 ifneq ($(CBFLIB_DONT_USE_LOCAL_HDF5),yes)
 HDF5_PREFIX ?= $(PWD)
-HDF5 ?= hdf5-1.12.0
+HDF5 ?= hdf5-1.12.2
 #HDF5 ?= hdf5-1.10.6
 #HDF5 = hdf5-1.8.18
 #HDF5 = hdf5-1.10.5
@@ -434,7 +436,7 @@ ifneq ($(CBFLIB_DONT_USE_BSHUF),yes)
 #
 # Definitions to get a version of HDF5Plugin for BSHUFFLE WITH LZ4
 #
-BSHUF ?= bitshuffle-0.2.2.1_15Jun16
+BSHUF ?= bitshuffle-0.4.2_5Oct22
 BSUFdep = $(BSHUF)
 BSHUFsrc = $(BSHUF)/src
 BSHUFinclude = $(BSHUF)/src
@@ -443,6 +445,24 @@ BSHUFFILTER = libbshuf_h5filter
 else
 BSHUFSOLIBS =
 BSHUFdep =
+endif
+
+CBFLIB_DONT_USE_ZSTD ?= no
+ifneq ($(CBFLIB_DONT_USE_ZSTD),yes)
+#
+# Definitions to get a version of HDF5Plugin for Zstandard
+# assumes libztd-dev installed
+#
+ZSTD ?= HDF5Plugin-Zstandard
+ZSTD_URL ?= http://www.github.com/yayahjb/HDF5Plugin-Zstandard.git
+ZSTDdep = $(ZSTD) 
+ZSTDsrc = $(ZSTD)
+ZSTDinclude = $(ZSTD)
+ZSTDSOLIBS = -L$(SOLIB) -lzstd_h5_plugin_shared
+ZSTDFILTER = zstd_h5_plugin_shared
+else
+ZSTDFLTSOLIBS =
+ZSTDdep =
 endif
 
 CBFLIB_DONT_USE_BLOSC ?= no
@@ -626,6 +646,12 @@ ifneq ($(CBFLIB_DONT_USE_BSHUF),yes)
 BSHUFFLAG = -DCBF_H5Z_USE_BSHUF
 else
 BSHUFFLAG =
+endif
+
+ifneq ($(CBFLIB_DONT_USE_ZSTD),yes)
+ZSTDFLAG = -DCBF_H5Z_USE_ZSTD
+else
+ZSTDFLAG =
 endif
 
 
@@ -1071,7 +1097,7 @@ LZ4_URL		= http://downloads.sf.net/cbflib/$(LZ4).tar.gz
 else
 LZ4_URL		= http://www.github.com/yayahjb/$(LZ4).git
 endif
-BSHUFURL    = http://downloads.sf.net/cbflib/$(BSHUF).tar.gz
+BSHUF_URL    = http://downloads.sf.net/cbflib/$(BSHUF).tar.gz
 
 
 #
@@ -1392,6 +1418,7 @@ all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) \
 	$(HDF5)               \
 	$(LZ4DEPS)            \
 	$(BSHUFDEPS)          \
+	$(ZSTDDEPS)           \
 	$(PY2CIFRWDEPS)       \
 	$(PY3CIFRWDEPS)       \
 	symlinksdone          \
@@ -1907,28 +1934,29 @@ build_BSHUF:	$(M4)/Makefile.m4
 $(BSHUF): $(HDF5)  build_BSHUF $(LZ4dep)
 	mkdir -p $(SOLIB)
 	-rm -rf $(BSHUF)
-	-rm -rf $(BSHUF).tar.gz
-	-rm -rf *.o
-	$(DOWNLOAD) $(BSHUFURL)
-	tar -xvf $(BSHUF).tar.gz
-	-rm $(BSHUF).tar.gz
-	(cp $(BSHUFinclude)/bitshuffle.h \
-	    $(BSHUFinclude)/bitshuffle_core.h \
-	    $(BSHUFinclude)/bitshuffle_internals.h \
-	    $(BSHUFinclude)/bshuf_h5filter.h $(BSHUFinclude)/iochain.h   $(INCLUDE); \
-	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(BSHUFsrc)/bshuf_h5filter.c -o bshuf_h5filter.o; \
-	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(BSHUFsrc)/bitshuffle.c -o bitshuffle.o; \
-	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(BSHUFsrc)/bitshuffle_core.c -o bitshuffle_core.o; \
-	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(BSHUFsrc)/bshuf_h5plugin.c  -o bshuf_h5plugin.o; \
-	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(BSHUFsrc)/iochain.c  -o iochain.o; \
-	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(BSHUFsrc)/../lz4/lz4.c  -o lz4.o; \
-	$(CC) -shared bshuf_h5filter.o bitshuffle.o bitshuffle_core.o iochain.o lz4.o $(HDF5SOLIBS_LOCAL) $(HDF5SOLIBS_SYSTEM)\
-	    -o $(SOLIB)/libh5zbshuf.so; \
-	$(CC) -shared bshuf_h5filter.o bitshuffle.o bitshuffle_core.o lz4.o bshuf_h5plugin.o iochain.o \
-	    $(HDF5SOLIBS_LOCAL) \
-	    $(HDF5SOLIBS_SYSTEM) -o $(SOLIB)/$(BSHUFFILTER).so; \
-	rm bshuf_h5filter.o bitshuffle.o lz4.o iochain.o bshuf_h5plugin.o)
+	git clone $(BSHUF_URL)
+	(cd $(BSHUF); python3 setup.py install --h5plugin --h5plugin-dir=../solib --zstd --user) 
 	touch $(BSHUF)
+endif
+
+ifneq ($(CBFLIB_DONT_USE_ZSTD),yes)
+#
+# ZSTD
+#
+build_ZSTD:	$(M4)/Makefile.m4 
+	touch build_ZSTD
+$(ZSTD): $(HDF5)  build_ZSTD
+	mkdir -p $(SOLIB)
+	-rm -rf $(ZSTD)
+	git clone $(ZSTD_URL)
+	(cp $(ZSTDinclude)/zstd_h5plugin.h  $(INCLUDE); \
+	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(ZSTDsrc)/zstd_h5plugin.c -o zstd_h5plugin.o; \
+	$(CC) -shared  zstd_h5plugin.o $(HDF5SOLIBS_LOCAL) $(HDF5SOLIBS_SYSTEM) -lzstd \
+	    -o $(SOLIB)/zstd_h5plugin.so; \
+	$(CC) -shared zstd_h5plugin.o $(HDF5SOLIBS_LOCAL) $(HDF5SOLIBS_SYSTEM) -lzstd \
+            -o $(SOLIB)/$(ZSTDFILTER).so; \
+	rm zstd_h5plugin.o)
+	touch $(ZSTD)
 endif
 
 

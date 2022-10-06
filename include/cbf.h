@@ -587,6 +587,8 @@ _CBF_STR(CBF_VERS_RELEASE) CBF_VERS_SUBRELEASE
                                    a binary dataset within an HDF5 file 
                                    Note this overloads the CBF_H5COMPRESSION
                                    flag */
+#define	CBF_H5COMPRESSION_ZSTD   0x00A0
+    /* Flag to turn on zlib compression for the main dataset within a HDF5 file */
 #define	CBF_H5COMPRESSION_ZLIB   0x00B0
     /* Flag to turn on zlib compression for the main dataset within a HDF5 file */
 #define	CBF_H5COMPRESSION_LZ4    0x00C0
@@ -594,6 +596,8 @@ _CBF_STR(CBF_VERS_RELEASE) CBF_VERS_SUBRELEASE
 #define	CBF_H5COMPRESSION_LZ4_2  0x00D0
     /* Flag to turn on LZ4**2 compression for the main dataset within a HDF5 file */
 #define	CBF_H5COMPRESSION_BSLZ4  0x00E0
+    /* Flag to turn on BSLZ4 compression for the main dataset within a HDF5 file */
+#define	CBF_H5COMPRESSION_BSZSTD  0x00F0
     /* Flag to turn on BSLZ4 compression for the main dataset within a HDF5 file */
 
     

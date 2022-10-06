@@ -340,7 +340,9 @@ extern "C" {
 #define CBF_H5Z_FILTER_BSHUF_NELMTS         2
 #define CBF_H5Z_FILTER_BSHUF_BLOCKSIZE      0
 #define CBF_H5Z_FILTER_BSHUF_COMPRESSION    1
+#define CBF_H5Z_FILTER_BSHUF_LVL            5
 #define CBF_H5Z_FILTER_BSHUF_LZ4            2
+#define CBF_H5Z_FILTER_BSHUF_ZSTD           3
     
 #endif
 

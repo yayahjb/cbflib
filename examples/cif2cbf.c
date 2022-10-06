@@ -980,7 +980,11 @@ int main (int argc, char *argv [])
                                                 h5compression |= CBF_H5COMPRESSION_CBF;
                                             } else {
                                                 if (optarg[0] == 'z' || optarg[0] == 'Z') {
-                                                    h5compression = CBF_H5COMPRESSION_ZLIB;
+                                                    if (!cbf_cistrcmp(optarg,"ZSTD")) {
+                                                      h5compression = CBF_H5COMPRESSION_ZSTD;;
+                                                    } else {
+                                                      h5compression = CBF_H5COMPRESSION_ZLIB;
+                                                    }
                                                     compression = CBF_NIBBLE_OFFSET;
                                                 } else {
                                                     if (optarg[0] == 'l' || optarg[0] == 'L'){
@@ -991,9 +995,13 @@ int main (int argc, char *argv [])
                                                             h5compression = CBF_H5COMPRESSION_LZ4_2;
                                                             compression = CBF_NIBBLE_OFFSET;
                                                         } else {
-                                                            if ((optarg[0] == 'B' && optarg[1] == 'S') 
-                                                                || !cbf_cistrcmp(optarg,"BSLZ4")){
-                                                                h5compression = CBF_H5COMPRESSION_BSLZ4;
+                                                            if ((optarg[0] == 'B' || optarg[0] == 'b')
+                                                                 &&(optarg[1] == 'S' || optarg[1] == 's')){
+                                                                if (!cbf_cistrcmp(optarg,"BSLZ4")) {
+                                                                  h5compression = CBF_H5COMPRESSION_BSLZ4;
+                                                                } else {
+                                                                  h5compression = CBF_H5COMPRESSION_BSZSTD;
+                                                                }
                                                                 compression = CBF_NIBBLE_OFFSET;
                                                             } else {
                                                                 errflg++;
