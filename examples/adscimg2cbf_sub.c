@@ -390,8 +390,9 @@ static char	*which_facility(int serial_number)
 		case 927:	
 			return("soleil");
 			break;
+                case 457:
 		case 928:
-			return("as");
+			return("as_mx1");
 			break;
 		case 929:
 			return("pohang");
@@ -496,7 +497,8 @@ int	adscimg2cbf_sub2(char *header,
                      const char * cliphighstr,
                      const char * rad_smoothstr,
                      int transpose,
-                     int interleave)
+                     int interleave,
+                     int reverse)
 {
     FILE *out;
     
@@ -1310,6 +1312,15 @@ int	adscimg2cbf_sub2(char *header,
         cbf_failnez (cbf_set_doublevalue  (cbf, "%.2f", 0.0));
         
         /* Make the _axis category */
+
+        /* The default detector axis definitions assume that
+        the rotation axis points in the same direction as 
+        ELEMENT_X. If reverse is set, the rotation axis points 
+        in the opposite direction to ELEMENT_X which is
+        equivalent to a 180 degree rotation about the Z axis
+        and thus X-> -X and Y -> -Y compared to the default
+        axes.
+        */
         
         cbf_failnez (cbf_require_category (cbf, "axis"));
         
@@ -1408,11 +1419,11 @@ int	adscimg2cbf_sub2(char *header,
         cbf_failnez (cbf_next_row         (cbf));
         cbf_failnez (cbf_set_value        (cbf, "0"));
         cbf_failnez (cbf_next_row         (cbf));
-        cbf_failnez (cbf_set_value        (cbf, "1"));
+        cbf_failnez (cbf_set_integervalue (cbf, reverse));
         cbf_failnez (cbf_next_row         (cbf));
         cbf_failnez (cbf_set_value        (cbf, "0"));
         cbf_failnez (cbf_next_row         (cbf));
-        cbf_failnez (cbf_set_value        (cbf, "1"));
+        cbf_failnez (cbf_set_integervalue (cbf, reverse));
         cbf_failnez (cbf_next_row         (cbf));
         cbf_failnez (cbf_set_value        (cbf, "0"));
         
@@ -1422,19 +1433,19 @@ int	adscimg2cbf_sub2(char *header,
         cbf_failnez (cbf_next_row         (cbf));
         cbf_failnez (cbf_set_value        (cbf, "0"));
         cbf_failnez (cbf_next_row         (cbf));
-        cbf_failnez (cbf_set_value        (cbf, "-1"));
+        cbf_failnez (cbf_set_integervalue (cbf, -1*reverse));
         cbf_failnez (cbf_next_row         (cbf));
         cbf_failnez (cbf_set_value        (cbf, "0"));
         cbf_failnez (cbf_next_row         (cbf));
-        cbf_failnez (cbf_set_value        (cbf, "1"));
+        cbf_failnez (cbf_set_integervalue (cbf, reverse));
         cbf_failnez (cbf_next_row         (cbf));
         cbf_failnez (cbf_set_value        (cbf, "0"));
         cbf_failnez (cbf_next_row         (cbf));
-        cbf_failnez (cbf_set_value        (cbf, "1"));
+        cbf_failnez (cbf_set_integervalue (cbf, reverse));
         cbf_failnez (cbf_next_row         (cbf));
         cbf_failnez (cbf_set_value        (cbf, "0"));
         cbf_failnez (cbf_next_row         (cbf));
-        cbf_failnez (cbf_set_value        (cbf, "1"));
+        cbf_failnez (cbf_set_integervalue (cbf, -1*reverse));
         
         cbf_failnez (cbf_require_column   (cbf, "vector[3]"));
         cbf_failnez (cbf_rewind_row       (cbf));
@@ -1475,7 +1486,7 @@ int	adscimg2cbf_sub2(char *header,
         cbf_failnez (cbf_next_row         (cbf));
         cbf_failnez (cbf_set_value        (cbf, "0"));
         cbf_failnez (cbf_next_row         (cbf));
-        cbf_failnez (cbf_set_doublevalue  (cbf, "%.3f", det_beam_center_to_origin_dist_x));
+        cbf_failnez (cbf_set_doublevalue  (cbf, "%.3f", det_beam_center_to_origin_dist_x * reverse));
         cbf_failnez (cbf_next_row         (cbf));
         cbf_failnez (cbf_set_value        (cbf, "0"));
         
@@ -1498,7 +1509,7 @@ int	adscimg2cbf_sub2(char *header,
         cbf_failnez (cbf_next_row         (cbf));
         cbf_failnez (cbf_set_value        (cbf, "0"));
         cbf_failnez (cbf_next_row         (cbf));
-        cbf_failnez (cbf_set_doublevalue  (cbf, "%.3f", det_beam_center_to_origin_dist_y));
+        cbf_failnez (cbf_set_doublevalue  (cbf, "%.3f", det_beam_center_to_origin_dist_y * reverse));
         cbf_failnez (cbf_next_row         (cbf));
         cbf_failnez (cbf_set_value        (cbf, "0"));
         
@@ -1670,7 +1681,7 @@ int	adscimg2cbf_sub2(char *header,
         cbf_failnez (cbf_rewind_row       (cbf));
         cbf_failnez (cbf_set_doublevalue  (cbf, "%.6f", pixel_size));
         cbf_failnez (cbf_next_row         (cbf));
-        cbf_failnez (cbf_set_doublevalue  (cbf, "%.6f", -pixel_size));
+        cbf_failnez (cbf_set_doublevalue  (cbf, "%.6f", pixel_size));
         
         
         /* Make the _array_intensities category */
@@ -2094,6 +2105,7 @@ int     adscimg2cbf_sub(char *header,
                             NULL,
                             NULL,
                             0,
-                            0);
+                            0,
+                            1);
 }
 
