@@ -15,8 +15,8 @@ data_cif_img.dic
 #             and Crystallographic Binary File Dictionary (CBF)              #
 #            Extending the Macromolecular CIF Dictionary (mmCIF)             #
 #                                                                            #
-#                              Version 1.8.6                                 #
-#                              of 2022-05-11                                 #
+#                              Version 1.8.7                                 #
+#                              of 2022-12-31                                 #
 #                                                                            #
 #                                                                            #
 #    ###################################################################     #
@@ -697,7 +697,7 @@ data_cif_img.dic
 
 ;
     _dictionary.title           cif_img.dic
-    _dictionary.version         1.8.6
+    _dictionary.version         1.8.7
     _dictionary.datablock_id    cif_img.dic
 
 #########################
@@ -10951,6 +10951,12 @@ save__diffrn_frame_data.details
     _dictionary_history.version
     _dictionary_history.update
     _dictionary_history.revision
+
+    1.8.7    2022-12-31
+
+;   Start of new version
+
+;
 
     1.8.6    2022-05-11
 
