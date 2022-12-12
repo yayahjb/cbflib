@@ -1971,7 +1971,7 @@ save__array_intensities.offset
 save__array_intensities.overload
     _item_description.description
 ;             The saturation intensity level for this data array, i.e. the
-              value above which correct intensities may not be recorded.
+              value at or above which correct intensities may not be recorded.
 
               The valid pixel values are those less than
               _array_intensities.overload  and greater than or equal to
@@ -10954,7 +10954,7 @@ save__diffrn_frame_data.details
 
     1.8.7    2022-12-31
 
-;   Start of new version
+;   Clarify overload (ab)
 
 ;
 
