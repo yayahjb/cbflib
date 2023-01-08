@@ -1,6 +1,6 @@
-m4_define(`cbf_version',`0.9.8')m4_dnl
-m4_define(`cbf_date',`05 Oct 2022')m4_dnl
-m4_ifelse(cbf_system,`',`m4_define(`cbf_system',`LINUX')')
+m4_define(`cbf_version',`0.9.8')m4_dnl 
+m4_define(`cbf_date',`08 2022')m4_dnl 
+m4_ifelse(cbf_system,`',`m4_define(`cbf_system',`LINUX')') 
 `######################################################################
 #  Makefile - command file for make to create CBFlib                 #
 #                                                                    #
@@ -692,7 +692,8 @@ C++	= g++
 CFLAGS  = -g -O2 -Wall -std=c99 -pedantic $(HDF5CFLAGS)
 LDFLAGS =
 F90C = gfortran
-F90FLAGS = -g -fno-range-check -fallow-invalid-boz
+#F90FLAGS = -g -fno-range-check -fallow-invalid-boz
+F90FLAGS = -g -fno-range-check 
 F90LDFLAGS = -bind_at_load
 SOCFLAGS = -fPIC
 SOLDFLAGS = -dynamiclib -Wl,-rpath,$(CBF_PREFIX)/lib
@@ -717,7 +718,8 @@ C++	= g++
 CFLAGS  = -g -O2 -Wall -std=c99 -pedantic $(HDF5CFLAGS)
 LDFLAGS =
 F90C = gfortran
-F90FLAGS = -g -fno-range-check -fallow-invalid-boz
+#F90FLAGS = -g -fno-range-check -fallow-invalid-boz
+F90FLAGS = -g -fno-range-check
 F90LDFLAGS = -bind_at_load
 SOCFLAGS = -fPIC
 SOLDFLAGS = -dynamiclib -Wl,-rpath,$(CBF_PREFIX)/lib
@@ -742,7 +744,8 @@ C++	= g++
 CFLAGS  = -g -O2 -Wall -std=c99 -pedantic -DDMALLOC -DDMALLOC_FUNC_CHECK -I$(HOME)/include $(HDF5CFLAGS)
 LDFLAGS =
 F90C = gfortran
-F90FLAGS = -g -fno-range-check -fallow-invalid-boz
+#F90FLAGS = -g -fno-range-check -fallow-invalid-boz
+F90FLAGS = -g -fno-range-check
 F90LDFLAGS = -bind_at_load
 SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(CBF_PREFIX)/lib
@@ -768,7 +771,8 @@ C++	= g++ -m64
 CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing  $(HDF5CFLAGS)
 LDFLAGS =
 F90C = gfortran -m64
-F90FLAGS = -g -fno-range-check -fallow-invalid-boz
+#F90FLAGS = -g -fno-range-check -fallow-invalid-boz
+F90FLAGS = -g -fno-range-check
 F90LDFLAGS =
 SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(CBF_PREFIX)/lib
@@ -795,7 +799,8 @@ C++	= g++
 CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing  $(HDF5CFLAGS)
 LDFLAGS =
 F90C = gfortran
-F90FLAGS = -g -fno-range-check -fallow-invalid-boz
+#F90FLAGS = -g -fno-range-check -fallow-invalid-boz
+F90FLAGS = -g -fno-range-check
 F90LDFLAGS = 
 SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(CBF_PREFIX)/lib
@@ -821,7 +826,8 @@ C++	= g++
 CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing  $(HDF5CFLAGS)
 LDFLAGS =
 F90C = gfortran
-F90FLAGS = -g -fno-range-check -fallow-invalid-boz
+#F90FLAGS = -g -fno-range-check -fallow-invalid-boz
+F90FLAGS = -g -fno-range-check
 F90LDFLAGS = 
 SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(CBF_PREFIX)/lib
@@ -876,7 +882,8 @@ CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing \
 	  -DDMALLOC -DDMALLOC_FUNC_CHECK   $(HDF5CFLAGS) -I$(HOME)/include
 LDFLAGS =
 F90C = gfortran
-F90FLAGS = -g -fno-range-check -fallow-invalid-boz
+#F90FLAGS = -g -fno-range-check -fallow-invalid-boz
+F90FLAGS = -g -fno-range-check
 F90LDFLAGS = 
 SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(CBF_PREFIX)/lib
@@ -990,7 +997,8 @@ CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -DH5_HAVE_WIN32_API \
   -DH5_HAVE_MINGW -DH5_USE_110_API -fno-strict-aliasing  $(HDF5CFLAGS)
 LDFLAGS =
 F90C = gfortran
-F90FLAGS = -g -fno-range-check -fallow-invalid-boz
+#F90FLAGS = -g -fno-range-check -fallow-invalid-boz
+F90FLAGS = -g -fno-range-check
 F90LDFLAGS = 
 SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(CBF_PREFIX)/lib
@@ -1048,7 +1056,8 @@ CFLAGS  = -g -O3 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing  $(HDF5CFLAGS)
 endif
 LDFLAGS =
 F90C = gfortran
-F90FLAGS = -g -fno-range-check -fallow-invalid-boz
+#F90FLAGS = -g -fno-range-check -fallow-invalid-boz
+F90FLAGS = -g -fno-range-check
 F90LDFLAGS = 
 SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(CBF_PREFIX)/lib

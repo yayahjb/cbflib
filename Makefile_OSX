@@ -1,8 +1,8 @@
-
+ 
 ######################################################################
 #  Makefile - command file for make to create CBFlib                 #
 #                                                                    #
-# Version 0.9.8 05 Oct 2022                                          #
+# Version 0.9.8 08 2022                                          #
 #                                                                    #
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
@@ -685,7 +685,8 @@ C++	= g++
 CFLAGS  = -g -O2 -Wall -std=c99 -pedantic $(HDF5CFLAGS)
 LDFLAGS =
 F90C = gfortran
-F90FLAGS = -g -fno-range-check -fallow-invalid-boz
+#F90FLAGS = -g -fno-range-check -fallow-invalid-boz
+F90FLAGS = -g -fno-range-check 
 F90LDFLAGS = -bind_at_load
 SOCFLAGS = -fPIC
 SOLDFLAGS = -dynamiclib -Wl,-rpath,$(CBF_PREFIX)/lib

@@ -1,8 +1,8 @@
-
+ 
 ######################################################################
 #  Makefile - command file for make to create CBFlib                 #
 #                                                                    #
-# Version 0.9.8 05 Oct 2022                                          #
+# Version 0.9.8 08 2022                                          #
 #                                                                    #
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
