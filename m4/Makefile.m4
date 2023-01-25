@@ -318,7 +318,7 @@ SRC_FGETLN =
 endif
 
 
-CBFLIB_DONT_USE_PY2CIFRW ?= no
+CBFLIB_DONT_USE_PY2CIFRW ?= yes
 ifneq ($(CBFLIB_DONT_USE_PY2CIFRW),yes)
 #
 # Definitions to get versions of python2 PyCifRW and PLY
@@ -658,6 +658,7 @@ endif
 
 MISCFLAG = $(NOLLFLAG) $(ULPFLAG)
 
+ifneq ($(CBFLIB_DONT_USE_PY2CIFRW),yes)
 #
 # PY2CBF definitions
 #
@@ -666,7 +667,8 @@ PY2CBFBOPT =
 PY2CBFIOPT =
 SETUP_PY = setup.py
 PY2INSTALLSETUP_PY =  py2setup.py
-
+endif
+ifneq ($(CBFLIB_DONT_USE_PY3CIFRW),yes)
 #
 # PY3CBF definitions
 #
@@ -675,6 +677,7 @@ PY3CBFBOPT =
 PY3CBFIOPT =
 SETUP_PY = setup.py
 PY3INSTALLSETUP_PY =  py3setup.py
+endif
 
 
 #
@@ -2121,6 +2124,7 @@ endif
 # Python bindings
 #
 
+ifneq ($(CBFLIB_DONT_USE_PY2CIFRW),yes)
 $(PY2CBF)/make_pycbf.py: $(NUWEB_DEP) $(NUWEB_DEP2) $(PY2CBF)/make_pycbf.w
 	(cd $(PY2CBF); $(NUWEB) make_pycbf.w)
 
@@ -2190,6 +2194,8 @@ $(PY2CBF)/pycbf.py:	$(PY2CBF)/pycbf.pdf $(PY2CBF)/cbfdetectorwrappers.i \
 	(cd $(PY2CBF);  $(PYTHON2) make_pycbf.py; $(PYSWIG) -module py2cbf pycbf.i;     \
 		$(PYTHON2) py2setup.py build; mv pycbf.py rawpycbf.py;   \
 		cat rawpycbf.py | sed "s/ _pycbf/ _py2cbf/" > pycbf.py )
+endif
+ifneq ($(CBFLIB_DONT_USE_PY3CIFRW),yes)
 
 $(PY3CBF)/make_pycbf.py: $(NUWEB_DEP) $(NUWEB_DEP2) $(PY3CBF)/make_pycbf.w
 	(cd $(PY3CBF); $(NUWEB) make_pycbf.w)
@@ -2261,6 +2267,7 @@ $(PY3CBF)/pycbf.py:	$(PY3CBF)/pycbf.pdf $(PY3CBF)/cbfdetectorwrappers.i \
 	(cd $(PY3CBF);  $(PYTHON3) make_pycbf.py; $(PYSWIG) pycbf.i;     \
 		$(PYTHON3) py3setup.py build; mv pycbf.py rawpycbf.py;   \
 		echo "# coding=utf-8" | cat - rawpycbf.py > pycbf.py)
+endif
 
 #
 # Java bindings
@@ -3070,7 +3077,8 @@ endif
 	-cat XRD1621_I4encbC100_orig.cbf | sed "2,2s/0.9.6/0.9.7/" | diff -a - XRD1621_I4encbC100.cbf
 	#-$(DIFF) XRD1621_I4encbC100.cbf XRD1621_I4encbC100_orig.cbf
 
-	
+
+ifneq ($(CBFLIB_DONT_USE_PY2CIFRW),yes)	
 py2cbftests:  $(PY2CBF)/_py2cbf.$(PY2CBFEXT) $(BIN)/cbf_standardize_numbers $(TESTOUTPUT)
 	($(RTLPEXPORTS) cd $(PY2CBF); $(PYTHON2) $(PY2CBF)/pycbf_test1.py | $(BIN)/cbf_standardize_numbers - 4 > pycbf_test1.out)
 	-(cd $(PY2CBF); $(DIFF) pycbf_test1.out $(ROOT)/pycbf_test1_orig.out)
@@ -3090,7 +3098,17 @@ py2cbftests:  $(PY2CBF)/_py2cbf.$(PY2CBFEXT) $(BIN)/cbf_standardize_numbers $(TE
 py2cbfinstall: $(PY2CBF)/_py2cbf.$(PY2CBFEXT) $(PY2CBF)/py2cbfinstall
 
 py2cbfuserinstall: $(PY2CBF)/_py2cbf.$(PY2CBFEXT) $(PY2CBF)/py2cbfuserinstall
+ 
+else
+py2cbftests:
 
+py2cbfinstall:
+
+py2cbfuserinstall:
+
+endif
+
+ifneq ($(CBFLIB_DONT_USE_PY3CIFRW),yes)
 py3cbftests:  $(PY3CBF)/_pycbf.$(PY3CBFEXT) $(BIN)/cbf_standardize_numbers $(TESTOUTPUT)
 	($(RTLPEXPORTS) cd $(PY3CBF); $(PYTHON3) $(PY3CBF)/pycbf_test1.py | $(BIN)/cbf_standardize_numbers - 4 > pycbf_test1.out)
 	-(cd $(PY3CBF); grep -v "__builtins__" $(ROOT)/pycbf_test1_orig.out | \
@@ -3116,6 +3134,15 @@ py3cbftests:  $(PY3CBF)/_pycbf.$(PY3CBFEXT) $(BIN)/cbf_standardize_numbers $(TES
 py3cbfinstall: $(PY3CBF)/_pycbf.$(PY3CBFEXT) $(PY3CBF)/py3cbfinstall
 
 py3cbfuserinstall: $(PY3CBF)/_pycbf.$(PY3CBFEXT) $(PY3CBF)/py3cbfuserinstall
+ 
+else
+py3cbftests:
+
+py3cbfinstall:
+
+py3cbfuserinstall:
+
+endif
 
 javatests: $(BIN)/ctestcbf $(BIN)/testcbf.class $(SOLIB)/$(SO_LIB_CBF_WRAP)
 	$(LDPREFIX)  $(BIN)/ctestcbf > testcbfc.txt
@@ -3134,12 +3161,15 @@ empty:
 	@-rm -rf $(INCLUDE)/bshuf*
 	@-rm -rf $(INCLUDE)/H5*
 	@-rm -rf $(BIN)/*
+ifneq ($(CBFLIB_DONT_USE_PY2CIFRW),yes)
 	@-rm -f  $(PY2CBF)/_py2cbf.$(PY2CBFEXT)
 	@-rm -rf  $(PY2CBF)/build/*
 	@-rm -f  $(PY2CBF)/newtest1.cbf
 	@-rm -f  $(PY2CBF)/fel_test1.out
 	@-rm -f  $(PY2CBF)/fel_test2.out
 	@-rm -f  $(PY2CBF)/py2setup.py
+endif
+ifneq ($(CBFLIB_DONT_USE_PY3CIFRW),yes)
 	@-rm -f  $(PY2CBF)/py2setup_MINGW.py
 	@-rm -f  $(PY3CBF)/_pycbf.$(PY3CBFEXT)
 	@-rm -rf  $(PY3CBF)/build/*
@@ -3148,6 +3178,7 @@ empty:
 	@-rm -f  $(PY3CBF)/fel_test2.out
 	@-rm -f  $(PY3CBF)/py3setup.py
 	@-rm -f  $(PY3CBF)/py3setup_MINGW.py
+endif
 	@-rm -f  makecbf.cbf
 	@-rm -f  img2cif_packed.cif
 	@-rm -f  img2cif_canonical.cif
