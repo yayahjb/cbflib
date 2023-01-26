@@ -1,5 +1,5 @@
 m4_define(`cbf_version',`0.9.8')m4_dnl 
-m4_define(`cbf_date',`08 2022')m4_dnl 
+m4_define(`cbf_date',`25Jan2022')m4_dnl 
 m4_ifelse(cbf_system,`',`m4_define(`cbf_system',`LINUX')') 
 `######################################################################
 #  Makefile - command file for make to create CBFlib                 #
@@ -3271,7 +3271,7 @@ endif
 	@-rm -rf HDF5Plugin_5Jun21/
 	@-rm -rf PyCifRW-4.1/
 	@-rm -rf PyCifRW-4.3/
-	@-rm -rf bitshuffle-0.2.2.1_15Jun16/
+	@-rm -rf $(BSHUF)
 	@-rm -f idx-s00-20131106040304531_flat.cbf
 	@-rm -f include/iochain.h
 	@-rm -f include/lz4.h
