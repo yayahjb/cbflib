@@ -2,7 +2,7 @@
 ######################################################################
 #  Makefile - command file for make to create CBFlib                 #
 #                                                                    #
-# Version 0.9.8 25 Jan 2022                                          #
+# Version 0.9.8 22 Feb 2023                                          #
 #                                                                    #
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
@@ -340,6 +340,19 @@ TIFF ?= tiff-4.0.6_rev_3Nov16
 TIFF_PREFIX ?= $(PWD)
 TIFF_INSTALL = $(TIFF)_INSTALL
 
+#
+#Definitions to get a version of swig
+#
+
+ifneq ($(CBFLIB_DONT_USE_LOCAL_SWIG),yes)
+SWIG_PREFIX ?= $(PWD)
+SWIG_KIT ?= swig-fortran-swig
+else
+SWIG_PREFIX=
+SWIG_KIT=
+endif
+
+
 
 #
 # Definitions to get a version of HDF5
@@ -579,14 +592,29 @@ DIFF = diff -u -b
 
 
 #
+# Program to generate various wrapper for C/C++ code
+#
+
+ifneq ($(CBFLIB_DONT_USE_LOCAL_SWIG),yes)
+SWIG = $(BIN)/swig
+else
+SWIG = swig
+endif
+
+#
 # Program to generate wrapper classes for Python
 #
-PYSWIG = swig -python
+PYSWIG = $(SWIG) -python
 
 #
 # Program to generate wrapper classes for Java
 #
-JSWIG = swig -java
+JSWIG = $(SWIG) -java
+
+#
+# Program to generate wrapper module for f90
+#
+F90SWIG = $(SWIG) -fortran
 
 #
 # Java SDK root directory
@@ -742,6 +770,9 @@ else
 LZ4_URL		= http://www.github.com/yayahjb/$(LZ4).git
 endif
 BSHUF_URL    = http://www.github.com/yayahjb/$(BSHUF).git
+ifneq ($(CBFLIB_DONT_USE_LOCAL_SWIG),yes)
+SWIG_URL     = https://github.com/yayahjb/swig-fortran-swig.git
+endif
 
 
 #
@@ -1059,6 +1090,7 @@ endif
 
 
 all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) \
+	$(SWIG_KIT)           \
 	$(HDF5)               \
 	$(LZ4DEPS)            \
 	$(BSHUFDEPS)          \
@@ -1367,6 +1399,21 @@ endif
 	chmod 755 $(CBF_PREFIX)/bin/test_cbf_airy_disk
 	chmod 755 $(CBF_PREFIX)/bin/batch_convert_minicbf.sh
 	chmod 644 $(CBF_PREFIX)/include/cbflib/*.h
+
+ifneq ($(CBFLIB_DONT_USE_LOCAL_SWIG),yes)
+#
+# SWIG_KIT
+#
+$(SWIG_KIT):
+build_swig: $(M4)/Makefile.m4
+	touch build_swig
+$(SWIG_KIT):    build_swig
+	git clone $(SWIG_URL)
+	(export SWIG_PREFIX=$(PWD);cd $(SWIG_KIT); ./autogen.sh; \
+	./configure --prefix=$(SWIG_PREFIX); make; make install) 
+	touch $(SWIG_KIT)
+endif
+
 	
 ifneq ($(CBFLIB_DONT_USE_PY2CIFRW),yes)
 #
@@ -1381,7 +1428,7 @@ $(PY2CIFRW):	build_py2cifrw
 	tar -xvf $(PY2CIFRW).tar.gz
 	-rm $(PY2CIFRW).tar.gz
 	(cd $(PY2CIFRW); \
-        PYTHONPATH=$(PY2CIFRW_PREFIX)/lib/python:$(PY2CIFRW_PREFIX)/lib64/python; export PYTHONPATH; \
+	PYTHONPATH=$(PY2CIFRW_PREFIX)/lib/python:$(PY2CIFRW_PREFIX)/lib64/python; export PYTHONPATH; \
 	mkdir -p $(PY2CIFRW_PREFIX)/lib/python/site-packages; \
 	mkdir -p $(PY2CIFRW_PREFIX)/lib64/python/site-packages; \
 	$(PYTHON2) setup.py install --prefix= --home=$(PY2CIFRW_PREFIX) )
@@ -1598,7 +1645,7 @@ $(ZSTD): $(HDF5)  build_ZSTD
 	$(CC) -shared  zstd_h5plugin.o $(HDF5SOLIBS_LOCAL) $(HDF5SOLIBS_SYSTEM) -lzstd \
 	    -o $(SOLIB)/zstd_h5plugin.so; \
 	$(CC) -shared zstd_h5plugin.o $(HDF5SOLIBS_LOCAL) $(HDF5SOLIBS_SYSTEM) -lzstd \
-            -o $(SOLIB)/$(ZSTDFILTER).so; \
+	    -o $(SOLIB)/$(ZSTDFILTER).so; \
 	rm zstd_h5plugin.o)
 	touch $(ZSTD)
 endif
@@ -2744,9 +2791,9 @@ ifneq ($(CBFLIB_DONT_USE_PY3CIFRW),yes)
 py3cbftests:  $(PY3CBF)/_pycbf.$(PY3CBFEXT) $(BIN)/cbf_standardize_numbers $(TESTOUTPUT)
 	($(RTLPEXPORTS) cd $(PY3CBF); $(PYTHON3) $(PY3CBF)/pycbf_test1.py | $(BIN)/cbf_standardize_numbers - 4 > pycbf_test1.out)
 	-(cd $(PY3CBF); grep -v "__builtins__" $(ROOT)/pycbf_test1_orig.out | \
-          grep -v "__add__" | grep -v "Foundthebinary" > pycbf_test1_orig.out; \
-          grep -v "__builtins__"  pycbf_test1.out | \
-          grep -v "__add__" | grep -v "Foundthebinary" |$(DIFF) - pycbf_test1_orig.out)
+	  grep -v "__add__" | grep -v "Foundthebinary" > pycbf_test1_orig.out; \
+	  grep -v "__builtins__"  pycbf_test1.out | \
+	  grep -v "__add__" | grep -v "Foundthebinary" |$(DIFF) - pycbf_test1_orig.out)
 	($(RTLPEXPORTS) cd $(PY3CBF); $(PYTHON3) $(PY3CBF)/pycbf_test2.py | $(BIN)/cbf_standardize_numbers - 4 > pycbf_test2.out)
 	-(cd $(PY3CBF); $(DIFF) pycbf_test2.out $(ROOT)/pycbf_test2_orig.out)
 	($(RTLPEXPORTS) cd $(PY3CBF); $(PYTHON3) $(PY3CBF)/pycbf_test3.py | $(BIN)/cbf_standardize_numbers - 4 > pycbf_test3.out)
@@ -2793,6 +2840,9 @@ empty:
 	@-rm -rf $(INCLUDE)/bshuf*
 	@-rm -rf $(INCLUDE)/H5*
 	@-rm -rf $(BIN)/*
+ifneq ($(CBFLIB_DONT_USE_LOCAL_SWIG),yes)
+	@-rm -rf $(SWIG_KIT)
+endif
 ifneq ($(CBFLIB_DONT_USE_PY2CIFRW),yes)
 	@-rm -f  $(PY2CBF)/_py2cbf.$(PY2CBFEXT)
 	@-rm -rf  $(PY2CBF)/build/*
