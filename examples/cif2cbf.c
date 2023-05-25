@@ -71,11 +71,12 @@
  *    [--{eoi|elements-of-interest} element[,elementhigh] \           *
  *    [--{foi|frames-of-interest}  frame[,framehigh] \                *
  *    [--{roi|region-of-interest} fastlow,fasthigh\                   *
- *                                [,midlow,midhigh[,slowlow,slowhigh]]*
- *    [--add-update-data]                                             *
- *    [--subtract-update-data]                                        *
- *    [--merge-datablocks-by-number]                                  *
- *    [--merge-datablocks-by-name]                                    *
+ *                              [,midlow,midhigh[,slowlow,slowhigh]] \*
+ *    [--add-update-data] \                                           *
+ *    [--subtract-update-data] \                                      *
+ *    [--merge-datablocks-by-number] \                                *
+ *    [--merge-datablocks-by-name] \                                   *
+ *    [--rb2z|rotate-beam-to-z] beamx,beamy,beamz                     *
  *    [-U n] \                                                        *
  *    [input_cif] [output_cbf]                                        *
  *                                                                    *
@@ -235,6 +236,10 @@
  *  --merge-datablocks-by-name                                        *
  *     when merging an update cif, align datablocks by their names    *
  *     rather than by their ordinals                                  *
+ *                                                                    *
+ *  --[rb2z|rotate-beam-to-z] beamx,beamy,beamz                       *
+ *    assume the beam is along [beamx, beamy, beamz] relative to the  *
+ *    image and rotate the image so that the beam is along [0,0,-1]   *
  *                                                                    *
  *  --U n                                                             *
  *     test cbf_construct_detector in element_id n                    *
@@ -580,54 +585,53 @@ int outerror(int err)
  n is the number of columns
  column is an array of n column names
  value is an array of values to match
- 
+
  */
 
 static int cbf_find_row_by_columns(cbf_handle handle, int n,
                                    const char * column[],
                                    const char * value[]){
-    
     int icol;
-    
+
     int match;
-    
+
     const char *colvalue;
-    
+
     if (!handle || n < 1
         || !column || !value
         || !column[0] || !value[0]) return CBF_ARGUMENT;
-    
+
     cbf_failnez(cbf_rewind_row(handle));
-    
+
     while (!cbf_find_column(handle,column[0])
            &&!cbf_find_nextrow(handle,value[0])) {
-        
+
         match = 1;
-        
+
         for (icol = 1; icol < n; icol++) {
-            
+
             if ( !column[icol] || !value[icol] ) return CBF_ARGUMENT;
-            
+
             cbf_failnez(cbf_find_column(handle,column[icol]));
-            
+
             if (cbf_get_value(handle,&colvalue)
                 || !colvalue
                 || cbf_cistrcmp(colvalue,value[icol])) {
-                
+
                 match = 0;
-                
+
                 break;
-                
+
             }
-            
+
         }
-        
+
         if (match) return CBF_SUCCESS;
-        
+
     }
-    
+
     return CBF_NOTFOUND;
-    
+
 }
 
 
@@ -638,26 +642,26 @@ static int cbf_get_frame(cbf_handle handle,
                   const char * binary_id,
                   const char * * frame_id,
                   unsigned int * frame_number){
-    
+
     const char * xframe_id;
-    
+
     const char * columns[2] = {"array_id", "binary_id"};
-    
+
     const char * values[2] = {array_id, binary_id};
-    
+
     int xframe_number;
-    
+
     if (!handle || !array_id || !binary_id ) return CBF_ARGUMENT;
-    
+
     if ((!cbf_find_category(handle,"diffrn_data_frame")
          ||!cbf_find_category(handle,"diffrn_frame_data"))
         && !cbf_rewind_row(handle)
         && !cbf_find_row_by_columns(handle,2,columns,values)
         && !cbf_find_column(handle,"id")
         && !cbf_get_value(handle,&xframe_id)){
-        
+
         if (frame_id) *frame_id = xframe_id;
-        
+
         if (!cbf_find_category(handle,"diffrn_scan_frame")
             &&!cbf_rewind_row(handle)
             &&!cbf_find_column(handle,"frame_id")
@@ -665,17 +669,17 @@ static int cbf_get_frame(cbf_handle handle,
             &&!cbf_find_column(handle,"frame_number")
             &&!cbf_get_integervalue(handle,&xframe_number)
             &&xframe_number >= 0) {
-            
+
             if (frame_number) *frame_number = (unsigned int)xframe_number;
             return CBF_SUCCESS;
-            
+
         }
-        
-        
+
+
     }
-    
+
     return CBF_NOTFOUND;
-    
+
 }
 
 /* Convert items of interest from a string to a range of elements or frames */
@@ -699,7 +703,7 @@ static int cbf_convertioi(const char *ioi, const size_t maxitems,
     }
     if (*endptr != ',' && *endptr != ' ') return CBF_FORMAT;
     if (!itemhigh) return CBF_SUCCESS;
-    
+
     str = endptr+1;
     *itemhigh = (int)strtol(str,&endptr,0);
     if (*itemhigh < *itemlow) *itemhigh = *itemlow;
@@ -736,6 +740,8 @@ int main (int argc, char *argv [])
     int add_minicbf_header = 0;
     int minicbf = 0;
     int data_last = 0;
+    int rb2z = 0;
+    double beamx, beamy, beamz;
     const char *cifin, *cbfout, *updatecif;
     const char *dictionary[NUMDICTS];
     int dqrflags[NUMDICTS];
@@ -819,8 +825,9 @@ int main (int argc, char *argv [])
      *    [--{roi|region-of-interest}  fastlow,fasthigh,.... \            *
      *    [--add-update-data] \                                           *
      *    [--subtract-update-data] \                                      *
-     *    [--merge-datablocks-by-number \                                 *
-     *    [--merge-datablocks-by-name \                                  *
+     *    [--merge-datablocks-by-number] \                                *
+     *    [--merge-datablocks-by-name] \                                  *
+     *    [--[rb2z|rotate-beam-to-z] beamx,beamy,beamz] \                 *
      *    [-U n] \                                                        *
      *    [input_cif] [output_cbf]                                        *
      *                                                                    *
@@ -890,7 +897,8 @@ int main (int argc, char *argv [])
                                  "\021(add-update-data)" \
                                  "\022(subtract-update-data)" \
                                  "\023(merge-datablocks-by-number)" \
-                                 "\024(merge-datablocks-by-name)"
+                                 "\024(merge-datablocks-by-name)" \
+                                 "\025(rotate-beam-to-z):\025(rb2z):"
                                  ));
 
     if (!cbf_rewind_getopt_option(opts))
@@ -901,19 +909,19 @@ int main (int argc, char *argv [])
                     if (cifin) errflg++;
                     else cifin = optarg;
                     break;
-                    
+
                 case 'o':     /* output file */
                     if (cbfout) errflg++;
                     else {
                         cbfout = optarg;
                     }
                     break;
-                    
+
                 case 'u':     /* update file */
                     if (updatecif) errflg++;
                     else updatecif = optarg;
                     break;
-                    
+
                 case 'b':     /* byte order */
                     if (bytedir) errflg++;
                     if (optarg[0] == 'f' || optarg[0] == 'F') {
@@ -926,7 +934,7 @@ int main (int argc, char *argv [])
                         }
                     }
                     break;
-                    
+
                 case 'B':
                     if (!strcmp(optarg,"cif20read")) {
                         qrflags &= ~CBF_PARSE_BRACKETS;
@@ -948,8 +956,8 @@ int main (int argc, char *argv [])
                         qwflags  &= ~CBF_PARSE_BRACKETS;
                     } else errflg++;
                     break;
-                    
-                    
+
+
                 case 'c':
                     if (compression) errflg++;
                     if (optarg[0] == 'p' || optarg[0] == 'P') {

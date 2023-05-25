@@ -1,25 +1,23 @@
-
 /**********************************************************************
- * cbf_set_minicbf_header.h -- set a minicbfheader in a cbf           *
+ * cbf_array2minicbf -- convert an array and header to a minicbf file *
  *                                                                    *
- * Version 0.9.5 19 September 2015                                    *
+ * Version 0.9.8 28 March 2023                                        *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  *                                                                    *
- * (C) Copyright 2006 -- 2015 Herbert J. Bernstein                    *
+ * (C) Copyright 2023 Herbert J. Bernstein                            *
  *                                                                    *
  **********************************************************************/
 
 /**********************************************************************
  *                                                                    *
  * YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE GPL *
- *                                                                    *
- * ALTERNATIVELY YOU MAY REDISTRIBUTE THE CBFLIB API UNDER THE TERMS  *
- * OF THE LGPL                                                        *
- *                                                                    *
+ * WHILE YOU MAY ALTERNATIVE DISTRIBUTE THE API UNDER THE LGPL        *
+ * YOU MAY ***NOT*** DISTRBUTE THIS PROGRAM UNDER THE LGPL            *
+ *                                                                    *                                                                    *
  **********************************************************************/
-
+ 
 /*************************** GPL NOTICES ******************************
  *                                                                    *
  * This program is free software; you can redistribute it and/or      *
@@ -38,83 +36,9 @@
  * 02111-1307  USA                                                    *
  *                                                                    *
  **********************************************************************/
-
-/************************* LGPL NOTICES *******************************
- *                                                                    *
- * This library is free software; you can redistribute it and/or      *
- * modify it under the terms of the GNU Lesser General Public         *
- * License as published by the Free Software Foundation; either       *
- * version 2.1 of the License, or (at your option) any later version. *
- *                                                                    *
- * This library is distributed in the hope that it will be useful,    *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU  *
- * Lesser General Public License for more details.                    *
- *                                                                    *
- * You should have received a copy of the GNU Lesser General Public   *
- * License along with this library; if not, write to the Free         *
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,    *
- * MA  02110-1301  USA                                                *
- *                                                                    *
- **********************************************************************/
-
+  
 /**********************************************************************
- *                                                                    *
- *                    Stanford University Notices                     *
- *  for the CBFlib software package that incorporates SLAC software   *
- *                 on which copyright is disclaimed                   *
- *                                                                    *
- * This software                                                      *
- * -------------                                                      *
- * The term "this software", as used in these Notices, refers to      *
- * those portions of the software package CBFlib that were created by *
- * employees of the Stanford Linear Accelerator Center, Stanford      *
- * University.                                                        *
- *                                                                    *
- * Stanford disclaimer of copyright                                   *
- * --------------------------------                                   *
- * Stanford University, owner of the copyright, hereby disclaims its  *
- * copyright and all other rights in this software.  Hence, anyone    *
- * may freely use it for any purpose without restriction.             *
- *                                                                    *
- * Acknowledgement of sponsorship                                     *
- * ------------------------------                                     *
- * This software was produced by the Stanford Linear Accelerator      *
- * Center, Stanford University, under Contract DE-AC03-76SFO0515 with *
- * the Department of Energy.                                          *
- *                                                                    *
- * Government disclaimer of liability                                 *
- * ----------------------------------                                 *
- * Neither the United States nor the United States Department of      *
- * Energy, nor any of their employees, makes any warranty, express or *
- * implied, or assumes any legal liability or responsibility for the  *
- * accuracy, completeness, or usefulness of any data, apparatus,      *
- * product, or process disclosed, or represents that its use would    *
- * not infringe privately owned rights.                               *
- *                                                                    *
- * Stanford disclaimer of liability                                   *
- * --------------------------------                                   *
- * Stanford University makes no representations or warranties,        *
- * express or implied, nor assumes any liability for the use of this  *
- * software.                                                          *
- *                                                                    *
- * Maintenance of notices                                             *
- * ----------------------                                             *
- * In the interest of clarity regarding the origin and status of this *
- * software, this and all the preceding Stanford University notices   *
- * are to remain affixed to any copy or derivative of this software   *
- * made or distributed by the recipient and are to be affixed to any  *
- * copy of software made or distributed by the recipient that         *
- * contains a copy or derivative of this software.                    *
- *                                                                    *
- * Based on SLAC Software Notices, Set 4                              *
- * OTT.002a, 2004 FEB 03                                              *
- **********************************************************************/
-
-
-
-/**********************************************************************
- *                               NOTICE                               *
+ *                                 NOTICE                             *
  * Creative endeavors depend on the lively exchange of ideas. There   *
  * are laws and customs which establish rights and responsibilities   *
  * for authors and the users of what authors create.  This notice     *
@@ -157,7 +81,7 @@
  * OR DOCUMENTS OR FILE OR FILES AND NOT WITH AUTHORS OF THE          *
  * PROGRAMS OR DOCUMENTS.                                             *
  **********************************************************************/
-
+ 
 /**********************************************************************
  *                                                                    *
  *                           The IUCr Policy                          *
@@ -188,7 +112,7 @@
  *                                                                    *
  * Protection of the standards                                        *
  *                                                                    *
- * To protect the STAR File and the CIF as standards for              *
+ * To protect the STAR File and the CIF as standards for              * 
  * interchanging and archiving electronic data, the IUCr, on behalf   *
  * of the scientific community,                                       *
  *                                                                    *
@@ -248,33 +172,97 @@
  * Crystallography                                                    *
  **********************************************************************/
 
-#ifndef CBF_MINICBF_HEADER_H
-#define CBF_MINICBF_HEADER_H
-
-
-#ifdef __cplusplus
-
-extern "C" {
-    
-#endif
-    
 #include "cbf.h"
-#include "cbf_alloc.h"
-#include "cbf_simple.h"
+#include "cbf_minicbf_header.h"
+
+#include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
-#include "cbf_string.h"
 #include <ctype.h>
-#include <math.h>
-    
-    int cbf_update_minicbf_header(cbf_handle datacbf, const char * header, const char * header_convention);
-    
-    int cbf_set_minicbf_header(cbf_handle cbf, cbf_handle datacbf, char ** log);
-
-#ifdef __cplusplus
-    
-}
-        
-#endif
 
 
-#endif /* CBF_MINICBF_HEADER_H */
+int cbf_array2minicbf(const char * filename, const void * array, const char * header,
+    const char * compression,
+    size_t dimfast, size_t dimmid, size_t dimslow,
+    size_t elsize)
+{
+    FILE *out;
+
+    cbf_handle cbf;
+
+    int compr;
+
+    if (!filename || !array || !header || !compression) return CBF_ARGUMENT;
+
+    if (dimfast < 1 ) dimfast = 1;
+
+    if (dimmid < 1 ) dimmid = 1;
+
+    if (dimslow < 1 ) dimslow = 1;
+
+    if (elsize < 1) elsize = 1;
+
+    /* Create the cbf */
+
+    cbf_failnez (cbf_make_handle (&cbf))
+
+    /* Make a new data block */
+
+    cbf_failnez (cbf_new_datablock (cbf, "image_1"))
+
+    cbf_failnez(cbf_update_minicbf_header(cbf, header, "PILATUS_1.4"));
+
+    /* convert the compression string to an  integer */
+
+    compr = -99999;
+    if (compression[0] == 'p' || compression[0] == 'P')  {
+      compr = CBF_PACKED;
+    } else {
+      if (compression[0] == 'c' || compression[0] == 'C') {
+        compr = CBF_CANONICAL;
+      } else {
+        if (compression[0] == 'b' || compression[0] == 'B') {
+          compr = CBF_BYTE_OFFSET;
+        } else {
+          if (compression[0] == 'n' || compression[0] == 'N') {
+            compr = CBF_NONE;
+          } else {
+            if (compression[0] == 'v' || compression[0] == 'V') {
+              compr = CBF_PACKED_V2;
+            } else {
+              if (compression[0] == 'f' || compression[0] == 'F') {
+                compr = CBF_PACKED|CBF_FLAT_IMAGE;
+              } else {
+                if (compression[0] == 'i' || compression[0] == 'I' || !cbf_cistrcmp(compression,"nibble_offset")) {
+                  compr = CBF_NIBBLE_OFFSET;
+                } else {
+                  return CBF_ARGUMENT;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    /* Save the binary data */
+
+    cbf_failnez (cbf_set_integerarray_wdims_fs (cbf, compr, 1,
+      (void *)array, elsize, 1, dimfast * dimmid * dimslow, "little_endian",
+      dimfast, dimmid, dimslow, 4096 ));
+
+    /* Write the new file */
+
+    out = fopen (filename, "w+b");
+
+    if (!out)
+    {  cbf_failnez(CBF_FILEOPEN); }
+
+    cbf_failnez (cbf_write_file (cbf, out, 1, CBF, MSG_DIGEST | MIME_HEADERS  , 0))
+  
+
+    /* Free the cbf */
+
+    cbf_failnez (cbf_free_handle (cbf));
+
+}  

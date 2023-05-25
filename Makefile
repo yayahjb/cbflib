@@ -2,7 +2,7 @@
 ######################################################################
 #  Makefile - command file for make to create CBFlib                 #
 #                                                                    #
-# Version 0.9.8 22 Feb 2023                                          #
+# Version 0.9.8 24 May 2023                                          #
 #                                                                    #
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
@@ -257,22 +257,23 @@ VERSION = 0.9.8
 # Directories
 #
 ROOT     = $(PWD)
-LIB      = $(ROOT)/lib
-SOLIB    = $(ROOT)/solib
+BIN      = $(ROOT)/bin
+EXAMPLES = $(ROOT)/examples
+DECTRIS_EXAMPLES = $(EXAMPLES)/dectris_cbf_template_test
+F90CBF   = $(ROOT)/f90cbf
+GRAPHICS = $(ROOT)/html_graphics
+INCLUDE  = $(ROOT)/include
 JCBF     = $(ROOT)/jcbf
 JAVADIR  = $(ROOT)/java
-BIN      = $(ROOT)/bin
-SRC      = $(ROOT)/src
-INCLUDE  = $(ROOT)/include
+LIB      = $(ROOT)/lib
 M4       = $(ROOT)/m4
+MINICBF_TEST = $(ROOT)/minicbf_test
+SOLIB    = $(ROOT)/solib
+SRC      = $(ROOT)/src
 PY2CBF   = $(ROOT)/py2cbf
 PY3CBF   = $(ROOT)/pycbf
-EXAMPLES = $(ROOT)/examples
 TEMPLATES= $(ROOT)/templates
-DECTRIS_EXAMPLES = $(EXAMPLES)/dectris_cbf_template_test
 DOC      = $(ROOT)/doc
-MINICBF_TEST = $(ROOT)/minicbf_test
-GRAPHICS = $(ROOT)/html_graphics
 DATADIRI  = $(ROOT)/../CBFlib_$(VERSION)_Data_Files_Input
 DATADIRO  = $(ROOT)/../CBFlib_$(VERSION)_Data_Files_Output
 CBF_PREFIX  ?= $(HOME)
@@ -471,23 +472,21 @@ ZSTDFLTSOLIBS =
 ZSTDdep =
 endif
 
-CBFLIB_DONT_USE_BLOSC ?= no
-ifneq ($(CBFLIB_DONT_USE_BLOSC),yes)
+CBFLIB_DONT_USE_CQRLIB ?= no
+ifneq ($(CBFLIB_DONT_USE_CQRLIB),yes)
 #
 # Definitions to get a version of HDF5Plugin for BLOSC
 #
-BLOSC = ?c-blosc_4Sep16.tar.gz
-BLOSCdep = $(BLOSC)
-BLOSCFILTER = hdf5-blosc_2Sep16.tar.gz
-BLOSCsrc = $(BLOSC)/src
-BLOSCinclude = $(BLOSC)/src
-BLOSCSOLIBS = -L$(SOLIB) -lh5zbshuf
-BLOSCFILTER = libbshuf_h5filter
+CQRLIB  ?=  cqrlib
+CQRLIB_URL ?= https://github.com/yayahjb/$(CQRLIB).git
+CQRLIBdep = $(CQRLIB) 
+CQRLIBsrc = $(CQRLIB)
+CQRLIBinclude = $(CQRLIB)
+CQRLIBSOLIBS = -L$(SOLIB) -l cbflib
 else
-BLOSCSOLIBS =
-BLOSCdep =
+CQRLIBSOLIBS =
+CQRLIBdep =
 endif
-
 
 
 #
@@ -836,6 +835,7 @@ COMMONDEP = $(M4)/Makefile.m4
 SOURCE   =  $(SRC)/cbf.c               \
 	$(SRC)/cbf_airy_disk.c     \
 	$(SRC)/cbf_alloc.c         \
+	$(SRC)/cbf_array2minicbf.c \
 	$(SRC)/cbf_ascii.c         \
 	$(SRC)/cbf_binary.c        \
 	$(SRC)/cbf_byte_offset.c   \
@@ -904,6 +904,7 @@ F90SOURCE = $(SRC)/fcb_atol_wcnt.f90     \
 HEADERS   =  $(INCLUDE)/cbf.h               \
 	$(INCLUDE)/cbf_airy_disk.h     \
 	$(INCLUDE)/cbf_alloc.h         \
+	$(INCLUDE)/cbf_array2minicbf.h \
 	$(INCLUDE)/cbf_ascii.h         \
 	$(INCLUDE)/cbf_binary.h        \
 	$(INCLUDE)/cbf_byte_offset.h   \
@@ -1095,6 +1096,7 @@ all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) \
 	$(LZ4DEPS)            \
 	$(BSHUFDEPS)          \
 	$(ZSTDDEPS)           \
+	$(CQRLIBDEPS)         \
 	$(PY2CIFRWDEPS)       \
 	$(PY3CIFRWDEPS)       \
 	symlinksdone          \
@@ -1102,6 +1104,7 @@ all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) \
 	$(LIB)                \
 	$(LIB)/libcbf.a       \
 	$(LIB)/libfcb.a       \
+	$(LIB)/libf90cbf.a    \
 	$(LIB)/libimg.a       \
 	$(BIN)/adscimg2cbf    \
 	$(BIN)/arvai_test     \
@@ -1140,11 +1143,13 @@ SO_EXT ?= so
 SO_LIB_CBF = $(SO_PREFIX)cbf.$(SO_EXT)
 SO_LIB_IMG = $(SO_PREFIX)img.$(SO_EXT)
 SO_LIB_FCB = $(SO_PREFIX)fcb.$(SO_EXT)
+SO_LIB_F90CBF = $(SO_PREFIX)f90cbf.$(SO_EXT)
 SO_LIB__CBF = $(SO_PREFIX)_cbf.$(SO_EXT)
 SO_LIB__IMG = $(SO_PREFIX)_img.$(SO_EXT)
 SO_LIB__FCB = $(SO_PREFIX)_fcb.$(SO_EXT)
+SO_LIB__F90CB = $(SO_PREFIX)_f90cbf.$(SO_EXT)
 
-shared:	$(SOLIB)/$(SO_LIB_CBF) $(SOLIB)/$(SO_LIB_IMG) $(SOLIB)/$(SO_LIB_FCB)
+shared:	$(SOLIB)/$(SO_LIB_CBF) $(SOLIB)/$(SO_LIB_IMG) $(SOLIB)/$(SO_LIB_FCB) $(SOLIB)/$(SO_LIB_F90CBF)
 
 SO_LIB_CBF_WRAP = $(SO_PREFIX)cbf_wrap.$(SO_EXT)
 javawrapper: shared $(JCBF) $(JCBF)/cbflib-$(VERSION).jar $(SOLIB)/$(SO_LIB_CBF_WRAP)
@@ -1277,7 +1282,7 @@ userinstall: baseinstall py2cbfuserinstall py3cbfuserinstall \
 baseinstall:  all $(CBF_PREFIX) $(CBF_PREFIX)/lib $(CBF_PREFIX)/bin \
 	$(CBF_PREFIX)/include $(CBF_PREFIX)/include/cbflib \
 	$(PYSOURCE) shared $(EXAMPLES)/batch_convert_minicbf.sh \
-	$(LIB)/libcbf.a $(LIB)/libimg.a $(LIB)/libfcb.a
+	$(LIB)/libcbf.a $(LIB)/libimg.a $(LIB)/libfcb.a $(LIB)/libf90cbf.a
 	-chmod -R 755 $(CBF_PREFIX)/include/cbflib
 	-chmod 755 $(CBF_PREFIX)/lib/libcbf.a
 	-cp $(CBF_PREFIX)/lib/libcbf.a $(CBF_PREFIX)/lib/libcbf_old.a
@@ -1290,6 +1295,11 @@ baseinstall:  all $(CBF_PREFIX) $(CBF_PREFIX)/lib $(CBF_PREFIX)/bin \
 	cp $(LIB)/libfcb.a $(CBF_PREFIX)/lib/libfcb.a
 	-chmod 755 $(CBF_PREFIX)/lib/$(SO_LIB_CBF)
 	-cp $(CBF_PREFIX)/lib/$(SO_LIB_CBF) $(CBF_PREFIX)/lib/$(SO_LIB_CBF)_old
+	-chmod 755 $(CBF_PREFIX)/lib/libf90cbf.a
+	-cp $(CBF_PREFIX)/lib/libf90cbf.a $(CBF_PREFIX)/lib/libf90cbf_old.a
+	cp $(LIB)/libf90cbf.a $(CBF_PREFIX)/lib/libf90cbf.a
+	-chmod 755 $(CBF_PREFIX)/lib/$(SO_LIB_CBF)
+	-cp $(CBF_PREFIX)/lib/$(SO_LIB_CBF) $(CBF_PREFIX)/lib/$(SO_LIB_CBF)_old
 	cp $(SOLIB)/$(SO_LIB_CBF) $(CBF_PREFIX)/lib/
 	$(LN) $(CBF_PREFIX)/lib/$(SO_LIB_CBF) $(CBF_PREFIX)/lib/$(SO_LIB__CBF)
 	-chmod 755 $(CBF_PREFIX)/lib/$(SO_LIB_IMG)
@@ -1298,8 +1308,12 @@ baseinstall:  all $(CBF_PREFIX) $(CBF_PREFIX)/lib $(CBF_PREFIX)/bin \
 	$(LN) $(CBF_PREFIX)/lib/$(SO_LIB_IMG) $(CBF_PREFIX)/lib/$(SO_LIB__IMG)
 	-chmod 755 $(CBF_PREFIX)/lib/$(SO_LIB_FCB)
 	-cp $(CBF_PREFIX)/lib/$(SO_LIB_FCB) $(CBF_PREFIX)/lib/$(SO_LIB_FCB)_old
+	-chmod 755 $(CBF_PREFIX)/lib/$(SO_LIB_F90CBF)
+	-cp $(CBF_PREFIX)/lib/$(SO_LIB_F90CBF) $(CBF_PREFIX)/lib/$(SO_LIB_F90CBF)_old
 	cp $(SOLIB)/$(SO_LIB_FCB) $(CBF_PREFIX)/lib/
 	$(LN) $(CBF_PREFIX)/lib/$(SO_LIB_FCB) $(CBF_PREFIX)/lib/$(SO_LIB__FCB)
+	cp $(SOLIB)/$(SO_LIB_F90CBF) $(CBF_PREFIX)/lib/
+	$(LN) $(CBF_PREFIX)/lib/$(SO_LIB_F90CBF) $(CBF_PREFIX)/lib/$(SO_LIB__F90CBF)
 	-cp $(CBF_PREFIX)/bin/cbflib.ini $(CBF_PREFIX)/bin/cbflib.ini_old
 	echo  "$(RUNLDPREFIX)" > $(CBF_PREFIX)/bin/cbflib.ini
 	echo  "HDF5_PLUGIN_PATH=$(CBF_PREFIX)/lib:$$HDF5_PLUGIN_PATH" >> $(CBF_PREFIX)/bin/cbflib.ini
@@ -1371,9 +1385,11 @@ endif
 	chmod 644 $(CBF_PREFIX)/lib/libcbf.a
 	chmod 644 $(CBF_PREFIX)/lib/libimg.a
 	chmod 644 $(CBF_PREFIX)/lib/libfcb.a
+	chmod 644 $(CBF_PREFIX)/lib/libf90cbf.a
 	chmod 755 $(CBF_PREFIX)/lib/$(SO_PREFIX)cbf.$(SO_EXT)
 	chmod 755 $(CBF_PREFIX)/lib/$(SO_PREFIX)img.$(SO_EXT)
 	chmod 755 $(CBF_PREFIX)/lib/$(SO_PREFIX)fcb.$(SO_EXT)
+	chmod 755 $(CBF_PREFIX)/lib/$(SO_PREFIX)f90cbf.$(SO_EXT)
 	chmod 755 $(CBF_PREFIX)/bin/arvai_test
 	chmod 755 $(CBF_PREFIX)/bin/cbf2nexus
 	chmod 755 $(CBF_PREFIX)/bin/cbf_standardize_numbers
@@ -1408,6 +1424,7 @@ $(SWIG_KIT):
 build_swig: $(M4)/Makefile.m4
 	touch build_swig
 $(SWIG_KIT):    build_swig
+	rm -rf $(SWIG_KIT)
 	git clone $(SWIG_URL)
 	(export SWIG_PREFIX=$(PWD);cd $(SWIG_KIT); ./autogen.sh; \
 	./configure --prefix=$(SWIG_PREFIX); make; make install) 
@@ -1650,6 +1667,24 @@ $(ZSTD): $(HDF5)  build_ZSTD
 	touch $(ZSTD)
 endif
 
+ifneq ($(CBFLIB_DONT_USE_CQRLIB),yes)
+#
+# CQRLIB
+#
+build_CQRLIB:	$(M4)/Makefile.m4 
+	touch build_CQRLIB
+$(CRQLIB):  build_CQRLIB
+	mkdir -p $(CQRLIB)
+	-rm -rf $(CQRLIB)
+	git clone $(CQRLIB_URL)
+	(cp $(CQRLIBinclude)/cqrlib.h  $(INCLUDE); \
+	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(CQRLIBsrc)/cqrlib.c -o cqrlib.o; \
+	$(CC) -shared  cqrlib.o -lm \
+	    -o $(SOLIB)/cqrlib.so; \
+	rm cqrlib.o)
+	touch $(CQRLIB)
+endif
+
 
 #
 # Directories
@@ -1681,6 +1716,9 @@ $(SOLIB):
 	mkdir -p $@
 
 $(JCBF):
+	mkdir -p $@
+
+$(F90CBF):
 	mkdir -p $@
 
 $(MINICBF_TESTS):
@@ -1797,6 +1835,7 @@ ifneq ($(F90C),)
 else
 	echo "Define F90C to build $(SOLIB)/$(SO_LIB_FCB)"
 endif
+
 
 
 #
@@ -1958,9 +1997,50 @@ $(JCBF)/cbflib-$(VERSION).jar: $(JCBF) $(SRC)/jcbf.i
 
 $(SOLIB)/$(SO_LIB_CBF_WRAP): $(JCBF)/cbflib-$(VERSION).jar $(SOLIB)/$(SO_LIB_CBF)
 	mkdir -p $(SOLIB)
-	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) $(JAVAINCLUDES) -c $(JCBF)/jcbf_wrap.c
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) $(JAVAINCLUDES) \
+	  -c $(JCBF)/jcbf_wrap.c
 	$(CC) -o $@ jcbf_wrap.o $(SOLDFLAGS) -L$(SOLIB) -lcbf $(REGEX_LIBS)
 	rm jcbf_wrap.o
+#
+# F90 bindings
+#
+$(F90CBF)/f90cbf.f90 $(F90CBF)/f90cbf_wrap.c $(F90CBF)/f90cbf.mod:  $(F90CBF)/f90cbf.i $(BIN)/convert_f90_swig_wrap
+	$(SWIG) -fortran $(INCLUDES) $(F90CBF)/f90cbf.i
+	cp $(F90CBF)/f90cbf.f90  $(F90CBF)/f90cbf.f90_orig
+	cp $(F90CBF)/f90cbf_wrap.c  $(F90CBF)/f90cbf_wrap.c_orig
+	(cd $(F90CBF);cat f90cbf.f90_orig | $(BIN)/convert_f90_swig_wrap > f90cbf.f90)
+	(cd $(F90CBF);cat f90cbf_wrap.c_orig | $(BIN)/convert_f90_swig_wrap > f90cbf_wrap.c)
+
+$(F90CBF)/f90cbf.o:  $(F90CBF)/f90cbf.f90
+	(cd $(F90CBF); $(F90C) -ffree-form $(FCFLAGS) -c $(F90CBF)/f90cbf.f90)
+
+$(F90CBF)/f90cbf_wrap.o: $(F90CBF)/f90cbf_wrap.c
+	(cd $(F90CBF); $(CC) -fpic $(CFLAGS) $(INCLUDES) -c $(F90CBF)/f90cbf_wrap.c)
+
+
+#
+# F90CBF library
+#
+$(LIB)/libf90cbf.a: $(F90CBF)/f90cbf.o $(F90CBF)/f90cbf_wrap.o 
+	mkdir -p $(LIB)
+ifneq ($(F90C),)
+	$(AR) cr $@ $(F90CBF)/f90cbf.o $(F90CBF)/f90cbf_wrap.o
+ifneq ($(RANLIB),)
+	$(RANLIB) $@
+endif
+else
+	echo "Define F90C to build $(LIB)/libf90cbf.a"
+endif
+
+$(SOLIB)/$(SO_LIB_F90CBF): $(F90CBF)/f90cbf.o $(F90CBF)/f90cbf_wrap.o
+ifneq ($(F90C),)
+	-rm -f $@
+	mkdir -p $(SOLIB)
+	$(F90C)  -o $@ $(F90CBF)/f90cbf.o $(F90CBF)/f90cbf_wrap.o $(SOLDFLAGS)
+else
+	echo "Define F90C to build $(SOLIB)/$(SO_LIB_F90CBF)"
+endif
+
 
 #
 # F90SOURCE
@@ -1983,6 +2063,14 @@ $(EXAMPLES)/test_fcb_read_image.f90: $(M4)/test_fcb_read_image.m4 $(M4)/fcblib_d
 	(cd $(M4); m4 -P $(M4FLAGS) test_fcb_read_image.m4) > $(EXAMPLES)/test_fcb_read_image.f90
 $(EXAMPLES)/test_xds_binary.f90: $(M4)/test_xds_binary.m4 $(M4)/fcblib_defines.m4
 	(cd $(M4); m4 -P $(M4FLAGS) test_xds_binary.m4) > $(EXAMPLES)/test_xds_binary.f90
+
+#
+# convert_f90_swig_wrap program
+#
+$(BIN)/convert_f90_swig_wrap:  $(EXAMPLES)/convert_f90_swig_wrap.cpp
+	mkdir -p $(BIN)
+	$(C++) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(INCLUDES) $(WARNINGS) \
+	$(EXAMPLES)/convert_f90_swig_wrap.cpp -L$(LIB)  -o $@
 
 #
 # convert_image example program
