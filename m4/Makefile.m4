@@ -1,5 +1,5 @@
 m4_define(`cbf_version',`0.9.8')m4_dnl 
-m4_define(`cbf_date',`24 May 2023')m4_dnl 
+m4_define(`cbf_date',`2 Jun 2023')m4_dnl 
 m4_ifelse(cbf_system,`',`m4_define(`cbf_system',`LINUX')') 
 `######################################################################
 #  Makefile - command file for make to create CBFlib                 #
@@ -479,8 +479,6 @@ ZSTDFLTSOLIBS =
 ZSTDdep =
 endif
 
-CBFLIB_DONT_USE_CQRLIB ?= no
-ifneq ($(CBFLIB_DONT_USE_CQRLIB),yes)
 #
 # Definitions to get a version of CQRLIB 
 #
@@ -489,11 +487,7 @@ CQRLIB_URL ?= https://github.com/yayahjb/$(CQRLIB).git
 CQRLIBdep = $(CQRLIB) 
 CQRLIBsrc = $(CQRLIB)
 CQRLIBinclude = $(CQRLIB)
-CQRLIBSOLIBS = -L$(SOLIB) -l cbflib
-else
-CQRLIBSOLIBS =
-CQRLIBdep =
-endif
+CQRLIBSOLIBS = -L$(SOLIB) -l cqr
 
 
 #
@@ -1464,7 +1458,7 @@ all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) \
 	$(HDF5)               \
 	$(LZ4DEPS)            \
 	$(BSHUFDEPS)          \
-	$(CQRLIBdep)          \
+	cqrlib                \
 	$(PY2CIFRWDEPS)       \
 	$(PY3CIFRWDEPS)       \
 	symlinksdone          \
@@ -2041,16 +2035,20 @@ ifneq ($(CBFLIB_DONT_USE_CQRLIB),yes)
 #
 build_CQRLIB:	$(M4)/Makefile.m4 
 	touch build_CQRLIB
-$(CRQLIB):  build_CQRLIB
-	mkdir -p $(CQRLIB)
-	-rm -rf $(CQRLIB)
+cqrlib $(SOLIB)/libcqr.so $(LIB)lbcqr.a:  build_CQRLIB
+	mkdir -p cqrlib
+	-rm -rf cqrlib
 	git clone $(CQRLIB_URL)
 	(cp $(CQRLIBinclude)/cqrlib.h  $(INCLUDE); \
 	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(CQRLIBsrc)/cqrlib.c -o cqrlib.o; \
 	$(CC) -shared  cqrlib.o -lm \
-	    -o $(SOLIB)/cqrlib.so; \
+	    -o $(SOLIB)/libcqr.so; \
+	$(AR) cr $(LIB)/libcqr.a cqrlib.o; \
 	rm cqrlib.o)
-	touch $(CQRLIB)
+ifneq ($(RANLIB),)
+	$(RANLIB) $(LIB)/libcqr.a
+endif
+	touch cqrlib
 endif
 
 
@@ -2519,11 +2517,11 @@ $(BIN)/img2cif: $(LIB)/libcbf.a $(EXAMPLES)/img2cif.c $(LIB)/libimg.a \
 # cif2cbf example program
 #
 $(BIN)/cif2cbf: $(LIB)/libcbf.a $(EXAMPLES)/cif2cbf.c $(LIB)/libimg.a \
-	$(GOPTLIB) $(GOPTINC)
+	$(GOPTLIB) $(GOPTINC) $(CQRLIB)
 	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/cif2cbf.c $(GOPTLIB) -L$(LIB) \
-	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -lhdf5 -limg -o $@
+	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -lhdf5 -limg -lcqr -o $@
 
 #
 # cbf2nexus example program
@@ -3326,6 +3324,7 @@ endif
 	@-rm -f  cif2cbf_packed.cbf
 	@-rm -f  cif2cbf_canonical.cbf
 	@-rm -f  converted.cbf
+	@-rm -rf  cqrlib
 	@-rm -f  adscconverted.cbf
 	@-rm -f  converted_flat.cbf
 	@-rm -f  adscconverted_flat.cbf
