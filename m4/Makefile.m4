@@ -482,7 +482,7 @@ endif
 CBFLIB_DONT_USE_CQRLIB ?= no
 ifneq ($(CBFLIB_DONT_USE_CQRLIB),yes)
 #
-# Definitions to get a version of HDF5Plugin for BLOSC
+# Definitions to get a version of CQRLIB 
 #
 CQRLIB  ?=  cqrlib
 CQRLIB_URL ?= https://github.com/yayahjb/$(CQRLIB).git
@@ -1464,8 +1464,7 @@ all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) \
 	$(HDF5)               \
 	$(LZ4DEPS)            \
 	$(BSHUFDEPS)          \
-	$(ZSTDDEPS)           \
-	$(CQRLIBDEPS)         \
+	$(CQRLIBdep)          \
 	$(PY2CIFRWDEPS)       \
 	$(PY3CIFRWDEPS)       \
 	symlinksdone          \
