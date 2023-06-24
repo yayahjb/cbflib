@@ -151,7 +151,7 @@
  *  -p K_of_padding (0, 1, 2, 4) for no padding after binary data     *
  *    1023, 2047 or 4095 bytes of padding after binary data           *
  *                                                                    *
- *  -R 0 or integer element size                                      *
+ *  -R 0 or real element size                                         *
  *    specifies real conversion of the data, 0 to use the input       *
  *    number of bytes,  4 or 8 for float or double output reals       *
  *                                                                    *

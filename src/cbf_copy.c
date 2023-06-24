@@ -894,6 +894,8 @@ extern "C" {
 
                 if (!realarray)  {
 
+                   /* The current array is integer */
+
                     cbf_onfailnez (cbf_get_integerarray(cbfin,
                                                         &binary_id,
                                                         array,
@@ -1398,6 +1400,8 @@ extern "C" {
                     }
 
                 } else {
+
+                   /* the current array is real */
 
                     cbf_onfailnez (cbf_get_realarray(
                                                      cbfin, &binary_id, array, oelsize,
