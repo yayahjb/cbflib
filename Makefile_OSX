@@ -480,7 +480,7 @@ CQRLIB_URL ?= https://github.com/yayahjb/$(CQRLIB).git
 CQRLIBdep = $(CQRLIB) 
 CQRLIBsrc = $(CQRLIB)
 CQRLIBinclude = $(CQRLIB)
-CQRLIBSOLIBS = -L$(SOLIB) -l cbflib
+CQRLIBSOLIBS = -L$(SOLIB) -l cqr
 
 
 #
@@ -1097,6 +1097,7 @@ all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) \
 	$(BIN)/arvai_test     \
 	$(BIN)/cbf2adscimg    \
 	$(BIN)/cbf2nexus      \
+	$(BIN)/cbf2tiff       \
 	$(BIN)/cif2c          \
 	$(BIN)/cif2cbf        \
 	$(BIN)/cbf_standardize_numbers \
@@ -1660,15 +1661,19 @@ ifneq ($(CBFLIB_DONT_USE_CQRLIB),yes)
 #
 build_CQRLIB:	$(M4)/Makefile.m4 
 	touch build_CQRLIB
-cqrlib:  build_CQRLIB
+cqrlib $(SOLIB)/libcqr.so $(LIB)lbcqr.a:  build_CQRLIB
 	mkdir -p cqrlib
 	-rm -rf cqrlib
 	git clone $(CQRLIB_URL)
 	(cp $(CQRLIBinclude)/cqrlib.h  $(INCLUDE); \
 	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(CQRLIBsrc)/cqrlib.c -o cqrlib.o; \
 	$(CC) -shared  cqrlib.o -lm \
-	    -o $(SOLIB)/cqrlib.so; \
+	    -o $(SOLIB)/libcqr.so; \
+	$(AR) cr $(LIB)/libcqr.a cqrlib.o; \
 	rm cqrlib.o)
+ifneq ($(RANLIB),)
+	$(RANLIB) $(LIB)/libcqr.a
+endif
 	touch cqrlib
 endif
 
@@ -2142,7 +2147,7 @@ $(BIN)/cif2cbf: $(LIB)/libcbf.a $(EXAMPLES)/cif2cbf.c $(LIB)/libimg.a \
 	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/cif2cbf.c $(GOPTLIB) -L$(LIB) \
-	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -lhdf5 -limg -lcqrlib -o $@
+	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -lhdf5 -limg -lcqr -o $@
 
 #
 # cbf2nexus example program
@@ -2232,6 +2237,16 @@ $(BIN)/sequence_match: $(LIB)/libcbf.a $(EXAMPLES)/sequence_match.c $(LIB)/libim
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/sequence_match.c $(GOPTLIB) -L$(LIB) \
 	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -limg -o $@
+
+#
+# cbf2tiff example program
+#
+$(BIN)/cbf2tiff: $(LIB)/libcbf.a $(EXAMPLES)/cbf2tiff.c $(EXAMPLES)/tif_sprint.c \
+	$(GOPTLIB)	$(GOPTINC) $(TIFF)
+	mkdir -p $(BIN)
+	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	-I$(TIFF)/libtiff $(EXAMPLES)/cbf2tiff.c $(GOPTLIB) -L$(LIB) \
+	-lcbf -L$(TIFF_PREFIX)/lib -ltiff $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -limg -o $@
 
 #
 # tiff2cbf example program

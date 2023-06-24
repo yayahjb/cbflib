@@ -1103,6 +1103,7 @@ all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) \
 	$(BIN)/arvai_test     \
 	$(BIN)/cbf2adscimg    \
 	$(BIN)/cbf2nexus      \
+	$(BIN)/cbf2tiff       \
 	$(BIN)/cif2c          \
 	$(BIN)/cif2cbf        \
 	$(BIN)/cbf_standardize_numbers \
@@ -2242,6 +2243,16 @@ $(BIN)/sequence_match: $(LIB)/libcbf.a $(EXAMPLES)/sequence_match.c $(LIB)/libim
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/sequence_match.c $(GOPTLIB) -L$(LIB) \
 	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -limg -o $@
+
+#
+# cbf2tiff example program
+#
+$(BIN)/cbf2tiff: $(LIB)/libcbf.a $(EXAMPLES)/cbf2tiff.c $(EXAMPLES)/tif_sprint.c \
+	$(GOPTLIB)	$(GOPTINC) $(TIFF)
+	mkdir -p $(BIN)
+	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	-I$(TIFF)/libtiff $(EXAMPLES)/cbf2tiff.c $(GOPTLIB) -L$(LIB) \
+	-lcbf -L$(TIFF_PREFIX)/lib -ltiff $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -limg -o $@
 
 #
 # tiff2cbf example program

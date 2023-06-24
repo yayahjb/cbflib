@@ -402,7 +402,7 @@ int	main(int argc, char *argv[])
               TIFFSetField(out, TIFFTAG_DATATYPE, SAMPLEFORMAT_UINT);
             }
             TIFFSetField(out, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
-            TIFFSetField(out, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
+            TIFFSetField(out, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISBLACK);
             TIFFSetField(out, TIFFTAG_ROWSPERSTRIP, TIFFDefaultStripSize(out, fastdim));
             for (row = 0; row < middim*slowdim; row++) {
               memcpy(strip,array+fastdim*elsize*row,fastdim*elsize);
