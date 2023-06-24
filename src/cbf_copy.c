@@ -2299,7 +2299,7 @@ extern "C" {
         return CBF_SUCCESS;
     }
 
-    /* Multiply a 3x3 matrix times a 3-vector to produce a 3-vectorD */
+    /* Multiply a 3x3 matrix times a 3-vector to produce a 3-vector */
 
     int cbf_mat33_vec(double mat[3][3], double vecin[3], double vecout[3]) {
 
@@ -2319,6 +2319,24 @@ extern "C" {
 
       return CBF_SUCCESS;
 
+    }
+
+
+   /* Convert index to dimension-by-dimension indices  */
+
+    int cbf_convert_index(const ssize_t index, 
+      const size_t dimfast, const size_t dimmid, const size_t dimslow,
+      size_t * indexfast, size_t * indexmid, size_t * indexslow) {
+
+      size_t balance;
+
+      if (index < 0 || index >= dimfast*dimmid*dimslow) return CBF_ARGUMENT;
+
+      *indexslow = (size_t)(index/(dimfast*dimmid));
+      balance= index-(*indexslow)*(dimfast*dimmid);
+      *indexmid = (size_t)(balance/dimfast);
+      *indexfast = balance-(*indexmid)*dimfast;
+      return CBF_SUCCESS;
     }
 
    /* Extract a 2D ROI from an image array, rotate in 3D and project back to 2D */
@@ -2341,7 +2359,17 @@ extern "C" {
                         double        pixsize[2]
                         ) {
 
-        size_t indexfast, indexmid, indexslow, index, newindex;
+        ssize_t indexfast, indexmid, indexslow, index, newindex;
+
+        ssize_t newindexleftdown,newindexleftmid,newindexleftup;
+        ssize_t newindexmiddown,newindexmidup;
+        ssize_t newindexrightdown,newindexrightmid,newindexrightup;
+
+        ssize_t newvalueleftdown,newvalueleftmid,newvalueleftup;
+        ssize_t newvaluemiddown,newvaluemidup;
+        ssize_t newvaluerightdown,newvaluerightmid,newvaluerightup;
+
+        size_t dimslow=1;
 
         double dist_hl0, dist_hh0, dist_ll0, dist_lh0;
 
@@ -2360,6 +2388,8 @@ extern "C" {
         double posfastlow, posfasthigh, posmidlow, posmidhigh;
 
         double newfastlow, newfasthigh, newmidlow, newmidhigh;
+
+        double newindexlow, newindexhigh;
 
         long lnewfast, lnewmid;
 
@@ -2387,13 +2417,14 @@ extern "C" {
 
         void * tdst;
 
-        size_t i, j, k, ii;
+        size_t i, j, k, ii, jj;
 
         /* Is the element size valid? */
 
         if (elsize != sizeof (int) &&
             elsize != 2* sizeof (int) &&
             elsize != 4* sizeof (int) &&
+            elsize != sizeof (long) &&
             elsize != sizeof (short) &&
             elsize != sizeof (char))
 
@@ -2438,6 +2469,16 @@ extern "C" {
 
         cbf_failnez(cbf_mat33_vec(rotmat, roi_lh0, newroi_lh0));
 
+        /* The points roi_hl0, roi_hh0, roi_ll0 and roi_lh0
+           map to newroi_hl0, newroi_hh0, newroi_ll0 and newroi_lh0
+           respectively  including scaling by pixel size and projection
+           of the rotation onto the x-y plane
+
+           These are the corners of the full roi  rounded up at the high
+           corners 
+
+        */ 
+
         dist_hl0 = sqrt(roi_hl0[0]*roi_hl0[0]+roi_hl0[1]*roi_hl0[1]);        
         dist_hh0 = sqrt(roi_hh0[0]*roi_hh0[0]+roi_hh0[1]*roi_hh0[1]);
         dist_ll0 = sqrt(roi_ll0[0]*roi_ll0[0]+roi_ll0[1]*roi_ll0[1]);
@@ -2449,7 +2490,6 @@ extern "C" {
 
         newscale=(dist_hl0+dist_hh0+dist_ll0+dist_lh0)/(newdist_hl0+newdist_hh0+newdist_ll0+newdist_lh0);
 
-
         newroi_hl0[0] /= pixsize[0]; newroi_hh0[0] /= pixsize[0]; newroi_ll0[0] /= pixsize[0]; newroi_lh0[0] /= pixsize[0];
 
         newroi_hl0[1] /= pixsize[1]; newroi_hh0[1] /= pixsize[1]; newroi_ll0[1] /= pixsize[1]; newroi_lh0[1] /= pixsize[1];
@@ -2458,18 +2498,17 @@ extern "C" {
 
         newroi_hl0[1] *= newscale; newroi_hh0[1] *= newscale; newroi_ll0[1] *=newscale; newroi_lh0[1] *=newscale;
 
-
         newroi_hl0[2] = newroi_hh0[2] = newroi_ll0[2] = newroi_lh0[2] =0.;
 
         newroi_hl0[0] += center[0]; newroi_hh0[0] += center[0]; newroi_ll0[0] += center[0]; newroi_lh0[0] += center[0];
 
         newroi_hl0[1] += center[1]; newroi_hh0[1] += center[1]; newroi_ll0[1] += center[1]; newroi_lh0[1] += center[1];
 
-        /* fprintf(stderr,"newroi_hl0:  %15.6g, %15.6g,%15.6g\n", newroi_hl0[0], newroi_hl0[1],newroi_hl0[2]); */
-        /* fprintf(stderr,"newroi_hh0:  %15.6g, %15.6g,%15.6g\n", newroi_hh0[0], newroi_hh0[1],newroi_hh0[2]); */
-        /* fprintf(stderr,"newroi_ll0:  %15.6g, %15.6g,%15.6g\n", newroi_ll0[0], newroi_ll0[1],newroi_ll0[2]); */
-        /* fprintf(stderr,"newroi_lh0:  %15.6g, %15.6g,%15.6g\n", newroi_lh0[0], newroi_lh0[1],newroi_lh0[2]); */ 
-        /* fprintf(stderr,"newscale: %15.6g\n", newscale); */
+        /* fprintf(stderr,"newroi_hl0:  %15.6g, %15.6g,%15.6g\n", newroi_hl0[0], newroi_hl0[1],newroi_hl0[2]);
+        fprintf(stderr,"newroi_hh0:  %15.6g, %15.6g,%15.6g\n", newroi_hh0[0], newroi_hh0[1],newroi_hh0[2]);
+        fprintf(stderr,"newroi_ll0:  %15.6g, %15.6g,%15.6g\n", newroi_ll0[0], newroi_ll0[1],newroi_ll0[2]);
+        fprintf(stderr,"newroi_lh0:  %15.6g, %15.6g,%15.6g\n", newroi_lh0[0], newroi_lh0[1],newroi_lh0[2]); 
+        fprintf(stderr,"newscale: %15.6g\n", newscale); */
 
         tdst = dst;
 
@@ -2490,7 +2529,24 @@ extern "C" {
         /* transfer each row one element at a time */
         {   double oldpos[3], newpos[3];
 
-            size_t vertprev=0, vertcur, horzprev=0, horzcur;
+            double dhpos[3][3], dvpos[3][3];
+
+            ssize_t vertprev=0, vertcur, horzprev=0, horzcur;
+
+            double dvertcur, dhorzcur, dvertfrac, dhorzfrac;
+            double dvertfracup, dvertfracdown, dhorzfracleft, dhorzfracright;
+            double dvertfracmid, dhorzfracmid;
+
+            size_t xnewindexleftdownfast, xindexleftdownmid, xindexleftdownslow;
+            size_t xnewindexleftmidfast,  xindexleftmidmid,  xindexleftmidslow;
+            size_t xnewindexleftupfast,   xindexleftupmid,   xindexleftupslow;
+            size_t xnewindexmiddownfast,  xindexmiddownmid,  xindexmiddownslow;
+            size_t xnewindexmidupfast,    xindexmidupmid,    xindexmidupslow;
+            size_t xnewindexrightdownfast,xindexrightdownmid,xindexrightdownslow;
+            size_t xnewindexrightmidfast, xindexrightmidmid, xindexrightmidslow;
+            size_t xnewindexrightupfast,  xindexrightupmid,  xindexrightupslow;
+
+
 
             oldpos[2] = 0.;
 
@@ -2504,17 +2560,94 @@ extern "C" {
 
                   cbf_failnez(cbf_mat33_vec(rotmat, oldpos, newpos));
 
+                  /* if (indexmid < 12 && indexfast < 12) {
+                    fprintf(stderr,"indexfast, indexmid: %15.6g %15.6g, oldpos: %15.6g %15.6g %15.6g\n", indexfast, indexmid, oldpos[0], oldpos[1], oldpos[2]);
+                    fprintf(stderr,"newfast, newmid: %15.6g %15.6g, newpos: %15.6g %15.6g %15.6g\n", 
+                      newpos[0]/pixsize[0]*newscale+center[0], newpos[1]/pixsize[1]*newscale+center[1], newpos[0], newpos[1], newpos[2]);
+                  } */
+
                   if (indexfast > fastlow) {
 
-                    vertprev = vertcur;
+                    vertprev = vertcur;  
 
                     horzprev = horzcur;
 
                   }
 
-                  horzcur=(size_t)(newpos[0]/pixsize[0]*newscale+center[0]+0.5); 
+                  /*  (dhorzcur, dvertcur) is the lower left corner of  the box
+                      containing (horzcor, vertcur) */
 
-                  vertcur=(size_t)(newpos[1]/pixsize[1]*newscale+center[1]+0.5);
+                  dhorzcur = newpos[0]/pixsize[0]*newscale+center[0];
+
+                  dvertcur = newpos[1]/pixsize[1]*newscale+center[1];
+
+                  horzcur=(ssize_t)(dhorzcur+0.5); 
+
+                  vertcur=(ssize_t)(dvertcur+0.5);
+
+                  if (horzcur < fastlow) horzcur=fastlow;
+
+                  if (horzcur > fasthigh) horzcur=fasthigh;
+
+                  if (vertcur < midlow) vertcur=midlow;
+
+                  if (vertcur > midhigh) vertcur=midhigh;
+
+                  /* if dhorzcur is between horzcur-.5 and horzcor,  a fraction
+                     of the value is donated to the left
+                     if dhorzcur is between horzcur and horzcur+.5, a fraction
+                     of the value os donated to the right
+                     if dvertcur is between vertcuz-.5 and vertcur,  a fraction
+                     of the value is donated below
+                     if dvertcur is between vertcur and vertcur+.5, a fraction
+                     of the value os donated above
+
+                     when the difference is 0, the  donated fraction is 0
+                     when the magnitude of the difference is > .5, the donated
+                       fraction is 1 
+                  */
+
+                  dhorzfrac=dhorzcur-(double)horzcur;
+
+                  if (dhorzfrac < 0.)  {
+
+                    dhorzfracleft = -2.*dhorzfrac;
+                    if (dhorzfracleft > 1.) dhorzfracleft =1.;
+                    dhorzfracright = 0.;
+                    dhorzfracmid = 1.-dhorzfracleft;
+
+                  } else {
+
+                    dhorzfracright = 2.*dhorzfrac;
+                    if (dhorzfracright > 1.) dhorzfracright =1.;
+                    dhorzfracleft = 0.;
+                    dhorzfracmid = 1.-dhorzfracright;
+
+                  }
+
+                  dvertfrac=dvertcur-(double)vertcur;
+
+                  if (dvertfrac < 0.)  {
+
+                    dvertfracdown = -2.*dvertfrac;
+                    if (dvertfracdown > 1.) dvertfracdown =1.;
+                    dvertfracup = 0.;
+                    dvertfracmid = 1.-dvertfracdown;
+
+                  } else {
+
+                    dvertfracup = 2.*dvertfrac;
+                    if (dvertfracup > 1.) dvertfracup =1.;
+                    dvertfracdown = 0.;
+                    dvertfracmid = 1.-dvertfracup;
+
+                  }
+
+                 /* dhorzfracleft = 0.;
+                 dhorzfracright= 0.;
+                 dvertfracup = 0.;
+                 dvertfracdown = 0.; */
+
 
                   if (vertcur <  midlow || vertcur > midhigh || horzcur <  fastlow || horzcur > fasthigh) continue;
 
@@ -2526,351 +2659,412 @@ extern "C" {
 
                   }
 
+                  for (ii=0; ii<3; ii++) {
+                    for (jj=0; jj<3; jj++) {
+                      dhpos[ii][jj]=dhorzcur;
+                      dvpos[ii][jj]=dvertcur;
+                      if(dhorzcur+(double)(ii-1) >= (double)fastlow && dhorzcur+(double)(ii-1) <=(double)fasthigh)
+                        dhpos[ii][jj] = dhorzcur+(double)(ii-1);
+                      if(dvertcur+(double)(jj-1) >= (double)midlow && dvertcur+(double)(jj-1) <=(double)midhigh)
+                        dvpos[ii][jj] = dvertcur+(double)(jj-1);
+                    }
+                  }
+
                   index = indexfast +indexmid*dimfast+indexslow*dimfast*dimmid;
 
                   newindex = horzcur +vertcur*dimfast+indexslow*dimfast*dimmid;
+                  newindexlow = fastlow + midlow*dimfast+indexslow*dimfast*dimmid;
+                  newindexhigh = fasthigh + midhigh*dimfast+indexslow*dimfast*dimmid;
 
-                  /* if (-3 <indexfast-center[0]&&indexfast-center[0]<3 &&-3 <indexmid-center[1]&&indexmid-center[1]<3)
+                  newindexleftdown = dhpos[0][0]+dvpos[0][0]*dimfast+indexslow*dimfast*dimmid;
+                  newindexleftmid = dhpos[0][1]+dvpos[0][1]*dimfast+indexslow*dimfast*dimmid;
+                  newindexleftup = dhpos[0][2]+dvpos[0][2]*dimfast+indexslow*dimfast*dimmid;
+                  newindexmiddown = dhpos[1][0]+dvpos[1][0]*dimfast+indexslow*dimfast*dimmid;
+                  newindexmidup = dhpos[1][2]+dvpos[1][2]*dimfast+indexslow*dimfast*dimmid;
+                  newindexrightdown = dhpos[2][0]+dvpos[2][0]*dimfast+indexslow*dimfast*dimmid;
+                  newindexrightmid = dhpos[2][1]+dvpos[2][1]*dimfast+indexslow*dimfast*dimmid;
+                  newindexrightup = dhpos[2][2]+dvpos[2][2]*dimfast+indexslow*dimfast*dimmid;
 
-                  fprintf(stderr," orig pos(%15.6g,%15.6g), 
+                  if (newindexleftdown < newindexlow) newindexleftdown = newindexlow;
+                  if (newindexleftmid < newindexlow) newindexleftmid = newindexlow;
+                  if (newindexleftup < newindexlow) newindexleftup = newindexlow;
+                  if (newindexmiddown < newindexlow) newindexmiddown = newindexlow;
+                  if (newindexmidup < newindexlow) newindexmidup = newindexlow;
+                  if (newindexrightdown < newindexlow) newindexrightdown = newindexlow;
+                  if (newindexrightmid < newindexlow) newindexrightmid = newindexlow;
+                  if (newindexrightup < newindexlow) newindexrightup = newindexlow;
 
-                  cur pos(%15.6g,%15.6g)\n", (double)indexfast, (double)indexmid, (double)horzcur, (double)vertcur); */
+                  if (newindexleftdown > newindexhigh) newindexleftdown = newindexhigh;
+                  if (newindexleftmid > newindexhigh) newindexleftmid = newindexhigh;
+                  if (newindexleftup > newindexhigh) newindexleftup = newindexhigh;
+                  if (newindexmiddown > newindexhigh) newindexmiddown = newindexhigh;
+                  if (newindexmidup > newindexhigh) newindexmidup = newindexhigh;
+                  if (newindexrightdown > newindexhigh) newindexrightdown = newindexhigh;
+                  if (newindexrightmid > newindexhigh) newindexrightmid = newindexhigh;
+                  if (newindexrightup > newindexhigh) newindexrightup = newindexhigh;
+
+                  cbf_failnez(cbf_convert_index(newindexleftdown, dimfast, dimmid, dimslow, &xnewindexleftdownfast, &xindexleftdownmid, &xindexleftdownslow));
+                  cbf_failnez(cbf_convert_index(newindexleftmid,  dimfast, dimmid, dimslow, &xnewindexleftmidfast,  &xindexleftmidmid,  &xindexleftmidslow));
+                  cbf_failnez(cbf_convert_index(newindexleftup,   dimfast, dimmid, dimslow, &xnewindexleftupfast,   &xindexleftupmid,   &xindexleftupslow));
+                  cbf_failnez(cbf_convert_index(newindexmiddown,  dimfast, dimmid, dimslow, &xnewindexmiddownfast,  &xindexmiddownmid,  &xindexmiddownslow));
+                  cbf_failnez(cbf_convert_index(newindexmidup,    dimfast, dimmid, dimslow, &xnewindexmidupfast,    &xindexmidupmid,    &xindexmidupslow));
+                  cbf_failnez(cbf_convert_index(newindexrightdown,dimfast, dimmid, dimslow, &xnewindexrightdownfast,&xindexrightdownmid,&xindexrightdownslow));
+                  cbf_failnez(cbf_convert_index(newindexrightmid, dimfast, dimmid, dimslow, &xnewindexrightmidfast, &xindexrightmidmid, &xindexrightmidslow));
+                  cbf_failnez(cbf_convert_index(newindexrightup,  dimfast, dimmid, dimslow, &xnewindexrightupfast,  &xindexrightupmid,  &xindexrightupslow));
+
+                  /* if (indexfast< 12 && indexmid < 12)
+
+                  {
+                     fprintf(stderr,"newindexleftdown, xnewindexleftdownfast, xindexleftdownmid, xindexleftdownslow: %15.6g %15.6g %15.6g %15.6g\n",
+                       (double)newindexleftdown, (double)xnewindexleftdownfast, (double)xindexleftdownmid, (double)xindexleftdownslow);
+                     fprintf(stderr,"newindexleftmid, xnewindexleftmidfast,  xindexleftmidmid,  xindexleftmidslow: %15.6g %15.6g %15.6g %15.6g\n",
+                       (double)newindexleftmid, (double)xnewindexleftmidfast, (double)xindexleftmidmid, (double)xindexleftmidslow);
+                     fprintf(stderr,"newindexleftup, xnewindexleftupfast, xindexleftupmid, xindexleftupslow: %15.6g %15.6g %15.6g %15.6g\n",
+                       (double)newindexleftup, (double)xnewindexleftupfast, (double)xindexleftupmid, (double)xindexleftupslow);
+                     fprintf(stderr,"newindexmiddown, xnewindexmiddownfast, xindexmiddownmid, xindexmiddownslow: %15.6g %15.6g %15.6g %15.6g\n",
+                       (double)newindexmiddown, (double)xnewindexmiddownfast, (double)xindexmiddownmid, (double)xindexmiddownslow);
+                     fprintf(stderr,"newindexmidup, xnewindexmidupfast, xindexmidupmid, xindexmidupslow: %15.6g %15.6g %15.6g %15.6g\n",
+                       (double)newindexmidup, (double)xnewindexmidupfast, (double)xindexmidupmid, (double)xindexmidupslow);
+                     fprintf(stderr,"newindexrightdown, xnewindexrightdownfast, xindexrightdownmid, xindexrightdownslow: %15.6g %15.6g %15.6g %15.6g\n",
+                       (double)newindexrightdown, (double)xnewindexrightdownfast, (double)xindexrightdownmid, (double)xindexleftdownslow);
+                     fprintf(stderr,"newindexrightmid, xnewindexrightmidfast, xindexrightmidmid, xindexleftrightmidslow: %15.6g %15.6g %15.6g %15.6g\n",
+                       (double)newindexrightmid, (double)xnewindexrightmidfast, (double)xindexrightmidmid, (double)xindexrightmidslow);
+                     fprintf(stderr,"newindexrightup, xnewindexrightupfast, xindexrightupmid, xindexrightupslow: %15.6g %15.6g %15.6g %15.6g\n",
+                       (double)newindexrightup, (double)xnewindexrightupfast, (double)xindexrightupmid, (double)xindexrightupslow);
+
+                     fprintf(stderr," orig pos(%15.6g,%15.6g), "
+
+                  " cur pos(%15.6g,%15.6g)\n", (double)indexfast, (double)indexmid, (double)horzcur, (double)vertcur);
+
+                    fprintf(stderr, "index, newindex, newindexleftdown, newindexleftmid, newindexleftup, "
+
+                    " newindexmiddown, newindexmidup, newindexrightdown, newindexrightmid, newindexrightup: "
+
+                    " %15.6g, %15.6g, %15.6g, %15.6g, %15.6g, %15.6g, %15.6g, %15.6g, %15.6g, %15.6g\n",
+
+                    (double)index, (double)newindex, (double)newindexleftdown, (double)newindexleftmid, (double)newindexleftup, 
+   
+                    (double)newindexmiddown, (double)newindexmidup, (double)newindexrightdown, (double)newindexrightmid, (double)newindexrightup); 
+ 
+
+                  }
+                  */
+
+                  /* if (index != newindex && abs(index-newindex) > 20000) {
+
+                  fprintf(stderr," orig pos(%15.6g,%15.6g), "
+
+                  "cur pos(%15.6g,%15.6g)\n", (double)indexfast, (double)indexmid, (double)horzcur, (double)vertcur);
+
+                  } */
 
                   if (real) {
 
                     if (sizeof(double)==elsize) {
                       dvalue=((double *)src)[index];
                       if (vertprev <= vertcur+1 && vertprev+1 >= vertcur && horzprev <= horzcur+1 && horzprev+1 >= horzcur) {
-                        ((double *)dst)[newindex] += dvalue;
+                        ((double *)dst)[newindex] += (dvalue*dhorzfracmid*dvertfracmid);
+                        ((double *)dst)[newindexleftdown]  += (dvalue*dhorzfracleft*dvertfracdown);
+                        ((double *)dst)[newindexleftmid]   += (dvalue*dhorzfracleft*dvertfracmid);
+                        ((double *)dst)[newindexleftup]    += (dvalue*dhorzfracleft*dvertfracup);
+                        ((double *)dst)[newindexmiddown]   += (dvalue*dhorzfracmid*dvertfracdown);
+                        ((double *)dst)[newindexmidup]     += (dvalue*dhorzfracmid*dvertfracup);
+                        ((double *)dst)[newindexrightdown] += (dvalue*dhorzfracright*dvertfracdown);
+                        ((double *)dst)[newindexrightmid]  += (dvalue*dhorzfracright*dvertfracmid);
+                        ((double *)dst)[newindexrightup]   += (dvalue*dhorzfracright*dvertfracup);
                       } else if (vertprev > vertcur+1) {
                         for (ii=0; ii < vertprev-vertcur; ii++) {
-                        ((double *)dst)[newindex+ii*(dimfast)] += dvalue/((double)(vertprev-vertcur));
+                          if (newindex+ii*(dimfast)<=newindexhigh)
+                            ((double *)dst)[newindex+ii*(dimfast)]          += dvalue*dhorzfracmid*dvertfracmid/((double)(vertprev-vertcur));
+                          if (newindexleftdown+ii*(dimfast)<=newindexhigh)
+                            ((double *)dst)[newindexleftdown+ii*(dimfast)]  += (dvalue*dhorzfracleft*dvertfracdown)/((double)(vertprev-vertcur));
+                          if (newindexleftmid+ii*(dimfast)<=newindexhigh)
+                            ((double *)dst)[newindexleftmid+ii*(dimfast)]   += (dvalue*dhorzfracleft*dvertfracmid)/((double)(vertprev-vertcur));
+                          if (newindexleftup+ii*(dimfast)<=newindexhigh)
+                            ((double *)dst)[newindexleftup+ii*(dimfast)]    += (dvalue*dhorzfracleft*dvertfracup)/((double)(vertprev-vertcur));
+                          if (newindexmiddown+ii*(dimfast)<=newindexhigh)
+                            ((double *)dst)[newindexmiddown+ii*(dimfast)]   += (dvalue*dhorzfracmid*dvertfracdown)/((double)(vertprev-vertcur));
+                          if (newindexmidup+ii*(dimfast)<=newindexhigh)
+                            ((double *)dst)[newindexmidup+ii*(dimfast)]     += (dvalue*dhorzfracmid*dvertfracup)/((double)(vertprev-vertcur));
+                          if (newindexrightdown+ii*(dimfast)<=newindexhigh)
+                            ((double *)dst)[newindexrightdown+ii*(dimfast)] += (dvalue*dhorzfracright*dvertfracdown)/((double)(vertprev-vertcur));
+                          if (newindexrightmid+ii*(dimfast)<=newindexhigh)
+                            ((double *)dst)[newindexrightmid+ii*(dimfast)]  += (dvalue*dhorzfracright*dvertfracmid)/((double)(vertprev-vertcur));
+                          if (newindexrightup+ii*(dimfast)<=newindexhigh)
+                            ((double *)dst)[newindexrightup+ii*(dimfast)]   += (dvalue*dhorzfracright*dvertfracup)/((double)(vertprev-vertcur));
                         } 
                       } else if (vertprev+1 < vertcur) {
                         for (ii=0; ii < vertcur-vertprev; ii++) {
-                          ((double *)dst)[newindex-ii*(dimfast)] += dvalue/((double)(vertcur-vertprev));
+                          if (newindex>= ii*(dimfast)+newindexlow)
+                            ((double *)dst)[newindex-ii*(dimfast)]          += dvalue*dhorzfracmid*dvertfracmid/((double)(vertcur-vertprev));
+                          if (newindexleftdown>= ii*(dimfast)+newindexlow)
+                            ((double *)dst)[newindexleftdown-ii*(dimfast)]  += (dvalue*dhorzfracleft*dvertfracdown)/((double)(vertcur-vertprev));
+                          if (newindexleftmid>= ii*(dimfast)+newindexlow)
+                            ((double *)dst)[newindexleftmid-ii*(dimfast)]   += (dvalue*dhorzfracleft*dvertfracmid)/((double)(vertcur-vertprev));
+                          if (newindexleftup>= ii*(dimfast)+newindexlow)
+                            ((double *)dst)[newindexleftup-ii*(dimfast)]    += (dvalue*dhorzfracleft*dvertfracup)/((double)(vertcur-vertprev));
+                          if (newindexmiddown>= ii*(dimfast)+newindexlow)
+                            ((double *)dst)[newindexmiddown-ii*(dimfast)]   += (dvalue*dhorzfracmid*dvertfracdown)/((double)(vertcur-vertprev));
+                          if(newindexmidup>= ii*(dimfast)+newindexlow)
+                            ((double *)dst)[newindexmidup-ii*(dimfast)]     += (dvalue*dhorzfracmid*dvertfracup)/((double)(vertcur-vertprev));
+                          if(newindexrightdown>= ii*(dimfast)+newindexlow)
+                            ((double *)dst)[newindexrightdown-ii*(dimfast)] += (dvalue*dhorzfracright*dvertfracdown)/((double)(vertcur-vertprev));
+                          if(newindexrightmid>= ii*(dimfast)+newindexlow)
+                            ((double *)dst)[newindexrightmid-ii*(dimfast)]  += (dvalue*dhorzfracright*dvertfracmid)/((double)(vertcur-vertprev));
+                          if(newindexrightup>= ii*(dimfast)+newindexlow)
+                            ((double *)dst)[newindexrightup-ii*(dimfast)]   += (dvalue*dhorzfracright*dvertfracup)/((double)(vertcur-vertprev));
                         } 
                       } else if (horzprev >  horzcur+1) {
                         for (ii=0; ii < horzprev-horzcur; ii++) {
-                          ((double *)dst)[newindex+ii] += dvalue/((double)(horzprev-horzcur));
+                          if (newindex+ii<=newindexhigh)
+                            ((double *)dst)[newindex+ii]          += dvalue*dhorzfracmid*dvertfracmid/((double)(horzprev-horzcur));
+                          if (newindexleftdown+ii<=newindexhigh)
+                            ((double *)dst)[newindexleftdown+ii]  += (dvalue*dhorzfracleft*dvertfracdown)/((double)(horzprev-horzcur));
+                          if (newindexleftmid+ii<=newindexhigh)
+                            ((double *)dst)[newindexleftmid+ii]   += (dvalue*dhorzfracleft*dvertfracmid)/((double)(horzprev-horzcur));
+                          if (newindexleftup+ii<=newindexhigh)
+                            ((double *)dst)[newindexleftup+ii]    += (dvalue*dhorzfracleft*dvertfracup)/((double)(horzprev-horzcur));
+                          if (newindexmiddown+ii<=newindexhigh)
+                            ((double *)dst)[newindexmiddown+ii]   += (dvalue*dhorzfracmid*dvertfracdown)/((double)(horzprev-horzcur));
+                          if (newindexmidup+ii<=newindexhigh)
+                            ((double *)dst)[newindexmidup+ii]     += (dvalue*dhorzfracmid*dvertfracup)/((double)(horzprev-horzcur));
+                          if (newindexrightdown+ii<=newindexhigh)
+                            ((double *)dst)[newindexrightdown+ii] += (dvalue*dhorzfracright*dvertfracdown)/((double)(horzprev-horzcur));
+                          if (newindexrightmid+ii<=newindexhigh)
+                            ((double *)dst)[newindexrightmid+ii]  += (dvalue*dhorzfracright*dvertfracmid)/((double)(horzprev-horzcur));
+                          if (newindexrightup+ii<=newindexhigh)
+                            ((double *)dst)[newindexrightup+ii]   += (dvalue*dhorzfracright*dvertfracup)/((double)(horzprev-horzcur));
                         } 
                       } else if (horzprev+1 < horzcur) {
                         for (ii=0; ii < horzcur-horzprev; ii++) {
-                          ((double *)dst)[newindex-ii] += dvalue/((double)(horzcur-horzprev));
+                          if (newindex>= ii+ newindexlow)
+                            ((double *)dst)[newindex-ii]          += dvalue*dhorzfracmid*dvertfracmid/((double)(horzcur-horzprev));
+                          if (newindexleftdown>= ii+ newindexlow)
+                            ((double *)dst)[newindexleftdown-ii]  += (dvalue*dhorzfracleft*dvertfracdown)/((double)(horzcur-horzprev));
+                          if (newindexleftmid>= ii+ newindexlow)
+                            ((double *)dst)[newindexleftmid-ii]   += (dvalue*dhorzfracleft*dvertfracmid)/((double)(horzcur-horzprev));
+                          if (newindexleftup>= ii+ newindexlow)
+                            ((double *)dst)[newindexleftup-ii]    += (dvalue*dhorzfracleft*dvertfracup)/((double)(horzcur-horzprev));
+                          if (newindexmiddown>= ii+ newindexlow)
+                            ((double *)dst)[newindexmiddown-ii]   += (dvalue*dhorzfracmid*dvertfracdown)/((double)(horzcur-horzprev));
+                          if (newindexmidup>= ii+ newindexlow)
+                            ((double *)dst)[newindexmidup-ii]     += (dvalue*dhorzfracmid*dvertfracup)/((double)(horzcur-horzprev));
+                          if (newindexrightdown>= ii+ newindexlow)
+                            ((double *)dst)[newindexrightdown-ii] += (dvalue*dhorzfracright*dvertfracdown)/((double)(horzcur-horzprev));
+                          if (newindexrightmid>= ii+ newindexlow)
+                            ((double *)dst)[newindexrightmid-ii]  += (dvalue*dhorzfracright*dvertfracmid)/((double)(horzcur-horzprev));
+                          if (newindexrightup>= ii+ newindexlow)
+                            ((double *)dst)[newindexrightup-ii]   += (dvalue*dhorzfracright*dvertfracup)/((double)(horzcur-horzprev));
                         } 
                       } 
                     } else if (sizeof(float)==elsize) {
                       fvalue=((float *)src)[index];
                       if (vertprev <= vertcur+1 && vertprev+1 >= vertcur && horzprev <= horzcur+1 && horzprev+1 >= horzcur) {
-                        ((float *)dst)[newindex] += fvalue;
+                        ((float *)dst)[newindex] += (fvalue*dhorzfracmid*dvertfracmid);
+                        ((float *)dst)[newindexleftdown]  += (fvalue*dhorzfracleft*dvertfracdown);
+                        ((float *)dst)[newindexleftmid]   += (fvalue*dhorzfracleft*dvertfracmid);
+                        ((float *)dst)[newindexleftup]    += (fvalue*dhorzfracleft*dvertfracup);
+                        ((float *)dst)[newindexmiddown]   += (fvalue*dhorzfracmid*dvertfracdown);
+                        ((float *)dst)[newindexmidup]     += (fvalue*dhorzfracmid*dvertfracup);
+                        ((float *)dst)[newindexrightdown] += (fvalue*dhorzfracright*dvertfracdown);
+                        ((float *)dst)[newindexrightmid]  += (fvalue*dhorzfracright*dvertfracmid);
+                        ((float *)dst)[newindexrightup]   += (fvalue*dhorzfracright*dvertfracup);
                       } else if (vertprev > vertcur+1) {
                         for (ii=0; ii < vertprev-vertcur; ii++) {
-                          ((float *)dst)[newindex+ii*(dimfast)] += fvalue/((float)(vertprev-vertcur));
+                          if(newindex+ii*(dimfast)<=newindexhigh)
+                            ((float *)dst)[newindex+ii*(dimfast)]          += fvalue*dhorzfracmid*dvertfracmid/((float)(vertprev-vertcur));
+                          if(newindexleftdown+ii*(dimfast)<=newindexhigh)
+                            ((float *)dst)[newindexleftdown+ii*(dimfast)]  += (fvalue*dhorzfracleft*dvertfracdown)/((float)(vertprev-vertcur));
+                          if(newindexleftmid+ii*(dimfast)<=newindexhigh)
+                            ((float *)dst)[newindexleftmid+ii*(dimfast)]   += (fvalue*dhorzfracleft*dvertfracmid)/((float)(vertprev-vertcur));
+                          if(newindexleftup+ii*(dimfast)<=newindexhigh)
+                            ((float *)dst)[newindexleftup+ii*(dimfast)]    += (fvalue*dhorzfracleft*dvertfracup)/((float)(vertprev-vertcur));
+                          if(newindexmiddown+ii*(dimfast)<=newindexhigh)
+                            ((float *)dst)[newindexmiddown+ii*(dimfast)]   += (fvalue*dhorzfracmid*dvertfracdown)/((float)(vertprev-vertcur));
+                          if(newindexmidup+ii*(dimfast)<=newindexhigh)
+                            ((float *)dst)[newindexmidup+ii*(dimfast)]     += (fvalue*dhorzfracmid*dvertfracup)/((float)(vertprev-vertcur));
+                          if(newindexrightdown+ii*(dimfast)<=newindexhigh)
+                            ((float *)dst)[newindexrightdown+ii*(dimfast)] += (fvalue*dhorzfracright*dvertfracdown)/((float)(vertprev-vertcur));
+                          if(newindexrightmid+ii*(dimfast)<=newindexhigh)
+                            ((float *)dst)[newindexrightmid+ii*(dimfast)]  += (fvalue*dhorzfracright*dvertfracmid)/((float)(vertprev-vertcur));
+                          if(newindexrightup+ii*(dimfast)<=newindexhigh)
+                            ((float *)dst)[newindexrightup+ii*(dimfast)]   += (fvalue*dhorzfracright*dvertfracup)/((float)(vertprev-vertcur));
                         } 
                       } else if (vertprev+1 < vertcur) {
                         for (ii=0; ii < vertcur-vertprev; ii++) {
-                          ((float *)dst)[newindex-ii*(dimfast)] += fvalue/((float)(vertcur-vertprev));
+                          if(newindex>=ii*(dimfast)+newindexlow)
+                            ((float *)dst)[newindex-ii*(dimfast)]          += fvalue*dhorzfracmid*dvertfracmid/((float)(vertcur-vertprev));
+                          if(newindexleftdown>=ii*(dimfast)+newindexlow)
+                            ((float *)dst)[newindexleftdown-ii*(dimfast)]  += (fvalue*dhorzfracleft*dvertfracdown)/((float)(vertcur-vertprev));
+                          if(newindexleftmid>=ii*(dimfast)+newindexlow)
+                            ((float *)dst)[newindexleftmid-ii*(dimfast)]   += (fvalue*dhorzfracleft*dvertfracmid)/((float)(vertcur-vertprev));
+                          if(newindexleftup>=ii*(dimfast)+newindexlow)
+                            ((float *)dst)[newindexleftup-ii*(dimfast)]    += (fvalue*dhorzfracleft*dvertfracup)/((float)(vertcur-vertprev));
+                          if(newindexmiddown>=ii*(dimfast)+newindexlow)
+                            ((float *)dst)[newindexmiddown-ii*(dimfast)]   += (fvalue*dhorzfracmid*dvertfracdown)/((float)(vertcur-vertprev));
+                          if(newindexmidup>=ii*(dimfast)+newindexlow)
+                            ((float *)dst)[newindexmidup-ii*(dimfast)]     += (fvalue*dhorzfracmid*dvertfracup)/((float)(vertcur-vertprev));
+                          if(newindexrightdown>=ii*(dimfast)+newindexlow)
+                            ((float *)dst)[newindexrightdown-ii*(dimfast)] += (fvalue*dhorzfracright*dvertfracdown)/((float)(vertcur-vertprev));
+                          if(newindexrightmid>=ii*(dimfast)+newindexlow)
+                            ((float *)dst)[newindexrightmid-ii*(dimfast)]  += (fvalue*dhorzfracright*dvertfracmid)/((float)(vertcur-vertprev));
+                          if(newindexrightup>=ii*(dimfast)+newindexlow)
+                            ((float *)dst)[newindexrightup-ii*(dimfast)]   += (fvalue*dhorzfracright*dvertfracup)/((float)(vertcur-vertprev));
                         } 
                       } else if (horzprev >  horzcur+1) {
                         for (ii=0; ii < horzprev-horzcur; ii++) {
-                          ((float *)dst)[newindex+ii] += fvalue/((float)(horzprev-horzcur));
+                          if (newindex+ii <= newindexhigh)
+                            ((float *)dst)[newindex+ii]          += fvalue*dhorzfracmid*dhorzfracmid/((float)(horzprev-horzcur));
+                          if (newindexleftdown+ii <= newindexhigh)
+                            ((float *)dst)[newindexleftdown+ii]  += (fvalue*dhorzfracleft*dvertfracdown)/((float)(horzprev-horzcur));
+                          if (newindexleftmid+ii <= newindexhigh)
+                            ((float *)dst)[newindexleftmid+ii]   += (fvalue*dhorzfracleft*dvertfracmid)/((float)(horzprev-horzcur));
+                          if (newindexleftup+ii <= newindexhigh)
+                            ((float *)dst)[newindexleftup+ii]    += (fvalue*dhorzfracleft*dvertfracup)/((float)(horzprev-horzcur));
+                          if (newindexmiddown+ii <= newindexhigh)
+                            ((float *)dst)[newindexmiddown+ii]   += (fvalue*dhorzfracmid*dvertfracdown)/((float)(horzprev-horzcur));
+                          if (newindexmidup+ii <= newindexhigh)
+                            ((float *)dst)[newindexmidup+ii]     += (fvalue*dhorzfracmid*dvertfracup)/((float)(horzprev-horzcur));
+                          if (newindexrightdown+ii <= newindexhigh)
+                            ((float *)dst)[newindexrightdown+ii] += (fvalue*dhorzfracright*dvertfracdown)/((float)(horzprev-horzcur));
+                          if (newindexrightmid+ii <= newindexhigh)
+                            ((float *)dst)[newindexrightmid+ii]  += (fvalue*dhorzfracright*dvertfracmid)/((float)(horzprev-horzcur));
+                          if (newindexrightup+ii <= newindexhigh)
+                            ((float *)dst)[newindexrightup+ii]   += (fvalue*dhorzfracright*dvertfracup)/((float)(horzprev-horzcur));
                         } 
                       } else if (horzprev+1 < horzcur) {
                         for (ii=0; ii < horzcur-horzprev; ii++) {
-                          ((float *)dst)[newindex-ii] += fvalue/((float)(horzcur-horzprev));
+                          if (newindex>= ii+ newindexlow)
+                            ((float *)dst)[newindex-ii]          += fvalue*dhorzfracmid*dhorzfracmid/((float)(horzcur-horzprev));
+                          if (newindexleftdown>= ii+ newindexlow)
+                            ((float *)dst)[newindexleftdown-ii]  += (fvalue*dhorzfracleft*dvertfracdown)/((float)(horzcur-horzprev));
+                          if (newindexleftmid>= ii+ newindexlow)
+                            ((float *)dst)[newindexleftmid-ii]   += (fvalue*dhorzfracleft*dvertfracmid)/((float)(horzcur-horzprev));
+                          if (newindexleftup>= ii+ newindexlow)
+                            ((float *)dst)[newindexleftup-ii]    += (fvalue*dhorzfracleft*dvertfracup)/((float)(horzcur-horzprev));
+                          if (newindexmiddown>= ii+ newindexlow)
+                            ((float *)dst)[newindexmiddown-ii]   += (fvalue*dhorzfracmid*dvertfracdown)/((float)(horzcur-horzprev));
+                          if (newindexmidup>= ii+ newindexlow)
+                            ((float *)dst)[newindexmidup-ii]     += (fvalue*dhorzfracmid*dvertfracup)/((float)(horzcur-horzprev));
+                          if (newindexrightdown>= ii+ newindexlow)
+                            ((float *)dst)[newindexrightdown-ii] += (fvalue*dhorzfracright*dvertfracdown)/((float)(horzcur-horzprev));
+                          if (newindexrightmid>= ii+ newindexlow)
+                            ((float *)dst)[newindexrightmid-ii]  += (fvalue*dhorzfracright*dvertfracmid)/((float)(horzcur-horzprev));
+                          if (newindexrightup>= ii+ newindexlow)
+                            ((float *)dst)[newindexrightup-ii]   += (fvalue*dhorzfracright*dvertfracup)/((float)(horzcur-horzprev));
                         } 
                       } 
                     } else return CBF_ARGUMENT;
 
                   } else {
 
-                    long partvalue, balvalue;
-
                     if (elsigned && sizeof(char) == elsize ) {
                       cvalue=((char *)src)[index];
-                      if (vertprev <= vertcur+1 && vertprev+1 >= vertcur && horzprev <= horzcur+1 && horzprev+1 >= horzcur) {
-                        ((char *)dst)[newindex] += cvalue;
-                      } else if (vertprev > vertcur+1) {
-                        partvalue=cvalue/(vertprev-vertcur);
-                        for (ii=0; ii < vertprev-vertcur; ii++) {
-                          ((char *)dst)[newindex+ii*(dimfast)] += partvalue;
-                          balvalue -= partvalue;
-                          if (labs(balvalue) < labs(partvalue)) partvalue=balvalue;
-                        } 
-                      } else if (vertprev+1 < vertcur) {
-                        partvalue=cvalue/(vertcur-vertprev);
-                        for (ii=0; ii < vertcur-vertprev; ii++) {
-                          ((char *)dst)[newindex-ii*(dimfast)] += partvalue;
-                          balvalue -= partvalue;
-                          if (labs(balvalue) < labs(partvalue)) partvalue=balvalue;
-                        } 
-                      } else if (horzprev >  horzcur+1) {
-                        partvalue=cvalue/(horzprev-horzcur);
-                        for (ii=0; ii < horzprev-horzcur; ii++) {
-                          ((char *)dst)[newindex+ii] += partvalue;
-                          balvalue -= partvalue;
-                          if (labs(balvalue) < labs(partvalue)) partvalue=balvalue;
-                        } 
-                      } else if (horzprev+1 < horzcur) {
-                        partvalue=cvalue/(horzcur-horzprev);
-                        for (ii=0; ii < horzcur-horzprev; ii++) {
-                          ((char *)dst)[newindex-ii] += partvalue;
-                          balvalue -= partvalue;
-                          if (labs(balvalue) < labs(partvalue)) partvalue=balvalue;
-                        } 
-                      } else {
-                        ((char *)dst)[newindex] += cvalue;
-                      }
+	              dvalue=(double)cvalue;
+                      ((char *)dst)[newindexleftdown]  += (newvalueleftdown=(char)(dvalue*dhorzfracleft*dvertfracdown));
+                      ((char *)dst)[newindexleftmid]   += (newvalueleftmid=(char)(dvalue*dhorzfracleft*dvertfracmid));
+                      ((char *)dst)[newindexleftup]    += (newvalueleftup=(char)(dvalue*dhorzfracleft*dvertfracup));
+                      ((char *)dst)[newindexmiddown]   += (newvaluemiddown=(char)(dvalue*dhorzfracmid*dvertfracdown));
+                      ((char *)dst)[newindexmidup]     += (newvaluemidup=(char)(dvalue*dhorzfracmid*dvertfracup));
+                      ((char *)dst)[newindexrightdown] += (newvaluerightdown=(char)(dvalue*dhorzfracright*dvertfracdown));
+                      ((char *)dst)[newindexrightmid]  += (newvaluerightmid=(char)(dvalue*dhorzfracright*dvertfracmid));
+                      ((char *)dst)[newindexrightup]   += (newvaluerightup=(char)(dvalue*dhorzfracright*dvertfracup));
+                      ((char *)dst)[newindex] += (cvalue-newvalueleftdown-newvalueleftmid-newvalueleftup-newvaluemiddown-
+                        newvaluemidup-newvaluerightdown-newvaluerightmid-newvaluerightup);
                     } else if ((!elsigned) && sizeof(char) == elsize ) {
                       ucvalue=((unsigned char *)src)[index];
-                      if (vertprev <= vertcur+1 && vertprev+1 >= vertcur && horzprev <= horzcur+1 && horzprev+1 >= horzcur) {
-                        ((unsigned char *)dst)[newindex] += ucvalue;
-                      } else if (vertprev > vertcur+1) {
-                        partvalue=cvalue/(vertprev-vertcur);
-                        for (ii=0; ii < vertprev-vertcur; ii++) {
-                          ((unsigned char *)dst)[newindex+ii*(dimfast)] += partvalue;
-                          balvalue -= partvalue;
-                          if (labs(balvalue) < labs(partvalue)) partvalue=balvalue;
-                        } 
-                      } else if (vertprev+1 < vertcur) {
-                        partvalue=cvalue/(vertcur-vertprev);
-                        for (ii=0; ii < vertcur-vertprev; ii++) {
-                          ((unsigned char *)dst)[newindex-ii*(dimfast)] += partvalue;
-                          balvalue -= partvalue;
-                          if (labs(balvalue) < labs(partvalue)) partvalue=balvalue;
-                        } 
-                      } else if (horzprev >  horzcur+1) {
-                        partvalue=cvalue/(horzprev-horzcur);
-                        for (ii=0; ii < horzprev-horzcur; ii++) {
-                          ((unsigned char *)dst)[newindex+ii] += partvalue;
-                          balvalue -= partvalue;
-                          if (labs(balvalue) < labs(partvalue)) partvalue=balvalue;
-                        } 
-                      } else if (horzprev+1 < horzcur) {
-                        partvalue=cvalue/(horzcur-horzprev);
-                        for (ii=0; ii < horzcur-horzprev; ii++) {
-                          ((unsigned char *)dst)[newindex-ii] += partvalue;
-                          balvalue -= partvalue;
-                          if (labs(balvalue) < labs(partvalue)) partvalue=balvalue;
-                        } 
-                      } else {
-                        ((unsigned char *)dst)[newindex] += ucvalue;
-                      }
+                      dvalue=(double)ucvalue;
+                      ((unsigned char *)dst)[newindexleftdown]  += (newvalueleftdown=(char)(dvalue*dhorzfracleft*dvertfracdown));
+                      ((unsigned char *)dst)[newindexleftmid]   += (newvalueleftmid=(char)(dvalue*dhorzfracleft*dvertfracmid));
+                      ((unsigned char *)dst)[newindexleftup]    += (newvalueleftup=(char)(dvalue*dhorzfracleft*dvertfracup));
+                      ((unsigned char *)dst)[newindexmiddown]   += (newvaluemiddown=(char)(dvalue*dhorzfracmid*dvertfracdown));
+                      ((unsigned char *)dst)[newindexmidup]     += (newvaluemidup=(char)(dvalue*dhorzfracmid*dvertfracup));
+                      ((unsigned char *)dst)[newindexrightdown] += (newvaluerightdown=(char)(dvalue*dhorzfracright*dvertfracdown));
+                      ((unsigned char *)dst)[newindexrightmid]  += (newvaluerightmid=(char)(dvalue*dhorzfracright*dvertfracmid));
+                      ((unsigned char *)dst)[newindexrightup]   += (newvaluerightup=(char)(dvalue*dhorzfracright*dvertfracup));
+                      ((unsigned char *)dst)[newindex] += (ucvalue-newvalueleftdown-newvalueleftmid-newvalueleftup-newvaluemiddown-
+                        newvaluemidup-newvaluerightdown-newvaluerightmid-newvaluerightup);
                     } else if (elsigned && sizeof(short) == elsize ) {
                       svalue=((short *)src)[index];
-                      if (vertprev <= vertcur+1 && vertprev+1 >= vertcur && horzprev <= horzcur+1 && horzprev+1 >= horzcur) {
-                        ((short *)dst)[newindex] += svalue;
-                      } else if (vertprev > vertcur+1) {
-                        partvalue=svalue/(vertprev-vertcur);
-                        for (ii=0; ii < vertprev-vertcur; ii++) {
-                         ((short *)dst)[newindex+ii*(dimfast)] += partvalue;
-                          balvalue -= partvalue;
-                          if (labs(balvalue) < labs(partvalue)) partvalue=balvalue;
-                        } 
-                      } else if (vertprev+1 < vertcur) {
-                        partvalue=svalue/(vertcur-vertprev);
-                        for (ii=0; ii < vertcur-vertprev; ii++) {
-                          ((short *)dst)[newindex-ii*(dimfast)] += partvalue;
-                          balvalue -= partvalue;
-                          if (labs(balvalue) < labs(partvalue)) partvalue=balvalue;
-                        } 
-                      } else if (horzprev >  horzcur+1) {
-                        partvalue=svalue/(horzprev-horzcur);
-                        for (ii=0; ii < horzprev-horzcur; ii++) {
-                          ((short *)dst)[newindex+ii] += partvalue;
-                          balvalue -= partvalue;
-                          if (labs(balvalue) < labs(partvalue)) partvalue=balvalue;
-                        } 
-                      } else if (horzprev+1 < horzcur) {
-                        partvalue=svalue/(horzcur-horzprev);
-                        for (ii=0; ii < horzcur-horzprev; ii++) {
-                          ((short *)dst)[newindex-ii] += partvalue;
-                          balvalue -= partvalue;
-                          if (labs(balvalue) < labs(partvalue)) partvalue=balvalue;
-                        }
-                      } else { 
-                        ((short *)dst)[newindex] += svalue;
-                      }
+                      dvalue=(double)svalue;
+                      ((short *)dst)[newindexleftdown]  += (newvalueleftdown=(short)(dvalue*dhorzfracleft*dvertfracdown));
+                      ((short *)dst)[newindexleftmid]   += (newvalueleftmid=(short)(dvalue*dhorzfracleft*dvertfracmid));
+                      ((short *)dst)[newindexleftup]    += (newvalueleftup=(short)(dvalue*dhorzfracleft*dvertfracup));
+                      ((short *)dst)[newindexmiddown]   += (newvaluemiddown=(short)(dvalue*dhorzfracmid*dvertfracdown));
+                      ((short *)dst)[newindexmidup]     += (newvaluemidup=(short)(dvalue*dhorzfracmid*dvertfracup));
+                      ((short *)dst)[newindexrightdown] += (newvaluerightdown=(short)(dvalue*dhorzfracright*dvertfracdown));
+                      ((short *)dst)[newindexrightmid]  += (newvaluerightmid=(short)(dvalue*dhorzfracright*dvertfracmid));
+                      ((short *)dst)[newindexrightup]   += (newvaluerightup=(short)(dvalue*dhorzfracright*dvertfracup));
+                      ((short *)dst)[newindex] += (svalue-newvalueleftdown-newvalueleftmid-newvalueleftup-newvaluemiddown-
+                        newvaluemidup-newvaluerightdown-newvaluerightmid-newvaluerightup);
                     } else if ((!elsigned) && sizeof(short) == elsize ) {
                       usvalue=((unsigned short *)src)[index];
-                      if (vertprev <= vertcur+1 && vertprev+1 >= vertcur && horzprev <= horzcur+1 && horzprev+1 >= horzcur) {
-                        ((unsigned short *)dst)[newindex] += usvalue;
-                      } else if (vertprev > vertcur+1) {
-                        partvalue=usvalue/(vertprev-vertcur);
-                        for (ii=0; ii < vertprev-vertcur; ii++) {
-                          ((unsigned short *)dst)[newindex+ii*(dimfast)] += partvalue;
-                          balvalue -= partvalue;
-                          if (labs(balvalue) < labs(partvalue)) partvalue=balvalue;
-                        } 
-                      } else if (vertprev+1 < vertcur) {
-                        partvalue=usvalue/(vertcur-vertprev);
-                        for (ii=0; ii < vertcur-vertprev; ii++) {
-                          ((unsigned short *)dst)[newindex-ii*(dimfast)] += partvalue;
-                          balvalue -= partvalue;
-                          if (labs(balvalue) < labs(partvalue)) partvalue=balvalue;
-                        } 
-                      } else if (horzprev >  horzcur+1) {
-                        partvalue=usvalue/(horzprev-horzcur);
-                        for (ii=0; ii < horzprev-horzcur; ii++) {
-                          ((unsigned short *)dst)[newindex+ii] += partvalue;
-                          balvalue -= partvalue;
-                          if (labs(balvalue) < labs(partvalue)) partvalue=balvalue;
-                        } 
-                      } else if (horzprev+1 < horzcur) {
-                        partvalue=usvalue/(horzcur-horzprev);
-                        for (ii=0; ii < horzcur-horzprev; ii++) {
-                          ((unsigned short *)dst)[newindex-ii] += partvalue;
-                          balvalue -= partvalue;
-                          if (labs(balvalue) < labs(partvalue)) partvalue=balvalue;
-                        } 
-                      } else {
-                        ((unsigned short *)dst)[newindex] += usvalue;
-                      }
+                      dvalue=(double)usvalue;
+                      ((unsigned short *)dst)[newindexleftdown]  += (newvalueleftdown=(unsigned short)(dvalue*dhorzfracleft*dvertfracdown));
+                      ((unsigned short *)dst)[newindexleftmid]   += (newvalueleftmid=(unsigned short)(dvalue*dhorzfracleft*dvertfracmid));
+                      ((unsigned short *)dst)[newindexleftup]    += (newvalueleftup=(unsigned short)(dvalue*dhorzfracleft*dvertfracup));
+                      ((unsigned short *)dst)[newindexmiddown]   += (newvaluemiddown=(unsigned short)(dvalue*dhorzfracmid*dvertfracdown));
+                      ((unsigned short *)dst)[newindexmidup]     += (newvaluemidup=(unsigned short)(dvalue*dhorzfracmid*dvertfracup));
+                      ((unsigned short *)dst)[newindexrightdown] += (newvaluerightdown=(unsigned short)(dvalue*dhorzfracright*dvertfracdown));
+                      ((unsigned short *)dst)[newindexrightmid]  += (newvaluerightmid=(unsigned short)(dvalue*dhorzfracright*dvertfracmid));
+                      ((unsigned short *)dst)[newindexrightup]   += (newvaluerightup=(unsigned short)(dvalue*dhorzfracright*dvertfracup));
+                      ((unsigned short *)dst)[newindex] += (usvalue-newvalueleftdown-newvalueleftmid-newvalueleftup-newvaluemiddown-
+                        newvaluemidup-newvaluerightdown-newvaluerightmid-newvaluerightup);
                     } else if (elsigned && sizeof(int) == elsize ) {
                       ivalue=((int *)src)[index];
-                      if (vertprev <= vertcur+1 && vertprev+1 >= vertcur && horzprev <= horzcur+1 && horzprev+1 >= horzcur) {
-                        ((int *)dst)[newindex] += ivalue;
-                      } else if (vertprev > vertcur+1) {
-                        partvalue=ivalue/(vertprev-vertcur);
-                        for (ii=0; ii < vertprev-vertcur; ii++) {
-                          ((int *)dst)[newindex+ii*(dimfast)] += partvalue;
-                          balvalue -= partvalue;
-                          if (labs(balvalue) < labs(partvalue)) partvalue=balvalue;
-                        } 
-                      } else if (vertprev+1 < vertcur) {
-                        partvalue=ivalue/(vertcur-vertprev);
-                        for (ii=0; ii < vertcur-vertprev; ii++) {
-                          ((int *)dst)[newindex-ii*(dimfast)] += partvalue;
-                          balvalue -= partvalue;
-                          if (labs(balvalue) < labs(partvalue)) partvalue=balvalue;
-                        } 
-                      } else if (horzprev >  horzcur+1) {
-                        partvalue=ivalue/(horzprev-horzcur);
-                        for (ii=0; ii < horzprev-horzcur; ii++) {
-                          ((int *)dst)[newindex+ii] += partvalue;
-                          balvalue -= partvalue;
-                          if (labs(balvalue) < labs(partvalue)) partvalue=balvalue;
-                        } 
-                      } else if (horzprev+1 < horzcur) {
-                        partvalue=ivalue/(horzcur-horzprev);
-                        for (ii=0; ii < horzcur-horzprev; ii++) {
-                          ((int *)dst)[newindex-ii] += partvalue;
-                          balvalue -= partvalue;
-                          if (labs(balvalue) < labs(partvalue)) partvalue=balvalue;
-                        } 
-                      } else {
-                      ((int *)dst)[newindex] += ivalue;
-                      }
+                      dvalue=(double)ivalue;
+                      ((int *)dst)[newindexleftdown]  += (newvalueleftdown=(int)(dvalue*dhorzfracleft*dvertfracdown));
+                      ((int *)dst)[newindexleftmid]   += (newvalueleftmid=(int)(dvalue*dhorzfracleft*dvertfracmid));
+                      ((int *)dst)[newindexleftup]    += (newvalueleftup=(int)(dvalue*dhorzfracleft*dvertfracup));
+                      ((int *)dst)[newindexmiddown]   += (newvaluemiddown=(int)(dvalue*dhorzfracmid*dvertfracdown));
+                      ((int *)dst)[newindexmidup]     += (newvaluemidup=(int)(dvalue*dhorzfracmid*dvertfracup));
+                      ((int *)dst)[newindexrightdown] += (newvaluerightdown=(int)(dvalue*dhorzfracright*dvertfracdown));
+                      ((int *)dst)[newindexrightmid]  += (newvaluerightmid=(int)(dvalue*dhorzfracright*dvertfracmid));
+                      ((int *)dst)[newindexrightup]   += (newvaluerightup=(int)(dvalue*dhorzfracright*dvertfracup));
+                      ((int *)dst)[newindex] += (ivalue-newvalueleftdown-newvalueleftmid-newvalueleftup-newvaluemiddown-
+                        newvaluemidup-newvaluerightdown-newvaluerightmid-newvaluerightup);
                     } else if ((!elsigned) && sizeof(int) == elsize ) {
                       uivalue=((unsigned int *)src)[index];
-                      if (vertprev <= vertcur+1 && vertprev+1 >= vertcur && horzprev <= horzcur+1 && horzprev+1 >= horzcur) {
-                        ((unsigned int *)dst)[newindex] += uivalue;
-                      } else if (vertprev > vertcur+1) {
-                        partvalue=uivalue/(vertprev-vertcur);
-                        for (ii=0; ii < vertprev-vertcur; ii++) {
-                          ((unsigned int *)dst)[newindex+ii*(dimfast)] += partvalue;
-                          balvalue -= partvalue;
-                          if (labs(balvalue) < labs(partvalue)) partvalue=balvalue;
-                        } 
-                      } else if (vertprev+1 < vertcur) {
-                        partvalue=uivalue/(vertcur-vertprev);
-                        for (ii=0; ii < vertcur-vertprev; ii++) {
-                          ((unsigned int *)dst)[newindex-ii*(dimfast)] += partvalue;
-                          balvalue -= partvalue;
-                          if (labs(balvalue) < labs(partvalue)) partvalue=balvalue;
-                        } 
-                      } else if (horzprev >  horzcur+1) {
-                        partvalue=uivalue/(horzprev-horzcur);
-                        for (ii=0; ii < horzprev-horzcur; ii++) {
-                          ((unsigned int *)dst)[newindex+ii] += partvalue;
-                          balvalue -= partvalue;
-                          if (labs(balvalue) < labs(partvalue)) partvalue=balvalue;
-                        } 
-                      } else if (horzprev+1 < horzcur) {
-                        partvalue=uivalue/(horzcur-horzprev);
-                        for (ii=0; ii < horzcur-horzprev; ii++) {
-                          ((unsigned int *)dst)[newindex-ii] += partvalue;
-                          balvalue -= partvalue;
-                          if (labs(balvalue) < labs(partvalue)) partvalue=balvalue;
-                        } 
-                      } else {
-                        ((unsigned int *)dst)[newindex] += uivalue;
-                      }
+                      dvalue=(double)uivalue;
+                      ((unsigned int *)dst)[newindexleftdown]  += (newvalueleftdown=(unsigned int)(dvalue*dhorzfracleft*dvertfracdown));
+                      ((unsigned int *)dst)[newindexleftmid]   += (newvalueleftmid=(unsigned int)(dvalue*dhorzfracleft*dvertfracmid));
+                      ((unsigned int *)dst)[newindexleftup]    += (newvalueleftup=(unsigned int)(dvalue*dhorzfracleft*dvertfracup));
+                      ((unsigned int *)dst)[newindexmiddown]   += (newvaluemiddown=(unsigned int)(dvalue*dhorzfracmid*dvertfracdown));
+                      ((unsigned int *)dst)[newindexmidup]     += (newvaluemidup=(unsigned int)(dvalue*dhorzfracmid*dvertfracup));
+                      ((unsigned int *)dst)[newindexrightdown] += (newvaluerightdown=(unsigned int)(dvalue*dhorzfracright*dvertfracdown));
+                      ((unsigned int *)dst)[newindexrightmid]  += (newvaluerightmid=(unsigned int)(dvalue*dhorzfracright*dvertfracmid));
+                      ((unsigned int *)dst)[newindexrightup]   += (newvaluerightup=(unsigned int)(dvalue*dhorzfracright*dvertfracup));
+                      ((unsigned int *)dst)[newindex] += (uivalue-newvalueleftdown-newvalueleftmid-newvalueleftup-newvaluemiddown-
+                        newvaluemidup-newvaluerightdown-newvaluerightmid-newvaluerightup);
                     } else if (elsigned && sizeof(long) == elsize ) {
                       lvalue=((long *)src)[index];
-                      if (vertprev <= vertcur+1 && vertprev+1 >= vertcur && horzprev <= horzcur+1 && horzprev+1 >= horzcur) {
-                        ((long *)dst)[newindex] += lvalue;
-                      } else if (vertprev > vertcur+1) {
-                        partvalue=lvalue/(vertprev-vertcur);
-                        for (ii=0; ii < vertprev-vertcur; ii++) {
-                          ((long *)dst)[newindex+ii*(dimfast)] += partvalue;
-                          balvalue -= partvalue;
-                          if (labs(balvalue) < labs(partvalue)) partvalue=balvalue;
-                        } 
-                      } else if (vertprev+1 < vertcur) {
-                        partvalue=lvalue/(vertcur-vertprev);
-                        for (ii=0; ii < vertcur-vertprev; ii++) {
-                          ((long *)dst)[newindex-ii*(dimfast)] += partvalue;
-                          balvalue -= partvalue;
-                          if (labs(balvalue) < labs(partvalue)) partvalue=balvalue;
-                        } 
-                      } else if (horzprev >  horzcur+1) {
-                        partvalue=lvalue/(horzprev-horzcur);
-                        for (ii=0; ii < horzprev-horzcur; ii++) {
-                          ((long *)dst)[newindex+ii] += partvalue;
-                          balvalue -= partvalue;
-                          if (labs(balvalue) < labs(partvalue)) partvalue=balvalue;
-                        } 
-                      } else if (horzprev+1 < horzcur) {
-                        partvalue=lvalue/(horzcur-horzprev);
-                        for (ii=0; ii < horzcur-horzprev; ii++) {
-                          ((long *)dst)[newindex-ii] += partvalue;
-                          balvalue -= partvalue;
-                          if (labs(balvalue) < labs(partvalue)) partvalue=balvalue;
-                        } 
-                      } else {
-                        ((long *)dst)[newindex] += lvalue;
-                      }
+                      dvalue=(double)lvalue;
+                      ((long *)dst)[newindexleftdown]  += (newvalueleftdown=(long)(dvalue*dhorzfracleft*dvertfracdown));
+                      ((long *)dst)[newindexleftmid]   += (newvalueleftmid=(long)(dvalue*dhorzfracleft*dvertfracmid));
+                      ((long *)dst)[newindexleftup]    += (newvalueleftup=(long)(dvalue*dhorzfracleft*dvertfracup));
+                      ((long *)dst)[newindexmiddown]   += (newvaluemiddown=(long)(dvalue*dhorzfracmid*dvertfracdown));
+                      ((long *)dst)[newindexmidup]     += (newvaluemidup=(long)(dvalue*dhorzfracmid*dvertfracup));
+                      ((long *)dst)[newindexrightdown] += (newvaluerightdown=(long)(dvalue*dhorzfracright*dvertfracdown));
+                      ((long *)dst)[newindexrightmid]  += (newvaluerightmid=(long)(dvalue*dhorzfracright*dvertfracmid));
+                      ((long *)dst)[newindexrightup]   += (newvaluerightup=(long)(dvalue*dhorzfracright*dvertfracup));
+                      ((long *)dst)[newindex] += (lvalue-newvalueleftdown-newvalueleftmid-newvalueleftup-newvaluemiddown-
+                        newvaluemidup-newvaluerightdown-newvaluerightmid-newvaluerightup);
                     } else if ((!elsigned) && sizeof(unsigned long) == elsize ) {
                       ulvalue=((unsigned long *)src)[index];
-                      if (vertprev <= vertcur+1 && vertprev+1 >= vertcur && horzprev <= horzcur+1 && horzprev+1 >= horzcur) {
-                        ((unsigned long *)dst)[newindex] += ulvalue;
-                      } else if (vertprev > vertcur+1) {
-                        partvalue=ulvalue/(vertprev-vertcur);
-                        for (ii=0; ii < vertprev-vertcur; ii++) {
-                          ((unsigned long *)dst)[newindex+ii*(dimfast)] += partvalue;
-                          balvalue -= partvalue;
-                          if (labs(balvalue) < labs(partvalue)) partvalue=balvalue;
-                        } 
-                      } else if (vertprev+1 < vertcur) {
-                        partvalue=ulvalue/(vertcur-vertprev);
-                        for (ii=0; ii < vertcur-vertprev; ii++) {
-                          ((unsigned long *)dst)[newindex-ii*(dimfast)] += partvalue;
-                          balvalue -= partvalue;
-                          if (labs(balvalue) < labs(partvalue)) partvalue=balvalue;
-                        } 
-                      } else if (horzprev >  horzcur+1) {
-                        partvalue=ulvalue/(horzprev-horzcur);
-                        for (ii=0; ii < horzprev-horzcur; ii++) {
-                          ((unsigned long *)dst)[newindex+ii] += partvalue;
-                          balvalue -= partvalue;
-                          if (labs(balvalue) < labs(partvalue)) partvalue=balvalue;
-                        } 
-                      } else if (horzprev+1 < horzcur) {
-                        partvalue=ulvalue/(horzcur-horzprev);
-                        for (ii=0; ii < horzcur-horzprev; ii++) {
-                          ((unsigned long *)dst)[newindex-ii] += partvalue;
-                          balvalue -= partvalue;
-                          if (labs(balvalue) < labs(partvalue)) partvalue=balvalue;
-                        } 
-                      } else {
-                        ((unsigned long *)dst)[newindex] += ulvalue;
-                      }
+                      dvalue=(double)ulvalue;
+                      ((unsigned long *)dst)[newindexleftdown]  += (newvalueleftdown=(unsigned long)(dvalue*dhorzfracleft*dvertfracdown));
+                      ((unsigned long *)dst)[newindexleftmid]   += (newvalueleftmid=(unsigned long)(dvalue*dhorzfracleft*dvertfracmid));
+                      ((unsigned long *)dst)[newindexleftup]    += (newvalueleftup=(unsigned long)(dvalue*dhorzfracleft*dvertfracup));
+                      ((unsigned long *)dst)[newindexmiddown]   += (newvaluemiddown=(unsigned long)(dvalue*dhorzfracmid*dvertfracdown));
+                      ((unsigned long *)dst)[newindexmidup]     += (newvaluemidup=(unsigned long)(dvalue*dhorzfracmid*dvertfracup));
+                      ((unsigned long *)dst)[newindexrightdown] += (newvaluerightdown=(unsigned long)(dvalue*dhorzfracright*dvertfracdown));
+                      ((unsigned long *)dst)[newindexrightmid]  += (newvaluerightmid=(unsigned long)(dvalue*dhorzfracright*dvertfracmid));
+                      ((unsigned long *)dst)[newindexrightup]   += (newvaluerightup=(unsigned long)(dvalue*dhorzfracright*dvertfracup));
+                      ((unsigned long *)dst)[newindex] += (ulvalue-newvalueleftdown-newvalueleftmid-newvalueleftup-newvaluemiddown-
+                        newvaluemidup-newvaluerightdown-newvaluerightmid-newvaluerightup);
                     } else return CBF_ARGUMENT;
                   }
-
                 }
-
             }
         }
 

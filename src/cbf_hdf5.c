@@ -22547,9 +22547,9 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     if (_axis_set_id[1]) cbf_free((void**)&_axis_set_id[1],NULL);
                     if (_axis_set_id[2]) cbf_free((void**)&_axis_set_id[2],NULL);
                     for (i = 4-(table->rank); i < 3; ++i) {
-                        if (pixel_offset_name[i]) free((void*)pixel_offset_name[i]);pixel_offset_name[i]=NULL;
-                        if (pixel_offset_long_name[i]) free((void*)pixel_offset_long_name[i]);pixel_offset_long_name[i]=NULL;
-                        if (pixel_size_name[i]) free((void*)pixel_size_name[i]);pixel_size_name[i]=NULL;
+                        if (pixel_offset_name[i]) {free((void*)pixel_offset_name[i]);pixel_offset_name[i]=NULL;}
+                        if (pixel_offset_long_name[i]) {free((void*)pixel_offset_long_name[i]);pixel_offset_long_name[i]=NULL;}
+                        if (pixel_size_name[i]) {free((void*)pixel_size_name[i]);pixel_size_name[i]=NULL;}
                     }
                 }
                 cbf_H5Dfree(data);

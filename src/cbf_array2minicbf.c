@@ -265,4 +265,6 @@ int cbf_array2minicbf(const char * filename, const void * array, const char * he
 
     cbf_failnez (cbf_free_handle (cbf));
 
+    return CBF_SUCCESS;
+
 }  

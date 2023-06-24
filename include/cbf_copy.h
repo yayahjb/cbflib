@@ -356,6 +356,11 @@ extern "C" {
 
     int cbf_mat33_vec(double mat[3][3], double vecin[3], double vecout[3]);
 
+    /* Convert array index to individual dimension indices */
+
+    int cbf_convert_index(const ssize_t index, 
+      const size_t dimfast, const size_t dimmid, const size_t dimslow,
+      size_t * indexfast, size_t * indexmid, size_t * indexslow);
 
     /* Extract a 2D ROI from an image array, rotate in 3D and project back to 2D */
 

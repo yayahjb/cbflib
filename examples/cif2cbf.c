@@ -1284,9 +1284,9 @@ int main (int argc, char *argv [])
                        beamx=beamy=beamz=0.;
                        beamcentx=beamcenty=beamcentz=0.;
                        normbeam=norm(beam);
-                       if (numitems > 0) beamx=beam[0];
-                       if (numitems > 1) beamy=beam[1];
-                       if (numitems > 2) beamz=beam[2];
+                       if (numitems > 0) beamx=beam[0]/normbeam;
+                       if (numitems > 1) beamy=beam[1]/normbeam;
+                       if (numitems > 2) beamz=beam[2]/normbeam;
                        if (numitems > 3) beamcentx=beam[3];
                        if (numitems > 4) beamcenty=beam[4];
                        if (numitems > 5) beamcentz=beam[5];
@@ -1313,14 +1313,14 @@ int main (int argc, char *argv [])
                            fprintf(stderr,"CQRQuaternion2Matrix failed\n");
                          if(cqrerror+=CQRFreeQuaternion(&quaternion))
                            fprintf(stderr,"CQRFreeQuaternion failed\n");
-                         /* printf("beamdotz: %15.6g\n", beamdotz); */
-                         /* printf("rotangledeg: %15.6g \n",rotangledeg); */
-                         /* printf("beamcrossz:  %15.6g %15.6g %15.6g \n", bcz[0], bcz[1], bcz[2]); */
-                         /* printf("rb2zmat: %15.6g %15.6g %15.6g \n", rb2zmat[0][0], rb2zmat[0][1], rb2zmat[0][2]); */
-                         /* printf("         %15.6g %15.6g %15.6g \n", rb2zmat[1][0], rb2zmat[1][1], rb2zmat[1][2]); */
-                         /* printf("         %15.6g %15.6g %15.6g \n", rb2zmat[2][0], rb2zmat[2][1], rb2zmat[2][2]); */
-                         /* cbf_failnez(cbf_mat33_vec(rb2zmat,beam,znew)); */
-                         /* printf("newzz:  %15.6g %15.6g %15.6g \n", znew[0], znew[1], znew[2]); */
+                          printf("beamdotz: %15.6g\n", beamdotz); 
+                          printf("rotangledeg: %15.6g \n",rotangledeg); 
+                          printf("beamcrossz:  %15.6g %15.6g %15.6g \n", bcz[0], bcz[1], bcz[2]); 
+                          printf("rb2zmat: %15.6g %15.6g %15.6g \n", rb2zmat[0][0], rb2zmat[0][1], rb2zmat[0][2]); 
+                          printf("         %15.6g %15.6g %15.6g \n", rb2zmat[1][0], rb2zmat[1][1], rb2zmat[1][2]); 
+                          printf("         %15.6g %15.6g %15.6g \n", rb2zmat[2][0], rb2zmat[2][1], rb2zmat[2][2]); 
+                          cbf_failnez(cbf_mat33_vec(rb2zmat,beam,znew));
+                          printf("newzz:  %15.6g %15.6g %15.6g \n", znew[0], znew[1], znew[2]);
                       } else {
                          xdsb2z = 0;
                       }
@@ -2007,7 +2007,7 @@ int main (int argc, char *argv [])
                                                   void * newarray; double beamcenter[2]; double pixels[2];
                                                   /* we have an image rotation to process using rb2zmat */
                                                   if (( newarray=malloc(elsize*elements))) {
-                                                    beamcenter[0]=beamcentx; beamcenter[1]=beamcenty; pixels[0]=pixels[1]=0.072;
+                                                    beamcenter[0]=beamcentx; beamcenter[1]=beamcenty; pixels[0]=pixels[1]=0.075;
                                                     cbf_failnez(cbf_extract_rotated_roi_2D(array,newarray,elsize,elsigned,0,0,fastdim-1,
                                                       0,middim-1,fastdim, middim, rb2zmat,beamcenter,pixels));
                                                     cbf_failnez(cbf_set_integerarray_wdims_fs(cbf, compression, binary_id, newarray, elsize, 
@@ -2036,11 +2036,11 @@ int main (int argc, char *argv [])
                                                   void * newarray; double beamcenter[2]; double pixels[2];
                                                   /* we have an image rotation to process using rb2zmat */
                                                   if (( newarray=malloc(elsize*elements))) {
-                                                    beamcenter[0]=beamcentx; beamcenter[1]=beamcenty; pixels[0]=pixels[1]=0.072;
+                                                    beamcenter[0]=beamcentx; beamcenter[1]=beamcenty; pixels[0]=pixels[1]=0.075;
                                                     cbf_failnez(cbf_extract_rotated_roi_2D(array,newarray,elsize,elsigned,1,0,fastdim-1,
                                                       0,middim-1,fastdim, middim, rb2zmat,beamcenter,pixels));
-                                                    cbf_failnez(cbf_set_integerarray_wdims_fs(cbf, compression, binary_id, newarray, elsize,
-                                                      elsigned, elements, byteorder, fastdim, middim, slowdim, padding));
+                                                    cbf_failnez(cbf_set_realarray_wdims_fs(cbf, compression, binary_id, newarray, elsize,
+                                                      elements, byteorder, fastdim, middim, slowdim, padding));
                                                     free(newarray);
                                                   } else {
                                                     fprintf(stderr,
@@ -2149,7 +2149,7 @@ int main (int argc, char *argv [])
                                                   void * newarray; double beamcenter[2]; double pixels[2];
                                                   /* we have an image rotation to process using rb2zmat */
                                                   if (( newarray=malloc(elsize*elements))) {
-                                                    beamcenter[0]=beamcentx; beamcenter[1]=beamcenty; pixels[0]=pixels[1]=0.072;
+                                                    beamcenter[0]=beamcentx; beamcenter[1]=beamcenty; pixels[0]=pixels[1]=0.075;
                                                     cbf_failnez(cbf_extract_rotated_roi_2D(array,newarray,elsize,elsigned,0,0,fastdim-1,
                                                       0,middim-1,fastdim, middim, rb2zmat,beamcenter,pixels));
                                                     cbf_failnez(cbf_set_integerarray_wdims_fs(cbf, compression, binary_id, newarray, elsize, 
@@ -2178,7 +2178,7 @@ int main (int argc, char *argv [])
                                                   void * newarray; double beamcenter[2]; double pixels[2];
                                                   /* we have an image rotation to process using rb2zmat */
                                                   if (( newarray=malloc(elsize*elements))) {
-                                                    beamcenter[0]=beamcentx; beamcenter[1]=beamcenty; pixels[0]=pixels[1]=0.072;
+                                                    beamcenter[0]=beamcentx; beamcenter[1]=beamcenty; pixels[0]=pixels[1]=0.075;
                                                     cbf_failnez(cbf_extract_rotated_roi_2D(array,newarray,elsize,elsigned,1,0,fastdim-1,
                                                       0,middim-1,fastdim, middim, rb2zmat,beamcenter,pixels));
                                                     cbf_failnez(cbf_set_integerarray_wdims_fs(cbf, compression, binary_id, newarray, elsize,

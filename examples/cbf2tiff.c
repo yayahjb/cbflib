@@ -1,12 +1,9 @@
 /**********************************************************************
- * tiff2cbf -- convert a tiff file to a cbf file                      *
+ * cbf2tiff -- convert a cbf file to a tiff file                      *
  *                                                                    *
- * Version 0.7.6 28 June 2006                                         *
+ * Version 0.9.8 23 June 2023                                         *
  *                                                                    *
- *                          Paul Ellis and                            *
- *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
- *                                                                    *
- * (C) Copyright 2006 Herbert J. Bernstein                            *
+ * (C) Copyright 2023 Herbert J. Bernstein                            *
  *                                                                    *
  **********************************************************************/
 
@@ -36,7 +33,8 @@
  * 02111-1307  USA                                                    *
  *                                                                    *
  **********************************************************************/
-  
+
+ 
 /**********************************************************************
  *                                 NOTICE                             *
  * Creative endeavors depend on the lively exchange of ideas. There   *
@@ -127,7 +125,7 @@
  * the software used in the generation, access or manipulation of     *
  * the data.                                                          *
  *                                                                    *
- * Promotion of the standards                                         *
+* Promotion of the standards                                         *
  *                                                                    *
  * The sole requirement that the IUCr, in its protective role,        *
  * imposes on software purporting to process STAR File or CIF data    *
@@ -172,261 +170,265 @@
  * Crystallography                                                    *
  **********************************************************************/
 
+#include	<stdio.h>
+#include	<stdlib.h>
+#include	<string.h>
+#include	<cbf.h>
+#include	<cbf_string.h>
+#include        <tiffio.h>
 
-#include "cbf.h"
-#include <tiffio.h>
+/****************************************************************/
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <ctype.h>
-#include <time.h>
 
-int local_exit(int);
+int local_exit (int status);
+int outerror(int err);
 
-int local_exit(int status) {
-  exit(status);
-  return status;    /* to avoid warning messages */
+int outerror(int err)
+{
+
+    if ((err&CBF_FORMAT)==CBF_FORMAT)
+        fprintf(stderr, " cif2cbf: The file format is invalid.\n");
+    if ((err&CBF_ALLOC)==CBF_ALLOC)
+        fprintf(stderr, " cif2cbf Memory allocation failed.\n");
+    if ((err&CBF_ARGUMENT)==CBF_ARGUMENT)
+        fprintf(stderr, " cif2cbf: Invalid function argument.\n");
+    if ((err&CBF_ASCII)==CBF_ASCII)
+        fprintf(stderr, " cif2cbf: The value is ASCII (not binary).\n");
+    if ((err&CBF_BINARY)==CBF_BINARY)
+        fprintf(stderr, " cif2cbf: The value is binary (not ASCII).\n");
+    if ((err&CBF_BITCOUNT)==CBF_BITCOUNT)
+        fprintf(stderr, " cif2cbf: The expected number of bits does"
+                " not match the actual number written.\n");
+    if ((err&CBF_ENDOFDATA)==CBF_ENDOFDATA)
+        fprintf(stderr, " cif2cbf: The end of the data was reached"
+                " before the end of the array.\n");
+    if ((err&CBF_FILECLOSE)==CBF_FILECLOSE)
+        fprintf(stderr, " cif2cbf: File close error.\n");
+    if ((err&CBF_FILEOPEN)==CBF_FILEOPEN)
+        fprintf(stderr, " cif2cbf: File open error.\n");
+    if ((err&CBF_FILEREAD)==CBF_FILEREAD)
+        fprintf(stderr, " cif2cbf: File read error.\n");
+    if ((err&CBF_FILESEEK)==CBF_FILESEEK)
+        fprintf(stderr, " cif2cbf: File seek error.\n");
+    if ((err&CBF_FILETELL)==CBF_FILETELL)
+        fprintf(stderr, " cif2cbf: File tell error.\n");
+    if ((err&CBF_FILEWRITE)==CBF_FILEWRITE)
+        fprintf(stderr, " cif2cbf: File write error.\n");
+    if ((err&CBF_IDENTICAL)==CBF_IDENTICAL)
+        fprintf(stderr, " cif2cbf: A data block with the new name already exists.\n");
+    if ((err&CBF_NOTFOUND)==CBF_NOTFOUND)
+        fprintf(stderr, " cif2cbf: The data block, category, column or"
+                " row does not exist.\n");
+    if ((err&CBF_OVERFLOW)==CBF_OVERFLOW)
+        fprintf(stderr, " cif2cbf: The number read cannot fit into the "
+                "destination argument.\n        The destination has been set to the nearest value.\n");
+    if ((err& CBF_UNDEFINED)==CBF_UNDEFINED)
+        fprintf(stderr, " cif2cbf: The requested number is not defined (e.g. 0/0).\n");
+    if ((err&CBF_NOTIMPLEMENTED)==CBF_NOTIMPLEMENTED)
+        fprintf(stderr, " cif2cbf: The requested functionality is not yet implemented.\n");
+    if ((err&CBF_H5ERROR)==CBF_H5ERROR)
+        fprintf(stderr, " cif2cbf: HDF5 API error.\n");
+    return 0;
+
 }
-
 
 #undef cbf_failnez
-#define cbf_failnez(x) \
- {int err; \
-  err = (x); \
-  if (err) { \
-    fprintf(stderr,"\nCBFlib fatal error %x \n",err); \
-    local_exit(-1); \
-  } \
- }
+#undef cbf_onfailnez
+
+#ifndef __FILE__
+
+#define cbf_failnez(x) {int err; err = (x); if (err) { fprintf (stderr, \
+"\nCBFlib error %d \n", err); outerror(err); local_exit (-1); }}
+
+#define cbf_onfailnez(x,c) {int err; err = (x); if (err) { fprintf (stderr, \
+"\nCBFlib error %d \n", err); \
+{ c; } outerror(err); local_exit (-1); }}
+#else
+#ifndef __func__
+#define cbf_failnez(x) {int err; err = (x); if (err) { fprintf (stderr, \
+"\nCBFlib error %d at %s:%d\n", err,__FILE__,__LINE__); outerror(err); local_exit (-1); }}
+
+#define cbf_onfailnez(x,c) {int err; err = (x); if (err) { fprintf (stderr, \
+"\nCBFlib error %d at %s:%d\n", err,__FILE__,__LINE__); \
+{ c; } outerror(err); local_exit (-1); }}
+#else
+#define cbf_failnez(x) {int err; err = (x); if (err) { fprintf (stderr, \
+"\nCBFlib error %d at %s:%d(%s)\n", err,__FILE__,__LINE__,__func__); outerror(err); local_exit (-1); }}
+
+#define cbf_onfailnez(x,c) {int err; err = (x); if (err) { fprintf (stderr, \
+"\nCBFlib error %d at %s:%d(%s)\n", err,__FILE__,__LINE__,__func__); \
+{ c; } outerror(err); local_exit (-1); }}
+
+#endif
+#endif
 
 
-int main (int argc, char *argv [])
+static void usage( void )
 {
-    FILE *out;
-    TIFF *tif;
-    cbf_handle cbf;
-    clock_t a,b;
-    
-    uint32 width;
-    uint32 height;
-    uint32 npixels;
-    unsigned char * raster;
-    
-    int imageno;
-    
-     
-    /* Usage */ 
-    
-    if (argc < 3)
-    {
-        fprintf (stderr, "\n Usage: %s tifffile cbffile\n", argv [0]);
-        exit (2);
-    }
-    
-    
-    /* Read the tiff image */
-        
-    a = clock ();
-    
-    if (!(tif=TIFFOpen(argv[1], "r"))) {
-        
-        fprintf(stderr," %s unable to open tiff image %s, abort\n", argv[0], argv[1]);
-        local_exit(-1);
-    }
-    
-    b = clock ();
-    
-    fprintf (stderr, " Time to read the image: %.3fs\n", ((b - a) * 1.0) / CLOCKS_PER_SEC);
-    
-    
-    /* Make a cbf version of the image */
-    
-    a = clock ();
-    
-    
-    /* Create the cbf */
-    
-    cbf_failnez (cbf_make_handle (&cbf))
-    
-    
-    /* Make a new data block */
-    
-    cbf_failnez (cbf_new_datablock (cbf, "image_1"))
-    
-    
-    
-    imageno = 0;
-    cbf_failnez (cbf_require_category     (cbf, "array_data"))
-    do {
-        char buffer[40];
-        char * headstring;
-        size_t headsize, nheadsize;
-        unsigned int rows;
-        tstrip_t nstrips, strip;
-        tsize_t stripsize;
-        size_t totread;
-        int elsize, elsign, real, plex, treturn;
-        uint16 sampleformat, samplesperpixel, bitspersample, planarconfig;
-        size_t dimslow, dimmid, dimfast;
-        
-        plex = 1;
-        real = 0;
-        elsign = 0;
-        
-        imageno++;      /* bump the image number, starting with 1
-         versus the tiff directory number that starts
-         with zero */
-        
-        /* Make or add to the _array_data category */
-        
-        cbf_failnez (cbf_require_column       (cbf, "header_convention"))
-        cbf_failnez (cbf_count_rows           (cbf, &rows))
-        while (imageno >=0 && rows < (unsigned int)imageno) {
-            cbf_failnez (cbf_new_row          (cbf))
-            rows++;
-        }
-        cbf_failnez (cbf_select_row           (cbf,imageno-1))
-        cbf_failnez (cbf_set_value            (cbf, "TIFF"))
-        cbf_failnez (cbf_require_column       (cbf, "array_id"))
-        sprintf(buffer,"image_%d",imageno);
-        cbf_failnez (cbf_set_value            (cbf, buffer))
-        cbf_failnez (cbf_require_column       (cbf, "binary_id"))
-        cbf_failnez (cbf_set_integervalue     (cbf, imageno))
-        cbf_failnez (cbf_require_column       (cbf, "header_contents"))
-        headsize = 1+TIFFSNPrintDirectory(tif,buffer,0,TIFFPRINT_COLORMAP|TIFFPRINT_CURVES);
-        headstring = (char *) _TIFFmalloc(headsize);
-        if (!headstring) {
-            cbf_failnez(CBF_ALLOC);
-        }
-        nheadsize = TIFFSNPrintDirectory(tif,headstring,headsize-1,TIFFPRINT_COLORMAP|TIFFPRINT_CURVES);
-        if (nheadsize > headsize-1) {
-            _TIFFfree(headstring);
-            cbf_failnez(CBF_ALLOC);
-        }
-        cbf_onfailnez(cbf_set_value          (cbf,headstring),_TIFFfree(headstring));
-        _TIFFfree(headstring);
-
-        cbf_failnez (cbf_require_column       (cbf, "data"))
-        treturn = TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width);
-        if (treturn != 1) cbf_failnez(CBF_ARGUMENT);
-        dimfast = width;
-        treturn = TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &height);
-        if (treturn != 1) cbf_failnez(CBF_ARGUMENT);
-        dimmid = height;
-        dimslow = 1;
-        treturn = TIFFGetField(tif, TIFFTAG_SAMPLEFORMAT, &sampleformat);
-        if (treturn != 1) {
-            sampleformat = SAMPLEFORMAT_UINT;
-        }
-        treturn = TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &samplesperpixel);
-        if (treturn != 1) samplesperpixel = 1; /* cbf_failnez(CBF_ARGUMENT);*/
-        treturn = TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &bitspersample);
-        if (treturn != 1) cbf_failnez(CBF_ARGUMENT);
-        treturn = TIFFGetField(tif, TIFFTAG_PLANARCONFIG, &planarconfig);
-        if (treturn != 1) planarconfig = PLANARCONFIG_CONTIG; /* cbf_failnez(CBF_ARGUMENT); */
-        switch ( bitspersample ) {
-            case 8:                elsize = 1; break;
-            case 16:               elsize = 2; break;
-            case 32:               elsize = 4; break;
-            case 64:               elsize = 8; break;
-            default:               cbf_failnez(CBF_FORMAT);
-        }
-        switch ( sampleformat ) {
-            case SAMPLEFORMAT_UINT:         elsign = 0; real = 0; plex = 1; break;    /* !unsigned integer data */
-            case SAMPLEFORMAT_INT:	        elsign = 1; real = 0; plex = 1; break;    /* !signed integer data */
-            case SAMPLEFORMAT_IEEEFP:       elsign = 1; real = 1; plex = 1; break;    /* !IEEE floating point data */
-            case SAMPLEFORMAT_VOID:         cbf_failnez(CBF_FORMAT);                  /* !untyped data */
-            case SAMPLEFORMAT_COMPLEXINT:   elsign = 1; real = 0; plex = 2; 
-                                                               elsize /=2; break;     /* !complex signed int */
-            case SAMPLEFORMAT_COMPLEXIEEEFP:elsign = 1; real = 1; plex = 2; 
-                                                               elsize /=2; break;     /* !complex ieee floating */
-            default:                       cbf_failnez(CBF_FORMAT);
-        }
-        switch ( planarconfig ) {
-            case PLANARCONFIG_CONTIG:
-                plex *= samplesperpixel;
-                samplesperpixel = 1;
-                if (plex > 1) {
-                    dimslow = dimmid;
-                    dimmid = dimfast;
-                    dimfast = plex;
-                }
-                break;
-            case PLANARCONFIG_SEPARATE:
-                if (plex > 1 && samplesperpixel > 1) {
-                    dimfast = dimfast*plex;
-                    dimslow = samplesperpixel;
-                } else if (plex == 1 && samplesperpixel > 1 ) {
-                    dimslow = samplesperpixel;
-                } else if (plex > 1 && samplesperpixel == 1) {
-                    dimslow = dimmid;
-                    dimmid = dimfast;
-                    dimfast = plex;                    
-                }
-        }
-            
-        npixels = dimslow*dimmid*dimfast;
-        nstrips = TIFFNumberOfStrips(tif);
-        stripsize = TIFFStripSize(tif);
-        raster = (unsigned char *) _TIFFmalloc(stripsize*nstrips+stripsize-1);
-        elsize = stripsize*nstrips/npixels;
-        totread = 0;
-        for (strip = 0; strip < nstrips; strip++) {
-            totread +=TIFFReadEncodedStrip(tif, strip, raster+strip*stripsize, stripsize);
-        }
-        if(real){
-            cbf_failnez (cbf_set_realarray_wdims_fs (cbf, CBF_NONE, imageno,
-                                                        (void *)raster, elsize,
-                                                        npixels,
-                                                        "little_endian",dimfast,dimmid,dimslow,0 ))
-        } else {
-            cbf_failnez (cbf_set_integerarray_wdims_fs (cbf, CBF_NONE, imageno,
-                                                    (void *)raster, elsize, elsign,
-                                                    npixels,
-                                                    "little_endian",dimfast,dimmid,dimslow,0 ))
-        }
-        
-        _TIFFfree(raster);
-        
-    } while (TIFFReadDirectory(tif));
-        
-        
-    
-    
-    /* Write the new file */
-    
-    out = fopen (argv [2], "w+b");
-    
-    if (!out)
-    {
-        fprintf (stderr, " Couldn't open the CBF file %s\n", argv [2]);
-        
-        exit (1);
-    }
-    
-    cbf_failnez (cbf_write_file (cbf, out, 1, CBF, MSG_DIGEST | MIME_HEADERS  , 0))
-    
-    
-    
-    /* Free the cbf */
-    
-    cbf_failnez (cbf_free_handle (cbf))
-    
-    b = clock ();
-    
-    fprintf (stderr, " Time to write the CBF image: %.3fs\n", 
-             ((b - a) * 1.0) / CLOCKS_PER_SEC); 
-    
-    
-      
-    
-    /* Free the tiff images */
-            
-    TIFFClose(tif);
-    
-    
-    /* Success */
-    
-    return 0;
+                fprintf(stderr,"Usage: cbf2tiff [-i]infile.cbf [-o]outfile.tif\n");
 }
+
+
+/*
+  Converts a CBF to a tiff preserving only minimal image
+  metadata:
+
+*/
+
+
+
+
+
+int	main(int argc, char *argv[])
+{
+	FILE		*in;
+        TIFF            *out;
+        cbf_handle      cif=NULL;
+	char *		in_filename;
+        char *          out_filename;
+        int iarg;
+  
+
+	if(argc < 2)
+	{
+		usage();
+		exit(0);
+	}
+
+        for (iarg=1; iarg < argc; iarg++) {
+
+          if (argv[iarg][0]=='-' && argv[iarg][1]=='i') {
+            if (argv[iarg][2]!=0) {
+              in_filename=argv[iarg]+2;
+            } else {
+              if (iarg +1 < argc) {
+                iarg++;
+                in_filename=argv[iarg];
+              } else {
+                usage();
+                exit(1);
+              }
+            }
+          } else {
+            in_filename=argv[iarg];
+          }
+          iarg++;
+          if (argv[iarg][0]=='-' && argv[iarg][1]=='o') {
+            if (argv[iarg][2]!=0) {
+              out_filename=argv[iarg]+2;
+            } else {
+              if (iarg +1 < argc) {
+                iarg++;
+                out_filename=argv[iarg];
+              } else {
+                usage();
+                exit(1);
+              }
+            }
+          } else {
+            out_filename=argv[iarg];
+          }
+          break;
+        }
+
+        fprintf(stdout," cbf2tiff: converting '%s' to '%s' \n",in_filename,out_filename);
+
+        cbf_failnez(cbf_make_handle (&cif));
+
+        if (!(in = fopen (in_filename,"rb"))) {
+          fprintf(stderr,"cbf2tiff: could not open the input cbf file '%s'\n", in_filename);
+          exit (1);
+        }
+
+        cbf_failnez(cbf_read_widefile(cif,in,MSG_DIGEST));
+
+	cbf_failnez(cbf_rewind_datablock(cif));
+
+        cbf_failnez(cbf_find_tag(cif,"_array_data.data"));
+
+        {
+          int binary_id, elsigned, elunsigned;
+          size_t elements, elsize, row;
+          int minelement, maxelement;
+          unsigned int cifcompression;
+          int realarray;
+          const char *byteorder;
+          size_t fastdim, middim, slowdim, padding;
+          void * array;
+          void * strip;
+          size_t elements_read;
+          int sampleperpixel=1;
+
+          cbf_failnez(cbf_get_arrayparameters_wdims_fs(cif,
+            &cifcompression,
+            &binary_id,
+            &elsize,
+            &elsigned,
+            &elunsigned,
+            &elements,
+            &minelement,
+            &maxelement,
+            &realarray,
+            &byteorder,
+            &fastdim,
+            &middim,
+            &slowdim,
+            &padding));
+          if (fastdim < 1) fastdim = 1;
+          if (middim < 1) middim = 1;
+          if (slowdim < 1) slowdim = 1;
+          if ((array=malloc(elsize*elements))&&(strip=malloc(elsize*fastdim))) {
+            if (!realarray) {
+              cbf_failnez (cbf_get_integerarray(
+                cif, &binary_id, array, elsize, elsigned,
+                elements, &elements_read));
+            } else  {
+              cbf_failnez (cbf_get_realarray(
+                cif, &binary_id, array, elsize,
+                elements, &elements_read));
+              elsigned=1;
+            }
+            out=TIFFOpen(out_filename, "w");
+            TIFFSetField (out, TIFFTAG_IMAGEWIDTH, fastdim);  // set the width of the image
+            TIFFSetField(out, TIFFTAG_IMAGELENGTH, middim*slowdim);    // set the height of the image
+            TIFFSetField(out, TIFFTAG_SAMPLESPERPIXEL, sampleperpixel);   // set number of channels per pixel
+            TIFFSetField(out, TIFFTAG_BITSPERSAMPLE, 8*elsize);    // set the size of the channels
+            TIFFSetField(out, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT);    // set the origin of the image.
+            if (realarray) {
+              TIFFSetField(out, TIFFTAG_DATATYPE, SAMPLEFORMAT_IEEEFP);
+            } else if (elsigned) {
+              TIFFSetField(out, TIFFTAG_DATATYPE, SAMPLEFORMAT_INT);
+            } else {
+              TIFFSetField(out, TIFFTAG_DATATYPE, SAMPLEFORMAT_UINT);
+            }
+            TIFFSetField(out, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
+            TIFFSetField(out, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
+            TIFFSetField(out, TIFFTAG_ROWSPERSTRIP, TIFFDefaultStripSize(out, fastdim));
+            for (row = 0; row < middim*slowdim; row++) {
+              memcpy(strip,array+fastdim*elsize*row,fastdim*elsize);
+              if (TIFFWriteScanline(out,strip,row,0)<0) {
+                cbf_failnez(CBF_FILEWRITE);
+                exit(1);
+              }
+            }
+            TIFFClose(out);
+            free(strip);
+            free(array);
+          } else {
+            fprintf(stderr,
+              "cbf2tiff: Failed to allocate memory %ld bytes\n",
+              (long) (elsize*elements+elsize*fastdim));
+            exit(1);
+          }
+}
+
+        exit(0);
+}
+
+int local_exit (int status)
+{
+    exit(status);
+    return 1; /* avoid warnings */
+}
+
+
