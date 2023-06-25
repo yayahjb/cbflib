@@ -1992,94 +1992,81 @@ int main (int argc, char *argv [])
                                 if (fastdim < 1) fastdim = 1;
                                 if (middim < 1) middim = 1;
                                 if (slowdim < 1) slowdim = 1;
-                                        if ((array=malloc(elsize*elements))) {
-                                            cbf_failnez (cbf_select_column(cbf,colnum))
-                                            if (!realarray) {
-                                                cbf_failnez (cbf_get_integerarray(
-                                                                                  cif, &binary_id, array, elsize, elsigned,
-                                                                                  elements, &elements_read));
-                                                if (!xdsb2z) {
-                                                  cbf_failnez(cbf_set_integerarray_wdims_fs(
-                                                                                          cbf, compression,
-                                                                                          binary_id, array, elsize, elsigned, elements,
-                                                                                          byteorder, fastdim, middim, slowdim, padding));
-                                                } else {
-                                                  void * newarray; double beamcenter[2]; double pixels[2];
-                                                  /* we have an image rotation to process using rb2zmat */
-                                                  if (( newarray=malloc(elsize*elements))) {
-                                                    beamcenter[0]=beamcentx; beamcenter[1]=beamcenty; pixels[0]=pixels[1]=0.075;
-                                                    cbf_failnez(cbf_extract_rotated_roi_2D(array,newarray,elsize,elsigned,0,0,fastdim-1,
-                                                      0,middim-1,fastdim, middim, rb2zmat,beamcenter,pixels));
-                                                    cbf_failnez(cbf_set_integerarray_wdims_fs(cbf, compression, binary_id, newarray, elsize, 
-                                                      elsigned, elements, byteorder, fastdim, middim, slowdim, padding));
-                                                    free(newarray);
-                                                  } else {
-                                                    fprintf(stderr,
-                                                    "\nFailed to allocate memory %ld bytes for rotation",
-                                                    (long) elsize*elements);
-                                                    exit(1);
-                                                  }
-                                                }
-                                            } else  {
-                                                cbf_failnez (cbf_get_realarray(
-                                                                               cif, &binary_id, array, elsize,
-                                                                               elements, &elements_read))
-                                                if (dimflag == HDR_FINDDIMS && fastdim==0) {
-                                                    cbf_get_arraydimensions(cif,NULL,&fastdim,&middim,&slowdim);
-                                                }
-                                                if (!xdsb2z) {
-                                                  cbf_failnez(cbf_set_realarray_wdims_fs(
-                                                                                       cbf, compression,
-                                                                                       binary_id, array, elsize, elements,
-                                                                                       byteorder, fastdim, middim, slowdim, padding));
-                                                } else {
-                                                  void * newarray; double beamcenter[2]; double pixels[2];
-                                                  /* we have an image rotation to process using rb2zmat */
-                                                  if (( newarray=malloc(elsize*elements))) {
-                                                    beamcenter[0]=beamcentx; beamcenter[1]=beamcenty; pixels[0]=pixels[1]=0.075;
-                                                    cbf_failnez(cbf_extract_rotated_roi_2D(array,newarray,elsize,elsigned,1,0,fastdim-1,
-                                                      0,middim-1,fastdim, middim, rb2zmat,beamcenter,pixels));
-                                                    cbf_failnez(cbf_set_realarray_wdims_fs(cbf, compression, binary_id, newarray, elsize,
-                                                      elements, byteorder, fastdim, middim, slowdim, padding));
-                                                    free(newarray);
-                                                  } else {
-                                                    fprintf(stderr,
-                                                    "\nFailed to allocate memory %ld bytes for rotation",
-                                                    (long) elsize*elements);
-                                                    exit(1);
-                                                  }
-                                                }
+                                cbf_failnez (cbf_select_column(cbf,colnum));
+                                if (!xdsb2z) {
+                                  cbf_failnez ( cbf_copy_value_with_roi(cbf,
+                                                                        cif,
+                                                                        category_name,
+                                                                        column_name,
+                                                                        rownum,
+                                                                        compression,
+                                                                        dimflag,
+                                                                        IorR,
+                                                                        nelsize?((size_t)nelsize):elsize,
+                                                                        realarray?CBF_CPY_SETSIGNED:0,
+                                                                        cliplow,
+                                                                        cliphigh,
+                                                                        roi))
 
-                                            }
-                                            free(array);
-                                        } else {
-                                            fprintf(stderr,
-                                                    "\nFailed to allocate memory %ld bytes",
-                                                    (long) elsize*elements);
-                                            exit(1);
+                                } else {
+                                  if ((array=malloc(elsize*elements))) {
+                                    if (!realarray) {
+                                      cbf_failnez (cbf_get_integerarray(
+                                        cif, &binary_id, array, elsize, elsigned,
+                                        elements, &elements_read));
+                                      { void * newarray; double beamcenter[2]; double pixels[2];
+                                        /* we have an image rotation to process using rb2zmat */
+                                        if (IorR) {
+                                          fprintf(stderr,"cif2cbf: I or R conversion in compatible with xdsb2z option");
+                                          exit(1);
                                         }
+                                        if (( newarray=malloc(elsize*elements))) {
+                                          beamcenter[0]=beamcentx; beamcenter[1]=beamcenty; pixels[0]=pixels[1]=0.075;
+                                          cbf_failnez(cbf_extract_rotated_roi_2D(array,newarray,elsize,elsigned,0,0,fastdim-1,
+                                            0,middim-1,fastdim, middim, rb2zmat,beamcenter,pixels));
+                                          cbf_failnez(cbf_set_integerarray_wdims_fs(cbf, compression, binary_id, newarray, elsize, 
+                                            elsigned, elements, byteorder, fastdim, middim, slowdim, padding));
+                                          free(newarray);
+                                        } else {
+                                          fprintf(stderr,
+                                            "cif2cbf: Failed to allocate memory %ld bytes for rotation\n",
+                                            (long) elsize*elements);
+                                           exit(1);
+                                        }
+                                      }
+                                    } else  {
+                                      cbf_failnez (cbf_get_realarray(
+                                        cif, &binary_id, array, elsize,
+                                        elements, &elements_read))
+                                      { void * newarray; double beamcenter[2]; double pixels[2];
+                                        /* we have an image rotation to process using rb2zmat */
+                                        if (( newarray=malloc(elsize*elements))) {
+                                          beamcenter[0]=beamcentx; beamcenter[1]=beamcenty; pixels[0]=pixels[1]=0.075;
+                                          cbf_failnez(cbf_extract_rotated_roi_2D(array,newarray,elsize,elsigned,1,0,fastdim-1,
+                                            0,middim-1,fastdim, middim, rb2zmat,beamcenter,pixels));
+                                          cbf_failnez(cbf_set_realarray_wdims_fs(cbf, compression, binary_id, newarray, elsize,
+                                            elements, byteorder, fastdim, middim, slowdim, padding));
+                                          free(newarray);
+                                        } else {
+                                          fprintf(stderr,
+                                            "cif2cbf: Failed to allocate memory %ld bytes for rotation",
+                                            (long) elsize*elements);
+                                          exit(1);
+                                        }
+                                      }
+                                    }
+                                    free(array);
+                                  } else {
+                                    fprintf(stderr,
+                                      "cif2cbf: Failed to allocate memory %ld bytes",
+                                      (long) elsize*elements);
+                                    exit(1);
+                                  }
 
-
-                                /*{   cbf_failnez (cbf_select_column(cbf,colnum))
-                                    cbf_failnez (
-                                                 cbf_copy_value_with_roi(cbf,
-                                                                         cif,
-                                                                         category_name,
-                                                                         column_name,
-                                                                         rownum,
-                                                                         compression,
-                                                                         dimflag,
-                                                                         IorR,
-                                                                         nelsize?((size_t)nelsize):elsize,
-                                                                         realarray?CBF_CPY_SETSIGNED:0,
-                                                                         cliplow,
-                                                                         cliphigh,
-                                                                         roi))
-
-                                    }*/
                                 }
                             }
                         }
+                    }
                 } else {
                     cbf_saveframe_name(cif,&saveframe_name);
                     cbf_force_new_saveframe(cbf, saveframe_name);
