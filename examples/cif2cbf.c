@@ -52,7 +52,7 @@
  *    [-d {d[igest]|n[odigest]|w[warndigest]} \                       *
  *    [-e {b[ase64]|k|q[uoted-printable]| \                           *
  *                  d[ecimal]|h[exadecimal]|o[ctal]|n[one]}] \        *
- *    [-I {0|2|4|8}] \                                                *
+ *    [-I {0|1|2|4|8|-1|-2|-4|-8}] \                                  *
  *    [-L lowclipvalue ] \                                            *
  *    [-m {h[eaders]|n[oheaders]}] \                                  *
  *    [-m {dim[ensions]|nod[imensions}] \                             *
@@ -819,7 +819,8 @@ int main (int argc, char *argv [])
     int Wide = 0;
     int IorR = 0;
     int i5;
-    int nelsize;
+    int nelsize=4;
+    int nelsign=CBF_CPY_SETSIGNED;
     int testconstruct;
     char buf[C2CBUFSIZ];
     unsigned int blocks, categories, blocknum, catnum, blockitems, itemnum;
@@ -865,7 +866,7 @@ int main (int argc, char *argv [])
      *    [-D ] \                                                         *
      *    [-e {b[ase64]|k|q[uoted-printable]| \                           *
      *                  d[ecimal]|h[exadecimal]|o[ctal]|n[one]}] \        *
-     *    [-I {0|2|4|8}]  \                                               *
+     *    [-I {0|1|2|4|8|-1|-2|-4|-8}]  \                                 *
      *    [-L lowclipvalue ] \                                            *
      *    [-m {h[eaders]|noh[eaders]}] \                                  *
      *    [-m {d[imensions]|nod[imensions]] \                             *
@@ -906,6 +907,7 @@ int main (int argc, char *argv [])
     qrflags = qwflags = 0;
     dimflag = 0;
     nelsize = 0;
+    nelsign = 0;
     hdf5mode = 0;
     hdf5noH5 = 0;
     hdf5register = 0;
@@ -1372,7 +1374,13 @@ int main (int argc, char *argv [])
                     if (IorR) errflg++;
                     IorR = CBF_CPY_SETINTEGER;
                     nelsize = atoi(optarg);
-                    if (nelsize != 0 && nelsize != 1 && nelsize !=2 && nelsize !=4 && nelsize != 8) errflg++;
+                    if (nelsize != 0 && nelsize != 1 && nelsize !=2 && nelsize !=4 && nelsize != 8
+                      && nelsize != -1 && nelsize !=-2 && nelsize !=-4 && nelsize != -8) errflg++;
+                    nelsign = CBF_CPY_SETSIGNED;
+                    if (nelsize < 0) {
+                      nelsign=CBF_CPY_SETUNSIGNED;
+                      nelsize = -nelsize;
+                    }
                     break;
 
                 case 'L':
@@ -1446,6 +1454,7 @@ int main (int argc, char *argv [])
                     IorR = CBF_CPY_SETREAL;
                     nelsize = atoi(optarg);
                     if (nelsize != 0 && nelsize !=4 && nelsize != 8) errflg++;
+                    nelsign=CBF_CPY_SETSIGNED;
                     break;
 
                 case 'S':  /* Parse whitespace */
@@ -1525,13 +1534,13 @@ int main (int argc, char *argv [])
         fprintf(stderr,
                 "    [-C highclipvalue] \\\n");
         fprintf(stderr,
+                "    [-L lowclipvalue \\\n");
+        fprintf(stderr,
                 "    [-D ] \\\n");
         fprintf(stderr,
-                "    [-I {0|2|4|8}] \\\n");
+                "    [-I {0|1|2|4|8|-1|-2|-4|-8}], negative for unsigned \\\n");
         fprintf(stderr,
                 "    [-R {0|4|8}] \\\n");
-        fprintf(stderr,
-                "    [-L {0|4|8}] \\\n");
         fprintf(stderr,
                 "    [-m {h[eaders]|noh[eaders]}] \\\n");
         fprintf(stderr,
@@ -2003,7 +2012,7 @@ int main (int argc, char *argv [])
                                                                         dimflag,
                                                                         IorR,
                                                                         nelsize?((size_t)nelsize):elsize,
-                                                                        realarray?CBF_CPY_SETSIGNED:0,
+                                                                        nelsign,
                                                                         cliplow,
                                                                         cliphigh,
                                                                         roi))

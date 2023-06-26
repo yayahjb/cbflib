@@ -888,9 +888,15 @@ extern "C" {
 
                 nelunsigned = elunsigned;
 
-                if (elsign & CBF_CPY_SETSIGNED) nelsigned = 1;
+                if (elsign & CBF_CPY_SETSIGNED) {
+                  nelsigned = 1;
+                  nelunsigned = 0;
+                }
 
-                if (elsign & CBF_CPY_SETUNSIGNED) nelunsigned = 1;
+                if (elsign & CBF_CPY_SETUNSIGNED) {
+                  nelunsigned = 1;
+                  nelsigned = 0;
+                }
 
                 if (!realarray)  {
 
@@ -904,10 +910,6 @@ extern "C" {
                                                         elements,
                                                         &elements_read),
                                    {free(array); array=NULL;})
-
-                    if (dimflag == CBF_HDR_FINDDIMS && dimfast==0) {
-                        cbf_get_arraydimensions(cbfin,NULL,&dimfast,&dimmid,&dimslow);
-                    }
 
                     if (dimfast < 1) dimfast = 1;
                     if (dimmid < 1) dimmid = 1;
@@ -1003,6 +1005,38 @@ extern "C" {
                         }
 
                         if ((narray=malloc(nelsize*elements))) {
+
+                          double minval, maxval, valtemp;
+                          size_t icount;
+                          int innarray;
+
+                          if (nelunsigned) {
+                            minval = 0.; 
+                            switch( nelsize )  {
+                              case 1:  maxval = (double)(0xFF); break;
+                              case 2:  maxval = (double)(0xFFFFU); break;
+                              case 4:  maxval = (double)(0xFFFFFFFFUL); break;
+                              case 8:  maxval = ((double)(0xFFFFFFFFUL))*(2.+((double)(0xFFFFFFFFUL))); break;
+                              default: free(array); free(narray); return CBF_ARGUMENT;
+                            }
+                          } else if (nelsigned) {  
+                            switch( nelsize ) {
+                              case 1:  maxval = (double)(0x7F); break;
+                              case 2:  maxval = (double)(0x7FFFU); break;
+                              case 4:  maxval = (double)(0x7FFFFFFFUL); break;
+                              case 8:  maxval = ((double)(0xFFFFFFFFUL)) +
+                                       ((double)(0x7FFFFFFFL))*(1.+((double)(0xFFFFFFFFUL))); break;
+                              default: free(array); free(narray); return CBF_ARGUMENT;
+                            }
+                            minval = -maxval;
+
+                            if ((int)(~0)+1 == 0) minval = minval -1;
+
+                          } else {
+                            free(array); free(narray); return CBF_ARGUMENT;
+                          }
+
+                          innarray=0;
 
                             if (cliplow < cliphigh || valuelow > -DBL_MAX || valuehigh < DBL_MAX) {
 
@@ -1100,67 +1134,223 @@ extern "C" {
 
                                 /* integer to integer conversion */
 
-                                if (toupper(border[0])=='L') {
 
 
-                                    for (icount = 0; icount < (int)elements; icount++ ) {
-
-
-                                        memmove(((unsigned char *)narray)+icount*elsize,((unsigned char *)array)+icount*oelsize,xelsize);
-
-
-                                        if (xelsize < nelsize) {
-
-                                            fill = 0;
-
-                                            if (nelsigned) fill =
-                                                (((signed char *)array)[icount*oelsize+oelsize-1]<0)?(~0):0;
-
-                                            if (nelunsigned)
-                                                for(jcount=0;jcount<=(int)(nelsize-oelsize);jcount++)
-                                                    ((signed char *)narray)[icount*elsize+xelsize+jcount]=fill;
-
-                                        }
-
-                                    }
-
-                                } else {
-
-                                    for (icount = 0; icount < (int)elements; icount++ ) {
-
-                                        for (jcount = xelsize-1; jcount>=0; jcount--) {
-
-                                            ((unsigned char *)narray)[icount*elsize+jcount] =  ((unsigned char *)array)[icount*oelsize+jcount];
-
-                                            if (xelsize < nelsize) {
-
-                                                fill = 0;
-
-                                                if (nelsigned) fill =
-                                                    (((signed char *)array)[icount*oelsize]<0)?(~0):0;
-
-                                                if (nelunsigned)
-                                                    for(jcount=0;jcount<=(int)(nelsize-oelsize);jcount++)
-                                                        ((signed char *)narray)[icount*elsize+jcount]=fill;
-
-                                            }
-
-                                        }
-
-                                    }
-
+                          if (nelsize < oelsize) {
+                            if (nelsize == sizeof(char)) {
+                              if ((ssize_t)oelsize == sizeof(short)) {
+                                innarray=1;
+                                if ( nelsigned &&  elsigned) fprintf(stdout,"cbf_copy: convert short to signed char\n");  
+                                if (!nelsigned &&  elsigned) fprintf(stdout,"cbf_copy: convert short to unsigned char\n");  
+                                if ( nelsigned && !elsigned) fprintf(stdout,"cbf_copy: convert unsigned short to signed char\n");  
+                                if (!nelsigned && !elsigned) fprintf(stdout,"cbf_copy: convert unsigned short to unsigned char\n");  
+                                for (icount = 0; icount < (size_t)elements; icount++) {
+                                  if (elsigned) {valtemp=((short *)array)[icount];}
+                                  else {valtemp=((unsigned short *)array)[icount];}
+                                  if (valtemp > maxval) valtemp=maxval;
+                                  if (valtemp < minval) valtemp=minval;
+                                  if (valtemp < 0.) valtemp-=0.5; else valtemp+=0.5;
+                                  if (nelsigned) {((signed char *)narray)[icount] = (signed char)valtemp;}
+                                  else {((unsigned char *)narray)[icount] = (unsigned char)valtemp;}
                                 }
+                              } else if ((ssize_t)oelsize == sizeof(int)) {
+                                innarray=1;
+                                if ( nelsigned &&  elsigned) fprintf(stdout,"cbf_copy: convert int to signed char\n");  
+                                if (!nelsigned &&  elsigned) fprintf(stdout,"cbf_copy: convert int to unsigned char\n");  
+                                if ( nelsigned && !elsigned) fprintf(stdout,"cbf_copy: convert unsigned int to signed char\n");  
+                                if (!nelsigned && !elsigned) fprintf(stdout,"cbf_copy: convert unsigned int to unsigned char\n");  
+                                for (icount = 0; icount < (size_t)elements; icount++) {
+                                  if (elsigned) {valtemp=((int *)array)[icount];}
+                                  else {valtemp=((unsigned int *)array)[icount];}
+                                  if (valtemp > maxval) valtemp=maxval;
+                                  if (valtemp < minval) valtemp=minval;
+                                  if (valtemp < 0.) valtemp-=0.5; else valtemp+=0.5;
+                                  if (nelsigned) {((signed char *)narray)[icount] = (signed char)valtemp;}
+                                  else {((unsigned char *)narray)[icount] = (unsigned char)valtemp;}
+                                }
+                              } else if ((ssize_t)oelsize == sizeof(long)) {
+                                innarray=1;
+                                if ( nelsigned &&  elsigned) fprintf(stdout,"cbf_copy: convert long to signed char\n");  
+                                if (!nelsigned &&  elsigned) fprintf(stdout,"cbf_copy: convert long to unsigned char\n");  
+                                if ( nelsigned && !elsigned) fprintf(stdout,"cbf_copy: convert unsigned long to signed char\n");  
+                                if (!nelsigned && !elsigned) fprintf(stdout,"cbf_copy: convert unsigned long to unsigned char\n");  
+                                for (icount = 0; icount < (size_t)elements; icount++) {
+                                  if (elsigned) {valtemp=((long *)array)[icount];}
+                                  else {valtemp=((unsigned long *)array)[icount];}
+                                  if (valtemp > maxval) valtemp=maxval;
+                                  if (valtemp < minval) valtemp=minval;
+                                  if (valtemp < 0.) valtemp-=0.5; else valtemp+=0.5;
+                                  if (nelsigned) {((signed char *)narray)[icount] = (signed char)valtemp;}
+                                  else {((unsigned char *)narray)[icount] = (unsigned char)valtemp;}
+                                }
+#ifdef CBF_USE_LONG_LONG
+                              } else if ((ssize_t)oelsize == sizeof(long long)) {
+                                innarray=1;
+                                if ( nelsigned &&  elsigned) fprintf(stdout,"cbf_copy: convert long long to signed char\n");  
+                                if (!nelsigned &&  elsigned) fprintf(stdout,"cbf_copy: convert long long to unsigned char\n");  
+                                if ( nelsigned && !elsigned) fprintf(stdout,"cbf_copy: convert unsigned long long to signed char\n");  
+                                if (!nelsigned && !elsigned) fprintf(stdout,"cbf_copy: convert unsigned long long to unsigned char\n");  
+                                for (icount = 0; icount < (size_t)elements; icount++) {
+                                  if (elsigned) {valtemp=((long long *)array)[icount];}
+                                  else {valtemp=((unsigned long long *)array)[icount];}
+                                  if (valtemp > maxval) valtemp=maxval;
+                                  if (valtemp < minval) valtemp=minval;
+                                  if (valtemp < 0.) valtemp-=0.5; else valtemp+=0.5;
+                                  if (nelsigned) {((signed char *)narray)[icount] = (signed char)valtemp;}
+                                  else {((unsigned char *)narray)[icount] = (unsigned char)valtemp;}
+                                }
+                              }
+#else
+                              }
+#endif
+                            } else if (nelsize == sizeof(short)) {
+                              if ((ssize_t)oelsize == sizeof(int)) {
+                                innarray=1;
+                                if ( nelsigned &&  elsigned) fprintf(stdout,"cbf_copy: convert int to short\n");  
+                                if (!nelsigned &&  elsigned) fprintf(stdout,"cbf_copy: convert int to unsigned short\n");  
+                                if ( nelsigned && !elsigned) fprintf(stdout,"cbf_copy: convert unsigned int to short\n");  
+                                if (!nelsigned && !elsigned) fprintf(stdout,"cbf_copy: convert unsigned int to unsigned short\n");  
+                                for (icount = 0; icount < (size_t)elements; icount++) {
+                                  if (elsigned) {valtemp=((int *)array)[icount];}
+                                  else {valtemp=((unsigned int *)array)[icount];}
+                                  if (valtemp > maxval) valtemp=maxval;
+                                  if (valtemp < minval) valtemp=minval;
+                                  if (valtemp < 0.) valtemp-=0.5; else valtemp+=0.5;
+                                  if (nelsigned) {((short *)narray)[icount] = (short)valtemp;}
+                                  else {((unsigned short *)narray)[icount] = (unsigned short)valtemp;}
+                                }
+                              } else if ((ssize_t)oelsize == sizeof(long)) {
+                                innarray=1;
+                                if ( nelsigned &&  elsigned) fprintf(stdout,"cbf_copy: convert long to short\n");  
+                                if (!nelsigned &&  elsigned) fprintf(stdout,"cbf_copy: convert long to unsigned short\n");  
+                                if ( nelsigned && !elsigned) fprintf(stdout,"cbf_copy: convert unsigned long to short\n");  
+                                if (!nelsigned && !elsigned) fprintf(stdout,"cbf_copy: convert unsigned long to unsigned short\n");  
+                                for (icount = 0; icount < (size_t)elements; icount++) {
+                                  if (elsigned) {valtemp=((long *)array)[icount];}
+                                  else {valtemp=((unsigned long *)array)[icount];}
+                                  if (valtemp > maxval) valtemp=maxval;
+                                  if (valtemp < minval) valtemp=minval;
+                                  if (valtemp < 0.) valtemp-=0.5; else valtemp+=0.5;
+                                  if (nelsigned) {((short *)narray)[icount] = (short)valtemp;}
+                                  else {((unsigned short *)narray)[icount] = (unsigned short)valtemp;}
+                                }
+#ifdef CBF_USE_LONG_LONG
+                              } else if ((ssize_t)oelsize == sizeof(long long)) {
+                                innarray=1;
+                                if ( nelsigned &&  elsigned) fprintf(stdout,"cbf_copy: convert long long to short\n");  
+                                if (!nelsigned &&  elsigned) fprintf(stdout,"cbf_copy: convert long long to unsigned short\n");  
+                                if ( nelsigned && !elsigned) fprintf(stdout,"cbf_copy: convert unsigned long long to short\n");  
+                                if (!nelsigned && !elsigned) fprintf(stdout,"cbf_copy: convert unsigned long long to unsigned short\n");  
+                                for (icount = 0; icount < (size_t)elements; icount++) {
+                                  if (elsigned) {valtemp=((long long *)array)[icount];}
+                                  else {valtemp=((unsigned long long *)array)[icount];}
+                                  if (valtemp > maxval) valtemp=maxval;
+                                  if (valtemp < minval) valtemp=minval;
+                                  if (valtemp < 0.) valtemp-=0.5; else valtemp+=0.5;
+                                  if (nelsigned) {((short *)narray)[icount] = (short)valtemp;}
+                                  else {((unsigned short *)narray)[icount] = (unsigned short)valtemp;}
+                                }
+#endif
+                              }
+                            } else if (nelsize == sizeof(int)) {
+                              if ((ssize_t)oelsize == sizeof(long)) {
+                                innarray=1;
+                                if ( nelsigned &&  elsigned) fprintf(stdout,"cbf_copy: convert long to int\n");  
+                                if (!nelsigned &&  elsigned) fprintf(stdout,"cbf_copy: convert long to unsigned int\n");  
+                                if ( nelsigned && !elsigned) fprintf(stdout,"cbf_copy: convert unsigned long to int\n");  
+                                if (!nelsigned && !elsigned) fprintf(stdout,"cbf_copy: convert unsigned long to unsigned int\n");  
+                                for (icount = 0; icount < (size_t)elements; icount++) {
+                                  if (elsigned) {valtemp=((long *)array)[icount];}
+                                  else {valtemp=((unsigned long *)array)[icount];}
+                                  if (valtemp > maxval) valtemp=maxval;
+                                  if (valtemp < minval) valtemp=minval;
+                                  if (valtemp < 0.) valtemp-=0.5; else valtemp+=0.5;
+                                  if (nelsigned) {((int *)narray)[icount] = (int)valtemp;}
+                                  else {((unsigned int *)narray)[icount] = (unsigned int)valtemp;}
+                                }
+#ifdef CBF_USE_LONG_LONG
+                              } else if ((ssize_t)oelsize == sizeof(long long)) {
+                                innarray=1;
+                                if ( nelsigned &&  elsigned) fprintf(stdout,"cbf_copy: convert long long to int\n");  
+                                if (!nelsigned &&  elsigned) fprintf(stdout,"cbf_copy: convert long long to unsigned int\n");  
+                                if ( nelsigned && !elsigned) fprintf(stdout,"cbf_copy: convert unsigned long long to int\n");  
+                                if (!nelsigned && !elsigned) fprintf(stdout,"cbf_copy: convert unsigned long long to unsigned int\n");  
+                               for (icount = 0; icount < (size_t)elements; icount++) {
+                                  if (elsigned) {valtemp=((long long *)array)[icount];}
+                                  else {valtemp=((unsigned long long*)array)[icount];}
+                                  if (valtemp > maxval) valtemp=maxval;
+                                  if (valtemp < minval) valtemp=minval;
+                                  if (valtemp < 0.) valtemp-=0.5; else valtemp+=0.5;
+                                  if (nelsigned) {((int *)narray)[icount] = (int)valtemp;}
+                                  else {((unsigned int *)narray)[icount] = (unsigned int)valtemp;}
+                                }
+#endif
+                              }
+#ifdef CBF_USE_LONG_LONG
+                            } else if (nelsize == sizeof(long)) {
+                              if ((ssize_t)oelsize == sizeof(long long)) {
+                                innarray=1;
+                                if ( nelsigned &&  elsigned) fprintf(stdout,"cbf_copy: convert long long to long\n");  
+                                if (!nelsigned &&  elsigned) fprintf(stdout,"cbf_copy: convert long long to unsigned long\n");  
+                                if ( nelsigned && !elsigned) fprintf(stdout,"cbf_copy: convert unsigned long long to long\n");  
+                                if (!nelsigned && !elsigned) fprintf(stdout,"cbf_copy: convert unsigned long long to unsigned long\n");  
+                                for (icount = 0; icount < (size_t)elements; icount++) {
+                                  if (elsigned) {valtemp=((long long *)array)[icount];}
+                                  else {valtemp=((unsigned long long*)array)[icount];}
+                                  if (valtemp > maxval) valtemp=maxval;
+                                  if (valtemp < minval) valtemp=minval;
+                                  if (valtemp < 0.) valtemp-=0.5; else valtemp+=0.5;
+                                  if (nelsigned) {((long *)narray)[icount] = (long)valtemp;}
+                                  else {((unsigned long *)narray)[icount] = (unsigned long)valtemp;}
+                                }
+                              }
+#endif
+                            }
+                          }
 
-                                cbf_onfailnez(cbf_set_integerarray_wdims_fs(
-                                                                            cbfout, compression,
-                                                                            binary_id, narray, elsize, nelsigned, elements,
-                                                                            "little_endian", dimfast, dimmid, dimslow, 0), {free(array); free(narray);})
-                                free(narray);
-
-                                free(array);
-
-
+                          if (!innarray) {
+                            if ( nelsigned &&  elsigned) fprintf(stdout,"cbf_copy: convert I%u to I%u\n", (unsigned int)oelsize, (unsigned int)elsize);  
+                            if (!nelsigned &&  elsigned) fprintf(stdout,"cbf_copy: convert I%u to unsigned I%u\n", (unsigned int)oelsize, (unsigned int)elsize);  
+                            if ( nelsigned && !elsigned) fprintf(stdout,"cbf_copy: convert unsigned I%u to I%u\n", (unsigned int)oelsize, (unsigned int)elsize);  
+                            if (!nelsigned && !elsigned) fprintf(stdout,"cbf_copy: convert unsigned I%u to unsigned I%u\n", (unsigned int)oelsize, (unsigned int)elsize);  
+                            if (toupper(border[0])=='L') { 
+                              for (icount = 0; icount < (int)elements; icount++ ) {
+                                memmove(((unsigned char *)narray)+icount*elsize,((unsigned char *)array)+icount*oelsize,xelsize);
+                                if (xelsize < nelsize) {
+                                  fill = 0;
+                                  if (nelsigned) fill =
+                                    (((signed char *)array)[icount*oelsize+oelsize-1]<0)?(~0):0;
+                                  if (nelunsigned)
+                                    for(jcount=0;jcount<=(int)(nelsize-oelsize);jcount++) {
+                                      ((signed char *)narray)[icount*elsize+xelsize+jcount]=fill;
+                                    }
+                                }
+                              }
                             } else {
+                              for (icount = 0; icount < (int)elements; icount++ ) {
+                                for (jcount = xelsize-1; jcount>=0; jcount--) {
+                                  ((unsigned char *)narray)[icount*elsize+jcount] =  ((unsigned char *)array)[icount*oelsize+jcount];
+                                  if (xelsize < nelsize) {
+                                    fill = 0;
+                                    if (nelsigned) fill =
+                                      (((signed char *)array)[icount*oelsize]<0)?(~0):0;
+                                    if (nelunsigned)
+                                      for(jcount=0;jcount<=(int)(nelsize-oelsize);jcount++) {
+                                        ((signed char *)narray)[icount*elsize+jcount]=fill;
+                                      }
+                                  }
+                                }
+                              }
+                            }
+                          }
+           
+                          cbf_onfailnez(cbf_set_integerarray_wdims_fs(
+                            cbfout, compression,
+                            binary_id, narray, elsize, nelsigned, elements,
+                            "little_endian", dimfast, dimmid, dimslow, 0), {free(array); free(narray);})
+                          free(narray);
+                          free(array);
+                        } else {
 
                                 /* integer to real conversion */
 
@@ -1590,6 +1780,9 @@ extern "C" {
                                                     free(array); free(narray); return CBF_OVERFLOW;
                                                 }*/
 
+                                                if (valtemp > maxval) valtemp=maxval;
+                                                if (valtemp < minval) valtemp=minval;
+
                                                 ((signed char *)narray)[icount] = (signed char)valtemp;
                                             }
 
@@ -1603,6 +1796,9 @@ extern "C" {
 
                                                     free(array); free(narray); return CBF_OVERFLOW;
                                                 }*/
+
+                                                if (valtemp > maxval) valtemp=maxval;
+                                                if (valtemp < minval) valtemp=minval;
 
                                                 ((unsigned char *)narray)[icount] = (unsigned char)valtemp;
                                             }
@@ -1622,6 +1818,9 @@ extern "C" {
                                                     free(array); free(narray); return CBF_OVERFLOW;
                                                 }*/
 
+                                                if (valtemp > maxval) valtemp=maxval;
+                                                if (valtemp < minval) valtemp=minval;
+
                                                 ((signed char *)narray)[icount] = (signed char)valtemp;
                                             }
 
@@ -1635,6 +1834,9 @@ extern "C" {
 
                                                     free(array); free(narray); return CBF_OVERFLOW;
                                                 }*/
+
+                                                if (valtemp > maxval) valtemp=maxval;
+                                                if (valtemp < minval) valtemp=minval;
 
                                                 ((unsigned char *)narray)[icount] = (unsigned char)valtemp;
                                             }
@@ -1659,6 +1861,9 @@ extern "C" {
                                                     free(array); free(narray); return CBF_OVERFLOW;
                                                 }*/
 
+                                                if (valtemp > maxval) valtemp=maxval;
+                                                if (valtemp < minval) valtemp=minval;
+
                                                 ((signed short int *)narray)[icount] = (signed short int)valtemp;
                                             }
 
@@ -1672,6 +1877,9 @@ extern "C" {
 
                                                     free(array); free(narray); return CBF_OVERFLOW;
                                                 }*/
+
+                                                if (valtemp > maxval) valtemp=maxval;
+                                                if (valtemp < minval) valtemp=minval;
 
                                                 ((unsigned short int *)narray)[icount] = (unsigned short int)valtemp;
                                             }
@@ -1691,6 +1899,9 @@ extern "C" {
                                                     free(array); free(narray); return CBF_OVERFLOW;
                                                 }*/
 
+                                                if (valtemp > maxval) valtemp=maxval;
+                                                if (valtemp < minval) valtemp=minval;
+
                                                 ((signed short int *)narray)[icount] = (signed short int)valtemp;
                                             }
 
@@ -1704,6 +1915,9 @@ extern "C" {
 
                                                     free(array); free(narray); return CBF_OVERFLOW;
                                                 }*/
+
+                                                if (valtemp > maxval) valtemp=maxval;
+                                                if (valtemp < minval) valtemp=minval;
 
                                                 ((unsigned short int *)narray)[icount] = (unsigned short int)valtemp;
                                             }
@@ -1727,6 +1941,9 @@ extern "C" {
                                                     free(array); free(narray); return CBF_OVERFLOW;
                                                 }*/
 
+                                                if (valtemp > maxval) valtemp=maxval;
+                                                if (valtemp < minval) valtemp=minval;
+
                                                 ((signed int *)narray)[icount] = (signed int)valtemp;
                                             }
 
@@ -1740,6 +1957,9 @@ extern "C" {
 
                                                     free(array); free(narray); return CBF_OVERFLOW;
                                                 }*/
+
+                                                if (valtemp > maxval) valtemp=maxval;
+                                                if (valtemp < minval) valtemp=minval;
 
                                                 ((unsigned int *)narray)[icount] = (unsigned int)valtemp;
                                             }
@@ -1759,6 +1979,9 @@ extern "C" {
                                                     free(array); free(narray); return CBF_OVERFLOW;
                                                 }*/
 
+                                                if (valtemp > maxval) valtemp=maxval;
+                                                if (valtemp < minval) valtemp=minval;
+
                                                 ((signed int *)narray)[icount] = (signed int)valtemp;
                                             }
 
@@ -1772,6 +1995,9 @@ extern "C" {
 
                                                     free(array); free(narray); return CBF_OVERFLOW;
                                                 }*/
+
+                                                if (valtemp > maxval) valtemp=maxval;
+                                                if (valtemp < minval) valtemp=minval;
 
                                                 ((unsigned int *)narray)[icount] = (unsigned int)valtemp;
                                             }
@@ -1796,6 +2022,9 @@ extern "C" {
                                                     free(array); free(narray); return CBF_OVERFLOW;
                                                 }*/
 
+                                                if (valtemp > maxval) valtemp=maxval;
+                                                if (valtemp < minval) valtemp=minval;
+
                                                 ((signed long int *)narray)[icount] = (signed long int)valtemp;
                                             }
 
@@ -1809,6 +2038,9 @@ extern "C" {
 
                                                     free(array); free(narray); return CBF_OVERFLOW;
                                                 }*/
+
+                                                if (valtemp > maxval) valtemp=maxval;
+                                                if (valtemp < minval) valtemp=minval;
 
                                                 ((unsigned long int *)narray)[icount] = (unsigned long int)valtemp;
                                             }
@@ -1828,6 +2060,9 @@ extern "C" {
                                                     free(array); free(narray); return CBF_OVERFLOW;
                                                 }*/
 
+                                                if (valtemp > maxval) valtemp=maxval;
+                                                if (valtemp < minval) valtemp=minval;
+
                                                 ((signed long int *)narray)[icount] = (signed long int)valtemp;
                                             }
 
@@ -1841,6 +2076,9 @@ extern "C" {
 
                                                     free(array); free(narray); return CBF_OVERFLOW;
                                                 }*/
+
+                                                if (valtemp > maxval) valtemp=maxval;
+                                                if (valtemp < minval) valtemp=minval;
 
                                                 ((unsigned long int *)narray)[icount] = (unsigned long int)valtemp;
                                             }
@@ -1866,6 +2104,9 @@ extern "C" {
                                                     free(array); free(narray); return CBF_OVERFLOW;
                                                 }*/
 
+                                                if (valtemp > maxval) valtemp=maxval;
+                                                if (valtemp < minval) valtemp=minval;
+
                                                 ((signed long long int *)narray)[icount] = (signed long long int)valtemp;
                                             }
 
@@ -1879,6 +2120,9 @@ extern "C" {
 
                                                     free(array); free(narray); return CBF_OVERFLOW;
                                                 }*/
+
+                                                if (valtemp > maxval) valtemp=maxval;
+                                                if (valtemp < minval) valtemp=minval;
 
                                                 ((unsigned long long int *)narray)[icount] = (unsigned long long int)valtemp;
                                             }
@@ -1898,6 +2142,9 @@ extern "C" {
                                                     free(array); free(narray); return CBF_OVERFLOW;
                                                 }*/
 
+                                                if (valtemp > maxval) valtemp=maxval;
+                                                if (valtemp < minval) valtemp=minval;
+
                                                 ((signed long long int *)narray)[icount] = (signed long long int)valtemp;
                                             }
 
@@ -1911,6 +2158,9 @@ extern "C" {
 
                                                     free(array); free(narray); return CBF_OVERFLOW;
                                                 }*/
+
+                                                if (valtemp > maxval) valtemp=maxval;
+                                                if (valtemp < minval) valtemp=minval;
 
                                                 ((unsigned long long int *)narray)[icount] = (unsigned long long int)valtemp;
                                             }
@@ -1950,6 +2200,9 @@ extern "C" {
                                                     free(array); free(narray); return CBF_OVERFLOW;
                                                 }*/
 
+                                                if (valtemp > maxval) valtemp=maxval;
+                                                if (valtemp < minval) valtemp=minval;
+
                                                 vallow = fmod(valtemp,onemore);
 
                                                 valhigh = (valtemp-vallow)/onemore;
@@ -1970,6 +2223,9 @@ extern "C" {
 
                                                     free(array); free(narray); return CBF_OVERFLOW;
                                                 }*/
+
+                                                if (valtemp > maxval) valtemp=maxval;
+                                                if (valtemp < minval) valtemp=minval;
 
                                                 vallow = fmod(valtemp,onemore);
 
@@ -1996,6 +2252,9 @@ extern "C" {
                                                     free(array); free(narray); return CBF_OVERFLOW;
                                                 }*/
 
+                                                if (valtemp > maxval) valtemp=maxval;
+                                                if (valtemp < minval) valtemp=minval;
+
                                                 vallow = fmod(valtemp,onemore);
 
                                                 valhigh = (valtemp-vallow)/onemore;
@@ -2015,6 +2274,9 @@ extern "C" {
 
                                                     free(array); free(narray); return CBF_OVERFLOW;
                                                 }*/
+
+                                                if (valtemp > maxval) valtemp=maxval;
+                                                if (valtemp < minval) valtemp=minval;
 
                                                 vallow = fmod(valtemp,onemore);
 
