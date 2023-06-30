@@ -2004,7 +2004,7 @@ $(F90CBF)/f90cbf.f90 $(F90CBF)/f90cbf_wrap.c $(F90CBF)/f90cbf.mod:  $(F90CBF)/f9
 	(cd $(F90CBF);cat f90cbf_wrap.c_orig | $(BIN)/convert_f90_swig_wrap > f90cbf_wrap.c)
 
 $(F90CBF)/f90cbf.o:  $(F90CBF)/f90cbf.f90
-	(cd $(F90CBF); $(F90C) -ffree-form $(FCFLAGS) -c $(F90CBF)/f90cbf.f90)
+	(cd $(F90CBF); $(F90C) -ffree-form -fPIC $(FCFLAGS) -c $(F90CBF)/f90cbf.f90)
 
 $(F90CBF)/f90cbf_wrap.o: $(F90CBF)/f90cbf_wrap.c
 	(cd $(F90CBF); $(CC) -fpic $(CFLAGS) $(INCLUDES) -c $(F90CBF)/f90cbf_wrap.c)
