@@ -1,0 +1,580 @@
+\newcommand{\NWtarget}[2]{#2}
+\newcommand{\NWlink}[2]{#2}
+\newcommand{\NWtxtMacroDefBy}{Fragment defined by}
+\newcommand{\NWtxtMacroRefIn}{Fragment referenced in}
+\newcommand{\NWtxtMacroNoRef}{Fragment never referenced}
+\newcommand{\NWtxtDefBy}{Defined by}
+\newcommand{\NWtxtRefIn}{Referenced in}
+\newcommand{\NWtxtNoRef}{Not referenced}
+\newcommand{\NWtxtFileDefBy}{File defined by}
+\newcommand{\NWtxtIdentsUsed}{Uses:}
+\newcommand{\NWtxtIdentsNotUsed}{Never used}
+\newcommand{\NWtxtIdentsDefed}{Defines:}
+\newcommand{\NWsep}{${\diamond}$}
+\newcommand{\NWnotglobal}{(not defined globally)}
+\newcommand{\NWuseHyperlinks}{}
+% pycbf_i.w
+% nuweb source file used to create
+% pycbf.i and to document it in pycbf.w
+%
+% pycbf - python binding to the CBFlib library
+%
+% Copyright (C) 2005  Jonathan Wright
+%     ESRF, Grenoble, France
+%     email: wright@esrf.fr
+%
+% Revised for CBFlib 0.9 releases, Herbert J. Bernstein, 23 Aug 2010
+%
+%######################################################################
+%#                                                                    #
+%# YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE INCLUDING PYCBF UNDER THE  #
+%# TERMS OF THE GPL                                                   #
+%#                                                                    #
+%# ALTERNATIVELY YOU MAY REDISTRIBUTE THE CBFLIB API INCLUDING PYCBF  #
+%# UNDER THE TERMS OF THE LGPL                                        #
+%#                                                                    #
+%######################################################################
+%
+%########################### GPL NOTICES ##############################
+%#                                                                    #
+%# This program is free software; you can redistribute it and/or      #
+%# modify it under the terms of the GNU General Public License as     #
+%# published by the Free Software Foundation; either version 2 of     #
+%# (the License, or (at your option) any later version.               #
+%#                                                                    #
+%# This program is distributed in the hope that it will be useful,    #
+%# but WITHOUT ANY WARRANTY; without even the implied warranty of     #
+%# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the      #
+%# GNU General Public License for more details.                       #
+%#                                                                    #
+%# You should have received a copy of the GNU General Public License  #
+%# along with this program; if not, write to the Free Software        #
+%# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA           #
+%# 02111-1307  USA                                                    #
+%#                                                                    #
+%######################################################################
+%
+%######################### LGPL NOTICES ###############################
+%#                                                                    #
+%# This library is free software; you can redistribute it and/or      #
+%# modify it under the terms of the GNU Lesser General Public         #
+%# License as published by the Free Software Foundation; either       #
+%# version 2.1 of the License, or (at your option) any later version. #
+%#                                                                    #
+%# This library is distributed in the hope that it will be useful,    #
+%# but WITHOUT ANY WARRANTY; without even the implied warranty of     #
+%# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU  #
+%# Lesser General Public License for more details.                    #
+%#                                                                    #
+%# You should have received a copy of the GNU Lesser General Public   #
+%# License along with this library; if not, write to the Free         #
+%# Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,    #
+%# MA  02110-1301  USA                                                #
+%#                                                                    #
+%######################################################################
+%
+\section{Generating the c interface - the SWIG file}
+
+Essentially the swig file starts by saying what to include to build the wrappers,
+and then goes on to define the python interface for each function we want to call.
+
+The library appears to define at least three ``objects''; a CBF handle, a cbf\_goniometer and
+a cbf\_detector. We will attempt to map these onto python classes. 
+
+FIXME - decide whether introduce a "binary array" class with converters to 
+more common representations?
+
+All of the functions in the library appear to return 0 on success and a 
+meaningful error code on failure.
+We try to propagate that error code across the language barrier via exceptions.
+
+So the SWIG file will start off by including the header files needed
+for compilation.  Note the defintion of constants to be passed as
+arguments in calls in the form pycbf.CONSTANTNAME
+
+\begin{flushleft} \small\label{scrap1}\raggedright\small
+\NWtarget{nuweb?}{} $\langle\,${\itshape Constants used for compression}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
+\vspace{-1ex}
+\begin{list}{}{} \item
+\mbox{}\verb@@\\
+\mbox{}\verb@// The actual wrappers @\\
+\mbox{}\verb@@\\
+\mbox{}\verb@// Constants needed from header files@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@  /* Constants used for compression */@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@#define CBF_INTEGER     0x0010  /* Uncompressed integer               */@\\
+\mbox{}\verb@#define CBF_FLOAT       0x0020  /* Uncompressed IEEE floating-point   */@\\
+\mbox{}\verb@#define CBF_CANONICAL   0x0050  /* Canonical compression              */@\\
+\mbox{}\verb@#define CBF_PACKED      0x0060  /* Packed compression                 */@\\
+\mbox{}\verb@#define CBF_PACKED_V2   0x0090  /* CCP4 Packed (JPA) compression V2   */@\\
+\mbox{}\verb@#define CBF_BYTE_OFFSET 0x0070  /* Byte Offset Compression            */@\\
+\mbox{}\verb@#define CBF_PREDICTOR   0x0080  /* Predictor_Huffman Compression      */@\\
+\mbox{}\verb@#define CBF_NONE        0x0040  /* No compression flag                */@\\
+\mbox{}\verb@#define CBF_COMPRESSION_MASK  \@\\
+\mbox{}\verb@                        0x00FF  /* Mask to separate compression@\\
+\mbox{}\verb@                                   type from flags              */@\\
+\mbox{}\verb@#define CBF_FLAG_MASK   0x0F00  /* Mask to separate flags from@\\
+\mbox{}\verb@                                   compression type             */@\\
+\mbox{}\verb@#define CBF_UNCORRELATED_SECTIONS \@\\
+\mbox{}\verb@                        0x0100  /* Flag for uncorrelated sections     */@\\
+\mbox{}\verb@#define CBF_FLAT_IMAGE  0x0200  /* Flag for flat (linear) images      */@\\
+\mbox{}\verb@#define CBF_NO_EXPAND   0x0400  /* Flag to try not to expand          */@\\
+\mbox{}\verb@@{\NWsep}
+\end{list}
+\vspace{-1.5ex}
+\footnotesize
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+\item \NWtxtMacroRefIn\ \NWlink{nuweb?}{?}.
+
+\item{}
+\end{list}
+\vspace{4ex}
+\end{flushleft}
+\begin{flushleft} \small\label{scrap2}\raggedright\small
+\NWtarget{nuweb?}{} $\langle\,${\itshape Constants used for headers}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
+\vspace{-1ex}
+\begin{list}{}{} \item
+\mbox{}\verb@@\\
+\mbox{}\verb@  /* Constants used for headers */@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@#define PLAIN_HEADERS   0x0001  /* Use plain ASCII headers            */@\\
+\mbox{}\verb@#define MIME_HEADERS    0x0002  /* Use MIME headers                   */@\\
+\mbox{}\verb@#define MSG_NODIGEST    0x0004  /* Do not check message digests       */@\\
+\mbox{}\verb@#define MSG_DIGEST      0x0008  /* Check message digests              */@\\
+\mbox{}\verb@#define MSG_DIGESTNOW   0x0010  /* Check message digests immediately  */@\\
+\mbox{}\verb@#define MSG_DIGESTWARN  0x0020  /* Warn on message digests immediately*/@\\
+\mbox{}\verb@#define PAD_1K          0x0020  /* Pad binaries with 1023 0's         */@\\
+\mbox{}\verb@#define PAD_2K          0x0040  /* Pad binaries with 2047 0's         */@\\
+\mbox{}\verb@#define PAD_4K          0x0080  /* Pad binaries with 4095 0's         */@\\
+\mbox{}\verb@@{\NWsep}
+\end{list}
+\vspace{-1.5ex}
+\footnotesize
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+\item \NWtxtMacroRefIn\ \NWlink{nuweb?}{?}.
+
+\item{}
+\end{list}
+\vspace{4ex}
+\end{flushleft}
+\begin{flushleft} \small\label{scrap3}\raggedright\small
+\NWtarget{nuweb?}{} $\langle\,${\itshape Constants used to control CIF parsing}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
+\vspace{-1ex}
+\begin{list}{}{} \item
+\mbox{}\verb@@\\
+\mbox{}\verb@  /* Constants used to control CIF parsing */@\\
+\mbox{}\verb@  @\\
+\mbox{}\verb@#define CBF_PARSE_BRC   0x0100  /* PARSE DDLm/CIF2 brace {,...}             */@\\
+\mbox{}\verb@#define CBF_PARSE_PRN   0x0200  /* PARSE DDLm parens     (,...)             */@\\
+\mbox{}\verb@#define CBF_PARSE_BKT   0x0400  /* PARSE DDLm brackets   [,...]             */@\\
+\mbox{}\verb@#define CBF_PARSE_BRACKETS \@\\
+\mbox{}\verb@                        0x0700  /* PARSE ALL brackets                       */@\\
+\mbox{}\verb@#define CBF_PARSE_TQ    0x0800  /* PARSE treble quotes """...""" and '''...'''       */@\\
+\mbox{}\verb@#define CBF_PARSE_CIF2_DELIMS  \@\\
+\mbox{}\verb@                        0x1000  /* Do not scan past an unescaped close quote@\\
+\mbox{}\verb@                                   do not accept {} , : " ' in non-delimited@\\
+\mbox{}\verb@                                   strings'{ */                          @\\
+\mbox{}\verb@#define CBF_PARSE_DDLm  0x0700  /* For DDLm parse (), [], {}                */@\\
+\mbox{}\verb@#define CBF_PARSE_CIF2  0x1F00  /* For CIF2 parse {}, treble quotes,@\\
+\mbox{}\verb@                                   stop on unescaped close quotes           */@\\
+\mbox{}\verb@#define CBF_PARSE_DEFINES      \@\\
+\mbox{}\verb@                        0x2000  /* Recognize DEFINE_name            */      @\\
+\mbox{}\verb@                        @\\
+\mbox{}\verb@  @\\
+\mbox{}\verb@#define CBF_PARSE_WIDE      0x4000  /* PARSE wide files                         */@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@#define CBF_PARSE_UTF8      0x10000 /* PARSE UTF-8                              */@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@#define HDR_DEFAULT (MIME_HEADERS | MSG_NODIGEST)@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@#define MIME_NOHEADERS  PLAIN_HEADERS@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@  /* CBF vs CIF */@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@#define CBF             0x0000  /* Use simple binary sections         */@\\
+\mbox{}\verb@#define CIF             0x0001  /* Use MIME-encoded binary sections   */@\\
+\mbox{}\verb@@{\NWsep}
+\end{list}
+\vspace{-1.5ex}
+\footnotesize
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+\item \NWtxtMacroRefIn\ \NWlink{nuweb?}{?}.
+
+\item{}
+\end{list}
+\vspace{4ex}
+\end{flushleft}
+\begin{flushleft} \small\label{scrap4}\raggedright\small
+\NWtarget{nuweb?}{} $\langle\,${\itshape Constants used for encoding}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
+\vspace{-1ex}
+\begin{list}{}{} \item
+\mbox{}\verb@@\\
+\mbox{}\verb@  /* Constants used for encoding */@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@#define ENC_NONE        0x0001  /* Use BINARY encoding                 */@\\
+\mbox{}\verb@#define ENC_BASE64      0x0002  /* Use BASE64 encoding                 */@\\
+\mbox{}\verb@#define ENC_BASE32K     0x0004  /* Use X-BASE32K encoding              */@\\
+\mbox{}\verb@#define ENC_QP          0x0008  /* Use QUOTED-PRINTABLE encoding       */@\\
+\mbox{}\verb@#define ENC_BASE10      0x0010  /* Use BASE10 encoding                 */@\\
+\mbox{}\verb@#define ENC_BASE16      0x0020  /* Use BASE16 encoding                 */@\\
+\mbox{}\verb@#define ENC_BASE8       0x0040  /* Use BASE8  encoding                 */@\\
+\mbox{}\verb@#define ENC_FORWARD     0x0080  /* Map bytes to words forward (1234)   */@\\
+\mbox{}\verb@#define ENC_BACKWARD    0x0100  /* Map bytes to words backward (4321)  */@\\
+\mbox{}\verb@#define ENC_CRTERM      0x0200  /* Terminate lines with CR             */@\\
+\mbox{}\verb@#define ENC_LFTERM      0x0400  /* Terminate lines with LF             */@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@#define ENC_DEFAULT (ENC_BASE64 | ENC_LFTERM | ENC_FORWARD)@\\
+\mbox{}\verb@@{\NWsep}
+\end{list}
+\vspace{-1.5ex}
+\footnotesize
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+\item \NWtxtMacroRefIn\ \NWlink{nuweb?}{?}.
+
+\item{}
+\end{list}
+\vspace{4ex}
+\end{flushleft}
+\subsection{Exceptions}
+
+We attempt to catch the errors and pass them back to python as 
+exceptions. This could still do with a little work to propagage
+back the calls causing the errors.
+
+Currently there are two global  constants defined, called error\_message
+and error\_status. 
+These are filled out when an error occurred, converting the numerical
+error value into something the author can read.
+
+There is an implicit assumption that if the library is used 
+correctly you will not normally get exceptions. 
+This should be addressed further in areas like file opening,
+proper python exceptions should be returned.
+
+See the section on exception handling in pycbf.i, above.
+
+Currently you get a meaningful string back. Should perhaps look into
+defining these as python exception classes? 
+In any case - the SWIG exception handling is defined via the following.
+It could have retained the old style if(status = action) but then
+harder to see what to return...
+
+\begin{flushleft} \small\label{scrap5}\raggedright\small
+\NWtarget{nuweb?}{} $\langle\,${\itshape Exception handling}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
+\vspace{-1ex}
+\begin{list}{}{} \item
+\mbox{}\verb@@\\
+\mbox{}\verb@// Exception handling@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@  /* Convenience definitions for functions returning error codes */@\\
+\mbox{}\verb@%exception {@\\
+\mbox{}\verb@   error_status=0;@\\
+\mbox{}\verb@   $action@\\
+\mbox{}\verb@   if (error_status){@\\
+\mbox{}\verb@     get_error_message();@\\
+\mbox{}\verb@     PyErr_SetString(PyExc_Exception,error_message);@\\
+\mbox{}\verb@     return NULL;@\\
+\mbox{}\verb@   }@\\
+\mbox{}\verb@}@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@/* Retain notation from cbf lib but pass on as python exception */@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@#define cbf_failnez(x) {(error_status = x);} @\\
+\mbox{}\verb@@\\
+\mbox{}\verb@/* printf("Called \"x\", status %d\n",error_status);} */@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@#define cbf_onfailnez(x,c) {int err; err = (x); if (err) { fprintf (stderr, \@\\
+\mbox{}\verb@                      "\nCBFlib error %d in \"x\"\n", err); \@\\
+\mbox{}\verb@                         { c; } return err; }}@\\
+\mbox{}\verb@@{\NWsep}
+\end{list}
+\vspace{-1.5ex}
+\footnotesize
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+\item \NWtxtMacroRefIn\ \NWlink{nuweb?}{?}.
+
+\item{}
+\end{list}
+\vspace{4ex}
+\end{flushleft}
+\begin{flushleft} \small\label{scrap6}\raggedright\small
+\NWtarget{nuweb?}{} \verb@"pycbf.i"@\nobreak\ {\footnotesize {?}}$\equiv$
+\vspace{-1ex}
+\begin{list}{}{} \item
+\mbox{}\verb@@\\
+\mbox{}\verb@/* File: pycbf.i */@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@// Indicate that we want to generate a module call pycbf@\\
+\mbox{}\verb@%module pycbf@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@%pythoncode %{@\\
+\mbox{}\verb@__author__ = "Jon Wright <wright@{\tt @}\verb@esrf.fr>"@\\
+\mbox{}\verb@__date__ = "14 Dec 2005"@\\
+\mbox{}\verb@__version__ = "CBFlib 0.9"@\\
+\mbox{}\verb@__credits__ = """Paul Ellis and Herbert Bernstein for the excellent CBFlib!"""@\\
+\mbox{}\verb@__doc__=""" pycbf - python bindings to the CBFlib library@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@ A library for reading and writing ImageCIF and CBF files @\\
+\mbox{}\verb@ which store area detector images for crystallography.@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@ This work is a derivative of the CBFlib version 0.7.7 library@\\
+\mbox{}\verb@ by  Paul J. Ellis of Stanford Synchrotron Radiation Laboratory@\\
+\mbox{}\verb@ and Herbert J. Bernstein of Bernstein + Sons@\\
+\mbox{}\verb@ See:@\\
+\mbox{}\verb@   http://www.bernstein-plus-sons.com/software/CBF/@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@ Licensing is GPL based, see:@\\
+\mbox{}\verb@   http://www.bernstein-plus-sons.com/software/CBF/doc/CBFlib_NOTICES.html@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@ These bindings were automatically generated by SWIG, and the@\\
+\mbox{}\verb@ input to SWIG was automatically generated by a python script.@\\
+\mbox{}\verb@ We very strongly recommend you do not attempt to edit them @\\
+\mbox{}\verb@ by hand!@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@ Copyright (C) 2007    Jonathan Wright@\\
+\mbox{}\verb@                       ESRF, Grenoble, France@\\
+\mbox{}\verb@                email: wright@{\tt @}\verb@esrf.fr@\\
+\mbox{}\verb@    @\\
+\mbox{}\verb@  Revised, August 2010  Herbert J. Bernstein@\\
+\mbox{}\verb@    Add defines from CBFlib 0.9.1@\\
+\mbox{}\verb@    @\\
+\mbox{}\verb@"""@\\
+\mbox{}\verb@%}@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@// Used later to pass back binary data@\\
+\mbox{}\verb@%include "cstring.i"@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@// Attempt to autogenerate what SWIG thinks the call looks like@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@// Typemaps are a SWIG mechanism for many things, not least multiple @\\
+\mbox{}\verb@// return values@\\
+\mbox{}\verb@%include "typemaps.i"@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@// Arrays are needed@\\
+\mbox{}\verb@%include "carrays.i"@\\
+\mbox{}\verb@%array_class(double, doubleArray)@\\
+\mbox{}\verb@%array_class(int, intArray)@\\
+\mbox{}\verb@%array_class(short, shortArray)@\\
+\mbox{}\verb@%array_class(long, longArray)@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@// Following the SWIG 1.3 documentation at@\\
+\mbox{}\verb@// http://www.swig.org/Doc1.3/Python.html@\\
+\mbox{}\verb@// section 31.9.5, we map sequences of@\\
+\mbox{}\verb@// PyFloat, PyLong and PyInt to@\\
+\mbox{}\verb@// C arrays of double, long and int@\\
+\mbox{}\verb@//@\\
+\mbox{}\verb@// But with the strict checking of being a float@\\
+\mbox{}\verb@// commented out to allow automatic conversions@\\
+\mbox{}\verb@%{@\\
+\mbox{}\verb@static int convert_darray(PyObject *input, double *ptr, int size) {@\\
+\mbox{}\verb@  int i;@\\
+\mbox{}\verb@  if (!PySequence_Check(input)) {@\\
+\mbox{}\verb@      PyErr_SetString(PyExc_TypeError,"Expecting a sequence");@\\
+\mbox{}\verb@      return 0;@\\
+\mbox{}\verb@  }@\\
+\mbox{}\verb@  if (PyObject_Length(input) != size) {@\\
+\mbox{}\verb@      PyErr_SetString(PyExc_ValueError,"Sequence size mismatch");@\\
+\mbox{}\verb@      return 0;@\\
+\mbox{}\verb@  }@\\
+\mbox{}\verb@  for (i =0; i < size; i++) {@\\
+\mbox{}\verb@      PyObject *o = PySequence_GetItem(input,i);@\\
+\mbox{}\verb@     /*if (!PyFloat_Check(o)) {@\\
+\mbox{}\verb@        @\\
+\mbox{}\verb@         Py_XDECREF(o);@\\
+\mbox{}\verb@         PyErr_SetString(PyExc_ValueError,"Expecting a sequence of floats");@\\
+\mbox{}\verb@         return 0;@\\
+\mbox{}\verb@      }*/@\\
+\mbox{}\verb@      ptr[i] = PyFloat_AsDouble(o);@\\
+\mbox{}\verb@      Py_DECREF(o);@\\
+\mbox{}\verb@  }@\\
+\mbox{}\verb@  return 1;@\\
+\mbox{}\verb@}@\\
+\mbox{}\verb@%}@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@%typemap(in) double [ANY](double temp[$1_dim0]) {@\\
+\mbox{}\verb@    if ($input == Py_None) $1 = NULL;@\\
+\mbox{}\verb@    else @\\
+\mbox{}\verb@    if (!convert_darray($input,temp,$1_dim0)) {@\\
+\mbox{}\verb@      return NULL;@\\
+\mbox{}\verb@    }@\\
+\mbox{}\verb@    $1 = &temp[0];@\\
+\mbox{}\verb@}@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@%{@\\
+\mbox{}\verb@    static long convert_larray(PyObject *input, long *ptr, int size) {@\\
+\mbox{}\verb@        int i;@\\
+\mbox{}\verb@        if (!PySequence_Check(input)) {@\\
+\mbox{}\verb@            PyErr_SetString(PyExc_TypeError,"Expecting a sequence");@\\
+\mbox{}\verb@            return 0;@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@        if (PyObject_Length(input) != size) {@\\
+\mbox{}\verb@            PyErr_SetString(PyExc_ValueError,"Sequence size mismatch");@\\
+\mbox{}\verb@            return 0;@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@        for (i =0; i < size; i++) {@\\
+\mbox{}\verb@            PyObject *o = PySequence_GetItem(input,i);@\\
+\mbox{}\verb@            /*if (!PyLong_Check(o)) {@\\
+\mbox{}\verb@                Py_XDECREF(o);@\\
+\mbox{}\verb@                PyErr_SetString(PyExc_ValueError,"Expecting a sequence of long integers");@\\
+\mbox{}\verb@                return 0;@\\
+\mbox{}\verb@            }*/@\\
+\mbox{}\verb@            ptr[i] = PyLong_AsLong(o);@\\
+\mbox{}\verb@            Py_DECREF(o);@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@        return 1;@\\
+\mbox{}\verb@    }@\\
+\mbox{}\verb@%}@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@%typemap(in) long [ANY](long temp[$1_dim0]) {@\\
+\mbox{}\verb@    if (!convert_larray($input,temp,$1_dim0)) {@\\
+\mbox{}\verb@        return NULL;@\\
+\mbox{}\verb@    }@\\
+\mbox{}\verb@    $1 = &temp[0];@\\
+\mbox{}\verb@}@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@%{@\\
+\mbox{}\verb@    static int convert_iarray(PyObject *input, int *ptr, int size) {@\\
+\mbox{}\verb@        int i;@\\
+\mbox{}\verb@        if (!PySequence_Check(input)) {@\\
+\mbox{}\verb@            PyErr_SetString(PyExc_TypeError,"Expecting a sequence");@\\
+\mbox{}\verb@            return 0;@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@        if (PyObject_Length(input) != size) {@\\
+\mbox{}\verb@            PyErr_SetString(PyExc_ValueError,"Sequence size mismatch");@\\
+\mbox{}\verb@            return 0;@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@        for (i =0; i < size; i++) {@\\
+\mbox{}\verb@            PyObject *o = PySequence_GetItem(input,i);@\\
+\mbox{}\verb@            /*if (!PyInt_Check(o)) {@\\
+\mbox{}\verb@                Py_XDECREF(o);@\\
+\mbox{}\verb@                PyErr_SetString(PyExc_ValueError,"Expecting a sequence of long integers");@\\
+\mbox{}\verb@                return 0;@\\
+\mbox{}\verb@            }*/@\\
+\mbox{}\verb@            ptr[i] = (int)PyInt_AsLong(o);@\\
+\mbox{}\verb@            Py_DECREF(o);@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@        return 1;@\\
+\mbox{}\verb@    }@\\
+\mbox{}\verb@%}@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@%typemap(in) int [ANY](int temp[$1_dim0]) {@\\
+\mbox{}\verb@    if (!convert_iarray($input,temp,$1_dim0)) {@\\
+\mbox{}\verb@        return NULL;@\\
+\mbox{}\verb@    }@\\
+\mbox{}\verb@    $1 = &temp[0];@\\
+\mbox{}\verb@}@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@%{  // Here is the c code needed to compile the wrappers, but not @\\
+\mbox{}\verb@    // to be wrapped @\\
+\mbox{}\verb@@\\
+\mbox{}\verb@#include "../include/cbf.h"          @\\
+\mbox{}\verb@#include "../include/cbf_simple.h"@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@// Helper functions to generate error message@\\
+\mbox{}\verb@ @\\
+\mbox{}\verb@@\\
+\mbox{}\verb@static int error_status = 0;@\\
+\mbox{}\verb@static char error_message1[17] ;@\\
+\mbox{}\verb@static char error_message[1042] ; // hope that is long enough@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@/* prototype */@\\
+\mbox{}\verb@void get_error_message(void);@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@void get_error_message(){@\\
+\mbox{}\verb@  sprintf(error_message1,"%s","CBFlib Error(s):");@\\
+\mbox{}\verb@  if (error_status & CBF_FORMAT        )@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message1,"CBF_FORMAT       "); @\\
+\mbox{}\verb@  if (error_status & CBF_ALLOC         )@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message1,"CBF_ALLOC        ");@\\
+\mbox{}\verb@  if (error_status & CBF_ARGUMENT      )@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message1,"CBF_ARGUMENT     ");@\\
+\mbox{}\verb@  if (error_status & CBF_ASCII         )@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message1,"CBF_ASCII        ");@\\
+\mbox{}\verb@  if (error_status & CBF_BINARY        )@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message1,"CBF_BINARY       ");@\\
+\mbox{}\verb@  if (error_status & CBF_BITCOUNT      )@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message1,"CBF_BITCOUNT     ");@\\
+\mbox{}\verb@  if (error_status & CBF_ENDOFDATA     )@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message1,"CBF_ENDOFDATA    ");@\\
+\mbox{}\verb@  if (error_status & CBF_FILECLOSE     )@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message1,"CBF_FILECLOSE    ");@\\
+\mbox{}\verb@  if (error_status & CBF_FILEOPEN      )@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message1,"CBF_FILEOPEN     ");@\\
+\mbox{}\verb@  if (error_status & CBF_FILEREAD      )@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message1,"CBF_FILEREAD     ");@\\
+\mbox{}\verb@  if (error_status & CBF_FILESEEK      )@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message1,"CBF_FILESEEK     ");@\\
+\mbox{}\verb@  if (error_status & CBF_FILETELL      )@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message1,"CBF_FILETELL     ");@\\
+\mbox{}\verb@  if (error_status & CBF_FILEWRITE     )@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message1,"CBF_FILEWRITE    ");@\\
+\mbox{}\verb@  if (error_status & CBF_IDENTICAL     )@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message1,"CBF_IDENTICAL    ");@\\
+\mbox{}\verb@  if (error_status & CBF_NOTFOUND      )@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message1,"CBF_NOTFOUND     ");@\\
+\mbox{}\verb@  if (error_status & CBF_OVERFLOW      )@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message1,"CBF_OVERFLOW     ");@\\
+\mbox{}\verb@  if (error_status & CBF_UNDEFINED     )@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message1,"CBF_UNDEFINED    ");@\\
+\mbox{}\verb@  if (error_status & CBF_NOTIMPLEMENTED)@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message1,"CBF_NOTIMPLEMENTED");@\\
+\mbox{}\verb@  if (error_status & CBF_NOCOMPRESSION)@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message1,"CBF_NOCOMPRESSION");@\\
+\mbox{}\verb@}@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@%} // End of code which is not wrapped but needed to compile@\\
+\mbox{}\verb@@{\NWsep}
+\end{list}
+\vspace{-1.5ex}
+\footnotesize
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+\item \NWtxtFileDefBy\ \NWlink{nuweb?}{?}\NWlink{nuweb?}{, ?}.
+
+\item{}
+\end{list}
+\vspace{4ex}
+\end{flushleft}
+\begin{flushleft} \small\label{scrap7}\raggedright\small
+\NWtarget{nuweb?}{} \verb@"pycbf.i"@\nobreak\ {\footnotesize {?}}$\equiv$
+\vspace{-1ex}
+\begin{list}{}{} \item
+\mbox{}\verb@@\\
+\mbox{}\verb@@\hbox{$\langle\,${\itshape Constants used for compression}\nobreak\ {\footnotesize \NWlink{nuweb?}{?}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\hbox{$\langle\,${\itshape Constants used for headers}\nobreak\ {\footnotesize \NWlink{nuweb?}{?}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\hbox{$\langle\,${\itshape Constants used to control CIF parsing}\nobreak\ {\footnotesize \NWlink{nuweb?}{?}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\hbox{$\langle\,${\itshape Constants used for encoding}\nobreak\ {\footnotesize \NWlink{nuweb?}{?}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\hbox{$\langle\,${\itshape Exception handling}\nobreak\ {\footnotesize \NWlink{nuweb?}{?}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@%include "cbfgenericwrappers.i"@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@// cbf_goniometer object@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@%include "cbfgoniometerwrappers.i"@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@%include "cbfdetectorwrappers.i"@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@// cbfhandle object@\\
+\mbox{}\verb@%include "cbfhandlewrappers.i"@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@{\NWsep}
+\end{list}
+\vspace{-1.5ex}
+\footnotesize
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+\item \NWtxtFileDefBy\ \NWlink{nuweb?}{?}\NWlink{nuweb?}{, ?}.
+
+\item{}
+\end{list}
+\vspace{4ex}
+\end{flushleft}
