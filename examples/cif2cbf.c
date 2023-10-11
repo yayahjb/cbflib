@@ -1,7 +1,7 @@
 /**********************************************************************
  *          cif2cbf -- convert a cif to a cbf file                    *
  *                                                                    *
- * Version 0.9.5.13  13 October 2015                                  *
+ * Version 0.9.8  25 May 2023                                         *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -52,7 +52,7 @@
  *    [-d {d[igest]|n[odigest]|w[warndigest]} \                       *
  *    [-e {b[ase64]|k|q[uoted-printable]| \                           *
  *                  d[ecimal]|h[exadecimal]|o[ctal]|n[one]}] \        *
- *    [-I {0|2|4|8}] \                                                *
+ *    [-I {0|1|2|4|8|-1|-2|-4|-8}] \                                  *
  *    [-L lowclipvalue ] \                                            *
  *    [-m {h[eaders]|n[oheaders]}] \                                  *
  *    [-m {dim[ensions]|nod[imensions}] \                             *
@@ -71,11 +71,13 @@
  *    [--{eoi|elements-of-interest} element[,elementhigh] \           *
  *    [--{foi|frames-of-interest}  frame[,framehigh] \                *
  *    [--{roi|region-of-interest} fastlow,fasthigh\                   *
- *                                [,midlow,midhigh[,slowlow,slowhigh]]*
- *    [--add-update-data]                                             *
- *    [--subtract-update-data]                                        *
- *    [--merge-datablocks-by-number]                                  *
- *    [--merge-datablocks-by-name]                                    *
+ *                              [,midlow,midhigh[,slowlow,slowhigh]] \*
+ *    [--add-update-data] \                                           *
+ *    [--subtract-update-data] \                                      *
+ *    [--merge-datablocks-by-number] \                                *
+ *    [--merge-datablocks-by-name] \                                  *
+ *    [--∑xdsb2z|rotate-xds-beam-to-z  \                               *
+ *      [beamx[,beamy[,beamz[,beamcentx[,beamcenty[,beamcentz]]]]]]] \*
  *    [-U n] \                                                        *
  *    [input_cif] [output_cbf]                                        *
  *                                                                    *
@@ -149,7 +151,7 @@
  *  -p K_of_padding (0, 1, 2, 4) for no padding after binary data     *
  *    1023, 2047 or 4095 bytes of padding after binary data           *
  *                                                                    *
- *  -R 0 or integer element size                                      *
+ *  -R 0 or real element size                                         *
  *    specifies real conversion of the data, 0 to use the input       *
  *    number of bytes,  4 or 8 for float or double output reals       *
  *                                                                    *
@@ -235,6 +237,11 @@
  *  --merge-datablocks-by-name                                        *
  *     when merging an update cif, align datablocks by their names    *
  *     rather than by their ordinals                                  *
+ *                                                                    *
+ *  --xdsb2z|rotate-xds-beam-to-z beamx,beamy,beamz,                        *
+ *     beamcentx,beamcenty,beamcentz                                  
+ *    assume the beam is along [beamx, beamy, beamz] relative to the  *
+ *    image and rotate the image so that the beam is along [0,0,-1]   *
  *                                                                    *
  *  --U n                                                             *
  *     test cbf_construct_detector in element_id n                    *
@@ -465,6 +472,7 @@
 #include "cbf_hdf5.h"
 #include "cbf_alloc.h"
 #include "cbf_minicbf_header.h"
+#include "cqrlib.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -580,54 +588,53 @@ int outerror(int err)
  n is the number of columns
  column is an array of n column names
  value is an array of values to match
- 
+
  */
 
 static int cbf_find_row_by_columns(cbf_handle handle, int n,
                                    const char * column[],
                                    const char * value[]){
-    
     int icol;
-    
+
     int match;
-    
+
     const char *colvalue;
-    
+
     if (!handle || n < 1
         || !column || !value
         || !column[0] || !value[0]) return CBF_ARGUMENT;
-    
+
     cbf_failnez(cbf_rewind_row(handle));
-    
+
     while (!cbf_find_column(handle,column[0])
            &&!cbf_find_nextrow(handle,value[0])) {
-        
+
         match = 1;
-        
+
         for (icol = 1; icol < n; icol++) {
-            
+
             if ( !column[icol] || !value[icol] ) return CBF_ARGUMENT;
-            
+
             cbf_failnez(cbf_find_column(handle,column[icol]));
-            
+
             if (cbf_get_value(handle,&colvalue)
                 || !colvalue
                 || cbf_cistrcmp(colvalue,value[icol])) {
-                
+
                 match = 0;
-                
+
                 break;
-                
+
             }
-            
+
         }
-        
+
         if (match) return CBF_SUCCESS;
-        
+
     }
-    
+
     return CBF_NOTFOUND;
-    
+
 }
 
 
@@ -638,26 +645,26 @@ static int cbf_get_frame(cbf_handle handle,
                   const char * binary_id,
                   const char * * frame_id,
                   unsigned int * frame_number){
-    
+
     const char * xframe_id;
-    
+
     const char * columns[2] = {"array_id", "binary_id"};
-    
+
     const char * values[2] = {array_id, binary_id};
-    
+
     int xframe_number;
-    
+
     if (!handle || !array_id || !binary_id ) return CBF_ARGUMENT;
-    
+
     if ((!cbf_find_category(handle,"diffrn_data_frame")
          ||!cbf_find_category(handle,"diffrn_frame_data"))
         && !cbf_rewind_row(handle)
         && !cbf_find_row_by_columns(handle,2,columns,values)
         && !cbf_find_column(handle,"id")
         && !cbf_get_value(handle,&xframe_id)){
-        
+
         if (frame_id) *frame_id = xframe_id;
-        
+
         if (!cbf_find_category(handle,"diffrn_scan_frame")
             &&!cbf_rewind_row(handle)
             &&!cbf_find_column(handle,"frame_id")
@@ -665,17 +672,17 @@ static int cbf_get_frame(cbf_handle handle,
             &&!cbf_find_column(handle,"frame_number")
             &&!cbf_get_integervalue(handle,&xframe_number)
             &&xframe_number >= 0) {
-            
+
             if (frame_number) *frame_number = (unsigned int)xframe_number;
             return CBF_SUCCESS;
-            
+
         }
-        
-        
+
+
     }
-    
+
     return CBF_NOTFOUND;
-    
+
 }
 
 /* Convert items of interest from a string to a range of elements or frames */
@@ -699,7 +706,7 @@ static int cbf_convertioi(const char *ioi, const size_t maxitems,
     }
     if (*endptr != ',' && *endptr != ' ') return CBF_FORMAT;
     if (!itemhigh) return CBF_SUCCESS;
-    
+
     str = endptr+1;
     *itemhigh = (int)strtol(str,&endptr,0);
     if (*itemhigh < *itemlow) *itemhigh = *itemlow;
@@ -707,6 +714,61 @@ static int cbf_convertioi(const char *ioi, const size_t maxitems,
     if (*endptr == '\0') return CBF_SUCCESS;
     if (*endptr != ',' && *endptr != ' ') return CBF_FORMAT;
     return CBF_SUCCESS;
+}
+/* Convert items of interest from a string to a doubles */
+
+static int cbf_convertiod(const char *iod, const size_t maxitems,
+                   double * items, size_t * numitems) {
+    char * endptr;
+    const char * str;
+    double nextdouble;
+    int nextpass;
+    if (!items || !numitems || maxitems==0) return CBF_ARGUMENT;
+    *numitems = 0;
+    nextpass = 1;
+    if (!iod) {
+        return CBF_ARGUMENT;
+    }
+    str = iod;
+    while (nextpass==1) {
+      errno = 0;
+      /* printf(" str '%s'\n",str); */
+      nextdouble = (double)strtod(str,&endptr);
+      if (errno != 0) {
+        nextpass=0;
+        return CBF_SUCCESS;
+      };
+      if (*numitems <= maxitems) {
+        items[(*numitems)++]=nextdouble;
+      } else {
+        return CBF_SIZE;
+      }
+      if (*str==0) {
+        nextpass=0;
+        break;
+      } else {
+        str=endptr+1;
+      }
+    }
+    return CBF_SUCCESS;
+}
+
+static inline double dot(double u[3], double v[3]) {
+    return u[0]*v[0]+u[1]*v[1]+u[2]*v[2];
+}
+
+static inline double norm(double u[3]) {
+    return sqrt(u[0]*u[0]+u[1]*u[1]+u[2]*u[2]);
+}
+
+static inline double* cross(double u[3], double v[3], double w[3]) {
+    w[0]=u[1]*v[2]-u[2]*v[1];
+    w[1]=u[2]*v[0]-u[0]*v[2];
+    w[2]=u[0]*v[1]-u[1]*v[0];
+    /* fprintf(stderr,"u: %15.6g %15.6g %15.6g\n",u[0], u[1], u[2]); */
+    /* fprintf(stderr,"v: %15.6g %15.6g %15.6g\n",v[0], v[1], v[2]); */
+    /* fprintf(stderr,"w: %15.6g %15.6g %15.6g\n",w[0], w[1], w[2]); */
+    return &(w[0]);
 }
 
 
@@ -736,6 +798,10 @@ int main (int argc, char *argv [])
     int add_minicbf_header = 0;
     int minicbf = 0;
     int data_last = 0;
+    int xdsb2z = 0;
+    double beamx, beamy, beamz;
+    double beamcentx, beamcenty, beamcentz;
+    double rb2zmat[3][3];
     const char *cifin, *cbfout, *updatecif;
     const char *dictionary[NUMDICTS];
     int dqrflags[NUMDICTS];
@@ -753,7 +819,8 @@ int main (int argc, char *argv [])
     int Wide = 0;
     int IorR = 0;
     int i5;
-    int nelsize;
+    int nelsize=4;
+    int nelsign=CBF_CPY_SETSIGNED;
     int testconstruct;
     char buf[C2CBUFSIZ];
     unsigned int blocks, categories, blocknum, catnum, blockitems, itemnum;
@@ -769,6 +836,7 @@ int main (int argc, char *argv [])
     const char *eoi;  /* elements of interest */
     const char *foi;  /* frames of interest */
     const char *roi;  /* region of interest */
+    const char *beamcoords; /* beam axis vector */
     unsigned int colnum, rownum;
     unsigned int columns;
     unsigned int rows;
@@ -798,7 +866,7 @@ int main (int argc, char *argv [])
      *    [-D ] \                                                         *
      *    [-e {b[ase64]|k|q[uoted-printable]| \                           *
      *                  d[ecimal]|h[exadecimal]|o[ctal]|n[one]}] \        *
-     *    [-I {0|2|4|8}]  \                                               *
+     *    [-I {0|1|2|4|8|-1|-2|-4|-8}]  \                                 *
      *    [-L lowclipvalue ] \                                            *
      *    [-m {h[eaders]|noh[eaders]}] \                                  *
      *    [-m {d[imensions]|nod[imensions]] \                             *
@@ -819,8 +887,10 @@ int main (int argc, char *argv [])
      *    [--{roi|region-of-interest}  fastlow,fasthigh,.... \            *
      *    [--add-update-data] \                                           *
      *    [--subtract-update-data] \                                      *
-     *    [--merge-datablocks-by-number \                                 *
-     *    [--merge-datablocks-by-name \                                  *
+     *    [--merge-datablocks-by-number] \                                *
+     *    [--merge-datablocks-by-name] \                                  *
+     *    [--[xdsb2z|rotate-xds-beam-to-z] beamx,beamy,beamz,  \          *
+     *                                 beamcentx,beamcenty,... \          *
      *    [-U n] \                                                        *
      *    [input_cif] [output_cbf]                                        *
      *                                                                    *
@@ -837,6 +907,7 @@ int main (int argc, char *argv [])
     qrflags = qwflags = 0;
     dimflag = 0;
     nelsize = 0;
+    nelsign = 0;
     hdf5mode = 0;
     hdf5noH5 = 0;
     hdf5register = 0;
@@ -850,6 +921,7 @@ int main (int argc, char *argv [])
     eoi = NULL;
     foi = NULL;
     roi = NULL;
+    beamcoords = NULL;
     ciftmpused = 0;
     testconstruct = 0;
     cliphigh = cliplow = 0.;
@@ -890,7 +962,8 @@ int main (int argc, char *argv [])
                                  "\021(add-update-data)" \
                                  "\022(subtract-update-data)" \
                                  "\023(merge-datablocks-by-number)" \
-                                 "\024(merge-datablocks-by-name)"
+                                 "\024(merge-datablocks-by-name)" \
+                                 "\025(rotate-xds-beam-to-z):\025(xdsb2z):"
                                  ));
 
     if (!cbf_rewind_getopt_option(opts))
@@ -901,19 +974,19 @@ int main (int argc, char *argv [])
                     if (cifin) errflg++;
                     else cifin = optarg;
                     break;
-                    
+
                 case 'o':     /* output file */
                     if (cbfout) errflg++;
                     else {
                         cbfout = optarg;
                     }
                     break;
-                    
+
                 case 'u':     /* update file */
                     if (updatecif) errflg++;
                     else updatecif = optarg;
                     break;
-                    
+
                 case 'b':     /* byte order */
                     if (bytedir) errflg++;
                     if (optarg[0] == 'f' || optarg[0] == 'F') {
@@ -926,7 +999,7 @@ int main (int argc, char *argv [])
                         }
                     }
                     break;
-                    
+
                 case 'B':
                     if (!strcmp(optarg,"cif20read")) {
                         qrflags &= ~CBF_PARSE_BRACKETS;
@@ -948,8 +1021,8 @@ int main (int argc, char *argv [])
                         qwflags  &= ~CBF_PARSE_BRACKETS;
                     } else errflg++;
                     break;
-                    
-                    
+
+
                 case 'c':
                     if (compression) errflg++;
                     if (optarg[0] == 'p' || optarg[0] == 'P') {
@@ -980,7 +1053,11 @@ int main (int argc, char *argv [])
                                                 h5compression |= CBF_H5COMPRESSION_CBF;
                                             } else {
                                                 if (optarg[0] == 'z' || optarg[0] == 'Z') {
-                                                    h5compression = CBF_H5COMPRESSION_ZLIB;
+                                                    if (!cbf_cistrcmp(optarg,"ZSTD")) {
+                                                      h5compression = CBF_H5COMPRESSION_ZSTD;;
+                                                    } else {
+                                                      h5compression = CBF_H5COMPRESSION_ZLIB;
+                                                    }
                                                     compression = CBF_NIBBLE_OFFSET;
                                                 } else {
                                                     if (optarg[0] == 'l' || optarg[0] == 'L'){
@@ -991,9 +1068,13 @@ int main (int argc, char *argv [])
                                                             h5compression = CBF_H5COMPRESSION_LZ4_2;
                                                             compression = CBF_NIBBLE_OFFSET;
                                                         } else {
-                                                            if ((optarg[0] == 'B' && optarg[1] == 'S') 
-                                                                || !cbf_cistrcmp(optarg,"BSLZ4")){
-                                                                h5compression = CBF_H5COMPRESSION_BSLZ4;
+                                                            if ((optarg[0] == 'B' || optarg[0] == 'b')
+                                                                 &&(optarg[1] == 'S' || optarg[1] == 's')){
+                                                                if (!cbf_cistrcmp(optarg,"BSLZ4")) {
+                                                                  h5compression = CBF_H5COMPRESSION_BSLZ4;
+                                                                } else {
+                                                                  h5compression = CBF_H5COMPRESSION_BSZSTD;
+                                                                }
                                                                 compression = CBF_NIBBLE_OFFSET;
                                                             } else {
                                                                 errflg++;
@@ -1009,11 +1090,11 @@ int main (int argc, char *argv [])
                         }
                     }
                     break;
-                    
+
                 case 'C':
                     cliphigh = atof(optarg);
                     break;
-                    
+
                 case 'd':
                     if (digest) errflg++;
                     if (optarg[0] == 'd' || optarg[0] == 'H' ) {
@@ -1030,20 +1111,19 @@ int main (int argc, char *argv [])
                         }
                     }
                     break;
-                    
+
                 case 'D':  /* test construct_detector */
                     if (testconstruct) errflg++;
                     else testconstruct = 1;
                     elno = 0;
                     break;
-                    
+
                 case 'U': /* test construct detector on element number n */
                     if (testconstruct) errflg++;
                     else testconstruct = 1;
                     elno = atoi(optarg);
                     break;
-                    
-                    
+
                 case '5': /* set hdf5 flags */
                     if (hdf5mode || hdf5noH5){
                         errflg++;
@@ -1065,7 +1145,7 @@ int main (int argc, char *argv [])
                         }
                     }
                     break;
-                    
+
                 case 'Z': /* register compressions */
                     if (hdf5register) errflg++;
                     if (cbf_cistrcmp(optarg,"manual")== 0) {
@@ -1076,58 +1156,58 @@ int main (int argc, char *argv [])
                         errflg++;
                     }
                     break;
-                    
+
                 case '\001': /* add minicbf header */
                     if (add_minicbf_header) errflg++;
                     add_minicbf_header = 1;
                     break;
-                    
+
                 case '\002': /* minicbf output only */
                     if (minicbf) errflg++;
                     minicbf = 1;
                     add_minicbf_header = 1;
                     data_last = 1;
                     break;
-                    
+
                 case '\003': /* place data last */
                     if (data_last) errflg++;
                     data_last = 1;
                     break;
-                    
+
                 case '\004': /* elements of interest */
                     if (eoi) errflg++;
                     eoi = optarg;
                     break;
-                    
+
                 case '\005': /* frames of interest */
                     if (foi) errflg++;
                     foi = optarg;
                     break;
-                    
+
                 case '\006': /* region of interest */
                     if (roi) errflg++;
                     roi = optarg;
                     break;
-                    
+
                 case '\007': /* help */
                     errflg++;
                     break;
-                    
+
                 case '\010': /* add-update-data */
                     if (add_update_data || subtract_update_data) errflg++;
                     add_update_data = 1;
                     break;
-                    
+
                 case '\011': /* subtract-update-data */
                     if (add_update_data || subtract_update_data) errflg++;
                     subtract_update_data = 1;
                     break;
-                    
+
                 case '\012': /* merge-datablocks-by-number */
                     if (merge_datablocks_by_number >= 0) errflg++;
                     merge_datablocks_by_number = 1;
                     break;
-                    
+
                 case '\013': /* merge-datablocks-by-name */
                     if (merge_datablocks_by_number >= 0) errflg++;
                     merge_datablocks_by_number = 0;
@@ -1142,52 +1222,121 @@ int main (int argc, char *argv [])
                     if (add_minicbf_header) errflg++;
                     if (!hdf5mode)add_minicbf_header = 1;
                     break;
-                    
+
                 case '\016': /* minicbf output only */
                     if (minicbf) errflg++;
                     minicbf = 1;
                     add_minicbf_header = 1;
                     data_last = 1;
                     break;
-                     
+
                 case '\017':  /* place data last */
                     if (data_last) errflg++;
                     data_last = 1;
                     break;
 
-                    
+
                 case '\020': /* help */
                     errflg++;
                     break;
-                    
+
                 case '\021': /* add update data */
                     if (add_update_data || subtract_update_data) errflg++;
                     add_update_data = 1;
                     break;
 
-                    
+
                 case '\022': /* subtract update data */
                     if (add_update_data || subtract_update_data) errflg++;
                     subtract_update_data = 1;
                     break;
 
-                    
+
                 case '\023': /* merge-datablocks-by-number */
                     if (merge_datablocks_by_number >= 0) errflg++;
                     merge_datablocks_by_number = 1;
                     break;
 
-                case '\024': /* merge-datablocks-by-name */ 
+                case '\024': /* merge-datablocks-by-name */
                     if (merge_datablocks_by_number >= 0) errflg++;
                     merge_datablocks_by_number = 0;
                     break;
 
-                    
+                case '\025': /* rotate beam to z */
+                    if (xdsb2z) errflg++;
+                    beamcoords = optarg;
+                    xdsb2z++;
+                    {
+                       CQRQuaternionHandle CQR_FAR quaternion;
+                       int cqrerror;
+                       double beam[6];
+                       double x[3]={1.,0.,0.};
+                       double y[3]={0.,1.,0.};
+                       double z[3]={0.,0.,1.};
+                       double znew[3];
+                       double beamdotz;
+                       double normbeam;
+                       double normz=1.;
+                       double beamcrossz[3];
+                       double normbcz;
+                       double * bcz;
+                       double rotangle, rotangledeg;
+                       size_t numitems;
+                       cbf_failnez(cbf_convertiod(beamcoords,6,beam,&numitems));
+                       beamx=beamy=beamz=0.;
+                       beamcentx=beamcenty=beamcentz=0.;
+                       normbeam=norm(beam);
+                       if (numitems > 0) beamx=beam[0]/normbeam;
+                       if (numitems > 1) beamy=beam[1]/normbeam;
+                       if (numitems > 2) beamz=beam[2]/normbeam;
+                       if (numitems > 3) beamcentx=beam[3];
+                       if (numitems > 4) beamcenty=beam[4];
+                       if (numitems > 5) beamcentz=beam[5];
+                       beamdotz = dot(beam,z);
+                       rotangle = acos(beamdotz/(normbeam*normz));
+                       rotangledeg = rotangle*45./atan2(1.,1.);
+                       if (rotangledeg>60.) cbf_failnez(CBF_ARGUMENT);
+                       bcz=cross(beam,z,beamcrossz);
+                       normbcz= norm(bcz);
+                       if (normbcz > 1.e-6) {
+                         bcz[0] *= 1./normbcz;
+                         bcz[1] *= 1./normbcz;
+                         bcz[2] *= 1./normbcz;
+                       } else {
+                         bcz[0] = bcz[1] = bcz[2] = rotangle = 0.;  
+                       }
+                       cqrerror=0;
+                       if(rotangle!=0.) {
+                         if((cqrerror=CQRCreateEmptyQuaternion(&quaternion))) 
+                           fprintf(stderr,"CQRCreateEmptyQuaternion failed\n");
+                         if((cqrerror=CQRAxis2Quaternion(quaternion,bcz,rotangle)))
+                           fprintf(stderr,"CQRAxis2Quaternion failed\n");
+                         if((cqrerror+=CQRQuaternion2Matrix (rb2zmat, quaternion)))
+                           fprintf(stderr,"CQRQuaternion2Matrix failed\n");
+                         if(cqrerror+=CQRFreeQuaternion(&quaternion))
+                           fprintf(stderr,"CQRFreeQuaternion failed\n");
+                          printf("beamdotz: %15.6g\n", beamdotz); 
+                          printf("rotangledeg: %15.6g \n",rotangledeg); 
+                          printf("beamcrossz:  %15.6g %15.6g %15.6g \n", bcz[0], bcz[1], bcz[2]); 
+                          printf("rb2zmat: %15.6g %15.6g %15.6g \n", rb2zmat[0][0], rb2zmat[0][1], rb2zmat[0][2]); 
+                          printf("         %15.6g %15.6g %15.6g \n", rb2zmat[1][0], rb2zmat[1][1], rb2zmat[1][2]); 
+                          printf("         %15.6g %15.6g %15.6g \n", rb2zmat[2][0], rb2zmat[2][1], rb2zmat[2][2]); 
+                          cbf_failnez(cbf_mat33_vec(rb2zmat,beam,znew));
+                          printf("newzz:  %15.6g %15.6g %15.6g \n", znew[0], znew[1], znew[2]);
+                      } else {
+                         xdsb2z = 0;
+                      }
+                    }
+
+                    /* printf("beam: %15.6g %15.6g %15.6g %15.6g %15.6g %15.6g\n",
+                     beamx,beamy,beamz,beamcentx,beamcenty,beamcentz); */
+                    break;
+
                 case 'O': /* set Opaque mode */
                     if (opaquemode) errflg++;
                     opaquemode = 1;
                     break;
-                    
+
                 case 'e':
                     if (encoding) errflg++;
                     if (optarg[0] == 'b' || optarg[0] == 'B' ) {
@@ -1220,19 +1369,25 @@ int main (int argc, char *argv [])
                         }
                     }
                     break;
-                    
+
                 case 'I':
                     if (IorR) errflg++;
                     IorR = CBF_CPY_SETINTEGER;
                     nelsize = atoi(optarg);
-                    if (nelsize != 0 && nelsize != 1 && nelsize !=2 && nelsize !=4 && nelsize != 8) errflg++;
+                    if (nelsize != 0 && nelsize != 1 && nelsize !=2 && nelsize !=4 && nelsize != 8
+                      && nelsize != -1 && nelsize !=-2 && nelsize !=-4 && nelsize != -8) errflg++;
+                    nelsign = CBF_CPY_SETSIGNED;
+                    if (nelsize < 0) {
+                      nelsign=CBF_CPY_SETUNSIGNED;
+                      nelsize = -nelsize;
+                    }
                     break;
-                    
+
                 case 'L':
                     cliplow = atof(optarg);
                     break;
-                    
-                    
+
+
                 case 'm':
                     if (optarg[0] == 'h' || optarg[0] == 'H' ) {
                         if (mime) errflg++;
@@ -1254,8 +1409,8 @@ int main (int argc, char *argv [])
                         errflg++;
                     }
                     break;
-                    
-                    
+
+
                 case 'p':
                     if (padflag) errflg++;
                     if (optarg[0] == '1') {
@@ -1266,8 +1421,8 @@ int main (int argc, char *argv [])
                         padflag = PAD_4K;
                     } else errflg++;
                     break;
-                    
-                    
+
+
                 case 'P':    /* Parse level */
                     if (!strcmp(optarg,"cif20read")) {
                         qrflags &= ~(CBF_PARSE_BRACKETS|CBF_PARSE_TQ|CBF_PARSE_CIF2_DELIMS|CBF_PARSE_WIDE|CBF_PARSE_UTF8);
@@ -1293,14 +1448,15 @@ int main (int argc, char *argv [])
                         qwflags &= ~(CBF_PARSE_BRACKETS|CBF_PARSE_TQ|CBF_PARSE_CIF2_DELIMS|CBF_PARSE_WIDE|CBF_PARSE_UTF8);
                     } else errflg++;
                     break;
-                    
+
                 case 'R':
                     if (IorR) errflg++;
                     IorR = CBF_CPY_SETREAL;
                     nelsize = atoi(optarg);
                     if (nelsize != 0 && nelsize !=4 && nelsize != 8) errflg++;
+                    nelsign=CBF_CPY_SETSIGNED;
                     break;
-                    
+
                 case 'S':  /* Parse whitespace */
                     if (!strcmp(optarg,"read")) {
                         qrflags |= CBF_PARSE_WS;
@@ -1312,7 +1468,7 @@ int main (int argc, char *argv [])
                         qwflags &= CBF_PARSE_WS;
                     } else errflg++;
                     break;
-                    
+
                 case 'T':  /* Parse treble quotes */
                     if (!strcmp(optarg,"read")) {
                         qrflags |= CBF_PARSE_TQ;
@@ -1324,7 +1480,7 @@ int main (int argc, char *argv [])
                         qwflags &= ~CBF_PARSE_TQ;
                     } else errflg++;
                     break;
-                    
+
                 case 'v':  /* validate against dictionary */
                     if (ndict < NUMDICTS) {
                         dqrflags[ndict] = qrflags;
@@ -1335,17 +1491,17 @@ int main (int argc, char *argv [])
                         fprintf(stderr, " Too many dictionaries, increase NUMDICTS");
                     }
                     break;
-                    
+
                 case 'w': /* read wide files */
                     if (wide) errflg++;
                     else wide = 1;
                     break;
-                    
+
                 case 'W': /* write wide files */
                     if (Wide) errflg++;
                     else Wide = 1;
                     break;
-                    
+
                 default:
                     errflg++;
                     break;
@@ -1378,13 +1534,13 @@ int main (int argc, char *argv [])
         fprintf(stderr,
                 "    [-C highclipvalue] \\\n");
         fprintf(stderr,
+                "    [-L lowclipvalue \\\n");
+        fprintf(stderr,
                 "    [-D ] \\\n");
         fprintf(stderr,
-                "    [-I {0|2|4|8}] \\\n");
+                "    [-I {0|1|2|4|8|-1|-2|-4|-8}], negative for unsigned \\\n");
         fprintf(stderr,
                 "    [-R {0|4|8}] \\\n");
-        fprintf(stderr,
-                "    [-L {0|4|8}] \\\n");
         fprintf(stderr,
                 "    [-m {h[eaders]|noh[eaders]}] \\\n");
         fprintf(stderr,
@@ -1428,6 +1584,9 @@ int main (int argc, char *argv [])
         fprintf(stderr,
                 "    [--{roi|region-of-interest}\n"
                 "    fastlow,fasthigh[[,midlow,midhigh[,slowlow,slowhigh]]] \\\n");
+        fprintf(stderr,
+                "    [--{xdsb2z|rotate-xds-beam-to-z}\n"
+                "    beamx[,beamy[,beamz[,beamcentx[,beamcenty[,beamcentz]]]]] \\\n");
         fprintf(stderr,
                 "    [--{add-data-array} \\\n");
         fprintf(stderr,
@@ -1821,6 +1980,8 @@ int main (int argc, char *argv [])
                                 int realarray;
                                 const char *byteorder;
                                 size_t fastdim, middim, slowdim, padding;
+                                void * array;
+                                size_t elements_read;
 
                                 cbf_failnez(cbf_get_arrayparameters_wdims_fs(cif,
                                                                              &cifcompression,
@@ -1840,26 +2001,81 @@ int main (int argc, char *argv [])
                                 if (fastdim < 1) fastdim = 1;
                                 if (middim < 1) middim = 1;
                                 if (slowdim < 1) slowdim = 1;
-                                {   cbf_failnez (cbf_select_column(cbf,colnum))
-                                    cbf_failnez (
-                                                 cbf_copy_value_with_roi(cbf,
-                                                                         cif,
-                                                                         category_name,
-                                                                         column_name,
-                                                                         rownum,
-                                                                         compression,
-                                                                         dimflag,
-                                                                         IorR,
-                                                                         nelsize?((size_t)nelsize):elsize,
-                                                                         realarray?CBF_CPY_SETSIGNED:0,
-                                                                         cliplow,
-                                                                         cliphigh,
-                                                                         roi))
+                                cbf_failnez (cbf_select_column(cbf,colnum));
+                                if (!xdsb2z) {
+                                  cbf_failnez ( cbf_copy_value_with_roi(cbf,
+                                                                        cif,
+                                                                        category_name,
+                                                                        column_name,
+                                                                        rownum,
+                                                                        compression,
+                                                                        dimflag,
+                                                                        IorR,
+                                                                        nelsize?((size_t)nelsize):elsize,
+                                                                        nelsign,
+                                                                        cliplow,
+                                                                        cliphigh,
+                                                                        roi))
 
+                                } else {
+                                  if ((array=malloc(elsize*elements))) {
+                                    if (!realarray) {
+                                      cbf_failnez (cbf_get_integerarray(
+                                        cif, &binary_id, array, elsize, elsigned,
+                                        elements, &elements_read));
+                                      { void * newarray; double beamcenter[2]; double pixels[2];
+                                        /* we have an image rotation to process using rb2zmat */
+                                        if (IorR) {
+                                          fprintf(stderr,"cif2cbf: I or R conversion in compatible with xdsb2z option");
+                                          exit(1);
+                                        }
+                                        if (( newarray=malloc(elsize*elements))) {
+                                          beamcenter[0]=beamcentx; beamcenter[1]=beamcenty; pixels[0]=pixels[1]=0.075;
+                                          cbf_failnez(cbf_extract_rotated_roi_2D(array,newarray,elsize,elsigned,0,0,fastdim-1,
+                                            0,middim-1,fastdim, middim, rb2zmat,beamcenter,pixels));
+                                          cbf_failnez(cbf_set_integerarray_wdims_fs(cbf, compression, binary_id, newarray, elsize, 
+                                            elsigned, elements, byteorder, fastdim, middim, slowdim, padding));
+                                          free(newarray);
+                                        } else {
+                                          fprintf(stderr,
+                                            "cif2cbf: Failed to allocate memory %ld bytes for rotation\n",
+                                            (long) elsize*elements);
+                                           exit(1);
+                                        }
+                                      }
+                                    } else  {
+                                      cbf_failnez (cbf_get_realarray(
+                                        cif, &binary_id, array, elsize,
+                                        elements, &elements_read))
+                                      { void * newarray; double beamcenter[2]; double pixels[2];
+                                        /* we have an image rotation to process using rb2zmat */
+                                        if (( newarray=malloc(elsize*elements))) {
+                                          beamcenter[0]=beamcentx; beamcenter[1]=beamcenty; pixels[0]=pixels[1]=0.075;
+                                          cbf_failnez(cbf_extract_rotated_roi_2D(array,newarray,elsize,elsigned,1,0,fastdim-1,
+                                            0,middim-1,fastdim, middim, rb2zmat,beamcenter,pixels));
+                                          cbf_failnez(cbf_set_realarray_wdims_fs(cbf, compression, binary_id, newarray, elsize,
+                                            elements, byteorder, fastdim, middim, slowdim, padding));
+                                          free(newarray);
+                                        } else {
+                                          fprintf(stderr,
+                                            "cif2cbf: Failed to allocate memory %ld bytes for rotation",
+                                            (long) elsize*elements);
+                                          exit(1);
+                                        }
+                                      }
                                     }
+                                    free(array);
+                                  } else {
+                                    fprintf(stderr,
+                                      "cif2cbf: Failed to allocate memory %ld bytes",
+                                      (long) elsize*elements);
+                                    exit(1);
+                                  }
+
                                 }
                             }
                         }
+                    }
                 } else {
                     cbf_saveframe_name(cif,&saveframe_name);
                     cbf_force_new_saveframe(cbf, saveframe_name);
@@ -1919,11 +2135,29 @@ int main (int argc, char *argv [])
                                             if (!realarray) {
                                                 cbf_failnez (cbf_get_integerarray(
                                                                                   cif, &binary_id, array, elsize, elsigned,
-                                                                                  elements, &elements_read))
-                                                cbf_failnez(cbf_set_integerarray_wdims_fs(
+                                                                                  elements, &elements_read));
+                                                if (!xdsb2z) {
+                                                  cbf_failnez(cbf_set_integerarray_wdims_fs(
                                                                                           cbf, compression,
                                                                                           binary_id, array, elsize, elsigned, elements,
-                                                                                          byteorder, fastdim, middim, slowdim, padding))
+                                                                                          byteorder, fastdim, middim, slowdim, padding));
+                                                } else {
+                                                  void * newarray; double beamcenter[2]; double pixels[2];
+                                                  /* we have an image rotation to process using rb2zmat */
+                                                  if (( newarray=malloc(elsize*elements))) {
+                                                    beamcenter[0]=beamcentx; beamcenter[1]=beamcenty; pixels[0]=pixels[1]=0.075;
+                                                    cbf_failnez(cbf_extract_rotated_roi_2D(array,newarray,elsize,elsigned,0,0,fastdim-1,
+                                                      0,middim-1,fastdim, middim, rb2zmat,beamcenter,pixels));
+                                                    cbf_failnez(cbf_set_integerarray_wdims_fs(cbf, compression, binary_id, newarray, elsize, 
+                                                      elsigned, elements, byteorder, fastdim, middim, slowdim, padding));
+                                                    free(newarray);
+                                                  } else {
+                                                    fprintf(stderr,
+                                                    "\nFailed to allocate memory %ld bytes for rotation",
+                                                    (long) elsize*elements);
+                                                    exit(1);
+                                                  }
+                                                }
                                             } else  {
                                                 cbf_failnez (cbf_get_realarray(
                                                                                cif, &binary_id, array, elsize,
@@ -1931,10 +2165,29 @@ int main (int argc, char *argv [])
                                                 if (dimflag == HDR_FINDDIMS && fastdim==0) {
                                                     cbf_get_arraydimensions(cif,NULL,&fastdim,&middim,&slowdim);
                                                 }
-                                                cbf_failnez(cbf_set_realarray_wdims_fs(
+                                                if (!xdsb2z) {
+                                                  cbf_failnez(cbf_set_realarray_wdims_fs(
                                                                                        cbf, compression,
                                                                                        binary_id, array, elsize, elements,
-                                                                                       byteorder, fastdim, middim, slowdim, padding))
+                                                                                       byteorder, fastdim, middim, slowdim, padding));
+                                                } else {
+                                                  void * newarray; double beamcenter[2]; double pixels[2];
+                                                  /* we have an image rotation to process using rb2zmat */
+                                                  if (( newarray=malloc(elsize*elements))) {
+                                                    beamcenter[0]=beamcentx; beamcenter[1]=beamcenty; pixels[0]=pixels[1]=0.075;
+                                                    cbf_failnez(cbf_extract_rotated_roi_2D(array,newarray,elsize,elsigned,1,0,fastdim-1,
+                                                      0,middim-1,fastdim, middim, rb2zmat,beamcenter,pixels));
+                                                    cbf_failnez(cbf_set_integerarray_wdims_fs(cbf, compression, binary_id, newarray, elsize,
+                                                      elsigned, elements, byteorder, fastdim, middim, slowdim, padding));
+                                                    free(newarray);
+                                                  } else {
+                                                    fprintf(stderr,
+                                                    "\nFailed to allocate memory %ld bytes for rotation",
+                                                    (long) elsize*elements);
+                                                    exit(1);
+                                                  }
+                                                }
+
                                             }
                                             free(array);
                                         } else {
@@ -2624,7 +2877,6 @@ int main (int argc, char *argv [])
                         }
                     }
                 }
-
             }
         }
 

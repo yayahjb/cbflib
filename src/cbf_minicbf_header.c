@@ -331,6 +331,40 @@ extern "C" {
         return CBF_SUCCESS;
         
     }
+
+    
+    /* Update a minicbf header in _array_data.header_contents with a new header */
+    
+    int cbf_update_minicbf_header(cbf_handle datacbf, const char * header, const char * header_convention) {
+        
+        size_t header_size;
+        
+        /* check the arguments */
+        
+        if (!datacbf || !header || !header_convention)
+            
+            return CBF_ARGUMENT;
+
+        /* Write the header to the CBF */        
+        
+        if ((!cbf_require_category(datacbf, "array_data"))
+            && !cbf_require_column(datacbf,"header_convention")
+            && !cbf_rewind_row(datacbf)) {
+            
+            cbf_failnez(cbf_set_value(datacbf,header_convention));
+        }
+            
+        if ((!cbf_require_category(datacbf, "array_data"))
+            && !cbf_require_column(datacbf,"header_contents")
+            && !cbf_rewind_row(datacbf)) {
+            
+            cbf_failnez(cbf_set_value(datacbf,header));
+            
+        }
+        
+        return CBF_SUCCESS;
+    }
+
     
     /* Populate or rewrite a minicbf header in _array_data.header_contents */
     
@@ -1814,29 +1848,14 @@ extern "C" {
 
         
         /* Write the header to the CBF */
-        
-        
-        if ((!cbf_require_category(datacbf, "array_data"))
-            && !cbf_require_column(datacbf,"header_convention")
-            && !cbf_rewind_row(datacbf)) {
-            
-            cbf_failnez(cbf_set_value(datacbf,"PILATUS_1.4"));
-        }
-            
-        if ((!cbf_require_category(datacbf, "array_data"))
-            && !cbf_require_column(datacbf,"header_contents")
-            && !cbf_rewind_row(datacbf)) {
-            
-            cbf_failnez(cbf_set_value(datacbf,header));
-            
-        }
+
+        cbf_failnez(cbf_update_minicbf_header(datacbf, header, "PILATUS_1.4"));
         
         cbf_failnez(cbf_free_text((const char * *)&header,NULL));
         
         return CBF_SUCCESS;
         
     }
-    
 
 
 #ifdef __cplusplus

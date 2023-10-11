@@ -1,12 +1,12 @@
 /**********************************************************************
  * tiffcbf -- convert a tiff file to a cbf file                       *
  *                                                                    *
- * Version 0.7.6 28 June 2006                                         *
+ * Version 0.9.8 30 June 2023                                         *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  *                                                                    *
- * (C) Copyright 2006 Herbert J. Bernstein                            *
+ * (C) Copyright 2006, 2023 Herbert J. Bernstein                      *
  *                                                                    *
  **********************************************************************/
 
@@ -174,6 +174,7 @@
 
 
 #include "cbf.h"
+#include "cbf_string.h"
 #include <tiffio.h>
 
 #include <stdlib.h>
@@ -189,13 +190,17 @@ int local_exit(int status) {
   return status;    /* to avoid warning messages */
 }
 
+static int usage(void) {
+        fprintf (stderr, "\n Usage: %s [-h|--help] [-v|--verbose] [-i]tiffile [-o]cbffile\n", "tff2cbf");
+        return 0;
+}
 
 #undef cbf_failnez
 #define cbf_failnez(x) \
  {int err; \
   err = (x); \
   if (err) { \
-    fprintf(stderr,"\nCBFlib fatal error %x \n",err); \
+    fprintf(stderr,"tiff2cbf: CBFlib fatal error %x \n",err); \
     local_exit(-1); \
   } \
  }
@@ -207,37 +212,85 @@ int main (int argc, char *argv [])
     TIFF *tif;
     cbf_handle cbf;
     clock_t a,b;
-    
     uint32 width;
     uint32 height;
     uint32 npixels;
     unsigned char * raster;
-    
+    char * tiffile;
+    char * cbffile;
+    int iarg;
+    int verbose;
     int imageno;
+    size_t totread;
     
      
     /* Usage */ 
     
     if (argc < 3)
     {
-        fprintf (stderr, "\n Usage: %s tifffile cbffile\n", argv [0]);
+        usage();
         exit (2);
     }
+
+    verbose = 0;
+    tiffile=0;
+    cbffile=0;
+
+    for (iarg=1; iarg<argc; iarg++) {
+      if ((argv[iarg][0]=='-' && argv[iarg][1]=='v' && argv[iarg][2]==0)
+         || (cbf_cistrcmp(argv[iarg],"--verbose")==0)) {
+        verbose=1;
+      } else if ((argv[iarg][0]=='-' && argv[iarg][1]=='h' && argv[iarg][2]==0)
+         || (cbf_cistrcmp(argv[iarg],"--help")==0)) {
+        usage();
+      } else if ((argv[iarg][0]=='-' && argv[iarg][1]=='i' && argv[iarg][2]!=0)) {
+        tiffile=argv[iarg]+2;
+      } else if ((argv[iarg][0]=='-' && argv[iarg][1]=='o' && argv[iarg][2]!=0)) {
+        cbffile=argv[iarg]+2;
+      } else if ((argv[iarg][0]=='-' && argv[iarg][1]=='i' && argv[iarg][2]==0)) { 
+        iarg++;
+        if (iarg < argc) tiffile=argv[iarg];
+      } else if ((argv[iarg][0]=='-' && argv[iarg][1]=='o' && argv[iarg][2]==0)) {
+        iarg++;
+        if (iarg < argc) tiffile=argv[iarg];
+      } else if (argv[iarg][0]=='-') {
+        fprintf(stderr,"tiff2cbf: unrecognized option %d '%s'\n",iarg,argv[iarg]);
+        usage();
+        exit(1);
+      } else if (!tiffile) {
+        tiffile=argv[iarg];
+      } else if (!cbffile) {
+        cbffile=argv[iarg];
+      }
+    }
+
+    if (!tiffile) { 
+       fprintf(stderr,"tiff2cbf: failed to specify tiffile\n");
+       usage();
+       exit(1);
+    }
+    if (!cbffile) { 
+       fprintf(stderr,"tiff2cbf: failed to specify cbffile\n");
+       usage();
+       exit(1);
+    }
+
+    
     
     
     /* Read the tiff image */
         
     a = clock ();
     
-    if (!(tif=TIFFOpen(argv[1], "r"))) {
+    if (!(tif=TIFFOpen(tiffile, "r"))) {
         
-        fprintf(stderr," %s unable to open tiff image %s, abort\n", argv[0], argv[1]);
+        fprintf(stderr,"tiff2cbf: unable to open tiff image %s, abort\n", tiffile);
         local_exit(-1);
     }
     
     b = clock ();
     
-    fprintf (stderr, " Time to read the image: %.3fs\n", ((b - a) * 1.0) / CLOCKS_PER_SEC);
+    fprintf (stderr, "tiff2cbf: time to read the image: %.3fs\n", ((b - a) * 1.0) / CLOCKS_PER_SEC);
     
     
     /* Make a cbf version of the image */
@@ -257,6 +310,7 @@ int main (int argc, char *argv [])
     
     
     imageno = 0;
+    totread = 0;
     cbf_failnez (cbf_require_category     (cbf, "array_data"))
     do {
         char buffer[40];
@@ -265,7 +319,6 @@ int main (int argc, char *argv [])
         unsigned int rows;
         tstrip_t nstrips, strip;
         tsize_t stripsize;
-        size_t totread;
         int elsize, elsign, real, plex, treturn;
         uint16 sampleformat, samplesperpixel, bitspersample, planarconfig;
         size_t dimslow, dimmid, dimfast;
@@ -334,7 +387,7 @@ int main (int argc, char *argv [])
         }
         switch ( sampleformat ) {
             case SAMPLEFORMAT_UINT:         elsign = 0; real = 0; plex = 1; break;    /* !unsigned integer data */
-            case SAMPLEFORMAT_INT:	        elsign = 1; real = 0; plex = 1; break;    /* !signed integer data */
+            case SAMPLEFORMAT_INT:	    elsign = 1; real = 0; plex = 1; break;    /* !signed integer data */
             case SAMPLEFORMAT_IEEEFP:       elsign = 1; real = 1; plex = 1; break;    /* !IEEE floating point data */
             case SAMPLEFORMAT_VOID:         cbf_failnez(CBF_FORMAT);                  /* !untyped data */
             case SAMPLEFORMAT_COMPLEXINT:   elsign = 1; real = 0; plex = 2; 
@@ -370,10 +423,13 @@ int main (int argc, char *argv [])
         nstrips = TIFFNumberOfStrips(tif);
         stripsize = TIFFStripSize(tif);
         raster = (unsigned char *) _TIFFmalloc(stripsize*nstrips+stripsize-1);
-        elsize = stripsize*nstrips/npixels;
-        totread = 0;
         for (strip = 0; strip < nstrips; strip++) {
             totread +=TIFFReadEncodedStrip(tif, strip, raster+strip*stripsize, stripsize);
+        }
+        if (verbose) {
+          fprintf(stdout,"tiff2cbf: imageno %ld, totread %ld, elsize %ld, elsign %ld, npixels %ld, dimfast %ld, dimmid %ld, dimslow %ld/n",
+                 (long)imageno, (long)totread, (long)elsize, (long)elsign, (long)npixels, (long)dimfast, (long)dimmid, (long)dimslow); 
+
         }
         if(real){
             cbf_failnez (cbf_set_realarray_wdims_fs (cbf, CBF_NONE, imageno,
@@ -396,11 +452,11 @@ int main (int argc, char *argv [])
     
     /* Write the new file */
     
-    out = fopen (argv [2], "w+b");
+    out = fopen (cbffile, "w+b");
     
     if (!out)
     {
-        fprintf (stderr, " Couldn't open the CBF file %s\n", argv [2]);
+        fprintf (stderr, "tiff2cbf: couldn't open the CBF file %s\n", cbffile);
         
         exit (1);
     }
@@ -415,7 +471,7 @@ int main (int argc, char *argv [])
     
     b = clock ();
     
-    fprintf (stderr, " Time to write the CBF image: %.3fs\n", 
+    fprintf (stderr, "tiff2cbf: time to write the CBF image: %.3fs\n", 
              ((b - a) * 1.0) / CLOCKS_PER_SEC); 
     
     

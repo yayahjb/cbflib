@@ -1,13 +1,13 @@
-
+ 
 ######################################################################
 #  Makefile - command file for make to create CBFlib                 #
 #                                                                    #
-# Version 0.9.7 28 June 2021                                          #
+# Version 0.9.8 2 Jun 2023                                          #
 #                                                                    #
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
 #                                                                    #
-# (C) Copyright 2006 - 2021 Herbert J. Bernstein                     #
+# (C) Copyright 2006 - 2022 Herbert J. Bernstein                     #
 #                                                                    #
 ######################################################################
 
@@ -251,28 +251,29 @@
 .DELETE_ON_ERROR:
 
 # Version string
-VERSION = 0.9.7
+VERSION = 0.9.8
 
 #
 # Directories
 #
 ROOT     = $(PWD)
-LIB      = $(ROOT)/lib
-SOLIB    = $(ROOT)/solib
+BIN      = $(ROOT)/bin
+EXAMPLES = $(ROOT)/examples
+DECTRIS_EXAMPLES = $(EXAMPLES)/dectris_cbf_template_test
+F90CBF   = $(ROOT)/f90cbf
+GRAPHICS = $(ROOT)/html_graphics
+INCLUDE  = $(ROOT)/include
 JCBF     = $(ROOT)/jcbf
 JAVADIR  = $(ROOT)/java
-BIN      = $(ROOT)/bin
-SRC      = $(ROOT)/src
-INCLUDE  = $(ROOT)/include
+LIB      = $(ROOT)/lib
 M4       = $(ROOT)/m4
+MINICBF_TEST = $(ROOT)/minicbf_test
+SOLIB    = $(ROOT)/solib
+SRC      = $(ROOT)/src
 PY2CBF   = $(ROOT)/py2cbf
 PY3CBF   = $(ROOT)/pycbf
-EXAMPLES = $(ROOT)/examples
 TEMPLATES= $(ROOT)/templates
-DECTRIS_EXAMPLES = $(EXAMPLES)/dectris_cbf_template_test
 DOC      = $(ROOT)/doc
-MINICBF_TEST = $(ROOT)/minicbf_test
-GRAPHICS = $(ROOT)/html_graphics
 DATADIRI  = $(ROOT)/../CBFlib_$(VERSION)_Data_Files_Input
 DATADIRO  = $(ROOT)/../CBFlib_$(VERSION)_Data_Files_Output
 CBF_PREFIX  ?= $(HOME)
@@ -287,6 +288,7 @@ MSYS2=no
 CBFLIB_DONT_USE_LOCAL_HDF5?=no
 CBFLIB_DONT_USE_LZ4?=no
 CBFLIB_DONT_USE_BSHUF?=no
+CBFLIB_DONT_USE_ZSTD?=no
 
 
 CBFLIB_DONT_USE_LOCAL_NUWEB ?= no
@@ -310,7 +312,7 @@ SRC_FGETLN =
 endif
 
 
-CBFLIB_DONT_USE_PY2CIFRW ?= no
+CBFLIB_DONT_USE_PY2CIFRW ?= yes
 ifneq ($(CBFLIB_DONT_USE_PY2CIFRW),yes)
 #
 # Definitions to get versions of python2 PyCifRW and PLY
@@ -338,6 +340,19 @@ endif
 TIFF ?= tiff-4.0.6_rev_3Nov16
 TIFF_PREFIX ?= $(PWD)
 TIFF_INSTALL = $(TIFF)_INSTALL
+
+#
+#Definitions to get a version of swig
+#
+
+ifneq ($(CBFLIB_DONT_USE_LOCAL_SWIG),yes)
+SWIG_PREFIX ?= $(PWD)
+SWIG_KIT ?= swig-fortran-swig
+else
+SWIG_PREFIX=
+SWIG_KIT=
+endif
+
 
 
 #
@@ -428,7 +443,7 @@ ifneq ($(CBFLIB_DONT_USE_BSHUF),yes)
 #
 # Definitions to get a version of HDF5Plugin for BSHUFFLE WITH LZ4
 #
-BSHUF ?= bitshuffle-0.2.2.1_15Jun16
+BSHUF ?= bitshuffle
 BSUFdep = $(BSHUF)
 BSHUFsrc = $(BSHUF)/src
 BSHUFinclude = $(BSHUF)/src
@@ -439,23 +454,33 @@ BSHUFSOLIBS =
 BSHUFdep =
 endif
 
-CBFLIB_DONT_USE_BLOSC ?= no
-ifneq ($(CBFLIB_DONT_USE_BLOSC),yes)
+CBFLIB_DONT_USE_ZSTD ?= no
+ifneq ($(CBFLIB_DONT_USE_ZSTD),yes)
 #
-# Definitions to get a version of HDF5Plugin for BLOSC
+# Definitions to get a version of HDF5Plugin for Zstandard
+# assumes libztd-dev installed
 #
-BLOSC = ?c-blosc_4Sep16.tar.gz
-BLOSCdep = $(BLOSC)
-BLOSCFILTER = hdf5-blosc_2Sep16.tar.gz
-BLOSCsrc = $(BLOSC)/src
-BLOSCinclude = $(BLOSC)/src
-BLOSCSOLIBS = -L$(SOLIB) -lh5zbshuf
-BLOSCFILTER = libbshuf_h5filter
+ZSTD ?= HDF5Plugin-Zstandard
+ZSTD_URL ?= http://www.github.com/yayahjb/HDF5Plugin-Zstandard.git
+ZSTDdep = $(ZSTD) 
+ZSTDsrc = $(ZSTD)
+ZSTDinclude = $(ZSTD)
+ZSTDSOLIBS = -L$(SOLIB) -lzstd_h5_plugin_shared
+ZSTDFILTER = zstd_h5_plugin_shared
 else
-BLOSCSOLIBS =
-BLOSCdep =
+ZSTDFLTSOLIBS =
+ZSTDdep =
 endif
 
+#
+# Definitions to get a version of CQRLIB 
+#
+CQRLIB  ?=  cqrlib
+CQRLIB_URL ?= https://github.com/yayahjb/$(CQRLIB).git
+CQRLIBdep = $(CQRLIB) 
+CQRLIBsrc = $(CQRLIB)
+CQRLIBinclude = $(CQRLIB)
+CQRLIBSOLIBS = -L$(SOLIB) -l cqr
 
 
 #
@@ -560,14 +585,29 @@ DIFF = diff -u -b
 
 
 #
+# Program to generate various wrapper for C/C++ code
+#
+
+ifneq ($(CBFLIB_DONT_USE_LOCAL_SWIG),yes)
+SWIG = $(BIN)/swig
+else
+SWIG = swig
+endif
+
+#
 # Program to generate wrapper classes for Python
 #
-PYSWIG = swig -python
+PYSWIG = $(SWIG) -python
 
 #
 # Program to generate wrapper classes for Java
 #
-JSWIG = swig -java
+JSWIG = $(SWIG) -java
+
+#
+# Program to generate wrapper module for f90
+#
+F90SWIG = $(SWIG) -fortran
 
 #
 # Java SDK root directory
@@ -622,10 +662,17 @@ else
 BSHUFFLAG =
 endif
 
+ifneq ($(CBFLIB_DONT_USE_ZSTD),yes)
+ZSTDFLAG = -DCBF_H5Z_USE_ZSTD
+else
+ZSTDFLAG =
+endif
+
 
 
 MISCFLAG = $(NOLLFLAG) $(ULPFLAG)
 
+ifneq ($(CBFLIB_DONT_USE_PY2CIFRW),yes)
 #
 # PY2CBF definitions
 #
@@ -634,7 +681,8 @@ PY2CBFBOPT =
 PY2CBFIOPT =
 SETUP_PY = setup.py
 PY2INSTALLSETUP_PY =  py2setup.py
-
+endif
+ifneq ($(CBFLIB_DONT_USE_PY3CIFRW),yes)
 #
 # PY3CBF definitions
 #
@@ -643,6 +691,7 @@ PY3CBFBOPT =
 PY3CBFIOPT =
 SETUP_PY = setup.py
 PY3INSTALLSETUP_PY =  py3setup.py
+endif
 
 
 #
@@ -663,7 +712,8 @@ CFLAGS  = -g -O3 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing  $(HDF5CFLAGS)
 endif
 LDFLAGS =
 F90C = gfortran
-F90FLAGS = -g -fno-range-check -fallow-invalid-boz
+#F90FLAGS = -g -fno-range-check -fallow-invalid-boz
+F90FLAGS = -g -fno-range-check
 F90LDFLAGS = 
 SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(CBF_PREFIX)/lib
@@ -712,7 +762,10 @@ LZ4_URL		= http://downloads.sf.net/cbflib/$(LZ4).tar.gz
 else
 LZ4_URL		= http://www.github.com/yayahjb/$(LZ4).git
 endif
-BSHUFURL    = http://downloads.sf.net/cbflib/$(BSHUF).tar.gz
+BSHUF_URL    = http://www.github.com/yayahjb/$(BSHUF).git
+ifneq ($(CBFLIB_DONT_USE_LOCAL_SWIG),yes)
+SWIG_URL     = https://github.com/yayahjb/swig-fortran-swig.git
+endif
 
 
 #
@@ -776,6 +829,7 @@ COMMONDEP = $(M4)/Makefile.m4
 SOURCE   =  $(SRC)/cbf.c               \
 	$(SRC)/cbf_airy_disk.c     \
 	$(SRC)/cbf_alloc.c         \
+	$(SRC)/cbf_array2minicbf.c \
 	$(SRC)/cbf_ascii.c         \
 	$(SRC)/cbf_binary.c        \
 	$(SRC)/cbf_byte_offset.c   \
@@ -844,6 +898,7 @@ F90SOURCE = $(SRC)/fcb_atol_wcnt.f90     \
 HEADERS   =  $(INCLUDE)/cbf.h               \
 	$(INCLUDE)/cbf_airy_disk.h     \
 	$(INCLUDE)/cbf_alloc.h         \
+	$(INCLUDE)/cbf_array2minicbf.h \
 	$(INCLUDE)/cbf_ascii.h         \
 	$(INCLUDE)/cbf_binary.h        \
 	$(INCLUDE)/cbf_byte_offset.h   \
@@ -1030,9 +1085,11 @@ endif
 
 
 all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) \
+	$(SWIG_KIT)           \
 	$(HDF5)               \
 	$(LZ4DEPS)            \
 	$(BSHUFDEPS)          \
+	cqrlib                \
 	$(PY2CIFRWDEPS)       \
 	$(PY3CIFRWDEPS)       \
 	symlinksdone          \
@@ -1040,11 +1097,13 @@ all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) \
 	$(LIB)                \
 	$(LIB)/libcbf.a       \
 	$(LIB)/libfcb.a       \
+	$(LIB)/libf90cbf.a    \
 	$(LIB)/libimg.a       \
 	$(BIN)/adscimg2cbf    \
 	$(BIN)/arvai_test     \
 	$(BIN)/cbf2adscimg    \
 	$(BIN)/cbf2nexus      \
+	$(BIN)/cbf2tiff       \
 	$(BIN)/cif2c          \
 	$(BIN)/cif2cbf        \
 	$(BIN)/cbf_standardize_numbers \
@@ -1078,11 +1137,13 @@ SO_EXT ?= so
 SO_LIB_CBF = $(SO_PREFIX)cbf.$(SO_EXT)
 SO_LIB_IMG = $(SO_PREFIX)img.$(SO_EXT)
 SO_LIB_FCB = $(SO_PREFIX)fcb.$(SO_EXT)
+SO_LIB_F90CBF = $(SO_PREFIX)f90cbf.$(SO_EXT)
 SO_LIB__CBF = $(SO_PREFIX)_cbf.$(SO_EXT)
 SO_LIB__IMG = $(SO_PREFIX)_img.$(SO_EXT)
 SO_LIB__FCB = $(SO_PREFIX)_fcb.$(SO_EXT)
+SO_LIB__F90CB = $(SO_PREFIX)_f90cbf.$(SO_EXT)
 
-shared:	$(SOLIB)/$(SO_LIB_CBF) $(SOLIB)/$(SO_LIB_IMG) $(SOLIB)/$(SO_LIB_FCB)
+shared:	$(SOLIB)/$(SO_LIB_CBF) $(SOLIB)/$(SO_LIB_IMG) $(SOLIB)/$(SO_LIB_FCB) $(SOLIB)/$(SO_LIB_F90CBF)
 
 SO_LIB_CBF_WRAP = $(SO_PREFIX)cbf_wrap.$(SO_EXT)
 javawrapper: shared $(JCBF) $(JCBF)/cbflib-$(VERSION).jar $(SOLIB)/$(SO_LIB_CBF_WRAP)
@@ -1215,7 +1276,7 @@ userinstall: baseinstall py2cbfuserinstall py3cbfuserinstall \
 baseinstall:  all $(CBF_PREFIX) $(CBF_PREFIX)/lib $(CBF_PREFIX)/bin \
 	$(CBF_PREFIX)/include $(CBF_PREFIX)/include/cbflib \
 	$(PYSOURCE) shared $(EXAMPLES)/batch_convert_minicbf.sh \
-	$(LIB)/libcbf.a $(LIB)/libimg.a $(LIB)/libfcb.a
+	$(LIB)/libcbf.a $(LIB)/libimg.a $(LIB)/libfcb.a $(LIB)/libf90cbf.a
 	-chmod -R 755 $(CBF_PREFIX)/include/cbflib
 	-chmod 755 $(CBF_PREFIX)/lib/libcbf.a
 	-cp $(CBF_PREFIX)/lib/libcbf.a $(CBF_PREFIX)/lib/libcbf_old.a
@@ -1228,6 +1289,11 @@ baseinstall:  all $(CBF_PREFIX) $(CBF_PREFIX)/lib $(CBF_PREFIX)/bin \
 	cp $(LIB)/libfcb.a $(CBF_PREFIX)/lib/libfcb.a
 	-chmod 755 $(CBF_PREFIX)/lib/$(SO_LIB_CBF)
 	-cp $(CBF_PREFIX)/lib/$(SO_LIB_CBF) $(CBF_PREFIX)/lib/$(SO_LIB_CBF)_old
+	-chmod 755 $(CBF_PREFIX)/lib/libf90cbf.a
+	-cp $(CBF_PREFIX)/lib/libf90cbf.a $(CBF_PREFIX)/lib/libf90cbf_old.a
+	cp $(LIB)/libf90cbf.a $(CBF_PREFIX)/lib/libf90cbf.a
+	-chmod 755 $(CBF_PREFIX)/lib/$(SO_LIB_CBF)
+	-cp $(CBF_PREFIX)/lib/$(SO_LIB_CBF) $(CBF_PREFIX)/lib/$(SO_LIB_CBF)_old
 	cp $(SOLIB)/$(SO_LIB_CBF) $(CBF_PREFIX)/lib/
 	$(LN) $(CBF_PREFIX)/lib/$(SO_LIB_CBF) $(CBF_PREFIX)/lib/$(SO_LIB__CBF)
 	-chmod 755 $(CBF_PREFIX)/lib/$(SO_LIB_IMG)
@@ -1236,8 +1302,12 @@ baseinstall:  all $(CBF_PREFIX) $(CBF_PREFIX)/lib $(CBF_PREFIX)/bin \
 	$(LN) $(CBF_PREFIX)/lib/$(SO_LIB_IMG) $(CBF_PREFIX)/lib/$(SO_LIB__IMG)
 	-chmod 755 $(CBF_PREFIX)/lib/$(SO_LIB_FCB)
 	-cp $(CBF_PREFIX)/lib/$(SO_LIB_FCB) $(CBF_PREFIX)/lib/$(SO_LIB_FCB)_old
+	-chmod 755 $(CBF_PREFIX)/lib/$(SO_LIB_F90CBF)
+	-cp $(CBF_PREFIX)/lib/$(SO_LIB_F90CBF) $(CBF_PREFIX)/lib/$(SO_LIB_F90CBF)_old
 	cp $(SOLIB)/$(SO_LIB_FCB) $(CBF_PREFIX)/lib/
 	$(LN) $(CBF_PREFIX)/lib/$(SO_LIB_FCB) $(CBF_PREFIX)/lib/$(SO_LIB__FCB)
+	cp $(SOLIB)/$(SO_LIB_F90CBF) $(CBF_PREFIX)/lib/
+	$(LN) $(CBF_PREFIX)/lib/$(SO_LIB_F90CBF) $(CBF_PREFIX)/lib/$(SO_LIB__F90CBF)
 	-cp $(CBF_PREFIX)/bin/cbflib.ini $(CBF_PREFIX)/bin/cbflib.ini_old
 	echo  "$(RUNLDPREFIX)" > $(CBF_PREFIX)/bin/cbflib.ini
 	echo  "HDF5_PLUGIN_PATH=$(CBF_PREFIX)/lib:$$HDF5_PLUGIN_PATH" >> $(CBF_PREFIX)/bin/cbflib.ini
@@ -1309,9 +1379,11 @@ endif
 	chmod 644 $(CBF_PREFIX)/lib/libcbf.a
 	chmod 644 $(CBF_PREFIX)/lib/libimg.a
 	chmod 644 $(CBF_PREFIX)/lib/libfcb.a
+	chmod 644 $(CBF_PREFIX)/lib/libf90cbf.a
 	chmod 755 $(CBF_PREFIX)/lib/$(SO_PREFIX)cbf.$(SO_EXT)
 	chmod 755 $(CBF_PREFIX)/lib/$(SO_PREFIX)img.$(SO_EXT)
 	chmod 755 $(CBF_PREFIX)/lib/$(SO_PREFIX)fcb.$(SO_EXT)
+	chmod 755 $(CBF_PREFIX)/lib/$(SO_PREFIX)f90cbf.$(SO_EXT)
 	chmod 755 $(CBF_PREFIX)/bin/arvai_test
 	chmod 755 $(CBF_PREFIX)/bin/cbf2nexus
 	chmod 755 $(CBF_PREFIX)/bin/cbf_standardize_numbers
@@ -1337,6 +1409,22 @@ endif
 	chmod 755 $(CBF_PREFIX)/bin/test_cbf_airy_disk
 	chmod 755 $(CBF_PREFIX)/bin/batch_convert_minicbf.sh
 	chmod 644 $(CBF_PREFIX)/include/cbflib/*.h
+
+ifneq ($(CBFLIB_DONT_USE_LOCAL_SWIG),yes)
+#
+# SWIG_KIT
+#
+$(SWIG_KIT):
+build_swig: $(M4)/Makefile.m4
+	touch build_swig
+$(SWIG_KIT):    build_swig
+	rm -rf $(SWIG_KIT)
+	git clone $(SWIG_URL)
+	(export SWIG_PREFIX=$(PWD);cd $(SWIG_KIT); ./autogen.sh; \
+	./configure --prefix=$(SWIG_PREFIX); make; make install) 
+	touch $(SWIG_KIT)
+endif
+
 	
 ifneq ($(CBFLIB_DONT_USE_PY2CIFRW),yes)
 #
@@ -1351,7 +1439,7 @@ $(PY2CIFRW):	build_py2cifrw
 	tar -xvf $(PY2CIFRW).tar.gz
 	-rm $(PY2CIFRW).tar.gz
 	(cd $(PY2CIFRW); \
-        PYTHONPATH=$(PY2CIFRW_PREFIX)/lib/python:$(PY2CIFRW_PREFIX)/lib64/python; export PYTHONPATH; \
+	PYTHONPATH=$(PY2CIFRW_PREFIX)/lib/python:$(PY2CIFRW_PREFIX)/lib64/python; export PYTHONPATH; \
 	mkdir -p $(PY2CIFRW_PREFIX)/lib/python/site-packages; \
 	mkdir -p $(PY2CIFRW_PREFIX)/lib64/python/site-packages; \
 	$(PYTHON2) setup.py install --prefix= --home=$(PY2CIFRW_PREFIX) )
@@ -1548,28 +1636,51 @@ build_BSHUF:	$(M4)/Makefile.m4
 $(BSHUF): $(HDF5)  build_BSHUF $(LZ4dep)
 	mkdir -p $(SOLIB)
 	-rm -rf $(BSHUF)
-	-rm -rf $(BSHUF).tar.gz
-	-rm -rf *.o
-	$(DOWNLOAD) $(BSHUFURL)
-	tar -xvf $(BSHUF).tar.gz
-	-rm $(BSHUF).tar.gz
-	(cp $(BSHUFinclude)/bitshuffle.h \
-	    $(BSHUFinclude)/bitshuffle_core.h \
-	    $(BSHUFinclude)/bitshuffle_internals.h \
-	    $(BSHUFinclude)/bshuf_h5filter.h $(BSHUFinclude)/iochain.h   $(INCLUDE); \
-	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(BSHUFsrc)/bshuf_h5filter.c -o bshuf_h5filter.o; \
-	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(BSHUFsrc)/bitshuffle.c -o bitshuffle.o; \
-	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(BSHUFsrc)/bitshuffle_core.c -o bitshuffle_core.o; \
-	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(BSHUFsrc)/bshuf_h5plugin.c  -o bshuf_h5plugin.o; \
-	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(BSHUFsrc)/iochain.c  -o iochain.o; \
-	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(BSHUFsrc)/../lz4/lz4.c  -o lz4.o; \
-	$(CC) -shared bshuf_h5filter.o bitshuffle.o bitshuffle_core.o iochain.o lz4.o $(HDF5SOLIBS_LOCAL) $(HDF5SOLIBS_SYSTEM)\
-	    -o $(SOLIB)/libh5zbshuf.so; \
-	$(CC) -shared bshuf_h5filter.o bitshuffle.o bitshuffle_core.o lz4.o bshuf_h5plugin.o iochain.o \
-	    $(HDF5SOLIBS_LOCAL) \
-	    $(HDF5SOLIBS_SYSTEM) -o $(SOLIB)/$(BSHUFFILTER).so; \
-	rm bshuf_h5filter.o bitshuffle.o lz4.o iochain.o bshuf_h5plugin.o)
+	git clone $(BSHUF_URL)
+	(cd $(BSHUF); git submodule update --init; python3 setup.py install --h5plugin --h5plugin-dir=../solib --zstd --user) 
 	touch $(BSHUF)
+endif
+
+ifneq ($(CBFLIB_DONT_USE_ZSTD),yes)
+#
+# ZSTD
+#
+build_ZSTD:	$(M4)/Makefile.m4 
+	touch build_ZSTD
+$(ZSTD): $(HDF5)  build_ZSTD
+	mkdir -p $(SOLIB)
+	-rm -rf $(ZSTD)
+	git clone $(ZSTD_URL)
+	(cp $(ZSTDinclude)/zstd_h5plugin.h  $(INCLUDE); \
+	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(ZSTDsrc)/zstd_h5plugin.c -o zstd_h5plugin.o; \
+	$(CC) -shared  zstd_h5plugin.o $(HDF5SOLIBS_LOCAL) $(HDF5SOLIBS_SYSTEM) -lzstd \
+	    -o $(SOLIB)/zstd_h5plugin.so; \
+	$(CC) -shared zstd_h5plugin.o $(HDF5SOLIBS_LOCAL) $(HDF5SOLIBS_SYSTEM) -lzstd \
+	    -o $(SOLIB)/$(ZSTDFILTER).so; \
+	rm zstd_h5plugin.o)
+	touch $(ZSTD)
+endif
+
+ifneq ($(CBFLIB_DONT_USE_CQRLIB),yes)
+#
+# CQRLIB
+#
+build_CQRLIB:	$(M4)/Makefile.m4 
+	touch build_CQRLIB
+cqrlib $(SOLIB)/libcqr.so $(LIB)lbcqr.a:  build_CQRLIB
+	mkdir -p cqrlib
+	-rm -rf cqrlib
+	git clone $(CQRLIB_URL)
+	(cp $(CQRLIBinclude)/cqrlib.h  $(INCLUDE); \
+	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(CQRLIBsrc)/cqrlib.c -o cqrlib.o; \
+	$(CC) -shared  cqrlib.o -lm \
+	    -o $(SOLIB)/libcqr.so; \
+	$(AR) cr $(LIB)/libcqr.a cqrlib.o; \
+	rm cqrlib.o)
+ifneq ($(RANLIB),)
+	$(RANLIB) $(LIB)/libcqr.a
+endif
+	touch cqrlib
 endif
 
 
@@ -1605,6 +1716,9 @@ $(SOLIB):
 $(JCBF):
 	mkdir -p $@
 
+$(F90CBF):
+	mkdir -p $@
+
 $(MINICBF_TESTS):
 	mkdir -p $@
 
@@ -1624,7 +1738,7 @@ $(LIB)/libcbf.a: $(SOURCE) $(HEADERS) $(COMMONDEP) $(HDF5) $(LZ4DEPS) $(BSHUFDEP
 	-rm -f *.o
 	mkdir -p $(LIB)
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) \
-	-DCBF_FILTER_STATIC $(LZ4FLAG) $(BSHUFFLAG)  $(PYCIFRWFLAG) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
+	-DCBF_FILTER_STATIC $(LZ4FLAG) $(BSHUFFLAG) $(ZSTDFLAG)  $(PYCIFRWFLAG) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
 ifneq ($(CBFLIB_DONT_USE_LZ4),yes)
 ifneq ($(MSYS2),yes)
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) -DCBF_FILTER_STATIC -c $(LZ4src)/h5zlz4.c -o h5zlz4.o
@@ -1649,7 +1763,7 @@ $(SOLIB)/$(SO_LIB_CBF): $(SOURCE) $(HEADERS) $(COMMONDEP)  $(HDF5) $(LZ4DEPS) $(
 	-rm -f $@
 	-rm -f *.o
 	mkdir -p $(SOLIB)
-	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(LZ4FLAG) $(BSHUFFLAG) $(PYCIFRWFLAG) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(LZ4FLAG) $(BSHUFFLAG) $(ZSTDFLAG) $(PYCIFRWFLAG) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
 ifneq ($(CBFLIB_DONT_USE_LZ4),yes)
 ifneq ($(MSYS2),yes)
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) $(SOCFLAGS) -DCBF_FILTER_STATIC -c $(LZ4src)/h5zlz4.c -o h5zlz4.o
@@ -1721,10 +1835,12 @@ else
 endif
 
 
+
 #
 # Python bindings
 #
 
+ifneq ($(CBFLIB_DONT_USE_PY2CIFRW),yes)
 $(PY2CBF)/make_pycbf.py: $(NUWEB_DEP) $(NUWEB_DEP2) $(PY2CBF)/make_pycbf.w
 	(cd $(PY2CBF); $(NUWEB) make_pycbf.w)
 
@@ -1794,6 +1910,8 @@ $(PY2CBF)/pycbf.py:	$(PY2CBF)/pycbf.pdf $(PY2CBF)/cbfdetectorwrappers.i \
 	(cd $(PY2CBF);  $(PYTHON2) make_pycbf.py; $(PYSWIG) -module py2cbf pycbf.i;     \
 		$(PYTHON2) py2setup.py build; mv pycbf.py rawpycbf.py;   \
 		cat rawpycbf.py | sed "s/ _pycbf/ _py2cbf/" > pycbf.py )
+endif
+ifneq ($(CBFLIB_DONT_USE_PY3CIFRW),yes)
 
 $(PY3CBF)/make_pycbf.py: $(NUWEB_DEP) $(NUWEB_DEP2) $(PY3CBF)/make_pycbf.w
 	(cd $(PY3CBF); $(NUWEB) make_pycbf.w)
@@ -1865,6 +1983,7 @@ $(PY3CBF)/pycbf.py:	$(PY3CBF)/pycbf.pdf $(PY3CBF)/cbfdetectorwrappers.i \
 	(cd $(PY3CBF);  $(PYTHON3) make_pycbf.py; $(PYSWIG) pycbf.i;     \
 		$(PYTHON3) py3setup.py build; mv pycbf.py rawpycbf.py;   \
 		echo "# coding=utf-8" | cat - rawpycbf.py > pycbf.py)
+endif
 
 #
 # Java bindings
@@ -1876,9 +1995,50 @@ $(JCBF)/cbflib-$(VERSION).jar: $(JCBF) $(SRC)/jcbf.i
 
 $(SOLIB)/$(SO_LIB_CBF_WRAP): $(JCBF)/cbflib-$(VERSION).jar $(SOLIB)/$(SO_LIB_CBF)
 	mkdir -p $(SOLIB)
-	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) $(JAVAINCLUDES) -c $(JCBF)/jcbf_wrap.c
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) $(JAVAINCLUDES) \
+	  -c $(JCBF)/jcbf_wrap.c
 	$(CC) -o $@ jcbf_wrap.o $(SOLDFLAGS) -L$(SOLIB) -lcbf $(REGEX_LIBS)
 	rm jcbf_wrap.o
+#
+# F90 bindings
+#
+$(F90CBF)/f90cbf.f90 $(F90CBF)/f90cbf_wrap.c $(F90CBF)/f90cbf.mod:  $(F90CBF)/f90cbf.i $(BIN)/convert_f90_swig_wrap
+	$(SWIG) -fortran $(INCLUDES) $(F90CBF)/f90cbf.i
+	cp $(F90CBF)/f90cbf.f90  $(F90CBF)/f90cbf.f90_orig
+	cp $(F90CBF)/f90cbf_wrap.c  $(F90CBF)/f90cbf_wrap.c_orig
+	(cd $(F90CBF);cat f90cbf.f90_orig | $(BIN)/convert_f90_swig_wrap > f90cbf.f90)
+	(cd $(F90CBF);cat f90cbf_wrap.c_orig | $(BIN)/convert_f90_swig_wrap > f90cbf_wrap.c)
+
+$(F90CBF)/f90cbf.o:  $(F90CBF)/f90cbf.f90
+	(cd $(F90CBF); $(F90C) -ffree-form -fPIC $(FCFLAGS) -c $(F90CBF)/f90cbf.f90)
+
+$(F90CBF)/f90cbf_wrap.o: $(F90CBF)/f90cbf_wrap.c
+	(cd $(F90CBF); $(CC) -fpic $(CFLAGS) $(INCLUDES) -c $(F90CBF)/f90cbf_wrap.c)
+
+
+#
+# F90CBF library
+#
+$(LIB)/libf90cbf.a: $(F90CBF)/f90cbf.o $(F90CBF)/f90cbf_wrap.o 
+	mkdir -p $(LIB)
+ifneq ($(F90C),)
+	$(AR) cr $@ $(F90CBF)/f90cbf.o $(F90CBF)/f90cbf_wrap.o
+ifneq ($(RANLIB),)
+	$(RANLIB) $@
+endif
+else
+	echo "Define F90C to build $(LIB)/libf90cbf.a"
+endif
+
+$(SOLIB)/$(SO_LIB_F90CBF): $(F90CBF)/f90cbf.o $(F90CBF)/f90cbf_wrap.o
+ifneq ($(F90C),)
+	-rm -f $@
+	mkdir -p $(SOLIB)
+	$(F90C)  -o $@ $(F90CBF)/f90cbf.o $(F90CBF)/f90cbf_wrap.o $(SOLDFLAGS)
+else
+	echo "Define F90C to build $(SOLIB)/$(SO_LIB_F90CBF)"
+endif
+
 
 #
 # F90SOURCE
@@ -1901,6 +2061,14 @@ $(EXAMPLES)/test_fcb_read_image.f90: $(M4)/test_fcb_read_image.m4 $(M4)/fcblib_d
 	(cd $(M4); m4 -P $(M4FLAGS) test_fcb_read_image.m4) > $(EXAMPLES)/test_fcb_read_image.f90
 $(EXAMPLES)/test_xds_binary.f90: $(M4)/test_xds_binary.m4 $(M4)/fcblib_defines.m4
 	(cd $(M4); m4 -P $(M4FLAGS) test_xds_binary.m4) > $(EXAMPLES)/test_xds_binary.f90
+
+#
+# convert_f90_swig_wrap program
+#
+$(BIN)/convert_f90_swig_wrap:  $(EXAMPLES)/convert_f90_swig_wrap.cpp
+	mkdir -p $(BIN)
+	$(C++) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(INCLUDES) $(WARNINGS) \
+	$(EXAMPLES)/convert_f90_swig_wrap.cpp -L$(LIB)  -o $@
 
 #
 # convert_image example program
@@ -1981,11 +2149,11 @@ $(BIN)/img2cif: $(LIB)/libcbf.a $(EXAMPLES)/img2cif.c $(LIB)/libimg.a \
 # cif2cbf example program
 #
 $(BIN)/cif2cbf: $(LIB)/libcbf.a $(EXAMPLES)/cif2cbf.c $(LIB)/libimg.a \
-	$(GOPTLIB) $(GOPTINC)
+	$(GOPTLIB) $(GOPTINC) $(CQRLIB)
 	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/cif2cbf.c $(GOPTLIB) -L$(LIB) \
-	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -lhdf5 -limg -o $@
+	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -lhdf5 -limg -lcqr -o $@
 
 #
 # cbf2nexus example program
@@ -2075,6 +2243,16 @@ $(BIN)/sequence_match: $(LIB)/libcbf.a $(EXAMPLES)/sequence_match.c $(LIB)/libim
 	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/sequence_match.c $(GOPTLIB) -L$(LIB) \
 	-lcbf $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -limg -o $@
+
+#
+# cbf2tiff example program
+#
+$(BIN)/cbf2tiff: $(LIB)/libcbf.a $(EXAMPLES)/cbf2tiff.c $(EXAMPLES)/tif_sprint.c \
+	$(GOPTLIB)	$(GOPTINC) $(TIFF)
+	mkdir -p $(BIN)
+	$(CC) $(CFLAGS) $(LDFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	-I$(TIFF)/libtiff $(EXAMPLES)/cbf2tiff.c $(GOPTLIB) -L$(LIB) \
+	-lcbf -L$(TIFF_PREFIX)/lib -ltiff $(REGEX_LIBS_STATIC) $(HDF5LIBS_LOCAL) $(EXTRALIBS) $(HDF5LIBS_SYSTEM) -limg -o $@
 
 #
 # tiff2cbf example program
@@ -2674,7 +2852,8 @@ endif
 	-cat XRD1621_I4encbC100_orig.cbf | sed "2,2s/0.9.6/0.9.7/" | diff -a - XRD1621_I4encbC100.cbf
 	#-$(DIFF) XRD1621_I4encbC100.cbf XRD1621_I4encbC100_orig.cbf
 
-	
+
+ifneq ($(CBFLIB_DONT_USE_PY2CIFRW),yes)	
 py2cbftests:  $(PY2CBF)/_py2cbf.$(PY2CBFEXT) $(BIN)/cbf_standardize_numbers $(TESTOUTPUT)
 	($(RTLPEXPORTS) cd $(PY2CBF); $(PYTHON2) $(PY2CBF)/pycbf_test1.py | $(BIN)/cbf_standardize_numbers - 4 > pycbf_test1.out)
 	-(cd $(PY2CBF); $(DIFF) pycbf_test1.out $(ROOT)/pycbf_test1_orig.out)
@@ -2694,13 +2873,23 @@ py2cbftests:  $(PY2CBF)/_py2cbf.$(PY2CBFEXT) $(BIN)/cbf_standardize_numbers $(TE
 py2cbfinstall: $(PY2CBF)/_py2cbf.$(PY2CBFEXT) $(PY2CBF)/py2cbfinstall
 
 py2cbfuserinstall: $(PY2CBF)/_py2cbf.$(PY2CBFEXT) $(PY2CBF)/py2cbfuserinstall
+ 
+else
+py2cbftests:
 
+py2cbfinstall:
+
+py2cbfuserinstall:
+
+endif
+
+ifneq ($(CBFLIB_DONT_USE_PY3CIFRW),yes)
 py3cbftests:  $(PY3CBF)/_pycbf.$(PY3CBFEXT) $(BIN)/cbf_standardize_numbers $(TESTOUTPUT)
 	($(RTLPEXPORTS) cd $(PY3CBF); $(PYTHON3) $(PY3CBF)/pycbf_test1.py | $(BIN)/cbf_standardize_numbers - 4 > pycbf_test1.out)
 	-(cd $(PY3CBF); grep -v "__builtins__" $(ROOT)/pycbf_test1_orig.out | \
-          grep -v "__add__" | grep -v "Foundthebinary" > pycbf_test1_orig.out; \
-          grep -v "__builtins__"  pycbf_test1.out | \
-          grep -v "__add__" | grep -v "Foundthebinary" |$(DIFF) - pycbf_test1_orig.out)
+	  grep -v "__add__" | grep -v "Foundthebinary" > pycbf_test1_orig.out; \
+	  grep -v "__builtins__"  pycbf_test1.out | \
+	  grep -v "__add__" | grep -v "Foundthebinary" |$(DIFF) - pycbf_test1_orig.out)
 	($(RTLPEXPORTS) cd $(PY3CBF); $(PYTHON3) $(PY3CBF)/pycbf_test2.py | $(BIN)/cbf_standardize_numbers - 4 > pycbf_test2.out)
 	-(cd $(PY3CBF); $(DIFF) pycbf_test2.out $(ROOT)/pycbf_test2_orig.out)
 	($(RTLPEXPORTS) cd $(PY3CBF); $(PYTHON3) $(PY3CBF)/pycbf_test3.py | $(BIN)/cbf_standardize_numbers - 4 > pycbf_test3.out)
@@ -2720,6 +2909,15 @@ py3cbftests:  $(PY3CBF)/_pycbf.$(PY3CBFEXT) $(BIN)/cbf_standardize_numbers $(TES
 py3cbfinstall: $(PY3CBF)/_pycbf.$(PY3CBFEXT) $(PY3CBF)/py3cbfinstall
 
 py3cbfuserinstall: $(PY3CBF)/_pycbf.$(PY3CBFEXT) $(PY3CBF)/py3cbfuserinstall
+ 
+else
+py3cbftests:
+
+py3cbfinstall:
+
+py3cbfuserinstall:
+
+endif
 
 javatests: $(BIN)/ctestcbf $(BIN)/testcbf.class $(SOLIB)/$(SO_LIB_CBF_WRAP)
 	$(LDPREFIX)  $(BIN)/ctestcbf > testcbfc.txt
@@ -2738,12 +2936,18 @@ empty:
 	@-rm -rf $(INCLUDE)/bshuf*
 	@-rm -rf $(INCLUDE)/H5*
 	@-rm -rf $(BIN)/*
+ifneq ($(CBFLIB_DONT_USE_LOCAL_SWIG),yes)
+	@-rm -rf $(SWIG_KIT)
+endif
+ifneq ($(CBFLIB_DONT_USE_PY2CIFRW),yes)
 	@-rm -f  $(PY2CBF)/_py2cbf.$(PY2CBFEXT)
 	@-rm -rf  $(PY2CBF)/build/*
 	@-rm -f  $(PY2CBF)/newtest1.cbf
 	@-rm -f  $(PY2CBF)/fel_test1.out
 	@-rm -f  $(PY2CBF)/fel_test2.out
 	@-rm -f  $(PY2CBF)/py2setup.py
+endif
+ifneq ($(CBFLIB_DONT_USE_PY3CIFRW),yes)
 	@-rm -f  $(PY2CBF)/py2setup_MINGW.py
 	@-rm -f  $(PY3CBF)/_pycbf.$(PY3CBFEXT)
 	@-rm -rf  $(PY3CBF)/build/*
@@ -2752,6 +2956,7 @@ empty:
 	@-rm -f  $(PY3CBF)/fel_test2.out
 	@-rm -f  $(PY3CBF)/py3setup.py
 	@-rm -f  $(PY3CBF)/py3setup_MINGW.py
+endif
 	@-rm -f  makecbf.cbf
 	@-rm -f  img2cif_packed.cif
 	@-rm -f  img2cif_canonical.cif
@@ -2761,6 +2966,7 @@ empty:
 	@-rm -f  cif2cbf_packed.cbf
 	@-rm -f  cif2cbf_canonical.cbf
 	@-rm -f  converted.cbf
+	@-rm -rf  cqrlib
 	@-rm -f  adscconverted.cbf
 	@-rm -f  converted_flat.cbf
 	@-rm -f  adscconverted_flat.cbf
@@ -2844,7 +3050,7 @@ empty:
 	@-rm -rf HDF5Plugin_5Jun21/
 	@-rm -rf PyCifRW-4.1/
 	@-rm -rf PyCifRW-4.3/
-	@-rm -rf bitshuffle-0.2.2.1_15Jun16/
+	@-rm -rf $(BSHUF)
 	@-rm -f idx-s00-20131106040304531_flat.cbf
 	@-rm -f include/iochain.h
 	@-rm -f include/lz4.h

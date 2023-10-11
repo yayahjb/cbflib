@@ -869,8 +869,52 @@ m4_ifelse($3,`',`',`      IF (FCB_CI_STRNCMPARR("###CBF: ",BUFFER,FCB_BYTES_IN_R
       BYTE_IN_FILE=0
       LAST_CHAR=0
 '')m4_dnl
-m4_define(`fcb_interface_LIST_ALL',`
+m4_dnl
+m4_dnl macro version of cbf file write open to be used both in the library
+m4_dnl and in applications that wish to avoid the long argument list
+m4_dnl
+m4_dnl The macro should be called with 3 arguments
+m4_dnl     $1 should give any additional parameters to OPEN
+m4_dnl        such as ERR=120 or IOSTAT=IOS
+m4_dnl     $2 should give any additional parameters for the
+m4_dnl        first read such as ERR=140 or IOSTAT=IOS
+m4_dnl     $3 should give any the action to take if the file
+m4_dnl        does not begin with "###CBF: "
+m4_define(`fcb_macro_FCB_OPEN_CIFOUT',
+``!-----------------------------------------------------------------------
+! --  Open CBF file named FILNAM and connect to unit number TAPOUT
+!-----------------------------------------------------------------------
+!     We have chosen to use the direct access method to write the file
+!     with explicit buffer handling. This approach is general but
+!     clumpsy. Rather than putting the buffer and its control variables
+!     into COMMON these are passed as local arguments to make the routines
+!     inherently '''``threadsafe'''`` in a parallel programming environment.
 !
+!     The more natural method would use byte stream I/O which is,
+!     unfortunately, only an extension of Fortran 90 that has been
+!     implemented in some compilers (like the Intel ifort) but
+!     not in all (like the SGI IRIX f90).
+!     For BSD style opens, there is a special variant on the direct
+!     access open with a recl of 1 to give byte-by-byte access.
+!-----------------------------------------------------------------------
+      INQUIRE(IOLENGTH=FCB_RECORD_SIZE)BUFFER
+      OPEN(UNIT=TAPOUT,FILE=TRIM(FILNAM),STATUS='''``NEW'''``,                           &
+        ACTION='''``READWRITE'''``,ACCESS='''``DIRECT'''``,FORM='''``UNFORMATTED'''``,   &
+        RECL=FCB_RECORD_SIZE,        &
+        $1)
+      ! *** DEBUG *** PRINT *, "RECL: ", FCB_RECORD_SIZE
+      DO BYTE_IN_FILE = 1, FCB_BYTES_IN_REC
+        BUFFER(BYTE_IN_FILE) = 0
+      END DO
+      READ(TAPIN,REC=1,$2)BUFFER     !Read the first record' 
+m4_ifelse($3,`',`',`      IF (FCB_CI_STRNCMPARR("###CBF: ",BUFFER,FCB_BYTES_IN_REC,8).NE.0) &
+       '$3` !Check for presence of the CBF-format keyword')`
+      REC_IN_FILE=1
+      BYTE_IN_FILE=0
+      LAST_CHAR=0
+'')m4_dnl
+m4_define(`fcb_interface_LIST_ALL',`
+      !
       !     Definitions of fcblib interfaces
       !
       fcb_interface_FCB_ATOL_WCNT

@@ -265,7 +265,8 @@ extern "C" {
 #include "cbf_string.h"
 #include <ctype.h>
 #include <math.h>
-
+    
+    int cbf_update_minicbf_header(cbf_handle datacbf, const char * header, const char * header_convention);
     
     int cbf_set_minicbf_header(cbf_handle cbf, cbf_handle datacbf, char ** log);
 

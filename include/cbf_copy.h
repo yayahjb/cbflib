@@ -352,6 +352,35 @@ extern "C" {
                         );
 
 
+    /* Multiply a 3x3 matrix times a 3-vector to produce a 3-vectorD */
+
+    int cbf_mat33_vec(double mat[3][3], double vecin[3], double vecout[3]);
+
+    /* Convert array index to individual dimension indices */
+
+    int cbf_convert_index(const ssize_t index, 
+      const size_t dimfast, const size_t dimmid, const size_t dimslow,
+      size_t * indexfast, size_t * indexmid, size_t * indexslow);
+
+    /* Extract a 2D ROI from an image array, rotate in 3D and project back to 2D */
+
+    int cbf_extract_rotated_roi_2D(
+                        void        * src,
+                        void        * dst,
+                        size_t        elsize,
+                        int           elsigned,
+                        int           real,
+                        size_t        fastlow,
+                        size_t        fasthigh,
+                        size_t        midlow,
+                        size_t        midhigh,
+                        size_t        dimfast,
+                        size_t        dimmid,
+                        double        rotmat[3][3],
+                        double        center[2],
+                        double        pixsize[2]
+                        );
+
     
     
 #ifdef __cplusplus

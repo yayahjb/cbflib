@@ -16,6 +16,8 @@
 				 LAST_CHAR
 ! Local variables
       INTEGER                    IC,COMMENT_LEVEL
+! taken from https://stdlib.fortran-lang.org/module/stdlib_ascii.html :
+      character(len=1),        parameter :: TAB= achar(int(z'09'))
 ! External functions called
       INTEGER                    FCB_READ_LINE,FCB_NBLEN_ARRAY
 !-----------------------------------------------------------------------
@@ -29,8 +31,7 @@
       COMMENT_LEVEL = 0
       DO
 	 IF ((IC.LE.LINELEN).AND.(LINE(IC).NE.IACHAR(' ')).AND.         &
-	     (LINE(IC).NE.int(Z'09')).AND. &
-             (LINE(IC).NE.IACHAR('(')) )EXIT
+	     (LINE(IC).NE.IACHAR(TAB)).AND.(LINE(IC).NE.IACHAR('(')) )EXIT
 
 	 IF (IC.GT.LINELEN) THEN
 	    FCB_SKIP_WHITESPACE = FCB_READ_LINE (TAPIN,LAST_CHAR,       &
@@ -66,14 +67,11 @@
 		     END IF
 		  ELSE
 		     SELECT CASE (LINE(IC))
-		     !CASE (Z'5C')      ! backslash
-		     CASE (92)
-			IC = IC+1      ! force skip of next character
-		     !CASE (Z'28')      ! open paren
-		     CASE (40)
+		     CASE (IACHAR('\'))      ! backslash
+			IC = IC+1            ! force skip of next character
+		     CASE (IACHAR('('))      ! open paren
 			COMMENT_LEVEL = COMMENT_LEVEL+1;
-		     !CASE (Z'29')      ! close paren
-		     CASE (41)
+		     CASE (IACHAR(')'))      ! close paren
 			COMMENT_LEVEL = COMMENT_LEVEL-1;
 		     END SELECT
 		     IC = IC+1;
