@@ -602,7 +602,7 @@ extern "C" {
                        const int dimflag,
                        const int eltype,
                        const size_t elsize,
-                       const size_t elsign,
+                       const int elsign,
                        const double cliplow,
                        const double cliphigh) {
         

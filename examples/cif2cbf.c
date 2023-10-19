@@ -2029,7 +2029,7 @@ int main (int argc, char *argv [])
                                 if (slowdim < 1) slowdim = 1;
                                 cbf_failnez (cbf_select_column(cbf,colnum));
                                 if (!xdsb2z) {
-                                  cbf_failnez ( cbf_copy_value_with_roi(cbf,
+                                  cbf_failnez ( cbf_copy_value_with_roi_binoi(cbf,
                                                                         cif,
                                                                         category_name,
                                                                         column_name,
