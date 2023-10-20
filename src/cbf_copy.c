@@ -253,346 +253,346 @@
 #ifdef __cplusplus
 
 extern "C" {
-    
+
 #endif
-    
+
 #include "cbf.h"
-    
+
 #include "cbf_copy.h"
 #include "cbf_alloc.h"
 #include "cbf_string.h"
-    
+
 #include <float.h>
 #include <ctype.h>
 #include <string.h>
 #include <math.h>
 #include <stdio.h>
-    
-    
+
+
     /* cbf_copy_cbf -- copy cbfin to cbfout */
-    
+
     int cbf_copy_cbf(cbf_handle cbfout, cbf_handle cbfin,
                      const int compression,
                      const int dimflag) {
-        
+
         unsigned int blocknum, blocks;
-        
+
         const char * datablock_name;
-        
+
         cbf_failnez (cbf_rewind_datablock(cbfin))
-        
+
         cbf_failnez (cbf_count_datablocks(cbfin, &blocks))
-        
+
         for (blocknum = 0; blocknum < blocks;  blocknum++ ) {
-            
+
             cbf_failnez (cbf_select_datablock(cbfin, blocknum))
             cbf_failnez (cbf_datablock_name(cbfin, &datablock_name))
             cbf_failnez (cbf_copy_datablock(cbfout, cbfin, datablock_name, compression, dimflag))
         }
-        
+
         return 0;
-        
+
     }
-    
+
     /* cbf_copy_category -- copy the current category from cbfin
      specified category in cbfout */
-    
+
     int cbf_copy_category(cbf_handle cbfout, cbf_handle cbfin,
                           const char * category_name,
                           const int compression,
                           const int dimflag) {
-        
+
         unsigned int rows, columns;
-        
+
         unsigned int rownum, colnum;
-        
+
         const char * column_name;
-        
+
         const char * value;
-        
+
         cbf_failnez(cbf_force_new_category(cbfout,category_name))
-        
+
         cbf_failnez(cbf_count_rows(cbfin,&rows));
-        
+
         cbf_failnez(cbf_count_columns(cbfin,&columns));
-        
+
         /*  Transfer the column names from cbfin to cbfout */
-        
+
         if ( ! cbf_rewind_column(cbfin) ) {
-            
+
             do {
-                
+
                 cbf_failnez(cbf_column_name(cbfin, &column_name))
-                
+
                 cbf_failnez(cbf_new_column(cbfout, column_name))
-                
+
             } while ( ! cbf_next_column(cbfin) );
-            
+
             cbf_failnez(cbf_rewind_column(cbfin))
-            
+
             cbf_failnez(cbf_rewind_row(cbfin))
         }
-        
+
         /* Transfer to rows from cbfin to cbfout */
-        
+
         for (rownum = 0; rownum < rows; rownum++ ) {
-            
+
             cbf_failnez (cbf_select_row(cbfin, rownum))
-            
+
             cbf_failnez (cbf_new_row(cbfout))
-            
+
             cbf_rewind_column(cbfin);
-            
+
             for (colnum = 0; colnum < columns; colnum++ ) {
-                
+
                 const char *typeofvalue;
-                
+
                 cbf_failnez (cbf_select_column(cbfin, colnum))
-                
+
                 cbf_failnez (cbf_column_name(cbfin, &column_name))
-                
+
                 if ( ! cbf_get_value(cbfin, &value) ) {
-                    
+
                     if (compression && value && column_name && !cbf_cistrcmp("compression_type",column_name)) {
-                        
+
                         cbf_failnez (cbf_select_column(cbfout, colnum))
-                        
+
                         switch (compression&CBF_COMPRESSION_MASK) {
-                                
+
                             case (CBF_NONE):
                                 cbf_failnez (cbf_set_value      (cbfout,"none"))
                                 cbf_failnez (cbf_set_typeofvalue(cbfout,"word"))
                                 break;
-                                
+
                             case (CBF_CANONICAL):
                                 cbf_failnez (cbf_set_value      (cbfout,"canonical"))
                                 cbf_failnez (cbf_set_typeofvalue(cbfout,"word"))
                                 break;
-                                
+
                             case (CBF_PACKED):
                                 cbf_failnez (cbf_set_value      (cbfout,"packed"))
                                 cbf_failnez (cbf_set_typeofvalue(cbfout,"word"))
                                 break;
-                                
+
                             case (CBF_PACKED_V2):
                                 cbf_failnez (cbf_set_value      (cbfout,"packed_v2"))
                                 cbf_failnez (cbf_set_typeofvalue(cbfout,"word"))
                                 break;
-                                
+
                             case (CBF_BYTE_OFFSET):
                                 cbf_failnez (cbf_set_value      (cbfout,"byte_offsets"))
                                 cbf_failnez (cbf_set_typeofvalue(cbfout,"word"))
                                 break;
-                                
+
                             case (CBF_NIBBLE_OFFSET):
                                 cbf_failnez (cbf_set_value      (cbfout,"nibble_offset"))
                                 cbf_failnez (cbf_set_typeofvalue(cbfout,"word"))
                                 break;
-                                
+
                             case (CBF_PREDICTOR):
                                 cbf_failnez (cbf_set_value      (cbfout,"predictor"))
                                 cbf_failnez (cbf_set_typeofvalue(cbfout,"word"))
                                 break;
-                                
-                                
+
+
                             default:
                                 cbf_failnez (cbf_set_value      (cbfout,"."))
                                 cbf_failnez (cbf_set_typeofvalue(cbfout,"null"))
                                 break;
                         }
                         if (compression&CBF_FLAG_MASK) {
-                            
+
                             if (compression&CBF_UNCORRELATED_SECTIONS) {
-                                
+
                                 cbf_failnez (cbf_require_column   (cbfout, "compression_type_flag"))
                                 cbf_failnez (cbf_set_value        (cbfout, "uncorrelated_sections"))
                                 cbf_failnez (cbf_set_typeofvalue  (cbfout, "word"))
-                                
+
                             } else if (compression&CBF_FLAT_IMAGE)  {
-                                
+
                                 cbf_failnez (cbf_require_column   (cbfout, "compression_type_flag"))
                                 cbf_failnez (cbf_set_value        (cbfout, "flat"))
                                 cbf_failnez (cbf_set_typeofvalue  (cbfout, "word"))
-                                
+
                             }
                         } else {
-                            
+
                             if (!cbf_find_column(cbfout, "compression_type_flag")) {
                                 cbf_failnez (cbf_set_value      (cbfout,"."))
                                 cbf_failnez (cbf_set_typeofvalue(cbfout,"null"))
                             }
-                            
+
                         }
-                        
+
                     } else  if (compression && value && column_name && !cbf_cistrcmp("compression_type_flag",column_name)) {
-                        
+
                         if (compression&CBF_FLAG_MASK) {
-                            
+
                             if (compression&CBF_UNCORRELATED_SECTIONS) {
                                 cbf_failnez (cbf_require_column   (cbfout, "compression_type_flag"))
                                 cbf_failnez (cbf_set_value        (cbfout, "uncorrelated_sections"))
                                 cbf_failnez (cbf_set_typeofvalue  (cbfout, "word"))
-                                
+
                             } else if (compression&CBF_FLAT_IMAGE)  {
                                 cbf_failnez (cbf_require_column   (cbfout, "compression_type_flag"))
                                 cbf_failnez (cbf_set_value        (cbfout, "flat"))
                                 cbf_failnez (cbf_set_typeofvalue  (cbfout, "word"))
                             }
-                            
+
                         } else {
-                            
+
                             if (!cbf_find_column(cbfout, "compression_type_flag")) {
                                 cbf_failnez (cbf_set_value      (cbfout,"."))
                                 cbf_failnez (cbf_set_typeofvalue(cbfout,"null"))
                             }
-                            
+
                         }
                     } else {
-                        
+
                         cbf_failnez (cbf_get_typeofvalue(cbfin, &typeofvalue))
                         cbf_failnez (cbf_select_column(cbfout, colnum))
                         cbf_failnez (cbf_set_value(cbfout, value))
                         cbf_failnez (cbf_set_typeofvalue(cbfout, typeofvalue))
                     }
-                    
+
                 } else {
-                    
+
                     void * array;
-                    
+
                     int binary_id, elsigned, elunsigned;
-                    
+
                     size_t elements,elements_read, elsize;
-                    
+
                     int minelement, maxelement;
-                    
+
                     unsigned int cifcompression;
-                    
+
                     int realarray;
-                    
+
                     const char *byteorder;
-                    
+
                     size_t dimfast, dimmid, dimslow, padding;
-                    
+
                     cbf_failnez(cbf_get_arrayparameters_wdims_fs(
                                                                  cbfin, &cifcompression,
                                                                  &binary_id, &elsize, &elsigned, &elunsigned,
                                                                  &elements, &minelement, &maxelement, &realarray,
                                                                  &byteorder, &dimfast, &dimmid, &dimslow, &padding))
-                    
+
                     if ((array=malloc(elsize*elements))) {
-                        
+
                         cbf_failnez (cbf_select_column(cbfout,colnum))
-                        
+
                         if (!realarray)  {
-                            
+
                             cbf_failnez (cbf_get_integerarray(
                                                               cbfin, &binary_id, array, elsize, elsigned,
                                                               elements, &elements_read))
-                            
+
                             if (dimflag == CBF_HDR_FINDDIMS && dimfast==0) {
                                 cbf_get_arraydimensions(cbfin,NULL,&dimfast,&dimmid,&dimslow);
                             }
-                            
+
                             cbf_failnez(cbf_set_integerarray_wdims_fs(
                                                                       cbfout, compression,
                                                                       binary_id, array, elsize, elsigned, elements,
                                                                       "little_endian", dimfast, dimmid, dimslow, 0))
                         } else {
-                            
+
                             cbf_failnez (cbf_get_realarray(
                                                            cbfin, &binary_id, array, elsize,
                                                            elements, &elements_read))
-                            
+
                             if (dimflag == CBF_HDR_FINDDIMS && dimfast==0) {
                                 cbf_get_arraydimensions(cbfin,NULL,&dimfast,&dimmid,&dimslow);
                             }
-                            
+
                             cbf_failnez(cbf_set_realarray_wdims_fs(
                                                                    cbfout, compression,
                                                                    binary_id, array, elsize, elements,
                                                                    "little_endian", dimfast, dimmid, dimslow, 0))
                         }
-                        
+
                         free(array);
-                        
+
                     } else {
-                        
+
                         return CBF_ALLOC;
                     }
                 }
             }
         }
-        
+
         return 0;
-        
+
     }
-    
+
     /* cbf_copy_datablock -- copy the current datablock from cbfin
      to the next datablock in cbfout
      */
-    
+
     int cbf_copy_datablock (cbf_handle cbfout, cbf_handle cbfin,
                             const char * datablock_name,
                             const int compression,
                             const int dimflag) {
-        
+
         CBF_NODETYPE itemtype;
-        
+
         const char *category_name;
-        
+
         const char *saveframe_name;
-        
+
         unsigned int itemnum, blockitems,catnum,categories;
-        
+
         cbf_failnez (cbf_force_new_datablock(cbfout, datablock_name))
-        
+
         if ( !cbf_rewind_blockitem(cbfin, &itemtype) ) {
             cbf_failnez (cbf_count_blockitems(cbfin, &blockitems))
-            
+
             for (itemnum = 0; itemnum < blockitems;  itemnum++) {
-                
+
                 cbf_failnez(cbf_select_blockitem(cbfin, itemnum, &itemtype))
-                
+
                 if (itemtype == CBF_CATEGORY) {
-                    
+
                     cbf_failnez(cbf_category_name(cbfin,&category_name))
                     cbf_failnez(cbf_copy_category(cbfout,cbfin,category_name, compression, dimflag))
-                    
+
                 } else {
-                    
+
                     cbf_failnez(cbf_saveframe_name(cbfin,&saveframe_name))
                     cbf_force_new_saveframe(cbfout, saveframe_name);
-                    
+
                     if ( !cbf_rewind_category(cbfin) ) {
-                        
+
                         cbf_failnez (cbf_count_categories(cbfin, &categories))
-                        
+
                         for (catnum = 0; catnum < categories;  catnum++) {
-                            
+
                             cbf_select_category(cbfin, catnum);
                             cbf_category_name(cbfin,&category_name);
                             cbf_failnez(cbf_copy_category(cbfout,cbfin,category_name, compression, dimflag))
-                            
+
                         }
-                        
+
                     }
-                    
+
                 }
-                
+
             }
-            
+
         }
-        
+
         return 0;
-        
+
     }
-    
-    
-    
+
+
+
     /* cbf_copy_value -- copy the current value from cbfin to cbfout,
      specifying the target category, column, rownum, compression, dimension details,
      element type, size and sign */
-    
+
     int cbf_copy_value(cbf_handle cbfout,
                        cbf_handle cbfin,
                        const char * category_name,
@@ -605,7 +605,7 @@ extern "C" {
                        const int elsign,
                        const double cliplow,
                        const double cliphigh) {
-        
+
         return cbf_copy_value_with_roi_binoi(cbfout,
                                              cbfin,
                                              category_name,
@@ -619,13 +619,13 @@ extern "C" {
                                              cliplow,
                                              cliphigh,
                                              NULL, NULL);
-        
+
     }
-    
-    /* cbf_copy_value_with_roi_binoi -- copy the current value from cbfin to cbfout,
+
+    /* cbf_copy_value_with_roi -- copy the current value from cbfin to cbfout,
      specifying the target category, column, rownum, compression, dimension details,
      element type, size and sign, with an optional roi */
-    
+
     int cbf_copy_value_with_roi(cbf_handle cbfout,
                                 cbf_handle cbfin,
                                 const char * category_name,
@@ -639,7 +639,7 @@ extern "C" {
                                 const double cliplow,
                                 const double cliphigh,
                                 const char * roi) {
-        
+
         return cbf_copy_value_with_roi_binoi(cbfout,
                                              cbfin,
                                              category_name,
@@ -654,13 +654,13 @@ extern "C" {
                                              cliphigh,
                                              roi,
                                              NULL);
-        
+
     }
-    
+
     /* cbf_copy_value_with_roi_binoi -- copy the current value from cbfin to cbfout,
      specifying the target category, column, rownum, compression, dimension details,
      element type, size and sign, with an optional roi and optional binoi */
-    
+
     int cbf_copy_value_with_roi_binoi(cbf_handle cbfout,
                                       cbf_handle cbfin,
                                       const char * category_name,
@@ -675,33 +675,33 @@ extern "C" {
                                       const double cliphigh,
                                       const char * roi,
                                       const char * binoi) {
-        
+
         unsigned int rows;
-        
+
         const char * value;
-        
+
         char * border;
-        
+
 #ifndef CBF_USE_LONG_LONG
-        
+
         size_t lobyte, hibyte;
-        
+
         double vallow, valhigh;
-        
+
 #endif
-        
-        
+
+
         cbf_get_local_integer_byte_order(&border);
-        
-        
+
+
         if ( ! (eltype==0
                 || eltype==CBF_CPY_SETINTEGER
                 || eltype==CBF_CPY_SETREAL)) return CBF_ARGUMENT;
-        
+
         if ( ! (elsign==0
                 || elsign==CBF_CPY_SETUNSIGNED
                 || elsign==CBF_CPY_SETSIGNED)) return CBF_ARGUMENT;
-        
+
         if (elsize != 0 &&
             elsize != sizeof (long int) &&
 #ifdef CBF_USE_LONG_LONG
@@ -713,159 +713,159 @@ extern "C" {
             elsize != sizeof (short int) &&
             elsize != sizeof (char))
             return CBF_ARGUMENT;
-        
+
         cbf_failnez(cbf_require_category(cbfout,category_name));
-        
+
         cbf_failnez(cbf_count_rows(cbfout,&rows));
-        
+
         while (rows < rownum+1) {
-            
+
             cbf_failnez(cbf_new_row(cbfout))
-            
+
             rows++;
-            
+
         }
-        
+
         cbf_failnez(cbf_require_column(cbfout,column_name))
-        
+
         cbf_failnez(cbf_select_row(cbfout,rownum))
-        
+
         if ( ! cbf_get_value(cbfin, &value) ) {
-            
+
             if (compression && value && !cbf_cistrcmp("compression_type",column_name)) {
-                
+
                 switch (compression&CBF_COMPRESSION_MASK) {
-                        
+
                     case (CBF_NONE):
                         cbf_failnez (cbf_set_value      (cbfout,"none"))
                         cbf_failnez (cbf_set_typeofvalue(cbfout,"word"))
                         break;
-                        
+
                     case (CBF_CANONICAL):
                         cbf_failnez (cbf_set_value      (cbfout,"canonical"))
                         cbf_failnez (cbf_set_typeofvalue(cbfout,"word"))
                         break;
-                        
+
                     case (CBF_PACKED):
                         cbf_failnez (cbf_set_value      (cbfout,"packed"))
                         cbf_failnez (cbf_set_typeofvalue(cbfout,"word"))
                         break;
-                        
+
                     case (CBF_PACKED_V2):
                         cbf_failnez (cbf_set_value      (cbfout,"packed_v2"))
                         cbf_failnez (cbf_set_typeofvalue(cbfout,"word"))
                         break;
-                        
+
                     case (CBF_BYTE_OFFSET):
                         cbf_failnez (cbf_set_value      (cbfout,"byte_offsets"))
                         cbf_failnez (cbf_set_typeofvalue(cbfout,"word"))
                         break;
-                        
+
                     case (CBF_NIBBLE_OFFSET):
                         cbf_failnez (cbf_set_value      (cbfout,"nibble_offset"))
                         cbf_failnez (cbf_set_typeofvalue(cbfout,"word"))
                         break;
-                        
+
                     case (CBF_PREDICTOR):
                         cbf_failnez (cbf_set_value      (cbfout,"predictor"))
                         cbf_failnez (cbf_set_typeofvalue(cbfout,"word"))
                         break;
-                        
-                        
+
+
                     default:
                         cbf_failnez (cbf_set_value      (cbfout,"."))
                         cbf_failnez (cbf_set_typeofvalue(cbfout,"null"))
                         break;
                 }
                 if (compression&CBF_FLAG_MASK) {
-                    
+
                     if (compression&CBF_UNCORRELATED_SECTIONS) {
-                        
+
                         cbf_failnez (cbf_require_column   (cbfout, "compression_type_flag"))
                         cbf_failnez (cbf_set_value        (cbfout, "uncorrelated_sections"))
                         cbf_failnez (cbf_set_typeofvalue  (cbfout, "word"))
-                        
+
                     } else if (compression&CBF_FLAT_IMAGE)  {
-                        
+
                         cbf_failnez (cbf_require_column   (cbfout, "compression_type_flag"))
                         cbf_failnez (cbf_set_value        (cbfout, "flat"))
                         cbf_failnez (cbf_set_typeofvalue  (cbfout, "word"))
-                        
+
                     }
                 } else {
-                    
+
                     if (!cbf_find_column(cbfout, "compression_type_flag")) {
                         cbf_failnez (cbf_set_value      (cbfout,"."))
                         cbf_failnez (cbf_set_typeofvalue(cbfout,"null"))
                     }
-                    
+
                 }
-                
+
             } else  if (compression && value && !cbf_cistrcmp("compression_type_flag",column_name)) {
-                
+
                 if (compression&CBF_FLAG_MASK) {
-                    
+
                     if (compression&CBF_UNCORRELATED_SECTIONS) {
                         cbf_failnez (cbf_require_column   (cbfout, "compression_type_flag"))
                         cbf_failnez (cbf_set_value        (cbfout, "uncorrelated_sections"))
                         cbf_failnez (cbf_set_typeofvalue  (cbfout, "word"))
-                        
+
                     } else if (compression&CBF_FLAT_IMAGE)  {
                         cbf_failnez (cbf_require_column   (cbfout, "compression_type_flag"))
                         cbf_failnez (cbf_set_value        (cbfout, "flat"))
                         cbf_failnez (cbf_set_typeofvalue  (cbfout, "word"))
                     }
-                    
+
                 } else {
-                    
+
                     if (!cbf_find_column(cbfout, "compression_type_flag")) {
                         cbf_failnez (cbf_set_value      (cbfout,"."))
                         cbf_failnez (cbf_set_typeofvalue(cbfout,"null"))
                     }
-                    
+
                 }
             } else {
-                
+
                 const char *typeofvalue;
-                
+
                 cbf_failnez (cbf_get_typeofvalue(cbfin, &typeofvalue))
                 cbf_failnez (cbf_set_value(cbfout, value))
                 cbf_failnez (cbf_set_typeofvalue(cbfout, typeofvalue))
             }
-            
+
         } else {
-            
+
             void * array;
-            
+
             int binary_id, elsigned, elunsigned;
-            
+
             size_t elements, elements_read;
-            
+
             size_t oelsize;
-            
+
             int minelement, maxelement;
-            
+
             unsigned int cifcompression;
-            
+
             int realarray;
-            
+
             const char *byteorder;
-            
+
             size_t dimfast, dimmid, dimslow, padding;
-            
+
             size_t bndfast, bndmid, bndslow;
-            
+
             size_t fastlow=0, fasthigh=0, midlow=0, midhigh=0, slowlow=0, slowhigh=0;
-            
+
             size_t bndfastlow=0, bndfasthigh=0, bndmidlow=0, bndmidhigh=0, bndslowlow=0, bndslowhigh=0;
-            
+
             double valuelow=-DBL_MAX, valuehigh=DBL_MAX;
-            
+
             size_t binratio=1, modulefast=0, modulemid=0, moduleslow=0, gapfast=0, gapmid=0, gapslow=0;
-            
+
             size_t bndmodfast=0, bndmodmid=0, bndmodslow=0;
-            
-            
+
+
             cbf_failnez(cbf_get_arrayparameters_wdims_fs(cbfin,
                                                          &cifcompression,
                                                          &binary_id,
@@ -892,17 +892,18 @@ extern "C" {
             gapmid = 0;
             moduleslow = dimslow;
             gapslow = 0;
-            
+            binratio = 1;
+
             if (roi) {
-                
+
                 cbf_failnez(cbf_convertroi((char *)roi,dimfast,dimmid,dimslow,
                                            &fastlow,&fasthigh,
                                            &midlow,&midhigh,
                                            &slowlow,&slowhigh,
                                            &valuelow,&valuehigh));
-                
+
             }
-            
+
             if (binoi) {
                 cbf_failnez(cbf_convertbinoi((char *)binoi,&binratio,
                                              &modulefast,&modulemid,&moduleslow,
@@ -914,11 +915,11 @@ extern "C" {
                 bndmidhigh = (midhigh+binratio-1)/binratio;
                 bndslowlow = (slowlow+binratio-1)/binratio;
                 bndslowhigh = (slowhigh+binratio-1)/binratio;
-                
+
             }
-            
-            
-            
+
+
+
             if (oelsize != sizeof (long int) &&
 #ifdef CBF_USE_LONG_LONG
                 oelsize != sizeof(long long int) &&
@@ -929,44 +930,44 @@ extern "C" {
                 oelsize != sizeof (short int) &&
                 oelsize != sizeof (char))
                 return CBF_ARGUMENT;
-            
-            
+
+
             if ((array=malloc(oelsize*elements))) {
-                
+
                 size_t nelsize;
-                
+
                 int nelsigned, nelunsigned;
-                
+
                 int icount, jcount, fill;
-                
+
                 size_t xelsize;
-                
+
                 nelsize = oelsize;
-                
+
                 if (elsize != 0) nelsize = elsize;
-                
+
                 xelsize = nelsize;
-                
+
                 if (oelsize < nelsize) xelsize = oelsize;
-                
+
                 nelsigned = elsigned;
-                
+
                 nelunsigned = elunsigned;
-                
+
                 if (elsign & CBF_CPY_SETSIGNED) {
                     nelsigned = 1;
                     nelunsigned = 0;
                 }
-                
+
                 if (elsign & CBF_CPY_SETUNSIGNED) {
                     nelunsigned = 1;
                     nelsigned = 0;
                 }
-                
+
                 if (!realarray)  {
-                    
+
                     /* The current array is integer */
-                    
+
                     cbf_onfailnez (cbf_get_integerarray(cbfin,
                                                         &binary_id,
                                                         array,
@@ -975,15 +976,15 @@ extern "C" {
                                                         elements,
                                                         &elements_read),
                                    {free(array); array=NULL;})
-                    
+
                     if (dimfast < 1) dimfast = 1;
                     if (dimmid < 1) dimmid = 1;
                     if (dimslow < 1) dimslow = 1;
-                    
-                    if (roi) {
-                        
+
+                    if (roi || binoi) {
+
                         void * roi_array;
-                        
+
                         if (!binoi) {
                             roi_array=malloc(oelsize*(fasthigh-fastlow+1)*(midhigh-midlow+1)*(slowhigh-slowlow+1));
                             cbf_failnez(cbf_extract_roi(array,
@@ -1028,30 +1029,41 @@ extern "C" {
                                                               gapmid,
                                                               gapslow
                                                               ));
-                            
+
                         }
                         if (!roi_array) {
-                            
+
                             cbf_onfailnez(CBF_ALLOC,{free(array);});
-                            
+
                         }
-                        
-                        
+
+
                         free(array);
-                        
+
                         array = roi_array;
-                        
-                        dimfast = fasthigh- fastlow + 1;
-                        
-                        dimmid  = midhigh - midlow + 1;
-                        
-                        dimslow = slowhigh- slowlow + 1;
-                        
+
+                        if (!binoi) {
+
+                          dimfast = fasthigh - fastlow + 1;
+
+                          dimmid  = midhigh  - midlow + 1;
+
+                          dimslow = slowhigh - slowlow + 1;
+
+                        } else {
+
+                          dimfast = bndfasthigh - bndfastlow +1;
+
+                          dimmid = bndmidhigh - bndmidlow +1;
+
+                          dimslow = bndslowhigh - bndslowlow +1;
+
+                        }
+
                         elements = elements_read = dimfast*dimmid*dimslow;
-                        
-                        
+
                     }
-                    
+
                     if (((eltype &(CBF_CPY_SETINTEGER)) || eltype == 0)
                         && (elsize == 0 || elsize==(ssize_t)oelsize)
                         && (elsign == 0 ||
@@ -1059,53 +1071,53 @@ extern "C" {
                             ((elsign & CBF_CPY_SETUNSIGNED) && elunsigned))
                         && cliplow >= cliphigh
                         && valuelow == -DBL_MAX && valuehigh == DBL_MAX ) {
-                        
+
                         cbf_onfailnez(cbf_set_integerarray_wdims_fs(
                                                                     cbfout, compression,
                                                                     binary_id, array, oelsize, elsigned, elements,
                                                                     "little_endian", dimfast, dimmid, dimslow, 0),{free(array);} )
                         free(array);
-                        
+
                     } else {
-                        
+
                         void * narray;
-                        
+
                         int loword, hiword;
-                        
+
                         unsigned long maxlonguint;
-                        
+
                         double onemore;
-                        
+
                         CBF_UNUSED( onemore );
-                        
+
                         CBF_UNUSED( loword );
-                        
+
                         CBF_UNUSED( hiword );
-                        
+
                         maxlonguint = ~0;
-                        
+
                         onemore = ((double)maxlonguint)+1.;
-                        
+
                         if (toupper(border[0])=='L') {
-                            
+
                             loword = 0;
-                            
+
                             hiword = 1;
-                            
+
                         } else {
-                            
+
                             loword = 1;
-                            
+
                             hiword = 0;
-                            
+
                         }
-                        
+
                         if ((narray=malloc(nelsize*elements))) {
-                            
+
                             double minval, maxval, valtemp;
                             size_t icount;
                             int innarray;
-                            
+
                             if (nelunsigned) {
                                 minval = 0.;
                                 switch( nelsize )  {
@@ -1125,21 +1137,21 @@ extern "C" {
                                     default: free(array); free(narray); return CBF_ARGUMENT;
                                 }
                                 minval = -maxval;
-                                
+
                                 if ((int)(~0)+1 == 0) minval = minval -1;
-                                
+
                             } else {
                                 free(array); free(narray); return CBF_ARGUMENT;
                             }
-                            
+
                             innarray=0;
-                            
+
                             if (cliplow < cliphigh || valuelow > -DBL_MAX || valuehigh < DBL_MAX) {
-                                
+
                                 double doval;
-                                
+
                                 for (icount = 0; icount < (int)elements; icount++) {
-                                    
+
                                     if ((ssize_t)oelsize == sizeof(char)){
                                         if (elsigned) doval = (double)((signed char *)array)[icount];
                                         else doval = (double)((unsigned char *)array)[icount];
@@ -1154,7 +1166,7 @@ extern "C" {
                                         }
                                         if (elsigned) ((signed char *)array)[icount] = (signed char)doval;
                                         else ((unsigned char *)array)[icount] = (unsigned char)doval;
-                                        
+
                                     } else if ((ssize_t)oelsize == sizeof(short int)){
                                         if (elsigned) doval = (double)((signed short int *)array)[icount];
                                         else doval = (double)((unsigned short int *)array)[icount];
@@ -1169,7 +1181,7 @@ extern "C" {
                                         }
                                         if (elsigned) ((signed short int *)array)[icount] = (signed short int)doval;
                                         else ((unsigned short int *)array)[icount] = (unsigned short int)doval;
-                                        
+
                                     } else if ((ssize_t)oelsize == sizeof(int)){
                                         if (elsigned) doval = (double)((signed int *)array)[icount];
                                         else doval = (double)((unsigned int *)array)[icount];
@@ -1184,7 +1196,7 @@ extern "C" {
                                         }
                                         if (elsigned) ((signed int *)array)[icount] = (signed int)doval;
                                         else ((unsigned int *)array)[icount] = (unsigned int)doval;
-                                        
+
                                     } else if ((ssize_t)oelsize == sizeof(long int)){
                                         if (elsigned) doval = (double)((signed long int *)array)[icount];
                                         else doval = (double)((unsigned long int *)array)[icount];
@@ -1199,7 +1211,7 @@ extern "C" {
                                         }
                                         if (elsigned) ((signed long int *)array)[icount] = (signed long int)doval;
                                         else ((unsigned long int *)array)[icount] = (unsigned long int)doval;
-                                        
+
 #ifdef CBF_USE_LONG_LONG
                                     } else if ((ssize_t)oelsize == sizeof(long long int)){
                                         if (elsigned) doval = (double)((signed long long int *)array)[icount];
@@ -1218,20 +1230,20 @@ extern "C" {
 #endif
                                     } else {
                                         free(narray); free(array); return CBF_ARGUMENT;
-                                        
+
                                     }
-                                    
+
                                 }
-                                
+
                             }
-                            
+
                             if ((eltype & CBF_CPY_SETINTEGER) || eltype == 0 ) {
-                                
-                                
+
+
                                 /* integer to integer conversion */
-                                
-                                
-                                
+
+
+
                                 if (nelsize < oelsize) {
                                     if (nelsize == sizeof(char)) {
                                         if ((ssize_t)oelsize == sizeof(short)) {
@@ -1403,7 +1415,7 @@ extern "C" {
 #endif
                                 }
                             }
-                            
+
                             if (!innarray) {
                                 if ( nelsigned &&  elsigned) fprintf(stdout,"cbf_copy: convert I%u to I%u\n", (unsigned int)oelsize, (unsigned int)elsize);
                                 if (!nelsigned &&  elsigned) fprintf(stdout,"cbf_copy: convert I%u to unsigned I%u\n", (unsigned int)oelsize, (unsigned int)elsize);
@@ -1439,7 +1451,7 @@ extern "C" {
                                     }
                                 }
                             }
-                            
+
                             cbf_onfailnez(cbf_set_integerarray_wdims_fs(
                                                                         cbfout, compression,
                                                                         binary_id, narray, elsize, nelsigned, elements,
@@ -1447,281 +1459,281 @@ extern "C" {
                             free(narray);
                             free(array);
                         } else {
-                            
+
                             /* integer to real conversion */
-                            
+
                             double xvalue;
-                            
+
                             if (oelsize==sizeof(char)){
-                                
+
                                 if (elsigned) {
-                                    
+
                                     for (icount = 0; icount < (int)elements; icount++) {
-                                        
+
                                         xvalue = ((signed char *)array)[icount];
-                                        
+
                                         if (elsize == sizeof(double)) ((double *)narray)[icount] = xvalue;
-                                        
+
                                         else if (elsize == sizeof(float)) ((float *)narray)[icount] = xvalue;
-                                        
+
                                         else { free(narray); free(array); return CBF_ARGUMENT;}
                                     }
-                                    
+
                                 } else {
-                                    
+
                                     for (icount = 0; icount < (int)elements; icount++) {
-                                        
+
                                         xvalue = ((unsigned char *)array)[icount];
-                                        
+
                                         if (elsize == sizeof(double)) ((double *)narray)[icount] = xvalue;
-                                        
+
                                         else if (elsize == sizeof(float)) ((float *)narray)[icount] = xvalue;
-                                        
+
                                         else { free(narray); free(array); return CBF_ARGUMENT;}
                                     }
-                                    
+
                                 }
-                                
+
                             } else if (oelsize==sizeof(short int)){
-                                
+
                                 if (elsigned) {
-                                    
+
                                     for (icount = 0; icount < (int)elements; icount++) {
-                                        
+
                                         xvalue = ((signed short int *)array)[icount];
-                                        
+
                                         if (elsize == sizeof(double)) ((double *)narray)[icount] = xvalue;
-                                        
+
                                         else if (elsize == sizeof(float)) ((float *)narray)[icount] = xvalue;
-                                        
+
                                         else { free(narray); free(array); return CBF_ARGUMENT;}
                                     }
-                                    
+
                                 } else {
-                                    
+
                                     for (icount = 0; icount < (int)elements; icount++) {
-                                        
+
                                         xvalue = ((unsigned short int *)array)[icount];
-                                        
+
                                         if (elsize == sizeof(double)) ((double *)narray)[icount] = xvalue;
-                                        
+
                                         else if (elsize == sizeof(float)) ((float *)narray)[icount] = xvalue;
-                                        
+
                                         else  { free(narray); free(array); return CBF_ARGUMENT;}
                                     }
-                                    
+
                                 }
-                                
+
                             } else if (oelsize==sizeof(int)){
-                                
+
                                 if (elsigned) {
-                                    
+
                                     for (icount = 0; icount < (int)elements; icount++) {
-                                        
+
                                         xvalue = ((signed int *)array)[icount];
-                                        
+
                                         if (elsize == sizeof(double)) ((double *)narray)[icount] = xvalue;
-                                        
+
                                         else if (elsize == sizeof(float)) ((float *)narray)[icount] = xvalue;
-                                        
+
                                         else { free(narray); free(array); return CBF_ARGUMENT;}
                                     }
-                                    
+
                                 } else {
-                                    
+
                                     for (icount = 0; icount < (int)elements; icount++) {
-                                        
+
                                         xvalue = ((unsigned int *)array)[icount];
-                                        
+
                                         if (elsize == sizeof(double)) ((double *)narray)[icount] = xvalue;
-                                        
+
                                         else if (elsize == sizeof(float)) ((float *)narray)[icount] = xvalue;
-                                        
+
                                         else  { free(narray); free(array); return CBF_ARGUMENT;}
                                     }
-                                    
+
                                 }
-                                
+
                             } else if (oelsize==sizeof(long int)){
-                                
+
                                 if (elsigned) {
-                                    
+
                                     for (icount = 0; icount < (int)elements; icount++) {
-                                        
+
                                         xvalue = ((signed long int *)array)[icount];
-                                        
+
                                         if (elsize == sizeof(double)) ((double *)narray)[icount] = xvalue;
-                                        
+
                                         else if (elsize == sizeof(float)) ((float *)narray)[icount] = xvalue;
-                                        
+
                                         else { free(narray); free(array); return CBF_ARGUMENT;}
                                     }
-                                    
+
                                 } else {
-                                    
+
                                     for (icount = 0; icount < (int)elements; icount++) {
-                                        
+
                                         xvalue = ((unsigned long int *)array)[icount];
-                                        
+
                                         if (elsize == sizeof(double)) ((double *)narray)[icount] = xvalue;
-                                        
+
                                         else if (elsize == sizeof(float)) ((float *)narray)[icount] = xvalue;
-                                        
+
                                         else { free(narray); free(array); return CBF_ARGUMENT;}
                                     }
-                                    
+
                                 }
-                                
-                                
+
+
 #ifdef CBF_USE_LONG_LONG
                             } else if (oelsize==sizeof(long long int)){
-                                
+
                                 if (elsigned) {
-                                    
+
                                     for (icount = 0; icount < (int)elements; icount++) {
-                                        
+
                                         xvalue = ((signed long long int *)array)[icount];
-                                        
+
                                         if (elsize == sizeof(double)) ((double *)narray)[icount] = xvalue;
-                                        
+
                                         else if (elsize == sizeof(float)) ((float *)narray)[icount] = xvalue;
-                                        
+
                                         else { free(narray); free(array); return CBF_ARGUMENT;}
                                     }
-                                    
+
                                 } else {
-                                    
+
                                     for (icount = 0; icount < (int)elements; icount++) {
-                                        
+
                                         xvalue = ((unsigned long long int *)array)[icount];
-                                        
+
                                         if (elsize == sizeof(double)) ((double *)narray)[icount] = xvalue;
-                                        
+
                                         else if (elsize == sizeof(float)) ((float *)narray)[icount] = xvalue;
-                                        
+
                                         else { free(narray); free(array); return CBF_ARGUMENT;}
                                     }
-                                    
+
                                 }
-                                
-                                
+
+
 #else
                             } else if (oelsize== 2* sizeof(long int)) {
-                                
+
                                 if (elsigned) {
-                                    
+
                                     unsigned long yvalue[2];
-                                    
+
                                     for (icount = 0; icount < 2*((int)elements); icount++) {
-                                        
+
                                         yvalue[0] = ((unsigned long int *)array)[2*icount];
-                                        
+
                                         yvalue[1] = ((unsigned long int *)array)[2*icount+1];
-                                        
+
                                         if ((long)yvalue[hiword]>0) {
-                                            
+
                                             xvalue = ((double)yvalue[hiword])*onemore+(double)yvalue[loword];
-                                            
+
                                         } else {
-                                            
+
                                             xvalue = -((double)(-yvalue[hiword])*onemore-(double)yvalue[loword]);
-                                            
+
                                         }
-                                        
+
                                         if (elsize == sizeof(double)) ((double *)narray)[icount] = xvalue;
-                                        
+
                                         else if (elsize == sizeof(float)) ((float *)narray)[icount] = xvalue;
-                                        
+
                                         else { free(narray); free(array); return CBF_ARGUMENT;}
                                     }
-                                    
+
                                 } else {
-                                    
+
                                     unsigned long yvalue[2];
-                                    
+
                                     for (icount = 0; icount < 2*((int)elements); icount++) {
-                                        
+
                                         yvalue[0] = ((unsigned long int *)array)[2*icount];
-                                        
+
                                         yvalue[1] = ((unsigned long int *)array)[2*icount+1];
-                                        
+
                                         xvalue = ((double)yvalue[hiword])*onemore+(double)yvalue[loword];
-                                        
+
                                         if (elsize == sizeof(double)) ((double *)narray)[icount] = xvalue;
-                                        
+
                                         else if (elsize == sizeof(float)) ((float *)narray)[icount] = xvalue;
-                                        
+
                                         else { free(narray); free(array); return CBF_ARGUMENT;}
                                     }
-                                    
+
                                 }
-                                
-                                
+
+
 #endif
-                                
+
                             } else {
-                                
+
                                 free(narray); free(array); return CBF_ARGUMENT;
-                                
+
                             }
-                            
+
                             cbf_onfailnez(cbf_set_realarray_wdims_fs(
                                                                      cbfout, compression,
                                                                      binary_id, narray, elsize, elements,
                                                                      "little_endian", dimfast, dimmid, dimslow, 0    ),
-                                          
+
                                           { free(narray); free(array);})
-                            
+
                             free(narray);
-                            
+
                             free(array);
                         }
-                        
+
                     } else {
-                        
+
                         free(array);
-                        
+
                         return CBF_ALLOC;
                     }
                 }
-                
+
             } else {
-                
+
                 /* the current array is real */
-                
+
                 cbf_onfailnez (cbf_get_realarray(
                                                  cbfin, &binary_id, array, oelsize,
                                                  elements, &elements_read), {free(array);})
-                
+
                 if (dimflag == CBF_HDR_FINDDIMS && dimfast==0) {
                     cbf_get_arraydimensions(cbfin,NULL,&dimfast,&dimmid,&dimslow);
                 }
-                
+
                 if (dimfast < 1) dimfast = 1;
                 if (dimmid < 1) dimmid = 1;
                 if (dimslow < 1) dimslow = 1;
-                
+
                 if (roi) {
-                    
+
                     void * roi_array;
-                    
+
                     size_t fastlow, fasthigh, midlow, midhigh, slowlow, slowhigh;
                     double valuelow, valuehigh;
-                    
+
                     cbf_failnez(cbf_convertroi((char *)roi,dimfast,dimmid,dimslow,
                                                &fastlow,&fasthigh,
                                                &midlow,&midhigh,
                                                &slowlow,&slowhigh,
                                                &valuelow,&valuehigh));
-                    
+
                     roi_array=malloc(oelsize*(fasthigh-fastlow+1)*(midhigh-midlow+1)*(slowhigh-slowlow+1));
-                    
+
                     if (!roi_array) {
-                        
+
                         cbf_onfailnez(CBF_ALLOC,{free(array);});
-                        
+
                     }
-                    
+
                     cbf_failnez(cbf_extract_roi(array,
                                                 roi_array,
                                                 elsize,
@@ -1734,48 +1746,48 @@ extern "C" {
                                                 dimfast,
                                                 dimmid,
                                                 dimslow));
-                    
+
                     free(array);
-                    
+
                     array = roi_array;
-                    
+
                     dimfast = fasthigh- fastlow + 1;
-                    
+
                     dimmid  = midhigh - midlow + 1;
-                    
+
                     dimslow = slowhigh- slowlow + 1;
-                    
+
                     elements = elements_read = dimfast*dimmid*dimslow;
-                    
-                    
+
+
                 }
-                
+
                 if (((eltype &(CBF_CPY_SETREAL)) || eltype == 0)
                     && (elsize == 0 || elsize==(ssize_t)oelsize)
                     && cliplow >= cliphigh && valuelow == -DBL_MAX && valuehigh == DBL_MAX) {
-                    
-                    
+
+
                     cbf_failnez(cbf_set_realarray_wdims_fs(
                                                            cbfout, compression,
                                                            binary_id, array, oelsize, elements,
                                                            "little_endian", dimfast, dimmid, dimslow, 0))
-                    
+
                     free(array);
-                    
+
                 } else {
-                    
+
                     void * narray;
-                    
+
                     double valtemp;
-                    
+
                     if ((narray=malloc(nelsize*elements))) {
-                        
+
                         if (cliplow < cliphigh) {
-                            
+
                             double doval;
-                            
+
                             for (icount = 0; icount < (int)elements; icount++) {
-                                
+
                                 if (oelsize==sizeof(float)){
                                     doval = (double)((float *)array)[icount];
                                     if (cliplow < cliphigh) {
@@ -1788,7 +1800,7 @@ extern "C" {
                                         doval -= (valuelow - 1.);
                                     }
                                     ((float *)array)[icount] = (float)doval;
-                                    
+
                                 } else if (oelsize==sizeof(double)){
                                     doval = ((double *)array)[icount];
                                     if (cliplow < cliphigh) {
@@ -1801,621 +1813,621 @@ extern "C" {
                                         doval -= (valuelow - 1.);
                                     }
                                     ((double *)array)[icount] = doval;
-                                    
+
                                 } else {
                                     free(narray); free(array); return CBF_ARGUMENT;
-                                    
+
                                 }
-                                
+
                             }
-                            
+
                         }
-                        
+
                         if ((eltype & CBF_CPY_SETINTEGER) || eltype == 0 ) {
-                            
+
                             /* real to integer conversion */
-                            
+
                             double maxval, minval;
-                            
+
 #ifndef CBF_USE_LONG_LONG
                             double onemore;
-                            
+
                             unsigned long int maxlongval;
-                            
+
                             maxlongval = ~0L;
-                            
+
                             onemore = ((double)maxlongval)+1.;
 #endif
-                            
+
                             if (nelunsigned) {
-                                
+
                                 minval = 0.;
-                                
+
                                 switch( nelsize )  {
-                                        
+
                                     case 1:  maxval = (double)(0xFF); break;
                                     case 2:  maxval = (double)(0xFFFFU); break;
                                     case 4:  maxval = (double)(0xFFFFFFFFUL); break;
                                     case 8:  maxval = ((double)(0xFFFFFFFFUL))*(2.+((double)(0xFFFFFFFFUL))); break;
                                     default: free(array); free(narray); return CBF_ARGUMENT;
-                                        
+
                                 }
-                                
+
                             } else if (nelsigned) {
-                                
+
                                 switch( nelsize ) {
-                                        
+
                                     case 1:  maxval = (double)(0x7F); break;
                                     case 2:  maxval = (double)(0x7FFFU); break;
                                     case 4:  maxval = (double)(0x7FFFFFFFUL); break;
                                     case 8:  maxval = ((double)(0xFFFFFFFFUL)) +
                                         ((double)(0x7FFFFFFFL))*(1.+((double)(0xFFFFFFFFUL))); break;
                                     default: free(array); free(narray); return CBF_ARGUMENT;
-                                        
+
                                 }
-                                
+
                                 minval = -maxval;
-                                
+
                                 if ((int)(~0)+1 == 0) minval = minval -1;
-                                
+
                             } else {free(array); free(narray); return CBF_ARGUMENT;}
-                            
-                            
+
+
                             if (nelsize==sizeof(char)){
-                                
+
                                 if ((ssize_t)oelsize == sizeof(float)) {
-                                    
+
                                     if (nelsigned) {
-                                        
+
                                         for (icount = 0; icount < (int)elements; icount++) {
-                                            
+
                                             valtemp = ((float *)array)[icount];
-                                            
+
                                             /* if (valtemp < minval || valtemp > maxval) {
-                                             
+
                                              free(array); free(narray); return CBF_OVERFLOW;
                                              }*/
-                                            
+
                                             if (valtemp > maxval) valtemp=maxval;
                                             if (valtemp < minval) valtemp=minval;
-                                            
+
                                             ((signed char *)narray)[icount] = (signed char)valtemp;
                                         }
-                                        
+
                                     } else {
-                                        
+
                                         for (icount = 0; icount < (int)elements; icount++) {
-                                            
+
                                             valtemp = ((float *)array)[icount];
-                                            
+
                                             /*if (valtemp < minval || valtemp > maxval) {
-                                             
+
                                              free(array); free(narray); return CBF_OVERFLOW;
                                              }*/
-                                            
+
                                             if (valtemp > maxval) valtemp=maxval;
                                             if (valtemp < minval) valtemp=minval;
-                                            
+
                                             ((unsigned char *)narray)[icount] = (unsigned char)valtemp;
                                         }
-                                        
+
                                     }
-                                    
+
                                 } else if ((ssize_t)oelsize == sizeof(double)) {
-                                    
+
                                     if (nelsigned) {
-                                        
+
                                         for (icount = 0; icount < (int)elements; icount++) {
-                                            
+
                                             valtemp = ((double *)array)[icount];
-                                            
+
                                             /* if (valtemp < minval || valtemp > maxval) {
-                                             
+
                                              free(array); free(narray); return CBF_OVERFLOW;
                                              }*/
-                                            
+
                                             if (valtemp > maxval) valtemp=maxval;
                                             if (valtemp < minval) valtemp=minval;
-                                            
+
                                             ((signed char *)narray)[icount] = (signed char)valtemp;
                                         }
-                                        
+
                                     } else {
-                                        
+
                                         for (icount = 0; icount < (int)elements; icount++) {
-                                            
+
                                             valtemp = ((double *)array)[icount];
-                                            
+
                                             /*if (valtemp < minval || valtemp > maxval) {
-                                             
+
                                              free(array); free(narray); return CBF_OVERFLOW;
                                              }*/
-                                            
+
                                             if (valtemp > maxval) valtemp=maxval;
                                             if (valtemp < minval) valtemp=minval;
-                                            
+
                                             ((unsigned char *)narray)[icount] = (unsigned char)valtemp;
                                         }
-                                        
+
                                     }
-                                    
+
                                 } else { free(narray); free(array); return CBF_ARGUMENT;}
-                                
-                                
+
+
                             } else if (nelsize==sizeof(short int)){
-                                
+
                                 if ((ssize_t)oelsize == sizeof(float)) {
-                                    
+
                                     if (nelsigned) {
-                                        
+
                                         for (icount = 0; icount < (int)elements; icount++) {
-                                            
+
                                             valtemp = ((float *)array)[icount];
-                                            
+
                                             /*if (valtemp < minval || valtemp > maxval) {
-                                             
+
                                              free(array); free(narray); return CBF_OVERFLOW;
                                              }*/
-                                            
+
                                             if (valtemp > maxval) valtemp=maxval;
                                             if (valtemp < minval) valtemp=minval;
-                                            
+
                                             ((signed short int *)narray)[icount] = (signed short int)valtemp;
                                         }
-                                        
+
                                     } else {
-                                        
+
                                         for (icount = 0; icount < (int)elements; icount++) {
-                                            
+
                                             valtemp = ((float *)array)[icount];
-                                            
+
                                             /*if (valtemp < minval || valtemp > maxval) {
-                                             
+
                                              free(array); free(narray); return CBF_OVERFLOW;
                                              }*/
-                                            
+
                                             if (valtemp > maxval) valtemp=maxval;
                                             if (valtemp < minval) valtemp=minval;
-                                            
+
                                             ((unsigned short int *)narray)[icount] = (unsigned short int)valtemp;
                                         }
-                                        
+
                                     }
-                                    
+
                                 } else if ((ssize_t)oelsize == sizeof(double)) {
-                                    
+
                                     if (nelsigned) {
-                                        
+
                                         for (icount = 0; icount < (int)elements; icount++) {
-                                            
+
                                             valtemp = ((double *)array)[icount];
-                                            
+
                                             /*if (valtemp < minval || valtemp > maxval) {
-                                             
+
                                              free(array); free(narray); return CBF_OVERFLOW;
                                              }*/
-                                            
+
                                             if (valtemp > maxval) valtemp=maxval;
                                             if (valtemp < minval) valtemp=minval;
-                                            
+
                                             ((signed short int *)narray)[icount] = (signed short int)valtemp;
                                         }
-                                        
+
                                     } else {
-                                        
+
                                         for (icount = 0; icount < (int)elements; icount++) {
-                                            
+
                                             valtemp = ((double *)array)[icount];
-                                            
+
                                             /*if (valtemp < minval || valtemp > maxval) {
-                                             
+
                                              free(array); free(narray); return CBF_OVERFLOW;
                                              }*/
-                                            
+
                                             if (valtemp > maxval) valtemp=maxval;
                                             if (valtemp < minval) valtemp=minval;
-                                            
+
                                             ((unsigned short int *)narray)[icount] = (unsigned short int)valtemp;
                                         }
-                                        
+
                                     }
-                                    
+
                                 } else { free(narray); free(array); return CBF_ARGUMENT;}
-                                
+
                             } else if (nelsize==sizeof(int)){
-                                
+
                                 if ((ssize_t)oelsize == sizeof(float)) {
-                                    
+
                                     if (nelsigned) {
-                                        
+
                                         for (icount = 0; icount < (int)elements; icount++) {
-                                            
+
                                             valtemp = ((float *)array)[icount];
-                                            
+
                                             /*if (valtemp < minval || valtemp > maxval) {
-                                             
+
                                              free(array); free(narray); return CBF_OVERFLOW;
                                              }*/
-                                            
+
                                             if (valtemp > maxval) valtemp=maxval;
                                             if (valtemp < minval) valtemp=minval;
-                                            
+
                                             ((signed int *)narray)[icount] = (signed int)valtemp;
                                         }
-                                        
+
                                     } else {
-                                        
+
                                         for (icount = 0; icount < (int)elements; icount++) {
-                                            
+
                                             valtemp = ((float *)array)[icount];
-                                            
+
                                             /*if (valtemp < minval || valtemp > maxval) {
-                                             
+
                                              free(array); free(narray); return CBF_OVERFLOW;
                                              }*/
-                                            
+
                                             if (valtemp > maxval) valtemp=maxval;
                                             if (valtemp < minval) valtemp=minval;
-                                            
+
                                             ((unsigned int *)narray)[icount] = (unsigned int)valtemp;
                                         }
-                                        
+
                                     }
-                                    
+
                                 } else if ((ssize_t)oelsize == sizeof(double)) {
-                                    
+
                                     if (nelsigned) {
-                                        
+
                                         for (icount = 0; icount < (int)elements; icount++) {
-                                            
+
                                             valtemp = ((double *)array)[icount];
-                                            
+
                                             /*if (valtemp < minval || valtemp > maxval) {
-                                             
+
                                              free(array); free(narray); return CBF_OVERFLOW;
                                              }*/
-                                            
+
                                             if (valtemp > maxval) valtemp=maxval;
                                             if (valtemp < minval) valtemp=minval;
-                                            
+
                                             ((signed int *)narray)[icount] = (signed int)valtemp;
                                         }
-                                        
+
                                     } else {
-                                        
+
                                         for (icount = 0; icount < (int)elements; icount++) {
-                                            
+
                                             valtemp = ((double *)array)[icount];
-                                            
+
                                             /*if (valtemp < minval || valtemp > maxval) {
-                                             
+
                                              free(array); free(narray); return CBF_OVERFLOW;
                                              }*/
-                                            
+
                                             if (valtemp > maxval) valtemp=maxval;
                                             if (valtemp < minval) valtemp=minval;
-                                            
+
                                             ((unsigned int *)narray)[icount] = (unsigned int)valtemp;
                                         }
-                                        
+
                                     }
-                                    
+
                                 } else { free(narray); free(array); return CBF_ARGUMENT;}
-                                
-                                
+
+
                             } else if (nelsize==sizeof(long int)){
-                                
+
                                 if ((ssize_t)oelsize == sizeof(float)) {
-                                    
+
                                     if (nelsigned) {
-                                        
+
                                         for (icount = 0; icount < (int)elements; icount++) {
-                                            
+
                                             valtemp = ((float *)array)[icount];
-                                            
+
                                             /*if (valtemp < minval || valtemp > maxval) {
-                                             
+
                                              free(array); free(narray); return CBF_OVERFLOW;
                                              }*/
-                                            
+
                                             if (valtemp > maxval) valtemp=maxval;
                                             if (valtemp < minval) valtemp=minval;
-                                            
+
                                             ((signed long int *)narray)[icount] = (signed long int)valtemp;
                                         }
-                                        
+
                                     } else {
-                                        
+
                                         for (icount = 0; icount < (int)elements; icount++) {
-                                            
+
                                             valtemp = ((float *)array)[icount];
-                                            
+
                                             /*if (valtemp < minval || valtemp > maxval) {
-                                             
+
                                              free(array); free(narray); return CBF_OVERFLOW;
                                              }*/
-                                            
+
                                             if (valtemp > maxval) valtemp=maxval;
                                             if (valtemp < minval) valtemp=minval;
-                                            
+
                                             ((unsigned long int *)narray)[icount] = (unsigned long int)valtemp;
                                         }
-                                        
+
                                     }
-                                    
+
                                 } else if ((ssize_t)oelsize == sizeof(double)) {
-                                    
+
                                     if (nelsigned) {
-                                        
+
                                         for (icount = 0; icount < (int)elements; icount++) {
-                                            
+
                                             valtemp = ((double *)array)[icount];
-                                            
+
                                             /*if (valtemp < minval || valtemp > maxval) {
-                                             
+
                                              free(array); free(narray); return CBF_OVERFLOW;
                                              }*/
-                                            
+
                                             if (valtemp > maxval) valtemp=maxval;
                                             if (valtemp < minval) valtemp=minval;
-                                            
+
                                             ((signed long int *)narray)[icount] = (signed long int)valtemp;
                                         }
-                                        
+
                                     } else {
-                                        
+
                                         for (icount = 0; icount < (int)elements; icount++) {
-                                            
+
                                             valtemp = ((double *)array)[icount];
-                                            
+
                                             /*if (valtemp < minval || valtemp > maxval) {
-                                             
+
                                              free(array); free(narray); return CBF_OVERFLOW;
                                              }*/
-                                            
+
                                             if (valtemp > maxval) valtemp=maxval;
                                             if (valtemp < minval) valtemp=minval;
-                                            
+
                                             ((unsigned long int *)narray)[icount] = (unsigned long int)valtemp;
                                         }
-                                        
+
                                     }
-                                    
+
                                 } else { free(narray); free(array); return CBF_ARGUMENT;}
-                                
-                                
+
+
 #ifdef CBF_USE_LONG_LONG
                             } else if (nelsize==sizeof(long long int)){
-                                
+
                                 if ((ssize_t)oelsize == sizeof(float)) {
-                                    
+
                                     if (nelsigned) {
-                                        
+
                                         for (icount = 0; icount < (int)elements; icount++) {
-                                            
+
                                             valtemp = ((float *)array)[icount];
-                                            
+
                                             /*if (valtemp < minval || valtemp > maxval) {
-                                             
+
                                              free(array); free(narray); return CBF_OVERFLOW;
                                              }*/
-                                            
+
                                             if (valtemp > maxval) valtemp=maxval;
                                             if (valtemp < minval) valtemp=minval;
-                                            
+
                                             ((signed long long int *)narray)[icount] = (signed long long int)valtemp;
                                         }
-                                        
+
                                     } else {
-                                        
+
                                         for (icount = 0; icount < (int)elements; icount++) {
-                                            
+
                                             valtemp = ((float *)array)[icount];
-                                            
+
                                             /*if (valtemp < minval || valtemp > maxval) {
-                                             
+
                                              free(array); free(narray); return CBF_OVERFLOW;
                                              }*/
-                                            
+
                                             if (valtemp > maxval) valtemp=maxval;
                                             if (valtemp < minval) valtemp=minval;
-                                            
+
                                             ((unsigned long long int *)narray)[icount] = (unsigned long long int)valtemp;
                                         }
-                                        
+
                                     }
-                                    
+
                                 } else if ((ssize_t)oelsize == sizeof(double)) {
-                                    
+
                                     if (nelsigned) {
-                                        
+
                                         for (icount = 0; icount < (int)elements; icount++) {
-                                            
+
                                             valtemp = ((double *)array)[icount];
-                                            
+
                                             /*if (valtemp < minval || valtemp > maxval) {
-                                             
+
                                              free(array); free(narray); return CBF_OVERFLOW;
                                              }*/
-                                            
+
                                             if (valtemp > maxval) valtemp=maxval;
                                             if (valtemp < minval) valtemp=minval;
-                                            
+
                                             ((signed long long int *)narray)[icount] = (signed long long int)valtemp;
                                         }
-                                        
+
                                     } else {
-                                        
+
                                         for (icount = 0; icount < (int)elements; icount++) {
-                                            
+
                                             valtemp = ((double *)array)[icount];
-                                            
+
                                             /*if (valtemp < minval || valtemp > maxval) {
-                                             
+
                                              free(array); free(narray); return CBF_OVERFLOW;
                                              }*/
-                                            
+
                                             if (valtemp > maxval) valtemp=maxval;
                                             if (valtemp < minval) valtemp=minval;
-                                            
+
                                             ((unsigned long long int *)narray)[icount] = (unsigned long long int)valtemp;
                                         }
-                                        
+
                                     }
-                                    
+
                                 } else { free(narray); free(array); return CBF_ARGUMENT;}
-                                
+
 #else
                             } else if (nelsize==2* sizeof(long int)){
-                                
+
                                 if (toupper(border[0])=='L') {
-                                    
+
                                     lobyte = 0;
-                                    
+
                                     hibyte = 1;
-                                    
+
                                 } else {
-                                    
+
                                     lobyte = 1;
-                                    
+
                                     hibyte = 0;
-                                    
+
                                 }
-                                
-                                
+
+
                                 if ((ssize_t)oelsize == sizeof(float)) {
-                                    
+
                                     if (nelsigned) {
-                                        
+
                                         for (icount = 0; icount < (int)elements; icount++) {
-                                            
+
                                             valtemp = ((float *)array)[icount];
-                                            
+
                                             /*if (valtemp < minval || valtemp > maxval) {
-                                             
+
                                              free(array); free(narray); return CBF_OVERFLOW;
                                              }*/
-                                            
+
                                             if (valtemp > maxval) valtemp=maxval;
                                             if (valtemp < minval) valtemp=minval;
-                                            
+
                                             vallow = fmod(valtemp,onemore);
-                                            
+
                                             valhigh = (valtemp-vallow)/onemore;
-                                            
+
                                             ((unsigned long int *)narray)[2*icount+lobyte] = (unsigned long int)vallow;
-                                            
+
                                             ((signed long int *)narray)[2*icount+hibyte] = (signed long int)valhigh;
-                                            
+
                                         }
-                                        
+
                                     } else {
-                                        
+
                                         for (icount = 0; icount < (int)elements; icount++) {
-                                            
+
                                             valtemp = ((float *)array)[icount];
-                                            
+
                                             /*if (valtemp < minval || valtemp > maxval) {
-                                             
+
                                              free(array); free(narray); return CBF_OVERFLOW;
                                              }*/
-                                            
+
                                             if (valtemp > maxval) valtemp=maxval;
                                             if (valtemp < minval) valtemp=minval;
-                                            
+
                                             vallow = fmod(valtemp,onemore);
-                                            
+
                                             valhigh = (valtemp-vallow)/onemore;
-                                            
+
                                             ((unsigned long int *)narray)[2*icount+lobyte] = (unsigned long int)vallow;
-                                            
+
                                             ((unsigned long int *)narray)[2*icount+hibyte] = (unsigned long int)valhigh;
-                                            
+
                                         }
-                                        
+
                                     }
-                                    
+
                                 } else if ((ssize_t)oelsize == sizeof(double)) {
-                                    
+
                                     if (nelsigned) {
-                                        
+
                                         for (icount = 0; icount < (int)elements; icount++) {
-                                            
+
                                             valtemp = ((double *)array)[icount];
-                                            
+
                                             /*if (valtemp < minval || valtemp > maxval) {
-                                             
+
                                              free(array); free(narray); return CBF_OVERFLOW;
                                              }*/
-                                            
+
                                             if (valtemp > maxval) valtemp=maxval;
                                             if (valtemp < minval) valtemp=minval;
-                                            
+
                                             vallow = fmod(valtemp,onemore);
-                                            
+
                                             valhigh = (valtemp-vallow)/onemore;
-                                            
+
                                             ((unsigned long int *)narray)[2*icount+lobyte] = (unsigned long int)vallow;
-                                            
+
                                             ((signed long int *)narray)[2*icount+hibyte] = (signed long int)valhigh;
                                         }
-                                        
+
                                     } else {
-                                        
+
                                         for (icount = 0; icount < (int)elements; icount++) {
-                                            
+
                                             valtemp = ((double *)array)[icount];
-                                            
+
                                             /*if (valtemp < minval || valtemp > maxval) {
-                                             
+
                                              free(array); free(narray); return CBF_OVERFLOW;
                                              }*/
-                                            
+
                                             if (valtemp > maxval) valtemp=maxval;
                                             if (valtemp < minval) valtemp=minval;
-                                            
+
                                             vallow = fmod(valtemp,onemore);
-                                            
+
                                             valhigh = (valtemp-vallow)/onemore;
-                                            
+
                                             ((unsigned long int *)narray)[2*icount+lobyte] = (unsigned long int)vallow;
-                                            
+
                                             ((unsigned long int *)narray)[2*icount+hibyte] = (signed long int)valhigh;
-                                            
+
                                         }
-                                        
+
                                     }
-                                    
+
                                 } else { free(narray); free(array); return CBF_ARGUMENT;}
-                                
-                                
+
+
 #endif
-                                
+
                             } else {
-                                
+
                                 free(array);
-                                
+
                                 free(narray);
-                                
+
                                 return CBF_ARGUMENT;
-                                
+
                             }
-                            
-                            
-                            
+
+
+
                             cbf_failnez(cbf_set_integerarray_wdims_fs(
                                                                       cbfout, compression,
                                                                       binary_id, narray, nelsize, nelsigned, elements,
                                                                       "little_endian", dimfast, dimmid, dimslow, 0))
                             free(narray);
-                            
+
                             free(array);
-                            
-                            
+
+
                         } else {
-                            
+
                             /* real to real conversion */
-                            
+
                             if (oelsize==sizeof(float)){
                                 if (nelsize == sizeof(float)) {
                                     for (icount = 0; icount < (int)elements; icount++) {
@@ -2438,34 +2450,34 @@ extern "C" {
                                 } else {free(array); free(narray); return CBF_ARGUMENT;}
                             } else { free(array); free(narray); return CBF_ARGUMENT;
                             }
-                            
+
                             cbf_failnez(cbf_set_realarray_wdims_fs(
                                                                    cbfout, compression,
                                                                    binary_id, narray, nelsize, elements,
                                                                    "little_endian", dimfast, dimmid, dimslow, 0))
-                            
+
                             free(array);
-                            
+
                             free(narray);
-                            
+
                             return 0;
-                            
+
                         }
-                        
+
                     } else {
-                        
+
                         return CBF_ALLOC;
                     }
                 }
             }
-            
-            
+
+
         } else {
-            
+
             return CBF_ALLOC;
         }
     }
-    
+
     return 0;
 }
 
@@ -2600,7 +2612,7 @@ int cbf_convertroi(char *roi,
     cbf_debug_print3("slowlow  %ld, slowhigh %ld\n", (long)slowlow,(long)slowhigh);
     cbf_debug_print3("valuelow  %ld, valuehigh %ld\n", (long)valuelow,(long)valuehigh);
     return CBF_SUCCESS;
-    
+
 }
 
 /* Convert a binoi from a string to integer parameters */
@@ -2714,45 +2726,45 @@ int cbf_extract_roi(void        * src,
                     size_t        dimmid,
                     size_t        dimslow
                     ) {
-    
+
     size_t indexmid, indexslow, index;
-    
+
     void * tdst;
-    
+
     /* Is the element size valid? */
-    
+
     if (elsize != sizeof (int) &&
         elsize != 2* sizeof (int) &&
         elsize != 4* sizeof (int) &&
         elsize != sizeof (short) &&
         elsize != sizeof (char))
-        
+
         return CBF_ARGUMENT;
-    
+
     if (fasthigh < fastlow
         || fasthigh >= dimfast
         || midhigh < midlow
         || midhigh >= dimmid
         || slowhigh > slowlow
         || slowhigh >= dimslow )
-        
+
         return CBF_ARGUMENT;
-    
+
     tdst = dst;
-    
+
     for (indexslow = slowlow; indexslow <= slowhigh; indexslow++) {
-        
+
         for (indexmid = midlow; indexmid <= midhigh; indexmid++) {
-            
+
             index = elsize*(fastlow +indexmid*dimfast+indexslow*dimfast*dimmid);
-            
+
             memmove(tdst,(char *)src+index,(1+fasthigh-fastlow)*elsize);
-            
+
             tdst = (char *)tdst + (1+fasthigh-fastlow)*elsize;
-            
+
         }
     }
-    
+
     return CBF_SUCCESS;
 }
 #define proc_extract(type,zero)                                                                    {\
@@ -2819,23 +2831,23 @@ int cbf_extract_roi_binoi(void        * src,
                           size_t        gapmid,
                           size_t        gapslow
                           ) {
-    
+
     size_t indexmid, indexslow, indexfast, index;
-    
+
     size_t faststart, midstart, slowstart;
-    
+
     size_t modszfast, modszmid, modszslow;
-    
+
     size_t indexbinfast, indexbinmid, indexbinslow, indexbin;
-    
+
     modszfast=modulefast+gapfast;
-    
+
     modszmid=modulemid+gapmid;
-    
+
     modszslow=moduleslow+gapslow;
-    
+
     /* Is the element size valid? */
-    
+
     if (elsize != sizeof (int) &&
         elsize != 2* sizeof (int) &&
         elsize != 4* sizeof (int) &&
@@ -2843,9 +2855,9 @@ int cbf_extract_roi_binoi(void        * src,
         elsize != sizeof (char) &&
         elsize != sizeof (float) &&
         elsize != sizeof (double))
-        
+
         return CBF_ARGUMENT;
-    
+
     if (fasthigh < fastlow
         || fasthigh >= dimfast
         || midhigh < midlow
@@ -2858,18 +2870,18 @@ int cbf_extract_roi_binoi(void        * src,
         || bndmidhigh >= dimmid+binratio-1/binratio
         || bndslowhigh < bndslowlow
         || bndslowhigh >= dimslow+binratio-1/binratio )
-        
+
         return CBF_ARGUMENT;
-    
+
     size_t fastmodoff, fastbinoff, midmodoff, midbinoff, slowmodoff, slowbinoff;
-    
+
     if (realarray) {
         if (elsize == sizeof (float) ){
             proc_extract( float , 0. );
         } else if (elsize == sizeof (double) ) {
             proc_extract( double , 0. );
         } else return CBF_ARGUMENT;
-    } else if (elsigned) {  // signed integer types 
+    } else if (elsigned) {  // signed integer types
         if (elsize == sizeof (char) ) {
             proc_extract( char , 0 );
         } else if (elsize == sizeof (int) ) {
@@ -2879,11 +2891,11 @@ int cbf_extract_roi_binoi(void        * src,
 #ifdef CBF_USE_LONG_LONG
         } else if (elsize == sizeof (long long) ) {
             proc_extract( long long , 0L );
-#endif 
+#endif
         } else if (elsize == sizeof (short) ) {
             proc_extract( short , 0 );
         } else return CBF_ARGUMENT;
-    } else { // unsigned integer types 
+    } else { // unsigned integer types
         if (elsize == sizeof (unsigned char) ) {
             proc_extract( unsigned char , 0 );
         } else if (elsize == sizeof (unsigned int) ) {
@@ -2897,30 +2909,30 @@ int cbf_extract_roi_binoi(void        * src,
         } else if (elsize == sizeof (unsigned short) ) {
             proc_extract( unsigned short , 0);
         } else return CBF_ARGUMENT;
-    } 
+    }
     return CBF_SUCCESS;
 }
 
 /* Multiply a 3x3 matrix times a 3-vector to produce a 3-vector */
 
 int cbf_mat33_vec(double mat[3][3], double vecin[3], double vecout[3]) {
-    
+
     size_t i, j;
-    
+
     for (i=0; i < 3; i++) {
-        
+
         vecout[i] = 0.;
-        
+
         for (j=0; j <3; j++) {
-            
+
             vecout[i]+=mat[i][j]*vecin[j];
-            
+
         }
-        
+
     }
-    
+
     return CBF_SUCCESS;
-    
+
 }
 
 
@@ -2929,11 +2941,11 @@ int cbf_mat33_vec(double mat[3][3], double vecin[3], double vecout[3]) {
 int cbf_convert_index(const ssize_t index,
                       const size_t dimfast, const size_t dimmid, const size_t dimslow,
                       size_t * indexfast, size_t * indexmid, size_t * indexslow) {
-    
+
     size_t balance;
-    
+
     if (index < 0 || index >= dimfast*dimmid*dimslow) return CBF_ARGUMENT;
-    
+
     *indexslow = (size_t)(index/(dimfast*dimmid));
     balance= index-(*indexslow)*(dimfast*dimmid);
     *indexmid = (size_t)(balance/dimfast);
@@ -2959,127 +2971,127 @@ int cbf_extract_rotated_roi_2D(void        * src,
                                double        center[2],
                                double        pixsize[2]
                                ) {
-    
+
     ssize_t indexfast, indexmid, indexslow, index, newindex;
-    
+
     ssize_t newindexleftdown,newindexleftmid,newindexleftup;
     ssize_t newindexmiddown,newindexmidup;
     ssize_t newindexrightdown,newindexrightmid,newindexrightup;
-    
+
     ssize_t newvalueleftdown,newvalueleftmid,newvalueleftup;
     ssize_t newvaluemiddown,newvaluemidup;
     ssize_t newvaluerightdown,newvaluerightmid,newvaluerightup;
-    
+
     size_t dimslow=1;
-    
+
     double dist_hl0, dist_hh0, dist_ll0, dist_lh0;
-    
+
     double newdist_hl0, newdist_hh0, newdist_ll0, newdist_lh0;
-    
+
     double newscale;
-    
+
     double roi_hl0[3], roi_hh0[3];
-    
+
     double roi_ll0[3], roi_lh0[3];
-    
+
     double newroi_hl0[3], newroi_hh0[3];
-    
+
     double newroi_ll0[3], newroi_lh0[3];
-    
+
     double posfastlow, posfasthigh, posmidlow, posmidhigh;
-    
+
     double newfastlow, newfasthigh, newmidlow, newmidhigh;
-    
+
     double newindexlow, newindexhigh;
-    
+
     long lnewfast, lnewmid;
-    
+
     double deltafast, deltamid, deltafastlow, deltamidlow, deltafasthigh, deltamidhigh;;
-    
+
     double dvalue;
-    
+
     float fvalue;
-    
+
     unsigned char ucvalue;
-    
+
     unsigned short usvalue;
-    
+
     unsigned int uivalue;
-    
+
     unsigned long ulvalue;
-    
+
     char cvalue;
-    
+
     short svalue;
-    
+
     int ivalue;
-    
+
     long lvalue;
-    
+
     void * tdst;
-    
+
     size_t i, j, k, ii, jj;
-    
+
     /* Is the element size valid? */
-    
+
     if (elsize != sizeof (int) &&
         elsize != 2* sizeof (int) &&
         elsize != 4* sizeof (int) &&
         elsize != sizeof (long) &&
         elsize != sizeof (short) &&
         elsize != sizeof (char))
-        
+
         return CBF_ARGUMENT;
-    
+
     if (fasthigh < fastlow
         || fasthigh >= dimfast
         || midhigh < midlow
         || midhigh >= dimmid )
-        
+
         return CBF_ARGUMENT;
-    
+
     roi_hl0[0]=(((double)(fasthigh+1))-center[0])*pixsize[0];
-    
+
     roi_hl0[1]=(((double)(midlow))-center[1])*pixsize[1];
-    
+
     roi_hl0[2]=0.;
-    
+
     roi_hh0[0]=(((double)(fasthigh+1))-center[0])*pixsize[0];
-    
+
     roi_hh0[1]=(((double)(midhigh+1))-center[1])*pixsize[1];
-    
+
     roi_hh0[2]=0.;
-    
+
     roi_ll0[0]=(((double)(fastlow))-center[0])*pixsize[0];
-    
+
     roi_ll0[1]=(((double)(midlow))-center[1])*pixsize[1];
-    
+
     roi_ll0[2]=0.;
-    
+
     roi_lh0[0]=(((double)(fastlow))-center[0])*pixsize[0];
-    
+
     roi_lh0[1]=(((double)(midhigh+1))-center[1])*pixsize[1];
-    
+
     roi_lh0[2]=0.;
-    
+
     cbf_failnez(cbf_mat33_vec(rotmat, roi_hl0, newroi_hl0));
-    
+
     cbf_failnez(cbf_mat33_vec(rotmat, roi_hh0, newroi_hh0));
-    
+
     cbf_failnez(cbf_mat33_vec(rotmat, roi_ll0, newroi_ll0));
-    
+
     cbf_failnez(cbf_mat33_vec(rotmat, roi_lh0, newroi_lh0));
-    
+
     /* The points roi_hl0, roi_hh0, roi_ll0 and roi_lh0
      map to newroi_hl0, newroi_hh0, newroi_ll0 and newroi_lh0
      respectively  including scaling by pixel size and projection
      of the rotation onto the x-y plane
-     
+
      These are the corners of the full roi  rounded up at the high
      corners
-     
+
      */
-    
+
     dist_hl0 = sqrt(roi_hl0[0]*roi_hl0[0]+roi_hl0[1]*roi_hl0[1]);
     dist_hh0 = sqrt(roi_hh0[0]*roi_hh0[0]+roi_hh0[1]*roi_hh0[1]);
     dist_ll0 = sqrt(roi_ll0[0]*roi_ll0[0]+roi_ll0[1]*roi_ll0[1]);
@@ -3088,56 +3100,56 @@ int cbf_extract_rotated_roi_2D(void        * src,
     newdist_hh0 = sqrt(newroi_hh0[0]*newroi_hh0[0]+newroi_hh0[1]*newroi_hh0[1]);
     newdist_ll0 = sqrt(newroi_ll0[0]*newroi_ll0[0]+newroi_ll0[1]*newroi_ll0[1]);
     newdist_lh0 = sqrt(newroi_lh0[0]*newroi_lh0[0]+newroi_lh0[1]*newroi_lh0[1]);
-    
+
     newscale=(dist_hl0+dist_hh0+dist_ll0+dist_lh0)/(newdist_hl0+newdist_hh0+newdist_ll0+newdist_lh0);
-    
+
     newroi_hl0[0] /= pixsize[0]; newroi_hh0[0] /= pixsize[0]; newroi_ll0[0] /= pixsize[0]; newroi_lh0[0] /= pixsize[0];
-    
+
     newroi_hl0[1] /= pixsize[1]; newroi_hh0[1] /= pixsize[1]; newroi_ll0[1] /= pixsize[1]; newroi_lh0[1] /= pixsize[1];
-    
+
     newroi_hl0[0] *= newscale; newroi_hh0[0] *= newscale; newroi_ll0[0] *= newscale; newroi_lh0[0] *=newscale;
-    
+
     newroi_hl0[1] *= newscale; newroi_hh0[1] *= newscale; newroi_ll0[1] *=newscale; newroi_lh0[1] *=newscale;
-    
+
     newroi_hl0[2] = newroi_hh0[2] = newroi_ll0[2] = newroi_lh0[2] =0.;
-    
+
     newroi_hl0[0] += center[0]; newroi_hh0[0] += center[0]; newroi_ll0[0] += center[0]; newroi_lh0[0] += center[0];
-    
+
     newroi_hl0[1] += center[1]; newroi_hh0[1] += center[1]; newroi_ll0[1] += center[1]; newroi_lh0[1] += center[1];
-    
+
     /* fprintf(stderr,"newroi_hl0:  %15.6g, %15.6g,%15.6g\n", newroi_hl0[0], newroi_hl0[1],newroi_hl0[2]);
      fprintf(stderr,"newroi_hh0:  %15.6g, %15.6g,%15.6g\n", newroi_hh0[0], newroi_hh0[1],newroi_hh0[2]);
      fprintf(stderr,"newroi_ll0:  %15.6g, %15.6g,%15.6g\n", newroi_ll0[0], newroi_ll0[1],newroi_ll0[2]);
      fprintf(stderr,"newroi_lh0:  %15.6g, %15.6g,%15.6g\n", newroi_lh0[0], newroi_lh0[1],newroi_lh0[2]);
      fprintf(stderr,"newscale: %15.6g\n", newscale); */
-    
+
     tdst = dst;
-    
+
     indexslow = 0;
-    
+
     /* clear the roi */
-    
+
     {
-        
+
         for (indexmid = midlow; indexmid <= midhigh; indexmid++) {
-            
+
             memset(tdst,0,(1+fasthigh-fastlow)*elsize);
-            
+
             tdst = (char *)tdst + (1+fasthigh-fastlow)*elsize;
-            
+
         }
     }
     /* transfer each row one element at a time */
     {   double oldpos[3], newpos[3];
-        
+
         double dhpos[3][3], dvpos[3][3];
-        
+
         ssize_t vertprev=0, vertcur, horzprev=0, horzcur;
-        
+
         double dvertcur, dhorzcur, dvertfrac, dhorzfrac;
         double dvertfracup, dvertfracdown, dhorzfracleft, dhorzfracright;
         double dvertfracmid, dhorzfracmid;
-        
+
         size_t xnewindexleftdownfast, xindexleftdownmid, xindexleftdownslow;
         size_t xnewindexleftmidfast,  xindexleftmidmid,  xindexleftmidslow;
         size_t xnewindexleftupfast,   xindexleftupmid,   xindexleftupslow;
@@ -3146,54 +3158,54 @@ int cbf_extract_rotated_roi_2D(void        * src,
         size_t xnewindexrightdownfast,xindexrightdownmid,xindexrightdownslow;
         size_t xnewindexrightmidfast, xindexrightmidmid, xindexrightmidslow;
         size_t xnewindexrightupfast,  xindexrightupmid,  xindexrightupslow;
-        
-        
-        
+
+
+
         oldpos[2] = 0.;
-        
+
         for (indexmid = midlow; indexmid <= midhigh; indexmid++) {
-            
+
             oldpos[1]=((double)(indexmid)-center[1])*pixsize[1];
-            
+
             for (indexfast = fastlow; indexfast <= fasthigh; indexfast++) {
-                
+
                 oldpos[0]=((double)(indexfast)-center[0])*pixsize[0];
-                
+
                 cbf_failnez(cbf_mat33_vec(rotmat, oldpos, newpos));
-                
+
                 /* if (indexmid < 12 && indexfast < 12) {
                  fprintf(stderr,"indexfast, indexmid: %15.6g %15.6g, oldpos: %15.6g %15.6g %15.6g\n", indexfast, indexmid, oldpos[0], oldpos[1], oldpos[2]);
                  fprintf(stderr,"newfast, newmid: %15.6g %15.6g, newpos: %15.6g %15.6g %15.6g\n",
                  newpos[0]/pixsize[0]*newscale+center[0], newpos[1]/pixsize[1]*newscale+center[1], newpos[0], newpos[1], newpos[2]);
                  } */
-                
+
                 if (indexfast > fastlow) {
-                    
+
                     vertprev = vertcur;
-                    
+
                     horzprev = horzcur;
-                    
+
                 }
-                
+
                 /*  (dhorzcur, dvertcur) is the lower left corner of  the box
                  containing (horzcor, vertcur) */
-                
+
                 dhorzcur = newpos[0]/pixsize[0]*newscale+center[0];
-                
+
                 dvertcur = newpos[1]/pixsize[1]*newscale+center[1];
-                
+
                 horzcur=(ssize_t)(dhorzcur+0.5);
-                
+
                 vertcur=(ssize_t)(dvertcur+0.5);
-                
+
                 if (horzcur < fastlow) horzcur=fastlow;
-                
+
                 if (horzcur > fasthigh) horzcur=fasthigh;
-                
+
                 if (vertcur < midlow) vertcur=midlow;
-                
+
                 if (vertcur > midhigh) vertcur=midhigh;
-                
+
                 /* if dhorzcur is between horzcur-.5 and horzcor,  a fraction
                  of the value is donated to the left
                  if dhorzcur is between horzcur and horzcur+.5, a fraction
@@ -3202,64 +3214,64 @@ int cbf_extract_rotated_roi_2D(void        * src,
                  of the value is donated below
                  if dvertcur is between vertcur and vertcur+.5, a fraction
                  of the value os donated above
-                 
+
                  when the difference is 0, the  donated fraction is 0
                  when the magnitude of the difference is > .5, the donated
                  fraction is 1
                  */
-                
+
                 dhorzfrac=dhorzcur-(double)horzcur;
-                
+
                 if (dhorzfrac < 0.)  {
-                    
+
                     dhorzfracleft = -2.*dhorzfrac;
                     if (dhorzfracleft > 1.) dhorzfracleft =1.;
                     dhorzfracright = 0.;
                     dhorzfracmid = 1.-dhorzfracleft;
-                    
+
                 } else {
-                    
+
                     dhorzfracright = 2.*dhorzfrac;
                     if (dhorzfracright > 1.) dhorzfracright =1.;
                     dhorzfracleft = 0.;
                     dhorzfracmid = 1.-dhorzfracright;
-                    
+
                 }
-                
+
                 dvertfrac=dvertcur-(double)vertcur;
-                
+
                 if (dvertfrac < 0.)  {
-                    
+
                     dvertfracdown = -2.*dvertfrac;
                     if (dvertfracdown > 1.) dvertfracdown =1.;
                     dvertfracup = 0.;
                     dvertfracmid = 1.-dvertfracdown;
-                    
+
                 } else {
-                    
+
                     dvertfracup = 2.*dvertfrac;
                     if (dvertfracup > 1.) dvertfracup =1.;
                     dvertfracdown = 0.;
                     dvertfracmid = 1.-dvertfracup;
-                    
+
                 }
-                
+
                 /* dhorzfracleft = 0.;
                  dhorzfracright= 0.;
                  dvertfracup = 0.;
                  dvertfracdown = 0.; */
-                
-                
+
+
                 if (vertcur <  midlow || vertcur > midhigh || horzcur <  fastlow || horzcur > fasthigh) continue;
-                
+
                 if (indexfast == fastlow) {
-                    
+
                     vertprev = vertcur;
-                    
+
                     horzprev = horzcur;
-                    
+
                 }
-                
+
                 for (ii=0; ii<3; ii++) {
                     for (jj=0; jj<3; jj++) {
                         dhpos[ii][jj]=dhorzcur;
@@ -3270,13 +3282,13 @@ int cbf_extract_rotated_roi_2D(void        * src,
                             dvpos[ii][jj] = dvertcur+(double)(jj-1);
                     }
                 }
-                
+
                 index = indexfast +indexmid*dimfast+indexslow*dimfast*dimmid;
-                
+
                 newindex = horzcur +vertcur*dimfast+indexslow*dimfast*dimmid;
                 newindexlow = fastlow + midlow*dimfast+indexslow*dimfast*dimmid;
                 newindexhigh = fasthigh + midhigh*dimfast+indexslow*dimfast*dimmid;
-                
+
                 newindexleftdown = dhpos[0][0]+dvpos[0][0]*dimfast+indexslow*dimfast*dimmid;
                 newindexleftmid = dhpos[0][1]+dvpos[0][1]*dimfast+indexslow*dimfast*dimmid;
                 newindexleftup = dhpos[0][2]+dvpos[0][2]*dimfast+indexslow*dimfast*dimmid;
@@ -3285,7 +3297,7 @@ int cbf_extract_rotated_roi_2D(void        * src,
                 newindexrightdown = dhpos[2][0]+dvpos[2][0]*dimfast+indexslow*dimfast*dimmid;
                 newindexrightmid = dhpos[2][1]+dvpos[2][1]*dimfast+indexslow*dimfast*dimmid;
                 newindexrightup = dhpos[2][2]+dvpos[2][2]*dimfast+indexslow*dimfast*dimmid;
-                
+
                 if (newindexleftdown < newindexlow) newindexleftdown = newindexlow;
                 if (newindexleftmid < newindexlow) newindexleftmid = newindexlow;
                 if (newindexleftup < newindexlow) newindexleftup = newindexlow;
@@ -3294,7 +3306,7 @@ int cbf_extract_rotated_roi_2D(void        * src,
                 if (newindexrightdown < newindexlow) newindexrightdown = newindexlow;
                 if (newindexrightmid < newindexlow) newindexrightmid = newindexlow;
                 if (newindexrightup < newindexlow) newindexrightup = newindexlow;
-                
+
                 if (newindexleftdown > newindexhigh) newindexleftdown = newindexhigh;
                 if (newindexleftmid > newindexhigh) newindexleftmid = newindexhigh;
                 if (newindexleftup > newindexhigh) newindexleftup = newindexhigh;
@@ -3303,7 +3315,7 @@ int cbf_extract_rotated_roi_2D(void        * src,
                 if (newindexrightdown > newindexhigh) newindexrightdown = newindexhigh;
                 if (newindexrightmid > newindexhigh) newindexrightmid = newindexhigh;
                 if (newindexrightup > newindexhigh) newindexrightup = newindexhigh;
-                
+
                 cbf_failnez(cbf_convert_index(newindexleftdown, dimfast, dimmid, dimslow, &xnewindexleftdownfast, &xindexleftdownmid, &xindexleftdownslow));
                 cbf_failnez(cbf_convert_index(newindexleftmid,  dimfast, dimmid, dimslow, &xnewindexleftmidfast,  &xindexleftmidmid,  &xindexleftmidslow));
                 cbf_failnez(cbf_convert_index(newindexleftup,   dimfast, dimmid, dimslow, &xnewindexleftupfast,   &xindexleftupmid,   &xindexleftupslow));
@@ -3312,9 +3324,9 @@ int cbf_extract_rotated_roi_2D(void        * src,
                 cbf_failnez(cbf_convert_index(newindexrightdown,dimfast, dimmid, dimslow, &xnewindexrightdownfast,&xindexrightdownmid,&xindexrightdownslow));
                 cbf_failnez(cbf_convert_index(newindexrightmid, dimfast, dimmid, dimslow, &xnewindexrightmidfast, &xindexrightmidmid, &xindexrightmidslow));
                 cbf_failnez(cbf_convert_index(newindexrightup,  dimfast, dimmid, dimslow, &xnewindexrightupfast,  &xindexrightupmid,  &xindexrightupslow));
-                
+
                 /* if (indexfast< 12 && indexmid < 12)
-                 
+
                  {
                  fprintf(stderr,"newindexleftdown, xnewindexleftdownfast, xindexleftdownmid, xindexleftdownslow: %15.6g %15.6g %15.6g %15.6g\n",
                  (double)newindexleftdown, (double)xnewindexleftdownfast, (double)xindexleftdownmid, (double)xindexleftdownslow);
@@ -3332,35 +3344,35 @@ int cbf_extract_rotated_roi_2D(void        * src,
                  (double)newindexrightmid, (double)xnewindexrightmidfast, (double)xindexrightmidmid, (double)xindexrightmidslow);
                  fprintf(stderr,"newindexrightup, xnewindexrightupfast, xindexrightupmid, xindexrightupslow: %15.6g %15.6g %15.6g %15.6g\n",
                  (double)newindexrightup, (double)xnewindexrightupfast, (double)xindexrightupmid, (double)xindexrightupslow);
-                 
+
                  fprintf(stderr," orig pos(%15.6g,%15.6g), "
-                 
+
                  " cur pos(%15.6g,%15.6g)\n", (double)indexfast, (double)indexmid, (double)horzcur, (double)vertcur);
-                 
+
                  fprintf(stderr, "index, newindex, newindexleftdown, newindexleftmid, newindexleftup, "
-                 
+
                  " newindexmiddown, newindexmidup, newindexrightdown, newindexrightmid, newindexrightup: "
-                 
+
                  " %15.6g, %15.6g, %15.6g, %15.6g, %15.6g, %15.6g, %15.6g, %15.6g, %15.6g, %15.6g\n",
-                 
+
                  (double)index, (double)newindex, (double)newindexleftdown, (double)newindexleftmid, (double)newindexleftup,
-                 
+
                  (double)newindexmiddown, (double)newindexmidup, (double)newindexrightdown, (double)newindexrightmid, (double)newindexrightup);
-                 
-                 
+
+
                  }
                  */
-                
+
                 /* if (index != newindex && abs(index-newindex) > 20000) {
-                 
+
                  fprintf(stderr," orig pos(%15.6g,%15.6g), "
-                 
+
                  "cur pos(%15.6g,%15.6g)\n", (double)indexfast, (double)indexmid, (double)horzcur, (double)vertcur);
-                 
+
                  } */
-                
+
                 if (real) {
-                    
+
                     if (sizeof(double)==elsize) {
                         dvalue=((double *)src)[index];
                         if (vertprev <= vertcur+1 && vertprev+1 >= vertcur && horzprev <= horzcur+1 && horzprev+1 >= horzcur) {
@@ -3556,9 +3568,9 @@ int cbf_extract_rotated_roi_2D(void        * src,
                             }
                         }
                     } else return CBF_ARGUMENT;
-                    
+
                 } else {
-                    
+
                     if (elsigned && sizeof(char) == elsize ) {
                         cvalue=((char *)src)[index];
                         dvalue=(double)cvalue;
@@ -3668,7 +3680,7 @@ int cbf_extract_rotated_roi_2D(void        * src,
             }
         }
     }
-    
+
     return CBF_SUCCESS;
 }
 

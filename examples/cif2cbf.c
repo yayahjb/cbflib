@@ -1611,6 +1611,9 @@ int main (int argc, char *argv [])
                 "    [--{roi|region-of-interest}\n"
                 "    fastlow,fasthigh[[,midlow,midhigh[,slowlow,slowhigh]]] \\\n");
         fprintf(stderr,
+                "    [--{bin|binning} binratio\n"
+                "    [,modulefast,moduleslow,gapfast,gapslow]]\\\n");
+        fprintf(stderr,
                 "    [--{xdsb2z|rotate-xds-beam-to-z}\n"
                 "    beamx[,beamy[,beamz[,beamcentx[,beamcenty[,beamcentz]]]]] \\\n");
         fprintf(stderr,
