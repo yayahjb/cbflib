@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_copy.c -- cbflib copy functions                                *
  *                                                                    *
- * Version 0.9.8 30 May 2023                                          *
+ * Version 0.9.8 20 October 2023                                      *
  *                                                                    *
  * (C) Copyright 2010 Herbert J. Bernstein                            *
  *                                                                    *
@@ -481,6 +481,8 @@ extern "C" {
 
                     if ((array=malloc(elsize*elements))) {
 
+                        memset(array,0,elsize*elements);
+
                         cbf_failnez (cbf_select_column(cbfout,colnum))
 
                         if (!realarray)  {
@@ -942,6 +944,8 @@ extern "C" {
 
                 size_t xelsize;
 
+                memset(array,0,oelsize*elements);
+
                 nelsize = oelsize;
 
                 if (elsize != 0) nelsize = elsize;
@@ -987,6 +991,7 @@ extern "C" {
 
                         if (!binoi) {
                             roi_array=malloc(oelsize*(fasthigh-fastlow+1)*(midhigh-midlow+1)*(slowhigh-slowlow+1));
+                            memset(roi_array,0,oelsize*(fasthigh-fastlow+1)*(midhigh-midlow+1)*(slowhigh-slowlow+1));
                             cbf_failnez(cbf_extract_roi(array,
                                                         roi_array,
                                                         elsize,
@@ -1001,6 +1006,7 @@ extern "C" {
                                                         dimslow));
                         } else {
                             roi_array=malloc(oelsize*(bndfasthigh-bndfastlow+1)*(bndmidhigh-bndmidlow+1)*(bndslowhigh-bndslowlow+1));
+                            memset(roi_array,0,oelsize*(bndfasthigh-bndfastlow+1)*(bndmidhigh-bndmidlow+1)*(bndslowhigh-bndslowlow+1));
                             cbf_failnez(cbf_extract_roi_binoi(array,
                                                               roi_array,
                                                               elsize,
@@ -1118,6 +1124,7 @@ extern "C" {
                             size_t icount;
                             int innarray;
 
+                            memset(narray,0,nelsize*elements);
                             if (nelunsigned) {
                                 minval = 0.;
                                 switch( nelsize )  {
@@ -1734,6 +1741,8 @@ extern "C" {
 
                     }
 
+                    memset(roi_array,0,oelsize*(fasthigh-fastlow+1)*(midhigh-midlow+1)*(slowhigh-slowlow+1));
+
                     cbf_failnez(cbf_extract_roi(array,
                                                 roi_array,
                                                 elsize,
@@ -1781,6 +1790,8 @@ extern "C" {
                     double valtemp;
 
                     if ((narray=malloc(nelsize*elements))) {
+
+                        memset(narray,0,nelsize*elements);
 
                         if (cliplow < cliphigh) {
 
@@ -2675,8 +2686,8 @@ int cbf_convertbinoi(char *binoi,
     }
     while (*str && isspace(*str)) str++;
     if (*str != ',') {
-        xgapmid = (size_t)strtol(str,&endptr,0);
-        if(gapmid) *gapmid = xgapmid;
+        xgapfast = (size_t)strtol(str,&endptr,0);
+        if(gapfast) *gapfast = xgapfast;
         if (*endptr == '\0') return CBF_SUCCESS;
         if (*endptr != ',' && *endptr != ' ') return CBF_FORMAT;
         str = endptr+1;
@@ -2685,8 +2696,8 @@ int cbf_convertbinoi(char *binoi,
     }
     while (*str && isspace(*str)) str++;
     if (*str != ',') {
-        xgapfast = (size_t)strtol(str,&endptr,0);
-        if(gapfast) *gapfast = xgapfast;
+        xgapmid = (size_t)strtol(str,&endptr,0);
+        if(gapmid) *gapmid = xgapmid;
         if (*endptr == '\0') return CBF_SUCCESS;
         if (*endptr != ',' && *endptr != ' ') return CBF_FORMAT;
         str = endptr+1;
@@ -2770,28 +2781,23 @@ int cbf_extract_roi(void        * src,
 #define proc_extract(type,zero)                                                                    {\
     type * binned;                                                                                  \
     type * rawel;                                                                                   \
-    binned = ( type *)dst;                                                                          \
-    rawel = ( type *)src;                                                                           \
+    binned = ( type * )dst;                                                                         \
+    rawel = ( type * )src;                                                                          \
     for (indexslow = slowlow; indexslow <= slowhigh; indexslow++) {                                 \
         slowmodoff=indexslow%modszslow;                                                             \
-        slowbinoff=indexslow%binratio;                                                              \
-        indexbinslow=(indexslow+binratio-1)/binratio-(slowlow+binratio-1)/binratio;                 \
+        indexbinslow=(size_t)((indexslow+binratio-1)/binratio)                                      \
+                     -(size_t)((slowlow+binratio-1)/binratio);                                      \
         for (indexmid = midlow; indexmid <= midhigh; indexmid++) {                                  \
             midmodoff=indexmid%modszmid;                                                            \
-            midbinoff=indexmid%binratio;                                                            \
-            indexbinmid=(indexmid+binratio-1)/binratio-(midlow+binratio-1)/binratio;                \
+            indexbinmid=(size_t)((indexmid+binratio-1)/binratio)                                    \
+                        -(size_t)((midlow+binratio-1)/binratio);                                    \
             for (indexfast = fastlow; indexfast <= fasthigh; indexfast++) {                         \
                 fastmodoff=indexfast%modszfast;                                                     \
-                fastbinoff=indexfast%binratio;                                                      \
-                indexbinfast=(indexfast+binratio-1)/binratio-(fastlow+binratio-1)/binratio;         \
-                if ( (indexfast==fastlow && indexmid==midlow && indexslow==slowlow)                 \
-                    || (fastbinoff==0 && midbinoff==0 && slowbinoff==0)) {                          \
-                    binned[indexbinfast+(bndfasthigh-bndfastlow-1)*indexbinmid                     \
-                      +(bndfasthigh-bndfastlow+1)*(bndmidhigh-bndmidlow+1)*indexbinslow] = (zero);\
-                }                                                                                   \
+                indexbinfast=(size_t)((indexfast+binratio-1)/binratio)                              \
+                             -(size_t)((fastlow+binratio-1)/binratio);                              \
                 if (slowmodoff < moduleslow && midmodoff < modulemid  && fastmodoff < modulefast) { \
-                    binned[indexbinfast+(bndfasthigh-bndfastlow-1)*indexbinmid                     \
-                    +       (bndfasthigh-bndfastlow+1)*(bndmidhigh-bndmidlow+1)*indexbinslow] +=  \
+                    binned[indexbinfast+(bndfasthigh-bndfastlow+1)*indexbinmid                      \
+                    +       (bndfasthigh-bndfastlow+1)*(bndmidhigh-bndmidlow+1)*indexbinslow] +=    \
                     rawel[indexfast + dimfast*indexmid + dimfast*dimmid*indexslow];                 \
                 }                                                                                   \
             }                                                                                       \
@@ -2862,7 +2868,7 @@ int cbf_extract_roi_binoi(void        * src,
         || fasthigh >= dimfast
         || midhigh < midlow
         || midhigh >= dimmid
-        || slowhigh > slowlow
+        || slowhigh < slowlow
         || slowhigh >= dimslow
         || bndfasthigh < bndfastlow
         || bndfasthigh >= dimfast+binratio-1/binratio
@@ -2876,7 +2882,7 @@ int cbf_extract_roi_binoi(void        * src,
     size_t fastmodoff, fastbinoff, midmodoff, midbinoff, slowmodoff, slowbinoff;
 
     if (realarray) {
-        if (elsize == sizeof (float) ){
+        if (elsize == sizeof (float) ) {
             proc_extract( float , 0. );
         } else if (elsize == sizeof (double) ) {
             proc_extract( double , 0. );
