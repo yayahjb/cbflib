@@ -2839,7 +2839,7 @@ ifneq ($(F90C),)
 endif
 	$(LDPREFIX)  $(TIME) $(BIN)/sauter_test
 	$(LDPREFIX)  $(TIME) $(BIN)/changtestcompression
-	$(LDPREFIX)  $(TIME) $(BIN)/tiff2cbf XRD1621.tif XRD1621.cbf
+	$(LDPREFIX)  $(TIME) $(BIN)/tiff2cbf -cn XRD1621.tif XRD1621.cbf
 	-cat XRD1621_orig.cbf | sed "2,2s/0.9.6/0.9.7/" | diff -a - XRD1621.cbf
 	#-$(DIFF) XRD1621.cbf XRD1621_orig.cbf
 	$(LDPREFIX)  $(TIME) $(BIN)/cif2cbf -I 4 -C 100. -L 0. -e n -c b -i XRD1621.cbf -o XRD1621_I4encbC100.cbf
