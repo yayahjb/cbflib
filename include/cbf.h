@@ -250,7 +250,9 @@
 #ifndef CBF_H
 #define CBF_H
 
+#ifdef USE_HDF5
 #include "hdf5.h"
+#endif
 
 #ifdef __cplusplus
 
