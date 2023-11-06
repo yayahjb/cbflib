@@ -90,6 +90,7 @@ static void usage( void )
     fprintf(stderr,"\t--beam_center_mosflm		Beam center in ADSC header: MOSFLM coordinates.\n");
     fprintf(stderr,"\t--beam_center_ulhc		Beam center in ADSC header: origin: upper left hand corner of image.(HKL mm)\n");
     fprintf(stderr,"\t--beam_center_llhc		Beam center in ADSC header: origin: lower left hand corner of image.(adxv mm)\n");
+    fprintf(stderr,"\t--reverse                         Rotation axis points in opposite direction to fast pixel direction on detector");
     fprintf(stderr,"\t--region-of-interest=fastlow,fasthigh,slowlow,slowhigh\n");
     fprintf(stderr,"\t                          Region of interest to map to CBF\n");
     fprintf(stderr,"\t--sensor-thickness=0.00000000\n");
@@ -142,7 +143,8 @@ int adscimg2cbf_sub2(char *header,
                      const char *cliphighstr,
                      const char *rad_smoothstr,
                      int transpose,
-                     int interleave);
+                     int interleave,
+                     int reverse);
 
 
 int	main(int argc, char *argv[])
@@ -171,6 +173,7 @@ int	main(int argc, char *argv[])
     int     bin=0;
     int     transpose=0;
     int     interleave=0;
+    int     reverse=1;
     int     *new_int_data, *old_int_data;
     size_t  new_int_data_size, old_int_data_size;
     double  thickness=0.;
@@ -194,7 +197,7 @@ int	main(int argc, char *argv[])
 					".img.Z",
 					NULL
 				     };
-    static char	*flags[32] = {
+    static char	*flags[33] = {
 					"--cbf_byte_offset",            /* 0 */
 					"--cbf_packed_v2",              /* 1 */
 					"--cbf_packed",                 /* 2 */
@@ -226,6 +229,7 @@ int	main(int argc, char *argv[])
                     "--output",                     /*28 */
                     "--transpose",                  /*29 */
                     "--interleave",                 /*30 */
+                    "--reverse",                    /*31 */
 					NULL
 				   };
 
@@ -374,6 +378,9 @@ int	main(int argc, char *argv[])
                     } else {
                         interleave = atoi(argval[1]);
                     }
+                    break;
+                case 31:
+                    reverse = -1;
                     break;
 
             }
@@ -628,7 +635,8 @@ int	main(int argc, char *argv[])
                                           cliphighstr,
                                           rad_smoothstr,
                                           transpose,
-                                          interleave);
+                                          interleave,
+                                          reverse);
             free(hptr);
             if (old_int_data && old_int_data_size) free(old_int_data);
             old_int_data = new_int_data;
