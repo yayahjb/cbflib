@@ -284,12 +284,11 @@ CBF_PREFIX  ?= $(HOME)
 CLEANTESTS = yes
 
 
-MSYS2=no
-CBFLIB_DONT_USE_LOCAL_HDF5?=no
-CBFLIB_DONT_USE_LZ4?=no
-CBFLIB_DONT_USE_BSHUF?=no
-CBFLIB_DONT_USE_ZSTD?=no
-
+MSYS2=yes
+CBFLIB_DONT_USE_LOCAL_HDF5?=yes
+CBFLIB_DONT_USE_LZ4?=yes
+CBFLIB_DONT_USE_BSHUF?=yes
+CBFLIB_DONT_USE_ZSTD?=yes
 
 CBFLIB_DONT_USE_LOCAL_NUWEB ?= no
 ifeq ($(CBFLIB_DONT_USE_LOCAL_NUWEB),yes)
@@ -700,16 +699,14 @@ endif
 
 #########################################################
 #
-#  Appropriate compiler definitions for default (Linux)
+#  Appropriate compiler definitions for MSYS2
 #
 #########################################################
+
 CC	= gcc
 C++	= g++
-ifneq ($(CBFDEBUG),)
-CFLAGS  = -g -O0 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing -DCBFDEBUG=1  $(HDF5CFLAGS)
-else
-CFLAGS  = -g -O3 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing  $(HDF5CFLAGS)
-endif
+CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -DH5_HAVE_WIN32_API \
+  -DH5_HAVE_MINGW -DH5_USE_110_API -fno-strict-aliasing  $(HDF5CFLAGS)
 LDFLAGS =
 F90C = gfortran
 #F90FLAGS = -g -fno-range-check -fallow-invalid-boz
@@ -718,15 +715,13 @@ F90LDFLAGS =
 SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(CBF_PREFIX)/lib
 JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
-ifeq ($(HDF5_PREFIX),)
-LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$(LIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
-RUNLDPREFIX = LD_LIBRARY_PATH=$(CBF_PREFIX)/LIB:$(LIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
-else
-LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$(HDF5_PREFIX)/lib:$(LIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
-RUNLDPREFIX = LD_LIBRARY_PATH=$(CBF_PREFIX)/LIB:$(HDF5_PREFIX)/lib:$(LIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
-endif
-EXTRALIBS = -lm
+LDPREFIX = PATH=$(SOLIB):$$PATH;export PATH;
+RUNLDPREFIX = PATH=$(CBF_PREFIX)/lib:$$PATH;export PATH;
+EXTRALIBS = -L/mingw32/bin -lm -lws2_32
 M4FLAGS = -Dfcb_bytes_in_rec=131072
+PYTHON = python2
+PY2CBFEXT = pyd
+PY3CBFEXT = pyd
 TIME = time
 
 ifneq ($(NOFORTRAN),)
@@ -1141,7 +1136,7 @@ SO_LIB_F90CBF = $(SO_PREFIX)f90cbf.$(SO_EXT)
 SO_LIB__CBF = $(SO_PREFIX)_cbf.$(SO_EXT)
 SO_LIB__IMG = $(SO_PREFIX)_img.$(SO_EXT)
 SO_LIB__FCB = $(SO_PREFIX)_fcb.$(SO_EXT)
-SO_LIB__F90CBF = $(SO_PREFIX)_f90cbf.$(SO_EXT)
+SO_LIB__F90CB = $(SO_PREFIX)_f90cbf.$(SO_EXT)
 
 shared:	$(SOLIB)/$(SO_LIB_CBF) $(SOLIB)/$(SO_LIB_IMG) $(SOLIB)/$(SO_LIB_FCB) $(SOLIB)/$(SO_LIB_F90CBF)
 

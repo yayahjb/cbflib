@@ -1510,7 +1510,7 @@ SO_LIB_F90CBF = $(SO_PREFIX)f90cbf.$(SO_EXT)
 SO_LIB__CBF = $(SO_PREFIX)_cbf.$(SO_EXT)
 SO_LIB__IMG = $(SO_PREFIX)_img.$(SO_EXT)
 SO_LIB__FCB = $(SO_PREFIX)_fcb.$(SO_EXT)
-SO_LIB__F90CB = $(SO_PREFIX)_f90cbf.$(SO_EXT)
+SO_LIB__F90CBF = $(SO_PREFIX)_f90cbf.$(SO_EXT)
 
 shared:	$(SOLIB)/$(SO_LIB_CBF) $(SOLIB)/$(SO_LIB_IMG) $(SOLIB)/$(SO_LIB_FCB) $(SOLIB)/$(SO_LIB_F90CBF)
 
@@ -1671,14 +1671,16 @@ baseinstall:  all $(CBF_PREFIX) $(CBF_PREFIX)/lib $(CBF_PREFIX)/bin \
 	$(LN) $(CBF_PREFIX)/lib/$(SO_LIB_IMG) $(CBF_PREFIX)/lib/$(SO_LIB__IMG)
 	-chmod 755 $(CBF_PREFIX)/lib/$(SO_LIB_FCB)
 	-cp $(CBF_PREFIX)/lib/$(SO_LIB_FCB) $(CBF_PREFIX)/lib/$(SO_LIB_FCB)_old
-	-chmod 755 $(CBF_PREFIX)/lib/$(SO_LIB_F90CBF)
-	-cp $(CBF_PREFIX)/lib/$(SO_LIB_F90CBF) $(CBF_PREFIX)/lib/$(SO_LIB_F90CBF)_old
 	cp $(SOLIB)/$(SO_LIB_FCB) $(CBF_PREFIX)/lib/
 	$(LN) $(CBF_PREFIX)/lib/$(SO_LIB_FCB) $(CBF_PREFIX)/lib/$(SO_LIB__FCB)
+	-chmod 755 $(CBF_PREFIX)/lib/$(SO_LIB_IMG)
+	-cp $(CBF_PREFIX)/lib/$(SO_LIB_IMG) $(CBF_PREFIX)/lib/$(SO_LIB_IMG)_old
+	cp $(SOLIB)/$(SO_LIB_IMG) $(CBF_PREFIX)/lib/
+	$(LN) $(CBF_PREFIX)/lib/$(SO_LIB_IMG) $(CBF_PREFIX)/lib/$(SO_LIB__IMG)
+	-chmod 755 $(CBF_PREFIX)/lib/$(SO_LIB_F90CBF)
+	-cp $(CBF_PREFIX)/lib/$(SO_LIB_F90CBF) $(CBF_PREFIX)/lib/$(SO_LIB_F90CBF)_old
 	cp $(SOLIB)/$(SO_LIB_F90CBF) $(CBF_PREFIX)/lib/
 	$(LN) $(CBF_PREFIX)/lib/$(SO_LIB_F90CBF) $(CBF_PREFIX)/lib/$(SO_LIB__F90CBF)
-	-cp $(CBF_PREFIX)/bin/cbflib.ini $(CBF_PREFIX)/bin/cbflib.ini_old
-	echo  "$(RUNLDPREFIX)" > $(CBF_PREFIX)/bin/cbflib.ini
 	echo  "HDF5_PLUGIN_PATH=$(CBF_PREFIX)/lib:$$HDF5_PLUGIN_PATH" >> $(CBF_PREFIX)/bin/cbflib.ini
 	echo  "export HDF5_PLUGIN_PATH" >> $(CBF_PREFIX)/bin/cbflib.ini
 	-cp $(CBF_PREFIX)/bin/adscimg2cbf $(CBF_PREFIX)/bin/adscimg2cbf_old

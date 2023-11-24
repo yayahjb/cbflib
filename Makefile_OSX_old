@@ -700,34 +700,28 @@ endif
 
 #########################################################
 #
-#  Appropriate compiler definitions for default (Linux)
+#  Appropriate compiler definitions for MAC OS X
+#  Also change defintion of DOWNLOAD
 #
 #########################################################
 CC	= gcc
 C++	= g++
-ifneq ($(CBFDEBUG),)
-CFLAGS  = -g -O0 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing -DCBFDEBUG=1  $(HDF5CFLAGS)
-else
-CFLAGS  = -g -O3 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing  $(HDF5CFLAGS)
-endif
+CFLAGS  = -g -O2 -Wall -std=c99 -pedantic $(HDF5CFLAGS)
 LDFLAGS =
 F90C = gfortran
 #F90FLAGS = -g -fno-range-check -fallow-invalid-boz
-F90FLAGS = -g -fno-range-check
-F90LDFLAGS = 
+F90FLAGS = -g -fno-range-check 
+F90LDFLAGS = -bind_at_load
 SOCFLAGS = -fPIC
-SOLDFLAGS = -shared -Wl,-rpath,$(CBF_PREFIX)/lib
-JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
-ifeq ($(HDF5_PREFIX),)
-LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$(LIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
-RUNLDPREFIX = LD_LIBRARY_PATH=$(CBF_PREFIX)/LIB:$(LIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
-else
-LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$(HDF5_PREFIX)/lib:$(LIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
-RUNLDPREFIX = LD_LIBRARY_PATH=$(CBF_PREFIX)/LIB:$(HDF5_PREFIX)/lib:$(LIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
-endif
+SOLDFLAGS = -dynamiclib -Wl,-rpath,$(CBF_PREFIX)/lib
+JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/darwin
+LDPREFIX = DYLD_LIBRARY_PATH=$(SOLIB):$$DYLD_LIBRARY_PATH;export DYLD_LIBRARY_PATH;
+RUNLDPREFIX = DYLD_LIBRARY_PATH=$(CBF_PREFIX)/lib:$$DYLD_LIBRARY_PATH;export DYLD_LIBRARY_PATH;
 EXTRALIBS = -lm
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time
+DOWNLOAD = /sw/bin/wget -N
+SO_EXT = dylib
 
 ifneq ($(NOFORTRAN),)
 F90C =
@@ -1141,7 +1135,7 @@ SO_LIB_F90CBF = $(SO_PREFIX)f90cbf.$(SO_EXT)
 SO_LIB__CBF = $(SO_PREFIX)_cbf.$(SO_EXT)
 SO_LIB__IMG = $(SO_PREFIX)_img.$(SO_EXT)
 SO_LIB__FCB = $(SO_PREFIX)_fcb.$(SO_EXT)
-SO_LIB__F90CBF = $(SO_PREFIX)_f90cbf.$(SO_EXT)
+SO_LIB__F90CB = $(SO_PREFIX)_f90cbf.$(SO_EXT)
 
 shared:	$(SOLIB)/$(SO_LIB_CBF) $(SOLIB)/$(SO_LIB_IMG) $(SOLIB)/$(SO_LIB_FCB) $(SOLIB)/$(SO_LIB_F90CBF)
 

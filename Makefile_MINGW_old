@@ -700,34 +700,44 @@ endif
 
 #########################################################
 #
-#  Appropriate compiler definitions for default (Linux)
+#  Appropriate compiler definitions for Mingw
+#  Also change from symlinks to copies and
+#  use default paths for utilities
 #
 #########################################################
 CC	= gcc
 C++	= g++
-ifneq ($(CBFDEBUG),)
-CFLAGS  = -g -O0 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing -DCBFDEBUG=1  $(HDF5CFLAGS)
-else
-CFLAGS  = -g -O3 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing  $(HDF5CFLAGS)
-endif
+CFLAGS  = -g -O2 -Wall -I/usr/include -fno-strict-aliasing  $(HDF5CFLAGS)
 LDFLAGS =
-F90C = gfortran
-#F90FLAGS = -g -fno-range-check -fallow-invalid-boz
-F90FLAGS = -g -fno-range-check
+F90C = g95
+F90FLAGS = -g
 F90LDFLAGS = 
-SOCFLAGS = -fPIC
-SOLDFLAGS = -shared -Wl,-rpath,$(CBF_PREFIX)/lib
-JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
-ifeq ($(HDF5_PREFIX),)
-LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$(LIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
-RUNLDPREFIX = LD_LIBRARY_PATH=$(CBF_PREFIX)/LIB:$(LIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
-else
-LDPREFIX = LD_LIBRARY_PATH=$(SOLIB):$(HDF5_PREFIX)/lib:$(LIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
-RUNLDPREFIX = LD_LIBRARY_PATH=$(CBF_PREFIX)/LIB:$(HDF5_PREFIX)/lib:$(LIB):$$LD_LIBRARY_PATH;export LD_LIBRARY_PATH;
-endif
+M4FLAGS = -Dfcb_bytes_in_rec=4096
+LDPREFIX = PATH=$(SOLIB):$$PATH;export PATH;
+RUNLDPREFIX = PATH=$(CBF_PREFIX)/lib:$$PATH;export PATH;
+SOCFLAGS = -D_JNI_IMPLEMENTATION_
+SOLDFLAGS = -shared -Wl,--kill-at
+JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/win32
 EXTRALIBS = -lm
-M4FLAGS = -Dfcb_bytes_in_rec=131072
-TIME = time
+TIME =
+PY2CBFEXT = pyd
+PY2CBFBOPT = --compiler=mingw32
+PY3CBFEXT = pyd
+PY3CBFBOPT = --compiler=mingw32
+SETUP_PY = setup_MINGW.py
+PY2INSTALLSETUP_PY = py2setup_MINGW.py
+PY3INSTALLSETUP_PY = py3setup_MINGW.py
+JDKDIR = /java
+JSWIG = /swig/swig -java
+PYSWIG = /swig/swig -python
+F90SWIG = /swig/swig -fortran
+SLFLAGS = --use_cp
+LN = cp
+SHAR	= shar
+AR		=  ar
+RANLIB  =  ranlib
+SO_PREFIX =
+SO_EXT = dll
 
 ifneq ($(NOFORTRAN),)
 F90C =
@@ -1141,7 +1151,7 @@ SO_LIB_F90CBF = $(SO_PREFIX)f90cbf.$(SO_EXT)
 SO_LIB__CBF = $(SO_PREFIX)_cbf.$(SO_EXT)
 SO_LIB__IMG = $(SO_PREFIX)_img.$(SO_EXT)
 SO_LIB__FCB = $(SO_PREFIX)_fcb.$(SO_EXT)
-SO_LIB__F90CBF = $(SO_PREFIX)_f90cbf.$(SO_EXT)
+SO_LIB__F90CB = $(SO_PREFIX)_f90cbf.$(SO_EXT)
 
 shared:	$(SOLIB)/$(SO_LIB_CBF) $(SOLIB)/$(SO_LIB_IMG) $(SOLIB)/$(SO_LIB_FCB) $(SOLIB)/$(SO_LIB_F90CBF)
 
