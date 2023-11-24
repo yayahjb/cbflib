@@ -1,12 +1,12 @@
 /**********************************************************************
  *          cif2cbf -- convert a cif to a cbf file                    *
  *                                                                    *
- * Version 0.9.8  25 May 2023                                         *
+ * Version 0.9.8  13 October 2023                                     *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  *                                                                    *
- * (C) Copyright 2006 -- 2015 Herbert J. Bernstein                    *
+ * (C) Copyright 2006 -- 2023 Herbert J. Bernstein                    *
  *                                                                    *
  **********************************************************************/
 
@@ -72,6 +72,8 @@
  *    [--{foi|frames-of-interest}  frame[,framehigh] \                *
  *    [--{roi|region-of-interest} fastlow,fasthigh\                   *
  *                              [,midlow,midhigh[,slowlow,slowhigh]] \*
+ *    [--{bin|binning} binratio                                       *
+ *                          [,modulefast,moduleslow,gapfast,gapslow]]\*
  *    [--add-update-data] \                                           *
  *    [--subtract-update-data] \                                      *
  *    [--merge-datablocks-by-number] \                                *
@@ -222,6 +224,14 @@
  *  --region-of-interest  ...                                         *
  *     synonym for roi                                                *
  *                                                                    *
+ *  --bin binratio                                                    *
+ *  --bin binratio,modulefast,moduleslow,gapfast,gapslow              *
+ *    sums data into bins orrecting for modules of size               *
+ *    modulefast by moduleslow with gaps gapfast by gapslow           *
+ *                                                                    *
+ * --binning ...                                                      *
+ *    synonym for bin                                                 *
+ *                                                                    *
  *  --add-update-data                                                 *
  *  --subtract-update-data                                            *
  *     if an update cbf with data is provided via the -u option       *
@@ -238,8 +248,8 @@
  *     when merging an update cif, align datablocks by their names    *
  *     rather than by their ordinals                                  *
  *                                                                    *
- *  --xdsb2z|rotate-xds-beam-to-z beamx,beamy,beamz,                        *
- *     beamcentx,beamcenty,beamcentz                                  
+ *  --xdsb2z|rotate-xds-beam-to-z beamx,beamy,beamz,                  *
+ *     beamcentx,beamcenty,beamcentz                                  * 
  *    assume the beam is along [beamx, beamy, beamz] relative to the  *
  *    image and rotate the image so that the beam is along [0,0,-1]   *
  *                                                                    *
@@ -836,6 +846,9 @@ int main (int argc, char *argv [])
     const char *eoi;  /* elements of interest */
     const char *foi;  /* frames of interest */
     const char *roi;  /* region of interest */
+    const char *binoi; /* bin of interest */
+    int binratio; /* ratio by which to sum pixels into bins */
+    int modulefast,modulemid,moduleslow,gapfast,gapmid,gapslow;
     const char *beamcoords; /* beam axis vector */
     unsigned int colnum, rownum;
     unsigned int columns;
@@ -885,6 +898,7 @@ int main (int argc, char *argv [])
      *    [--{eoi|elements-of-interest} element[,elementhigh] \           *
      *    [--{foi|frames-of-interest}  frame[,framehigh] \                *
      *    [--{roi|region-of-interest}  fastlow,fasthigh,.... \            *
+     *    [--{bin|binning}  binratio,.... \                               *
      *    [--add-update-data] \                                           *
      *    [--subtract-update-data] \                                      *
      *    [--merge-datablocks-by-number] \                                *
@@ -921,6 +935,12 @@ int main (int argc, char *argv [])
     eoi = NULL;
     foi = NULL;
     roi = NULL;
+    binoi = NULL;
+    binratio = 0;
+    modulefast = 0;
+    moduleslow = 0;
+    gapfast = 0;
+    gapslow = 0;
     beamcoords = NULL;
     ciftmpused = 0;
     testconstruct = 0;
@@ -963,7 +983,8 @@ int main (int argc, char *argv [])
                                  "\022(subtract-update-data)" \
                                  "\023(merge-datablocks-by-number)" \
                                  "\024(merge-datablocks-by-name)" \
-                                 "\025(rotate-xds-beam-to-z):\025(xdsb2z):"
+                                 "\025(rotate-xds-beam-to-z):\025(xdsb2z):"\
+                                 "\026(bin):\026(binning):"
                                  ));
 
     if (!cbf_rewind_getopt_option(opts))
@@ -1332,6 +1353,11 @@ int main (int argc, char *argv [])
                      beamx,beamy,beamz,beamcentx,beamcenty,beamcentz); */
                     break;
 
+                case '\026': /*set up binning */
+                    if (binoi) errflg++;
+                    binoi = optarg;
+                    break;
+
                 case 'O': /* set Opaque mode */
                     if (opaquemode) errflg++;
                     opaquemode = 1;
@@ -1584,6 +1610,9 @@ int main (int argc, char *argv [])
         fprintf(stderr,
                 "    [--{roi|region-of-interest}\n"
                 "    fastlow,fasthigh[[,midlow,midhigh[,slowlow,slowhigh]]] \\\n");
+        fprintf(stderr,
+                "    [--{bin|binning} binratio\n"
+                "    [,modulefast,moduleslow,gapfast,gapslow]]\\\n");
         fprintf(stderr,
                 "    [--{xdsb2z|rotate-xds-beam-to-z}\n"
                 "    beamx[,beamy[,beamz[,beamcentx[,beamcenty[,beamcentz]]]]] \\\n");
@@ -2003,7 +2032,7 @@ int main (int argc, char *argv [])
                                 if (slowdim < 1) slowdim = 1;
                                 cbf_failnez (cbf_select_column(cbf,colnum));
                                 if (!xdsb2z) {
-                                  cbf_failnez ( cbf_copy_value_with_roi(cbf,
+                                  cbf_failnez ( cbf_copy_value_with_roi_binoi(cbf,
                                                                         cif,
                                                                         category_name,
                                                                         column_name,
@@ -2015,7 +2044,8 @@ int main (int argc, char *argv [])
                                                                         nelsign,
                                                                         cliplow,
                                                                         cliphigh,
-                                                                        roi))
+                                                                        roi, 
+                                                                        binoi))
 
                                 } else {
                                   if ((array=malloc(elsize*elements))) {

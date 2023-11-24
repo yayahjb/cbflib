@@ -1,7 +1,7 @@
 /**********************************************************************
  * tiffcbf -- convert a tiff file to a cbf file                       *
  *                                                                    *
- * Version 0.9.8 30 June 2023                                         *
+ * Version 0.9.8 27 October 2023                                      *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -191,7 +191,7 @@ int local_exit(int status) {
 }
 
 static int usage(void) {
-        fprintf (stderr, "\n Usage: %s [-h|--help] [-v|--verbose] [-i]tiffile [-o]cbffile\n", "tff2cbf");
+        fprintf (stderr, "\n Usage: %s [-h|--help] [-v|--verbose] [-c {p|c|b|n|v|f|i}] [-i]tiffile [-o]cbffile\n", "tiff2cbf");
         return 0;
 }
 
@@ -218,9 +218,12 @@ int main (int argc, char *argv [])
     unsigned char * raster;
     char * tiffile;
     char * cbffile;
+    char * compression;
+    int cbf_compression;
     int iarg;
     int verbose;
     int imageno;
+    int errflg;
     size_t totread;
     
      
@@ -233,8 +236,11 @@ int main (int argc, char *argv [])
     }
 
     verbose = 0;
+    errflg = 0;
     tiffile=0;
     cbffile=0;
+    compression=0;
+    cbf_compression=CBF_NONE;
 
     for (iarg=1; iarg<argc; iarg++) {
       if ((argv[iarg][0]=='-' && argv[iarg][1]=='v' && argv[iarg][2]==0)
@@ -252,7 +258,12 @@ int main (int argc, char *argv [])
         if (iarg < argc) tiffile=argv[iarg];
       } else if ((argv[iarg][0]=='-' && argv[iarg][1]=='o' && argv[iarg][2]==0)) {
         iarg++;
-        if (iarg < argc) tiffile=argv[iarg];
+        if (iarg < argc) cbffile=argv[iarg];
+      } else if ((argv[iarg][0]=='-' && argv[iarg][1]=='c' && argv[iarg][2]!=0)){
+        compression=argv[iarg]+2;
+      } else if ((argv[iarg][0]=='-' && argv[iarg][1]=='c' && argv[iarg][2]==0)){
+        iarg++;
+        if (iarg < argc) compression=argv[iarg];
       } else if (argv[iarg][0]=='-') {
         fprintf(stderr,"tiff2cbf: unrecognized option %d '%s'\n",iarg,argv[iarg]);
         usage();
@@ -275,9 +286,41 @@ int main (int argc, char *argv [])
        exit(1);
     }
 
-    
-    
-    
+    /* interpret the compression */
+
+    if (!compression) {
+        cbf_compression=CBF_BYTE_OFFSET;
+    } else {
+       errflg = 0;
+       if (compression[0] == 'p' || compression[0] == 'P') {
+           cbf_compression = CBF_PACKED;
+       } else if (compression[0] == 'c' || compression[0] == 'C') {
+           cbf_compression = CBF_CANONICAL;
+       } else if (compression[0] == 'b' || compression[0] == 'B') { 
+           cbf_compression = CBF_BYTE_OFFSET;
+       } else if (compression[0] == 'n' || compression[0] == 'N') {
+           cbf_compression = CBF_NONE;
+       } else if (compression[0] == 'v' || compression[0] == 'V') {
+           cbf_compression = CBF_PACKED_V2;
+       } else if (compression[0] == 'f' || compression[0] == 'F') {
+           cbf_compression = CBF_PACKED|CBF_FLAT_IMAGE;
+       } else if (compression[0] == 'i' || compression[0] == 'I' || !cbf_cistrcmp(compression,"nibble_offset")) {
+           cbf_compression = CBF_NIBBLE_OFFSET;
+       } else if (compression[0] == 'z' || compression[0] == 'Z' || compression[0] == 'l' || compression[0] == 'L'
+               || compression[0] == '2' || !cbf_cistrcmp(compression,"LZ4**2")) {
+           cbf_compression = CBF_NIBBLE_OFFSET;
+       } else if ((compression[0] == 'B' || compression[0] == 'b')
+                &&(compression[1] == 'S' || compression[1] == 's')) {
+           cbf_compression = CBF_NIBBLE_OFFSET;
+       } else { errflg ++; }
+    }
+    if (errflg) {
+        fprintf(stderr,"tiff2cbf: unrecognized -c compression option '%s'\n",compression);
+        usage();
+        exit(1);
+    }
+
+ 
     /* Read the tiff image */
         
     a = clock ();
@@ -287,6 +330,7 @@ int main (int argc, char *argv [])
         fprintf(stderr,"tiff2cbf: unable to open tiff image %s, abort\n", tiffile);
         local_exit(-1);
     }
+
     
     b = clock ();
     
@@ -432,12 +476,12 @@ int main (int argc, char *argv [])
 
         }
         if(real){
-            cbf_failnez (cbf_set_realarray_wdims_fs (cbf, CBF_NONE, imageno,
+            cbf_failnez (cbf_set_realarray_wdims_fs (cbf, cbf_compression, imageno,
                                                         (void *)raster, elsize,
                                                         npixels,
                                                         "little_endian",dimfast,dimmid,dimslow,0 ))
         } else {
-            cbf_failnez (cbf_set_integerarray_wdims_fs (cbf, CBF_NONE, imageno,
+            cbf_failnez (cbf_set_integerarray_wdims_fs (cbf, cbf_compression, imageno,
                                                     (void *)raster, elsize, elsign,
                                                     npixels,
                                                     "little_endian",dimfast,dimmid,dimslow,0 ))

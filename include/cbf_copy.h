@@ -303,12 +303,12 @@ extern "C" {
                        const int compression,
                        const int dimflag,
                        const int eltype,
-                       const int elsize,
+                       const size_t elsize,
                        const int elsign,
                        const double cliplow,
                        const double cliphigh);
     
-    /* cbf_copy_value_with_roi -- copy the current value from cbfin to cbfout,
+    /* cbf_copy_value_with_roi_binoi -- copy the current value from cbfin to cbfout,
      specifying the target category, column, rownum, compression, dimension details,
      element type, size and sign, with an optional roi */
     
@@ -320,11 +320,30 @@ extern "C" {
                                 const int compression,
                                 const int dimflag,
                                 const int eltype,
-                                const int elsize,
+                                const size_t elsize,
                                 const int elsign,
                                 const double cliplow,
                                 const double cliphigh,
                                 const char * roi);
+
+    /* cbf_copy_value_with_roi_binoi -- copy the current value from cbfin to cbfout,
+     specifying the target category, column, rownum, compression, dimension details,
+     element type, size and sign, with an optional roi and optional binoi */
+    
+    int cbf_copy_value_with_roi_binoi(cbf_handle cbfout,
+                                cbf_handle cbfin,
+                                const char * category_name,
+                                const char * column_name,
+                                const unsigned int rownum,
+                                const int compression,
+                                const int dimflag,
+                                const int eltype,
+                                const size_t elsize,
+                                const int elsign,
+                                const double cliplow,
+                                const double cliphigh,
+                                const char * roi,
+                                const char * binoi);
     
     /* Convert an roi from a string to dimension limits */
     
@@ -334,6 +353,14 @@ extern "C" {
                        size_t * midlow,  size_t * midhigh,
                        size_t * slowlow, size_t * slowhigh,
                        double * valuelow, double * valuehigh);
+
+    /* Convert a binoi from a string to integer parameters */
+
+    int cbf_convertbinoi(char *binoi,
+                       size_t * binratio, 
+                       size_t * modulefast, size_t * modulemid, size_t * moduleslow,
+                       size_t * gapfast, size_t * gapmid, size_t * gapslow);
+
     
     /* Extract an ROI from an image array */
     
@@ -350,6 +377,38 @@ extern "C" {
                         size_t        dimmid,
                         size_t        dimslow
                         );
+
+    /* Extract an ROI from an image array into a BINOI */
+
+   int cbf_extract_roi_binoi(void        * src,
+                        void        * dst,
+                        size_t        elsize,
+                        int           elsigned,
+                        int           realarray,
+                        size_t        fastlow,
+                        size_t        fasthigh,
+                        size_t        midlow,
+                        size_t        midhigh,
+                        size_t        slowlow,
+                        size_t        slowhigh,
+                        size_t        dimfast,
+                        size_t        dimmid,
+                        size_t        dimslow,
+                        size_t        binratio,
+                        size_t        bndfastlow,
+                        size_t        bndfasthigh,
+                        size_t        bndmidlow,
+                        size_t        bndmidhigh,
+                        size_t        bndslowlow,
+                        size_t        bndslowhigh,
+                        size_t        modulefast,
+                        size_t        modulemid,
+                        size_t        moduleslow,
+                        size_t        gapfast,
+                        size_t        gapmid,
+                        size_t        gapslow
+                        );
+
 
 
     /* Multiply a 3x3 matrix times a 3-vector to produce a 3-vectorD */
