@@ -14494,7 +14494,17 @@ adscimg1cbf or convert_image and produces raw or compressed adsc image files wit
     --bz2   Output a .bz2 file (e.g., filen.img.bz2).
 </pre>
 <p>
-<h4>tiff2cbf</h4>
+<a name="cbf2tiff"><h4>cbf2tiff</h4></a>
+<p>
+The test program cbf2tiff converts a cbf data file to a tiff datd file.
+</p>
+<pre>
+
+  cbf2tiff [-i]infile.cbf [-o]outfile.tif
+
+</pre>
+<p>
+<a name="tiff2cbf"><h4>tiff2cbf</h4></a>
 <p>
 The test program tiff2cbf converts a tiff data file to a cbf data file.  The program
 converts the tiff data samples directly into a minicbf with the tiff header
@@ -14503,7 +14513,10 @@ supported for the sample formats SAMPLEFORMAT_UINT (unsigned integer data),
 SAMPLEFORMAT_INT (unsigned integer data), SAMPLEFORMAT_INT (signed integer data),
 SAMPLEFORMAT_IEEEFP (IEEE floating point data),  SAMPLEFORMAT_COMPLEXINT
 (complex signed int) and SAMPLEFORMAT_COMPLEXIEEEFP (complex ieee floating).
+As of October 2023, tiff2cbf includes a -c option to convert to the
+various CBF compressions.  The default is -c b for byte-offsetcompression. 
 Conversions from these formats to other CBF formats can be handled by cif2cbf.
+The -c n option  should be used if the pre-October 2023 behavior is desired.
 If you wish to convert and xxx.tif written with IEEE floating point samples
 into a CBF with integer values compressed by byte-offset compression
 for use by XDS, creating an xxx_view.cbf with values clipped between 0 and 100,
@@ -14511,17 +14524,17 @@ and an xxx_xds.cbf with unclipped values for processing:
 <p>
 <pre>
 
-  tiff2cbf xxx.tif xxx.cbf
+  tiff2cbf [-c {n|p|c|b|i|v|f}] [-i]  xxx.tif [-o] xxx.cbf
   cif2cbf -I 4 -C 100. -L 0. -e n -c b -i xxx.cbf -o xxx_view.cbf
   cif2cbf -I 4 -e n -c b -i xxx.cbf -o xxx_xds.cbf
   
 </pre>
 <p>
-  
-  <h4>minicbf2nexus</h4>
-  <p>This program takes some minicbf files describing a single scan and
-      axis configuration settings for them and creates a nexus file containing 
-      the same data. As this is an early version of the program it lacks a lot 
+<a name="minicbf2nexus"><h4>minicbf2nexus</h4></a>
+<p>
+This program takes some minicbf files describing a single scan and
+axis configuration settings for them and creates a nexus file containing 
+the same data. As this is an early version of the program it lacks a lot 
 of useful functionality and should not be assumed to be stable.</p>
   <p>It currently takes several command line arguments:</p>
   <ul>

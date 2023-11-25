@@ -289,7 +289,7 @@ int	main(int argc, char *argv[])
         int iarg;
   
 
-	if(argc < 2)
+	if(argc < 3 || (argc==2 && !cbf_cistrncmp(argv[1],"--help",6)))
 	{
 		usage();
 		exit(0);
@@ -297,7 +297,7 @@ int	main(int argc, char *argv[])
 
         for (iarg=1; iarg < argc; iarg++) {
 
-          if (argv[iarg][0]=='-' && argv[iarg][1]=='i') {
+          if (iarg < argc && argv[iarg][0]=='-' && argv[iarg][1]=='i') {
             if (argv[iarg][2]!=0) {
               in_filename=argv[iarg]+2;
             } else {
@@ -313,7 +313,7 @@ int	main(int argc, char *argv[])
             in_filename=argv[iarg];
           }
           iarg++;
-          if (argv[iarg][0]=='-' && argv[iarg][1]=='o') {
+          if ( iarg < argc && argv[iarg][0]=='-' && argv[iarg][1]=='o') {
             if (argv[iarg][2]!=0) {
               out_filename=argv[iarg]+2;
             } else {
