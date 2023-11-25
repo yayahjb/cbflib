@@ -305,7 +305,7 @@ NUWEB_DEP=
 NUWEB_DEP2=
 else
 NUWEB=$(BIN)/nuweb
-NUWEB_DEP=nuweb-1.61
+NUWEB_DEP=nuweb-1.62
 NUWEB_DEP2=$(BIN)/nuweb
 endif
 
