@@ -214,7 +214,8 @@ static void padhd (char* header, int size)
 /*
  * find the } marking the end of the header
  */
-  for ( hp=header; *hp != '}'; hp++); hp++;
+  for ( hp=header; *hp != '}'; hp++); 
+  hp++;
 
 /*
  * End this field with a ; and new line

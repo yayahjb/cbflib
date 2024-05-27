@@ -1,7 +1,7 @@
 /**********************************************************************
  *          cif2cbf -- convert a cif to a cbf file                    *
  *                                                                    *
- * Version 0.9.8  13 October 2023                                     *
+ * Version 0.9.8  21 April 2024                                       *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -74,11 +74,12 @@
  *                              [,midlow,midhigh[,slowlow,slowhigh]] \*
  *    [--{bin|binning} binratio                                       *
  *                          [,modulefast,moduleslow,gapfast,gapslow]]\*
+ *    [--{sum|summng} sumrange]                                       *
  *    [--add-update-data] \                                           *
  *    [--subtract-update-data] \                                      *
  *    [--merge-datablocks-by-number] \                                *
  *    [--merge-datablocks-by-name] \                                  *
- *    [--∑xdsb2z|rotate-xds-beam-to-z  \                               *
+ *    [--xdsb2z|rotate-xds-beam-to-z  \                               *
  *      [beamx[,beamy[,beamz[,beamcentx[,beamcenty[,beamcentz]]]]]]] \*
  *    [-U n] \                                                        *
  *    [input_cif] [output_cbf]                                        *
@@ -189,7 +190,6 @@
  *  -O when in -5 w (hdf5 write) mode, -O forces the use of opaque    *
  *     objects for CBF binaries                                       *
  *                                                                    *
- *                                                                    *
  *  --register manual or plugin (default plugin)                      *
  *     controls whether to rely on the HDF5 filter plugin mechanism   *
  *     or to manually register the CBFlib compression for HDF5        *
@@ -232,6 +232,13 @@
  * --binning ...                                                      *
  *    synonym for bin                                                 *
  *                                                                    *
+ * --sum sumrange                                                     *
+ *    sum sequential images in blocks of sumrange                     *
+ *    this is similar in action to --add-update-data, but causes the  *
+ *                                                                    *
+ * --summing ...                                                      *
+ *    synonymn for sum                                                *
+ *                                                                    *
  *  --add-update-data                                                 *
  *  --subtract-update-data                                            *
  *     if an update cbf with data is provided via the -u option       *
@@ -249,7 +256,7 @@
  *     rather than by their ordinals                                  *
  *                                                                    *
  *  --xdsb2z|rotate-xds-beam-to-z beamx,beamy,beamz,                  *
- *     beamcentx,beamcenty,beamcentz                                  * 
+ *     beamcentx,beamcenty,beamcentz                                  *
  *    assume the beam is along [beamx, beamy, beamz] relative to the  *
  *    image and rotate the image so that the beam is along [0,0,-1]   *
  *                                                                    *
@@ -725,6 +732,7 @@ static int cbf_convertioi(const char *ioi, const size_t maxitems,
     if (*endptr != ',' && *endptr != ' ') return CBF_FORMAT;
     return CBF_SUCCESS;
 }
+
 /* Convert items of interest from a string to a doubles */
 
 static int cbf_convertiod(const char *iod, const size_t maxitems,
@@ -848,7 +856,10 @@ int main (int argc, char *argv [])
     const char *roi;  /* region of interest */
     const char *binoi; /* bin of interest */
     int binratio; /* ratio by which to sum pixels into bins */
+    int sumrange; /* number of images in each block to be summed */
+    int sumpart; /* number of images summed in sumarray */
     int modulefast,modulemid,moduleslow,gapfast,gapmid,gapslow;
+    void *sumarray; /*  allocated array for the partial sum */
     const char *beamcoords; /* beam axis vector */
     unsigned int colnum, rownum;
     unsigned int columns;
@@ -899,6 +910,7 @@ int main (int argc, char *argv [])
      *    [--{foi|frames-of-interest}  frame[,framehigh] \                *
      *    [--{roi|region-of-interest}  fastlow,fasthigh,.... \            *
      *    [--{bin|binning}  binratio,.... \                               *
+     *    [--{sum|summing}  sumrange... \                                 *
      *    [--add-update-data] \                                           *
      *    [--subtract-update-data] \                                      *
      *    [--merge-datablocks-by-number] \                                *
@@ -937,6 +949,9 @@ int main (int argc, char *argv [])
     roi = NULL;
     binoi = NULL;
     binratio = 0;
+    sumrange = 0;
+    sumpart = 0;
+    sumarray = NULL;
     modulefast = 0;
     moduleslow = 0;
     gapfast = 0;
@@ -970,7 +985,6 @@ int main (int argc, char *argv [])
                                  "\005(frames-of-interest):\005(foi):" \
                                  "\006(region-of-interest):\006(roi):" \
                                  "\007(help)" \
-                                 "\010(add-update-data)" \
                                  "\011(subtract-update-data)" \
                                  "\012(merge-datablocks-by-number)" \
                                  "\013(merge-datablocks-by-name)" \
@@ -984,7 +998,8 @@ int main (int argc, char *argv [])
                                  "\023(merge-datablocks-by-number)" \
                                  "\024(merge-datablocks-by-name)" \
                                  "\025(rotate-xds-beam-to-z):\025(xdsb2z):"\
-                                 "\026(bin):\026(binning):"
+                                 "\026(bin):\026(binning):"\
+                                 "\027(sum):\027(summing):"
                                  ));
 
     if (!cbf_rewind_getopt_option(opts))
@@ -1214,11 +1229,6 @@ int main (int argc, char *argv [])
                     errflg++;
                     break;
 
-                case '\010': /* add-update-data */
-                    if (add_update_data || subtract_update_data) errflg++;
-                    add_update_data = 1;
-                    break;
-
                 case '\011': /* subtract-update-data */
                     if (add_update_data || subtract_update_data) errflg++;
                     subtract_update_data = 1;
@@ -1356,6 +1366,12 @@ int main (int argc, char *argv [])
                 case '\026': /*set up binning */
                     if (binoi) errflg++;
                     binoi = optarg;
+                    break;
+
+                case '\027': /*set up summing */
+                    if (sumrange) errflg++;
+                    sumrange = atoi(optarg);
+                    if (sumrange < 0 ) errflg++;
                     break;
 
                 case 'O': /* set Opaque mode */
@@ -1613,6 +1629,8 @@ int main (int argc, char *argv [])
         fprintf(stderr,
                 "    [--{bin|binning} binratio\n"
                 "    [,modulefast,moduleslow,gapfast,gapslow]]\\\n");
+        fprintf(stderr,
+                "    [--{sum|summing} sumrange\\\n");
         fprintf(stderr,
                 "    [--{xdsb2z|rotate-xds-beam-to-z}\n"
                 "    beamx[,beamy[,beamz[,beamcentx[,beamcenty[,beamcentz]]]]] \\\n");
