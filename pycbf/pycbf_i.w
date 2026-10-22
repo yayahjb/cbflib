@@ -377,7 +377,7 @@ static int convert_darray(PyObject *input, double *ptr, int size) {
                 PyErr_SetString(PyExc_ValueError,"Expecting a sequence of long integers");
                 return 0;
             }*/
-            ptr[i] = (int)PyInt_AsLong(o);
+            ptr[i] = (int)PyLong_AsLong(o);
             Py_DECREF(o);
         }
         return 1;
