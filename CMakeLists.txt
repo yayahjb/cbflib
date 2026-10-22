@@ -459,13 +459,13 @@ fetchcontent_declare(cqrlib
     -N -i "${CMAKE_CURRENT_SOURCE_DIR}/patches/cqrlib-1.1.4.patch" -p 1 -t)
 
 fetchcontent_declare(data_input
-  URL "http://downloads.sf.net/cbflib/CBFlib_${PROJECT_VERSION}_Data_Files_Input.tar.gz"
+  URL "https://github.com/dials/cbflib/releases/download/CBFlib-${PROJECT_VERSION}/CBFlib_${PROJECT_VERSION}_Data_Files_Input.tar.gz"
   URL_HASH MD5=f98ae4214b3e57acb42437ea4b685c4d
   PATCH_COMMAND "${PATCH}"
     -N -i "${CMAKE_CURRENT_SOURCE_DIR}/patches/cbflib-data-input-${PROJECT_VERSION}.patch" -p 1 -t --binary)
 
 fetchcontent_declare(data_output
-  URL "http://downloads.sf.net/cbflib/CBFlib_${PROJECT_VERSION}_Data_Files_Output.tar.gz"
+  URL "https://github.com/dials/cbflib/releases/download/CBFlib-${PROJECT_VERSION}/CBFlib_${PROJECT_VERSION}_Data_Files_Output.tar.gz"
   URL_HASH MD5=716346077fe2bcbe29e5153f0ecbb8e7
   PATCH_COMMAND "${PATCH}"
     -N -i "${CMAKE_CURRENT_SOURCE_DIR}/patches/cbflib-data-output-${PROJECT_VERSION}.patch" -p 1 -t --binary)

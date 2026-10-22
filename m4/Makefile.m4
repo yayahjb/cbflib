@@ -1129,7 +1129,7 @@ endif
 #
 # URLs from which to retrieve the data directories
 #
-DATAURLBASE	= http://downloads.sf.net/cbflib/
+DATAURLBASE	= https://github.com/dials/cbflib/releases/download/CBFlib-$(VERSION)
 DATAURLI	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Input.tar.gz
 DATAURLO	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Output.tar.gz
 
