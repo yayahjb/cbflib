@@ -501,10 +501,10 @@ INSTALLDIR  = $(HOME)
 #
 # URLs from which to retrieve the data directories
 #
-DATAURLBASE	= http://downloads.sf.net/cbflib
+DATAURLBASE	= https://github.com/dials/cbflib/releases/download/CBFlib-$(VERSION)
 DATAURLI	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Input.tar.gz
 DATAURLO	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Output.tar.gz
-DATAURLS	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Output_Sigs_Only.tar.gz
+DATAURLS	= http://downloads.sf.net/cbflib/CBFlib_$(VERSION)_Data_Files_Output_Sigs_Only.tar.gz
 
 #
 # URLs from which to retrieve needed external package snapshots
