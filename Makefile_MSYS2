@@ -330,7 +330,7 @@ ifneq ($(CBFLIB_DONT_USE_PY3CIFRW),yes)
 # Definitions to get versions of python3 PyCifRW and PLY
 #
 PY3CIFRW ?= PyCifRW-4.3_rev_19Jun21
-PY3PLY = ply-3.11
+PY3PLY = ply-master
 PY3CIFRWFLAG = -DCBF_USE_PYCIFRW
 PY3CIFRW_PREFIX ?= $(HOME)/.local
 endif
@@ -772,7 +772,7 @@ PY2PLYURL      = http://www.dabeaz.com/ply/$(PY2PLY).tar.gz
 endif
 ifneq ($(CBFLIB_DONT_USE_PY3CIFRW),yes)
 PY3CIFRWURL     = http://downloads.sf.net/cbflib/$(PY3CIFRW).tar.gz
-PY3PLYURL       = http://downloads.sf.net/cbflib/$(PY3PLY).tar.gz
+PY3PLYURL       = https://github.com/dabeaz/ply/archive/refs/heads/master.tar.gz
 endif
 REGEX_URL	?= https://github.com/PCRE2Project/pcre2/releases/download/$(REGEX)/$(REGEX).tar.gz
 TIFF_URL	?= https://download.osgeo.org/libtiff/$(TIFF).tar.gz
